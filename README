@@ -1,0 +1,46 @@
+cmsrel CMSSW_6_1_1
+cd CMSSW_6_1_1/src/
+setenv SCRAM_ARCH slc5_amd64_gcc472 
+cmsenv
+git clone -b development https://github.com/cms-analysis/HiggsAnalysis-CombinedLimit.git HiggsAnalysis/CombinedLimit
+
+(use trick here for using CVS, or use git if available)
+export CVSROOT=:ext:<your username>@lxplus5.cern.ch:/afs/cern.ch/user/c/cvscmssw/public/CMSSW 
+cvs co -P -r postHCP_VBF -d CombinationPy UserCode/HZZ4L_Combination/CombinationPy
+cd CombinationPy/
+cvs co -P -r HEAD -d AnalysisInputs UserCode/HZZ4L_Combination/CombinationPy/AnalysisInputs
+
+cd CreateDatacards/
+./buildPackage.sh
+cd ../AnalysisInputs/
+root -l -b -q mergeFragments.C
+
+cp HiggsWidth.py HiggsAnalysis/CombinedLimit/python
+cp <all other .py files> CombinationPy/CreateDatacards/
+cp -r SM_inputs_8TeV CombinationPy/CreateDatacards/
+cp -r template* CombinationPy/CreateDatacards/
+cp -r utils CombinationPy/CreateDatacards/
+scram b clean; scram b
+
+TO PRODUCE CARDS:
+1D
+python make_width_DCsandWSs.py -i SM_inputs_8TeV -a test1D -b -t templates1D/
+
+2D
+python make_width2D_DCsandWSs.py -i SM_inputs_8TeV -a test2D -b -t templates2D/
+
+TO RUN LIMITS (e.g. for 240 < m4l < inf):
+cd test1D/HCG/240 or test2D/HCG/240
+combineCards.py hzz4l_2e2muS_8TeV.txt hzz4l_4muS_8TeV.txt hzz4l_4eS_8TeV.txt > hzz4l_allS_8TeV.txt
+
+text2workspace.py -m 240 hzz4l_allS_8TeV.txt -P HiggsAnalysis.CombinedLimit.HiggsWidth:higgswidth -o hzz4l_allS_8TeV.root
+(add --stat if no systematics)
+(add -PO=GGsmVal=25 if you want to run with e.g. G/G_SM = 25 and not 1)
+
+combine -M GenerateOnly hzz4l_allS_8TeV.root -m 240 -t -1 --expectSignal=1 --saveToys -V -v 7
+root -b -l -q ../../../utils/addToyDataset.C\(\"hzz4l_allS_8TeV.root\",\"higgsCombineTest.GenerateOnly.mH240.123456.root\",\"toy_asimov\",\"workspaceWithAsimov.root\"\)
+(for what???)
+
+combine -M MultiDimFit workspaceWithAsimov.root --algo=grid --points 200 -m 240 -n 1D_exp -S 0 --fastScan -D toys/toy_asimov -v 3
+(add "-S 0 --fastScan" if no systematics)
+root ../../../utils/plotScan1D.C\(240,30\)

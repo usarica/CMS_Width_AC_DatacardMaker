@@ -1,0 +1,82 @@
+---------------------------------------------------
+Welcome to the package which takes HZZ4l inputs, creates datacards 
+for the limit calculation, and provides scripts for running the limits 
+both locally and on the grid
+
+by Matt Snowball and Nhan Tran
+---------------------------------------------------
+
+Getting started...
+cvs co -P -r <tag> -d Limits UserCode/HZZ4L_Combination/CombinationPy
+
+Functions:
+0. Take inputs from HZZ4l analysis and convert to datacard inputs
+Documentation: AnalysisInputs/README
+
+1. Create datacards for running with LandS or Combination
+Documentation: CreateDatacards/README
+
+2. Run datacards on local cluster (support for UF, JHU, lxplus) or the GRID
+Documentation: RunLimits/README
+
+#########################################################
+
+1. Create datacards for running with LandS or Combination
+
+### Q U I C K   S T A R T   R E C I P E
+## Getting setup...
+cmsrel CMSSW_5_2_5
+cd CMSSW_5_2_5/src/
+cvs co -r HEAD HiggsAnalysis/CombinedLimit
+cmsenv
+scram b -j12
+cd ../..
+## compile HCSaW
+./buildPackage.sh
+## check inputs ---> SM_inputs_7TeV and SM_inputs_8TeV
+python makeDCsandWSs.py -i <input directory> -a <output name> -b > output.txt
+## output.txt holds all the messages from creating the cards
+
+#### ---> Next proceed to ../RunLimit/README to run limits
+
+
+NEW INSTRUCTIONS:
+cvs co -P -r Stablev4 -d Testv4 UserCode/HZZ4L_Combination/CombinationPy
+cd Testv4/CreateDatacards
+cmsrel CMSSW_5_2_5
+cd CMSSW_5_2_5/src
+cvs co -r V02-06-00 HiggsAnalysis/CombinedLimit
+cmsenv
+scram b -j12
+cd ../../
+./buildPackage.sh 
+
+#--- CREATE DATACARDS ------ 
+NOTE -j option to use new developments or remove to not use them.
+How new executable works
+if j = 0 or DEFAULT reads SM_inputs_?TeV and runs HCP style 2D (not jet category split)
+if j = 1 reads SM_inputs_?TeV_tagged and runs full 3D in both jet categories (Pt/m or Fisher, KD, m4l)
+if j = 2 reads SM_inputs_?TeV_tagged and runs 3D in jet tagged category (Fisher, KD, m4l) and 2D in untagged category (KD, m4l)
+if j = 3 reads SM_inputs_?TeV_tagged and runs 2D in untagged category (KD, m4l) and 3D in jet tagged category (Fisher, KD, m4l)
+if j = 4 reads SM_inputs_?TeV_tagged and runs 2D in untagged category (KD, m4l) and 2D in jet tagged category (KD, m4l)
+
+(Note: in the above list that the suffix "_tagged" is added to the input and output directory automatically if j != 0)
+Edit mass lists in makeDCsandWSs.py to run different masses
+
+python makeDCsandWSs.py -i SM_inputs_7TeV -a 7TeV -b -j 1 > output7TeV.txt
+python makeDCsandWSs.py -i SM_inputs_8TeV -a 8TeV -b -j 1 > output8TeV.txt
+
+cd CMSSW_5_2_5/src/
+cp -r ../../cards_7TeV_tagged/HCG .
+cd HCG/
+cp -r ../../../../RunLimits/scripts/* .
+
+Create masses.txt file with desired mass points. 
+
+for i in $(cat masses.txt); do echo $i; cp ../../../cards_8TeV_tagged/HCG/$i/* $i; done
+mkdir results
+mkdir plots
+
+Note -2 option read tagging categories cards. This must be used if j is set to 1,2,3 or 4
+
+./makeCardsWorkspaces.sh masses.txt -2

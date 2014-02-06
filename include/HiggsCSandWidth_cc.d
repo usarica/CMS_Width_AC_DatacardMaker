@@ -1,0 +1,55 @@
+
+# DO NOT DELETE
+
+./HiggsCSandWidth_cc.so: /afs/cern.ch/cms/slc5_amd64_gcc472/lcg/root/5.34.03-cms4/include/TROOT.h
+./HiggsCSandWidth_cc.so: /afs/cern.ch/cms/slc5_amd64_gcc472/lcg/root/5.34.03-cms4/include/TDirectory.h
+./HiggsCSandWidth_cc.so: /afs/cern.ch/cms/slc5_amd64_gcc472/lcg/root/5.34.03-cms4/include/TNamed.h
+./HiggsCSandWidth_cc.so: /afs/cern.ch/cms/slc5_amd64_gcc472/lcg/root/5.34.03-cms4/include/TObject.h
+./HiggsCSandWidth_cc.so: /afs/cern.ch/cms/slc5_amd64_gcc472/lcg/root/5.34.03-cms4/include/Rtypes.h
+./HiggsCSandWidth_cc.so: /afs/cern.ch/cms/slc5_amd64_gcc472/lcg/root/5.34.03-cms4/include/RConfig.h
+./HiggsCSandWidth_cc.so: /afs/cern.ch/cms/slc5_amd64_gcc472/lcg/root/5.34.03-cms4/include/RVersion.h
+./HiggsCSandWidth_cc.so: /afs/cern.ch/cms/slc5_amd64_gcc472/lcg/root/5.34.03-cms4/include/DllImport.h
+./HiggsCSandWidth_cc.so: /afs/cern.ch/cms/slc5_amd64_gcc472/lcg/root/5.34.03-cms4/include/Rtypeinfo.h
+./HiggsCSandWidth_cc.so: /afs/cern.ch/cms/slc5_amd64_gcc472/lcg/root/5.34.03-cms4/include/snprintf.h
+./HiggsCSandWidth_cc.so: /afs/cern.ch/cms/slc5_amd64_gcc472/lcg/root/5.34.03-cms4/include/strlcpy.h
+./HiggsCSandWidth_cc.so: /afs/cern.ch/cms/slc5_amd64_gcc472/lcg/root/5.34.03-cms4/include/TGenericClassInfo.h
+./HiggsCSandWidth_cc.so: /afs/cern.ch/cms/slc5_amd64_gcc472/lcg/root/5.34.03-cms4/include/TSchemaHelper.h
+./HiggsCSandWidth_cc.so: /afs/cern.ch/cms/slc5_amd64_gcc472/lcg/root/5.34.03-cms4/include/TStorage.h
+./HiggsCSandWidth_cc.so: /afs/cern.ch/cms/slc5_amd64_gcc472/lcg/root/5.34.03-cms4/include/TVersionCheck.h
+./HiggsCSandWidth_cc.so: /afs/cern.ch/cms/slc5_amd64_gcc472/lcg/root/5.34.03-cms4/include/Riosfwd.h
+./HiggsCSandWidth_cc.so: /afs/cern.ch/cms/slc5_amd64_gcc472/lcg/root/5.34.03-cms4/include/TBuffer.h
+./HiggsCSandWidth_cc.so: /afs/cern.ch/cms/slc5_amd64_gcc472/lcg/root/5.34.03-cms4/include/TString.h
+./HiggsCSandWidth_cc.so: /afs/cern.ch/cms/slc5_amd64_gcc472/lcg/root/5.34.03-cms4/include/TMathBase.h
+./HiggsCSandWidth_cc.so: /afs/cern.ch/cms/slc5_amd64_gcc472/lcg/root/5.34.03-cms4/include/TList.h
+./HiggsCSandWidth_cc.so: /afs/cern.ch/cms/slc5_amd64_gcc472/lcg/root/5.34.03-cms4/include/TSeqCollection.h
+./HiggsCSandWidth_cc.so: /afs/cern.ch/cms/slc5_amd64_gcc472/lcg/root/5.34.03-cms4/include/TCollection.h
+./HiggsCSandWidth_cc.so: /afs/cern.ch/cms/slc5_amd64_gcc472/lcg/root/5.34.03-cms4/include/TIterator.h
+./HiggsCSandWidth_cc.so: /afs/cern.ch/cms/slc5_amd64_gcc472/lcg/root/5.34.03-cms4/include/TDatime.h
+./HiggsCSandWidth_cc.so: /afs/cern.ch/cms/slc5_amd64_gcc472/lcg/root/5.34.03-cms4/include/TUUID.h
+./HiggsCSandWidth_cc.so: /afs/cern.ch/cms/slc5_amd64_gcc472/lcg/root/5.34.03-cms4/include/TF1.h
+./HiggsCSandWidth_cc.so: /afs/cern.ch/cms/slc5_amd64_gcc472/lcg/root/5.34.03-cms4/include/TFormula.h
+./HiggsCSandWidth_cc.so: /afs/cern.ch/cms/slc5_amd64_gcc472/lcg/root/5.34.03-cms4/include/TBits.h
+./HiggsCSandWidth_cc.so: /afs/cern.ch/cms/slc5_amd64_gcc472/lcg/root/5.34.03-cms4/include/TObjArray.h
+./HiggsCSandWidth_cc.so: /afs/cern.ch/cms/slc5_amd64_gcc472/lcg/root/5.34.03-cms4/include/TAttLine.h
+./HiggsCSandWidth_cc.so: /afs/cern.ch/cms/slc5_amd64_gcc472/lcg/root/5.34.03-cms4/include/TAttFill.h
+./HiggsCSandWidth_cc.so: /afs/cern.ch/cms/slc5_amd64_gcc472/lcg/root/5.34.03-cms4/include/TAttMarker.h
+./HiggsCSandWidth_cc.so: /afs/cern.ch/cms/slc5_amd64_gcc472/lcg/root/5.34.03-cms4/include/Math/ParamFunctor.h
+./HiggsCSandWidth_cc.so: /afs/cern.ch/cms/slc5_amd64_gcc472/lcg/root/5.34.03-cms4/include/TGraph.h
+./HiggsCSandWidth_cc.so: /afs/cern.ch/cms/slc5_amd64_gcc472/lcg/root/5.34.03-cms4/include/TVectorFfwd.h
+./HiggsCSandWidth_cc.so: /afs/cern.ch/cms/slc5_amd64_gcc472/lcg/root/5.34.03-cms4/include/TVectorDfwd.h
+./HiggsCSandWidth_cc.so: /afs/cern.ch/cms/slc5_amd64_gcc472/lcg/root/5.34.03-cms4/include/TFitResultPtr.h
+./HiggsCSandWidth_cc.so: /afs/cern.ch/cms/slc5_amd64_gcc472/lcg/root/5.34.03-cms4/include/TCanvas.h
+./HiggsCSandWidth_cc.so: /afs/cern.ch/cms/slc5_amd64_gcc472/lcg/root/5.34.03-cms4/include/TPad.h
+./HiggsCSandWidth_cc.so: /afs/cern.ch/cms/slc5_amd64_gcc472/lcg/root/5.34.03-cms4/include/TVirtualPad.h
+./HiggsCSandWidth_cc.so: /afs/cern.ch/cms/slc5_amd64_gcc472/lcg/root/5.34.03-cms4/include/TAttPad.h
+./HiggsCSandWidth_cc.so: /afs/cern.ch/cms/slc5_amd64_gcc472/lcg/root/5.34.03-cms4/include/TVirtualX.h
+./HiggsCSandWidth_cc.so: /afs/cern.ch/cms/slc5_amd64_gcc472/lcg/root/5.34.03-cms4/include/TAttText.h
+./HiggsCSandWidth_cc.so: /afs/cern.ch/cms/slc5_amd64_gcc472/lcg/root/5.34.03-cms4/include/GuiTypes.h
+./HiggsCSandWidth_cc.so: /afs/cern.ch/cms/slc5_amd64_gcc472/lcg/root/5.34.03-cms4/include/Buttons.h
+./HiggsCSandWidth_cc.so: /afs/cern.ch/cms/slc5_amd64_gcc472/lcg/root/5.34.03-cms4/include/TQObject.h
+./HiggsCSandWidth_cc.so: /afs/cern.ch/cms/slc5_amd64_gcc472/lcg/root/5.34.03-cms4/include/TAttCanvas.h
+./HiggsCSandWidth_cc.so: /afs/cern.ch/cms/slc5_amd64_gcc472/lcg/root/5.34.03-cms4/include/TCanvasImp.h
+./HiggsCSandWidth_cc.so: /afs/cern.ch/cms/slc5_amd64_gcc472/lcg/root/5.34.03-cms4/include/TSpline.h
+./HiggsCSandWidth_cc.so: HiggsCSandWidth.h
+./HiggsCSandWidth_cc.so: /afs/cern.ch/cms/slc5_amd64_gcc472/lcg/root/5.34.03-cms4/include/cintdictversion.h /afs/cern.ch/cms/slc5_amd64_gcc472/lcg/root/5.34.03-cms4/include/RVersion.h
+HiggsCSandWidth_cc__ROOTBUILDVERSION= 5.34/03
