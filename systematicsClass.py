@@ -710,8 +710,8 @@ class systematicsClass:
         if theInputs['useLumiUnc']:
             self.Build_lumi(theFile,theInputs)
 
-        #if theInputs['usePdf_gg']:
-        #    self.Write_pdf_gg(theFile,theInputs)
+        if theInputs['usePdf_gg']:
+            self.Write_pdf_gg(theFile,theInputs)
 
         if theInputs['usePdf_qqbar']:
             self.Write_pdf_qqbar(theFile,theInputs)
