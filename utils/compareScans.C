@@ -1,4 +1,10 @@
-void compareScans(TString file1="cards_test2D",TString file2="cards_test2D_mysyst"){
+void compareScans(){
+
+  const int nfiles = 2;
+  TString files[]={"cards_test2D","cards_test2D_mysyst","cards_test2D_allsyst"};
+  int colors[]={kBlack,kGreen+2,kBlue,kRed+1,kYellow+3};
+  TString grnames[]={"Expected - no syst","Expected #mu syst", "Expected - full syst"};
+
   int mass = 240;
   int maxwidth = 30;
   bool blind = true;
@@ -10,53 +16,48 @@ void compareScans(TString file1="cards_test2D",TString file2="cards_test2D_mysys
   gStyle->SetPadTopMargin(0.05);
   float gglimit = float(maxwidth);
 
-  char boh[200];
-  sprintf(boh,"%s/%s/higgsCombine1D_exp.MultiDimFit.mH%d.root", file1.Data(),filepath.Data(),mass);
-  TFile *f1=new TFile(boh);
+  TMultiGraph *mg = new TMultiGraph();
 
-  char boh2[200];
-  sprintf(boh2,"%s/%s/higgsCombine1D_exp.MultiDimFit.mH%d.root", file2.Data(),filepath.Data(),mass);
-
-  TTree *t1=(TTree*)f1->Get("limit");
-  t1->Draw("2*deltaNLL:CMS_zz4l_GGsm", "deltaNLL > 0","PL");
-  TGraph *gr0 = (TGraph*) gROOT->FindObject("Graph")->Clone();
-  gr0->SetName("Exp1D");
-  gr0->SetLineWidth(2);
-  gr0->SetLineColor(kBlack);
-  gr0->SetLineStyle(2);
-  gr0->SetTitle("");
-
-  TFile *f2=new TFile(boh2);
-  TTree *t2=(TTree*)f2->Get("limit");
-  t2->Draw("2*deltaNLL:CMS_zz4l_GGsm", "deltaNLL > 0","PL");
-  TGraph *gr1 = (TGraph*) gROOT->FindObject("Graph")->Clone();
-  gr1->SetName("Exp1D");
-  gr1->SetLineWidth(2);
-  gr1->SetLineColor(kGreen+2);
-  gr1->SetLineStyle(2);
-  gr1->SetTitle("");
+  for(int i=0;i<nfiles;i++){
+    char boh[200];
+    sprintf(boh,"%s/%s/higgsCombine1D_exp.MultiDimFit.mH%d.root", files[i].Data(),filepath.Data(),mass);
+    TFile *f1=TFile::Open(boh);
+    TTree *t1=(TTree*)f1->Get("limit");
+    t1->Draw("2*deltaNLL:CMS_zz4l_GGsm", "deltaNLL > 0","PL");
+    TGraph *gr0 = (TGraph*) gROOT->FindObject("Graph")->Clone();
+    gr0->SetName(grnames[i].Data());
+    gr0->SetLineWidth(2);
+    gr0->SetLineColor(colors[i]);
+    gr0->SetLineStyle(2);
+    gr0->SetTitle("");
+    mg->Add(gr0,"l");
+  }
 
   TCanvas *c1=new TCanvas("can1","CANVAS-SCAN1D",800,800);
   c1->cd();
-  gr0->GetXaxis()->SetTitle("#Gamma/#Gamma_{SM}");
-  gr0->GetYaxis()->SetTitle("-2 #Delta lnL");
-  gr0->GetXaxis()->SetLabelSize(0.04);
-  gr0->GetYaxis()->SetLabelSize(0.04);
-  gr0->GetYaxis()->SetRangeUser(0.,12.);
-  gr0->GetXaxis()->SetRangeUser(0.,gglimit);
-  gr0->Draw("AL");
-  gr1->Draw("LSAME");
+  mg->Draw("AL");
+  mg->GetXaxis()->SetTitle("#Gamma/#Gamma_{SM}");
+  mg->GetYaxis()->SetTitle("-2 #Delta lnL");
+  mg->GetXaxis()->SetLabelSize(0.04);
+  mg->GetYaxis()->SetLabelSize(0.04);
+  mg->GetYaxis()->SetRangeUser(0.,12.);
+  mg->GetXaxis()->SetRangeUser(0.,gglimit);
 
-  TLegend *leg = new TLegend(0.25,0.73,0.5,0.93);
+  //TLegend *leg = new TLegend(0.25,0.73,0.5,0.93);
+  TLegend *leg = c1->BuildLegend();
+  leg->SetX1(0.22);
+  leg->SetX2(0.5);
+  leg->SetY1(0.7);
+  leg->SetY2(0.93);
   leg->SetFillColor(0);
   leg->SetLineColor(0);
   leg->SetBorderSize(0);
   leg->SetFillStyle(0);
   leg->SetTextFont(42);
 
-  leg->AddEntry(gr0, "Expected - no Syst","l");
-  leg->AddEntry(gr1, "Expected","l");
-  leg->Draw();
+  //  leg->AddEntry(gr0, "Expected - no Syst","l");
+  //  leg->AddEntry(gr1, "Expected","l");
+  //  leg->Draw();
 
   float lumi7TeV=5.1;
   float lumi8TeV=19.7;

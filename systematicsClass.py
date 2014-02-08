@@ -707,56 +707,15 @@ class systematicsClass:
     
     def WriteSystematics(self,theFile,theInputs, theVBFcat=False, theUse3D=False):
 
+        #basic systematics
+
         if theInputs['useLumiUnc']:
             self.Build_lumi(theFile,theInputs)
 
-        if theInputs['usePdf_gg']:
-            self.Write_pdf_gg(theFile,theInputs)
-
-        if theInputs['usePdf_qqbar']:
-            self.Write_pdf_qqbar(theFile,theInputs)
-		
-        if not self.isForXSxBR:
-            
-            if theInputs['usePdf_hzz4l_accept']:
-                self.Write_pdf_hzz4l_accept(theFile,theInputs)
-	    
-            if not self.model == "FF" and theInputs['useQCDscale_ggH'] and not theVBFcat :
-                self.Write_QCDscale_ggH(theFile,theInputs)
-
-	    if theInputs['useQCDscale_qqH'] and not theVBFcat :
-                self.Write_QCDscale_qqH(theFile,theInputs)
-
-	    if theInputs['useQCDscale_VH']:
-                self.Write_QCDscale_VH(theFile,theInputs)
-	    
-            if not self.model == "FF" and theInputs['useQCDscale_ttH']:
-                self.Write_QCDscale_ttH(theFile,theInputs)
-
-	    if theInputs['useTheoryUncXS_HighMH']:
-                self.Write_theoryUncXS_HighMH(theFile,theInputs)
-
-        if theInputs['useQCDscale_ggVV']:
-            self.Write_QCDscale_ggVV(theFile,theInputs)
-
-        if theInputs['useQCDscale_VV']:
-            self.Write_QCDscale_VV(theFile,theInputs)
-	
-	## Higgs BR
-        if(self.model == "SM" or self.model == "FF") and theInputs['useBRhiggs_hzz4l']:
-            self.Write_BRhiggs_hzz4l(theFile,theInputs)
-	  
-	elif(self.model == "SM4"):
-            self.Write_gamma_Hff(theFile,theInputs)
-            self.Write_gamma_HVV(theFile,theInputs)
-            self.Write_gamma_Hgluglu(theFile,theInputs)
-	  
-	##  ----------- SELECTION EFFICIENCIES ----------
-            
         if theInputs['useCMS_eff']:
             self.Write_eff_m(theFile,theInputs)
             self.Write_eff_e(theFile,theInputs)
-                
+
 	if (self.channel == self.ID_4mu) and theInputs['useCMS_hzz4l_Zjets']:
             self.Write_CMS_hzz4mu_Zjets(theFile,theInputs)
 	  
@@ -766,70 +725,119 @@ class systematicsClass:
 	if (self.channel == self.ID_2e2mu) and theInputs['useCMS_hzz4l_Zjets']:
             self.Write_CMS_hzz2e2mu_Zjets(theFile,theInputs)
 
-        if theInputs['useCMS_zz4l_bkgMELA']:
-            self.Write_CMS_zz4l_bkgMELA(theFile,theInputs)
-            
-        if theInputs['useCMS_zz4l_sigMELA']:
-            self.Write_CMS_zz4l_sigMELA(theFile,theInputs)
+        #non-basic
+        
+        #if theInputs['usePdf_gg']:
+        #    self.Write_pdf_gg(theFile,theInputs)
 
-        if theInputs['useCMS_zz4l_doVBFtest']:
-            self.Write_CMS_zz4l_Jet_Split(theFile,theInputs, theVBFcat)
+        if theInputs['usePdf_qqbar']:
+            self.Write_pdf_qqbar(theFile,theInputs)
+		
+        if theInputs['usePdf_hzz4l_accept']:
+            self.Write_pdf_hzz4l_accept(theFile,theInputs)
+	    
+        #non-non-basic
 
-        if (theVBFcat and theUse3D and theInputs['useCMS_zz4l_Fisher_sys']):
-            self.Write_CMS_zz4l_Fisher_sys(theFile,theInputs)
+        #if not self.model == "FF" and theInputs['useQCDscale_ggH'] and not theVBFcat :
+        #    self.Write_QCDscale_ggH(theFile,theInputs)
+
+        #if theInputs['useQCDscale_qqH'] and not theVBFcat :
+        #    self.Write_QCDscale_qqH(theFile,theInputs)
+
+        #if theInputs['useQCDscale_VH']:
+        #    self.Write_QCDscale_VH(theFile,theInputs)
+	    
+        #if not self.model == "FF" and theInputs['useQCDscale_ttH']:
+        #    self.Write_QCDscale_ttH(theFile,theInputs)
+
+        #if theInputs['useTheoryUncXS_HighMH']:
+        #    self.Write_theoryUncXS_HighMH(theFile,theInputs)
+
+        #if theInputs['useQCDscale_ggVV']:
+        #    self.Write_QCDscale_ggVV(theFile,theInputs)
+
+        #if theInputs['useQCDscale_VV']:
+        #    self.Write_QCDscale_VV(theFile,theInputs)
+	
+	## Higgs BR
+        if(self.model == "SM" or self.model == "FF") and theInputs['useBRhiggs_hzz4l']:
+            self.Write_BRhiggs_hzz4l(theFile,theInputs)
+	  
+	#elif(self.model == "SM4"):
+        #    self.Write_gamma_Hff(theFile,theInputs)
+        #    self.Write_gamma_HVV(theFile,theInputs)
+        #    self.Write_gamma_Hgluglu(theFile,theInputs)
+	  
+	##  ----------- SELECTION EFFICIENCIES ----------
+
+        #if theInputs['useCMS_zz4l_bkgMELA']:
+        #    self.Write_CMS_zz4l_bkgMELA(theFile,theInputs)
             
-        if (not theVBFcat and theUse3D and theInputs['useCMS_zz4l_Pt_sys']):
-            self.Write_CMS_zz4l_Pt_sys(theFile,theInputs)
+        #if theInputs['useCMS_zz4l_sigMELA']:
+        #    self.Write_CMS_zz4l_sigMELA(theFile,theInputs)
+
+        #if theInputs['useCMS_zz4l_doVBFtest']:
+        #    self.Write_CMS_zz4l_Jet_Split(theFile,theInputs, theVBFcat)
+
+        #if (theVBFcat and theUse3D and theInputs['useCMS_zz4l_Fisher_sys']):
+        #    self.Write_CMS_zz4l_Fisher_sys(theFile,theInputs)
+            
+        #if (not theVBFcat and theUse3D and theInputs['useCMS_zz4l_Pt_sys']):
+        #    self.Write_CMS_zz4l_Pt_sys(theFile,theInputs)
             
 
     def WriteShapeSystematics(self,theFile,theInputs):
   
-        meanCB_e_errPerCent = theInputs['CMS_zz4l_mean_e_sig']
-        sigmaCB_e_errPerCent = theInputs['CMS_zz4l_sigma_e_sig']
-        N_CB_errPerCent = theInputs['CMS_zz4l_n_sig']
-        meanCB_m_errPerCent = theInputs['CMS_zz4l_mean_m_sig']
-        sigmaCB_m_errPerCent = theInputs['CMS_zz4l_sigma_m_sig']
-        Gamma_BW_errPerCent = theInputs['CMS_zz4l_gamma_sig']
+        #meanCB_e_errPerCent = theInputs['CMS_zz4l_mean_e_sig']
+        #sigmaCB_e_errPerCent = theInputs['CMS_zz4l_sigma_e_sig']
+        #N_CB_errPerCent = theInputs['CMS_zz4l_n_sig']
+        #meanCB_m_errPerCent = theInputs['CMS_zz4l_mean_m_sig']
+        #sigmaCB_m_errPerCent = theInputs['CMS_zz4l_sigma_m_sig']
+        #Gamma_BW_errPerCent = theInputs['CMS_zz4l_gamma_sig']
+
+        theFile.write("CMS_zz4l_mu param 0.935929  -0.23/+0.26 \n") #stat only
+        #theFile.write("CMS_zz4l_mu param 0.935929  -0.244308/+0.296613 \n") #stat + syst
+        theFile.write("CMS_zz4l_kbkg param 2.5  0.25 \n")
         
-        if( self.channel == self.ID_4mu):
+        #if( self.channel == self.ID_4mu):
 
-            if theInputs['useCMS_zz4l_mean']:
-                theFile.write("CMS_zz4l_mean_m_sig param 0.0 1.0 \n")
-                theFile.write("## CMS_zz4l_mean_m_sig = {0} \n".format(meanCB_m_errPerCent))
-            if theInputs['useCMS_zz4l_sigma']:
-                theFile.write("CMS_zz4l_sigma_m_sig param 0.0 {0} \n".format(sigmaCB_m_errPerCent))
-            if theInputs['useCMS_zz4l_n']:
-                theFile.write("CMS_zz4l_n_sig_{0}_{1:.0f} param 0.0 {2} \n".format(self.channel,self.sqrts,N_CB_errPerCent))
-            if theInputs['useCMS_zz4l_gamma']:
-                theFile.write("interf_ggH param 0 1 [-1,1] \n".format(self.channel,self.sqrts,Gamma_BW_errPerCent))
+            #if theInputs['useCMS_zz4l_mean']:
+            #    theFile.write("CMS_zz4l_mean_m_sig param 0.0 1.0 \n")
+            #    theFile.write("## CMS_zz4l_mean_m_sig = {0} \n".format(meanCB_m_errPerCent))
+            #if theInputs['useCMS_zz4l_sigma']:
+            #    theFile.write("CMS_zz4l_sigma_m_sig param 0.0 {0} \n".format(sigmaCB_m_errPerCent))
+            #if theInputs['useCMS_zz4l_n']:
+            #    theFile.write("CMS_zz4l_n_sig_{0}_{1:.0f} param 0.0 {2} \n".format(self.channel,self.sqrts,N_CB_errPerCent))
+            #if theInputs['useCMS_zz4l_gamma']:
+            #    theFile.write("interf_ggH param 0 1 [-1,1] \n".format(self.channel,self.sqrts,Gamma_BW_errPerCent))
                 #theFile.write("CMS_zz4l_gamma_sig_{0}_{1:.0f} param 0.0 {2} \n".format(self.channel,self.sqrts,Gamma_BW_errPerCent))
             
-        if( self.channel == self.ID_4e):
+        #if( self.channel == self.ID_4e):
 
-            if theInputs['useCMS_zz4l_mean']:
-                theFile.write("CMS_zz4l_mean_e_sig param 0.0 1.0 \n")
-                theFile.write("## CMS_zz4l_mean_e_sig = {0} \n".format(meanCB_e_errPerCent))
-            if theInputs['useCMS_zz4l_sigma']:
-                theFile.write("CMS_zz4l_sigma_e_sig param 0.0 {0} \n".format(sigmaCB_e_errPerCent))
-            if theInputs['useCMS_zz4l_n']:
-                theFile.write("CMS_zz4l_n_sig_{0}_{1:.0f} param 0.0 {2} \n".format(self.channel,self.sqrts,N_CB_errPerCent))
-            if theInputs['useCMS_zz4l_gamma']:
-                theFile.write("interf_ggH param 0 1 [-1,1] \n".format(self.channel,self.sqrts,Gamma_BW_errPerCent))
+            #if theInputs['useCMS_zz4l_mean']:
+            #    theFile.write("CMS_zz4l_mean_e_sig param 0.0 1.0 \n")
+            #    theFile.write("## CMS_zz4l_mean_e_sig = {0} \n".format(meanCB_e_errPerCent))
+            #if theInputs['useCMS_zz4l_sigma']:
+            #    theFile.write("CMS_zz4l_sigma_e_sig param 0.0 {0} \n".format(sigmaCB_e_errPerCent))
+            #if theInputs['useCMS_zz4l_n']:
+            #    theFile.write("CMS_zz4l_n_sig_{0}_{1:.0f} param 0.0 {2} \n".format(self.channel,self.sqrts,N_CB_errPerCent))
+            #if theInputs['useCMS_zz4l_gamma']:
+            #    theFile.write("interf_ggH param 0 1 [-1,1] \n".format(self.channel,self.sqrts,Gamma_BW_errPerCent))
                 #theFile.write("CMS_zz4l_gamma_sig_{0}_{1:.0f} param 0.0 {2} \n".format(self.channel,self.sqrts,Gamma_BW_errPerCent))
             
-        if( self.channel == self.ID_2e2mu):
+        #if( self.channel == self.ID_2e2mu):
 
-            if theInputs['useCMS_zz4l_mean']:
-                theFile.write("CMS_zz4l_mean_m_sig param 0.0 1.0 \n")
-                theFile.write("## CMS_zz4l_mean_m_sig = {0} \n".format(meanCB_m_errPerCent))
-                theFile.write("CMS_zz4l_mean_e_sig param 0.0 1.0 \n".format(meanCB_e_errPerCent))
-                theFile.write("## CMS_zz4l_mean_e_sig = {0} \n".format(meanCB_e_errPerCent))
-            if theInputs['useCMS_zz4l_sigma']:
-                theFile.write("CMS_zz4l_sigma_m_sig param 0.0 {0} \n".format(sigmaCB_m_errPerCent))
-                theFile.write("CMS_zz4l_sigma_e_sig param 0.0 {0} \n".format(sigmaCB_e_errPerCent))
-            if theInputs['useCMS_zz4l_n']:
-                theFile.write("CMS_zz4l_n_sig_{0}_{1:.0f} param 0.0 {2} \n".format(self.channel,self.sqrts,N_CB_errPerCent))
-            if theInputs['useCMS_zz4l_gamma']:
-                theFile.write("interf_ggH param 0 1 [-1,1] \n".format(self.channel,self.sqrts,Gamma_BW_errPerCent))
+            #if theInputs['useCMS_zz4l_mean']:
+            #    theFile.write("CMS_zz4l_mean_m_sig param 0.0 1.0 \n")
+            #    theFile.write("## CMS_zz4l_mean_m_sig = {0} \n".format(meanCB_m_errPerCent))
+            #    theFile.write("CMS_zz4l_mean_e_sig param 0.0 1.0 \n".format(meanCB_e_errPerCent))
+            #    theFile.write("## CMS_zz4l_mean_e_sig = {0} \n".format(meanCB_e_errPerCent))
+            #if theInputs['useCMS_zz4l_sigma']:
+            #    theFile.write("CMS_zz4l_sigma_m_sig param 0.0 {0} \n".format(sigmaCB_m_errPerCent))
+            #    theFile.write("CMS_zz4l_sigma_e_sig param 0.0 {0} \n".format(sigmaCB_e_errPerCent))
+            #if theInputs['useCMS_zz4l_n']:
+            #    theFile.write("CMS_zz4l_n_sig_{0}_{1:.0f} param 0.0 {2} \n".format(self.channel,self.sqrts,N_CB_errPerCent))
+            #if theInputs['useCMS_zz4l_gamma']:
+            #    theFile.write("interf_ggH param 0 1 [-1,1] \n".format(self.channel,self.sqrts,Gamma_BW_errPerCent))
                 #theFile.write("CMS_zz4l_gamma_sig_{0}_{1:.0f} param 0.0 {2} \n".format(self.channel,self.sqrts,Gamma_BW_errPerCent))
 

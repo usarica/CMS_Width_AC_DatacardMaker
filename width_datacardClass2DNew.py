@@ -136,7 +136,7 @@ class width_datacardClass:
         mu_name = "CMS_zz4l_kbkg"
 
         kbkg = ROOT.RooRealVar(mu_name,mu_name,0.1,10)
-        kbkg.setVal(1)
+        kbkg.setVal(2.5)
         kbkg.setConstant(True)
         kbkg.setBins(100)
 
