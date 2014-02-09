@@ -64,6 +64,7 @@ class width_datacardClass:
         self.ggZZ_bkg_chan = theInputs['ggZZ_bkg']
         self.ggZZ_interf_chan = theInputs['ggZZ_interf']
         self.zjets_chan = theInputs['zjets']
+        self.templRange =220
         
         ## ---------------- SET PLOTTING STYLE ---------------- ## 
         ROOT.setTDRStyle(True)
@@ -106,7 +107,7 @@ class width_datacardClass:
 
         ## -------------------------- SIGNAL SHAPE ----------------------------------- ##
     
-        bins = 260
+        bins = (self.high_M-self.templRange)/5
         bins2 = (self.high_M-self.low_M)/5
         # if(self.bUseCBnoConvolution): bins = 200
 
@@ -118,7 +119,7 @@ class width_datacardClass:
         ## use this variable only For Integration (FI)
         CMS_zz4l_mass_name = "CMS_zz4l_mass_FI"
             
-        CMS_zz4l_mass_FI = ROOT.RooRealVar(CMS_zz4l_mass_name,CMS_zz4l_mass_name,100,1400)    
+        CMS_zz4l_mass_FI = ROOT.RooRealVar(CMS_zz4l_mass_name,CMS_zz4l_mass_name,self.templRange,1400)    
         CMS_zz4l_mass_FI.setBins(bins)
 
         x_name = "CMS_zz4l_GGsm"
@@ -136,7 +137,7 @@ class width_datacardClass:
         mu_name = "CMS_zz4l_kbkg"
 
         kbkg = ROOT.RooRealVar(mu_name,mu_name,0.1,10)
-        kbkg.setVal(2.5)
+        kbkg.setVal(1)
         kbkg.setConstant(True)
         kbkg.setBins(100)
 
@@ -147,33 +148,61 @@ class width_datacardClass:
         self.LUMI = ROOT.RooRealVar("LUMI_{0:.0f}".format(self.sqrts),"LUMI_{0:.0f}".format(self.sqrts),self.lumi)
         self.LUMI.setConstant(True)
     
-        self.MH = ROOT.RooRealVar("MH","MH",300.)   
-        self.MH.setConstant(True)
+        #self.MH = ROOT.RooRealVar("MH","MH",300.)   
+        #self.MH.setConstant(True)
         
-        print '1D signal shapes for Width'
-      ##  templateSigName = "{0}/prova_{1}_{2:.0f}TeV_m4l.root".format(self.templateDir, self.appendName, self.sqrts)
+        print '2D signal shapes for Width'
+        ##  templateSigName = "{0}/prova_{1}_{2:.0f}TeV_m4l.root".format(self.templateDir, self.appendName, self.sqrts)
         templateSigName = "{0}/templ2D_{1}_{2:.0f}TeV_m4l.root".format(self.templateDir, self.appendName, self.sqrts)
         sigTempFile = ROOT.TFile(templateSigName)
         print templateSigName
-        Sig_T_1 = sigTempFile.Get("mZZ_bkg")
-        Sig_T_2 = sigTempFile.Get("mZZ_sig")
-        Sig_T_4 = sigTempFile.Get("mZZ_inter")
-        Bkg_T = sigTempFile.Get("mZZ_qq")
+        tmpSig_T_1 = sigTempFile.Get("mZZ_bkg")
+        tmpSig_T_2 = sigTempFile.Get("mZZ_sig")
+        tmpSig_T_4 = sigTempFile.Get("mZZ_inter")
+        tmpBkg_T = sigTempFile.Get("mZZ_qq")
 
+
+        Sig_T_1 = TH2F("mZZ_bkg","mZZ_bkg",tmpSig_T_1.GetXaxis().GetNbins()-tmpSig_T_1.GetXaxis().FindBin(self.templRange)+1,self.templRange,tmpSig_T_1.GetXaxis().GetXmax(),tmpSig_T_1.GetYaxis().GetNbins(),tmpSig_T_1.GetYaxis().GetXmin(),tmpSig_T_1.GetYaxis().GetXmax())
+        Sig_T_2 = TH2F("mZZ_sig","mZZ_sig",tmpSig_T_2.GetXaxis().GetNbins()-tmpSig_T_2.GetXaxis().FindBin(self.templRange)+1,self.templRange,tmpSig_T_2.GetXaxis().GetXmax(),tmpSig_T_2.GetYaxis().GetNbins(),tmpSig_T_2.GetYaxis().GetXmin(),tmpSig_T_2.GetYaxis().GetXmax())
+        Sig_T_4 = TH2F("mZZ_inter","mZZ_inter",tmpSig_T_4.GetXaxis().GetNbins()-tmpSig_T_4.GetXaxis().FindBin(self.templRange)+1,self.templRange,tmpSig_T_4.GetXaxis().GetXmax(),tmpSig_T_4.GetYaxis().GetNbins(),tmpSig_T_4.GetYaxis().GetXmin(),tmpSig_T_4.GetYaxis().GetXmax())
+        Bkg_T = TH2F("mZZ_bkg","mZZ_bkg",tmpBkg_T.GetXaxis().GetNbins()-tmpBkg_T.GetXaxis().FindBin(self.templRange)+1,self.templRange,tmpBkg_T.GetXaxis().GetXmax(),tmpBkg_T.GetYaxis().GetNbins(),tmpBkg_T.GetYaxis().GetXmin(),tmpBkg_T.GetYaxis().GetXmax())
+
+        print "BINWIDTHSY  ",tmpSig_T_4.GetYaxis().GetBinWidth(1),"   ",Sig_T_4.GetYaxis().GetBinWidth(1)
+        print "BINSY  ",tmpSig_T_4.GetYaxis().GetNbins(),"   ",Sig_T_4.GetYaxis().GetNbins()
+        print "BINWIDTHSX  ",tmpSig_T_4.GetXaxis().GetBinWidth(1),"   ",Sig_T_4.GetXaxis().GetBinWidth(1)
+        print "BINSX  ",tmpSig_T_4.GetXaxis().GetNbins(),"   ",Sig_T_4.GetXaxis().GetNbins()
+
+        for ix in range(1,Sig_T_1.GetXaxis().GetNbins()+1):
+            for iy in range(1,Sig_T_1.GetYaxis().GetNbins()+1):
+                Sig_T_1.SetBinContent(ix,iy,tmpSig_T_1.GetBinContent(tmpSig_T_1.FindBin(Sig_T_1.GetXaxis().GetBinCenter(ix),Sig_T_1.GetYaxis().GetBinCenter(iy))))
+                #print Sig_T_1.GetBinContent(ix,iy), tmpSig_T_1.GetBinContent(ix,iy)
+
+        for ix in range(1,Sig_T_2.GetXaxis().GetNbins()+1):
+            for iy in range(1,Sig_T_2.GetYaxis().GetNbins()+1):
+                Sig_T_2.SetBinContent(ix,iy,tmpSig_T_2.GetBinContent(tmpSig_T_2.FindBin(Sig_T_2.GetXaxis().GetBinCenter(ix),Sig_T_2.GetYaxis().GetBinCenter(iy))))
+
+        for ix in range(1,Sig_T_4.GetXaxis().GetNbins()+1):
+            for iy in range(1,Sig_T_4.GetYaxis().GetNbins()+1):
+                Sig_T_4.SetBinContent(ix,iy,tmpSig_T_4.GetBinContent(tmpSig_T_4.FindBin(Sig_T_4.GetXaxis().GetBinCenter(ix),Sig_T_4.GetYaxis().GetBinCenter(iy))))
+
+        for ix in range(1,Bkg_T.GetXaxis().GetNbins()+1):
+            for iy in range(1,Bkg_T.GetYaxis().GetNbins()+1):
+                Bkg_T.SetBinContent(ix,iy,tmpBkg_T.GetBinContent(tmpBkg_T.FindBin(Bkg_T.GetXaxis().GetBinCenter(ix),Bkg_T.GetYaxis().GetBinCenter(iy))))
+        
         Proj_T_1 = Sig_T_1.ProjectionX("Proj_T_1")
         Proj_T_2 = Sig_T_2.ProjectionX("Proj_T_2")
         Proj_T_4 = Sig_T_4.ProjectionX("Proj_T_4")
 
         dBinsX = Sig_T_1.GetXaxis().GetNbins()
         print "X bins: ",dBinsX
-        dLowX = Sig_T_1.GetXaxis().GetXmin()
-        dHighX = Sig_T_1.GetXaxis().GetXmax()
-        wBinsX = Sig_T_1.GetXaxis().GetBinWidth(1)
+        #dLowX = Sig_T_1.GetXaxis().GetXmin()
+        #dHighX = Sig_T_1.GetXaxis().GetXmax()
+        #wBinsX = Sig_T_1.GetXaxis().GetBinWidth(1)
         
         dBinsY = Sig_T_1.GetYaxis().GetNbins()
         print "Y bins: ",dBinsY
-        dLowY = Sig_T_1.GetYaxis().GetXmin()
-        dHighY = Sig_T_1.GetYaxis().GetXmax()
+        #dLowY = Sig_T_1.GetYaxis().GetXmin()
+        #dHighY = Sig_T_1.GetYaxis().GetXmax()
         
         CMS_zz4l_mass.setBins(dBinsX)
         ## CMS_zz4l_mass_FI.setBins(dBinsX)
@@ -189,12 +218,13 @@ class width_datacardClass:
         bkgRates = ROOT.RooRealVar(bkgRateName,"bkgRates",0.0,10000.0)
         interfRateName = "interf_ggZZrate_{0:.0f}_{1:.0f}".format(self.channel,self.sqrts)
         interfRates = ROOT.RooRealVar(interfRateName,"interfRates",0.0,10000.0)
+        
         sigRateNameNorm = "signalNorm_ggZZrate_{0:.0f}_{1:.0f}".format(self.channel,self.sqrts)
-        sigRatesNorm = ROOT.RooFormulaVar(sigRateNameNorm,"@0*@1/(@0*@1-sqrt(@0*@1*@2)+@2)",ROOT.RooArgList(x,mu,kbkg))
+        sigRatesNorm = ROOT.RooFormulaVar(sigRateNameNorm,"@0*@1/(@0*@1-sqrt(@0*@1)*sign(@2)*sqrt(abs(@2))+@2)",ROOT.RooArgList(x,mu,kbkg))
         interfRateNameNorm = "interfNorm_ggZZrate_{0:.0f}_{1:.0f}".format(self.channel,self.sqrts)
-        interfRatesNorm = ROOT.RooFormulaVar(interfRateNameNorm,"-sqrt(@0*@1*@2)/(@0*@1-sqrt(@0*@1*@2)+@2)",ROOT.RooArgList(x,mu,kbkg))
+        interfRatesNorm = ROOT.RooFormulaVar(interfRateNameNorm,"-sqrt(@0*@1)*sign(@2)*sqrt(abs(@2))/(@0*@1-sqrt(@0*@1)*sign(@2)*sqrt(abs(@2))+@2)",ROOT.RooArgList(x,mu,kbkg))
         bkgRateNameNorm = "bkgNorm_ggZZrate_{0:.0f}_{1:.0f}".format(self.channel,self.sqrts)
-        bkgRatesNorm = ROOT.RooFormulaVar(bkgRateNameNorm,"@2/(@0*@1-sqrt(@0*@1*@2)+@2)",ROOT.RooArgList(x,mu,kbkg))
+        bkgRatesNorm = ROOT.RooFormulaVar(bkgRateNameNorm,"@2/(@0*@1-sqrt(@0*@1)*sign(@2)*sqrt(abs(@2))+@2)",ROOT.RooArgList(x,mu,kbkg))
 
         #ggZZpdfName = "ggZZ_RooWidth_{0:.0f}_{1:.0f}".format(self.channel,self.sqrts)
         #ggZZpdf = ROOT.HZZ4lWidth(ggZZpdfName,ggZZpdfName,CMS_zz4l_mass,one,x,bkgRates,sigRates,interfRates,Sig_T_1,Sig_T_2,Sig_T_4)
@@ -459,8 +489,8 @@ class width_datacardClass:
         
         CMS_zz4l_mass_FI.setRange("shape",self.low_M,self.high_M)            
 
-        CMS_zz4l_mass_FI.setRange("fullrangesignal",100,1400)
-        CMS_zz4l_mass_FI.setRange("fullrange",100,1400)
+        CMS_zz4l_mass_FI.setRange("fullrangesignal",self.templRange,1400)
+        CMS_zz4l_mass_FI.setRange("fullrange",self.templRange,1400)
 
              
         ## ----------------------- SIGNAL AND BACKGROUND RATES ----------------------- ##
@@ -593,7 +623,8 @@ class width_datacardClass:
         ggZZpdf.SetNameTitle("ggzz","ggzz")
         getattr(w,'import')(ggZZpdf, ROOT.RooFit.RecycleConflictNodes())
         ggZZpdfNormName = "ggZZ_RooWidth_{0:.0f}_{1:.0f}_norm".format(self.channel,self.sqrts)
-        ggZZpdf_norm = ROOT.RooFormulaVar(ggZZpdfNormName,"@0*@3*@4-@1*sqrt(@3*@4*@5)+@2*@5",ROOT.RooArgList(sigRates,interfRates,bkgRates,x,mu,kbkg))
+        ggZZpdf_norm = ROOT.RooFormulaVar(ggZZpdfNormName,"@0*@3*@4-@1*sqrt(@3*@4)*sign(@5)*sqrt(abs(@5))+@2*@5",ROOT.RooArgList(sigRates,interfRates,bkgRates,x,mu,kbkg))
+        #ggZZpdf_norm = ROOT.RooFormulaVar(ggZZpdfNormName,"@0*@3*@4-@1*sqrt(@3*@4*@5)+@2*@5",ROOT.RooArgList(sigRates,interfRates,bkgRates,x,mu,kbkg))
         ggZZpdf_norm.SetNameTitle("ggzz_norm","ggzz_norm")
         getattr(w,'import')(ggZZpdf_norm, ROOT.RooFit.RecycleConflictNodes())
        
