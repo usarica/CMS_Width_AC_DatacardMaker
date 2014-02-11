@@ -7,6 +7,7 @@ python make_width2D_DCsandWSs.py -i SM_inputs_8TeV -a $1 -b -t templates2D/
 cd cards_"$1"/HCG/240
 combineCards.py hzz4l_2e2muS_8TeV.txt hzz4l_4muS_8TeV.txt hzz4l_4eS_8TeV.txt > hzz4l_allS_8TeV.txt
 
+#text2workspace.py -m 240 hzz4l_allS_8TeV.txt -P HiggsAnalysis.CombinedLimit.HiggsWidth:higgswidth -o hzz4l_allS_8TeV.root
 text2workspace.py -m 240 hzz4l_allS_8TeV.txt -P HiggsAnalysis.CombinedLimit.HiggsWidth:higgswidth -o hzz4l_allS_8TeV.root
 #(add --stat if no systematics)
 #(add -PO=GGsmVal=25 if you want to run with e.g. G/G_SM = 25 and not 1)

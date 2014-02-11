@@ -16,10 +16,9 @@ from inputReader import *
 
 ## ------------------------------------
 ##  ISSUES:
-##  zjets rate to be done for m4l>220
-##  shape systematics
+##
 ##  qqZZ templates should be normalized xbin by xbin, I'm using roberto's
-##  Do I still need signal rate normalizations, now that I use Ulash templates?
+##  Do I still need signal rate normalizations, now that I use Ulash templates? Removed, but will need to be put back if using shape region < template region
 ##
 ## ------------------------------------
 
@@ -179,6 +178,11 @@ class width_datacardClass:
         tmpSig_T_1 = sigTempFileU.Get("T_2D_2") #different numbering convention Ulascan-Roberto
         tmpSig_T_2 = sigTempFileU.Get("T_2D_1")
         tmpSig_T_4 = sigTempFileU.Get("T_2D_4")
+        if tmpSig_T_4.Integral("width")<0 : #negative interference, turn it positive
+            for ix in range (1,tmpSig_T_4.GetXaxis().GetNbins+1):
+                for iy in range (1,tmpSig_T_4.GetYaxis().GetNbins+1):
+                    tmpSig_T_4.SetBinContent(ix,iy,-1.0*tmpSig_T_4.GetBinContent(ix,iy))
+                    
         #tmpBkg_T = sigTempFile.Get("T_2D_qqZZ")
 
         templateSigNameUp = "/afs/cern.ch/work/u/usarica/public/forWidth/WidthTemplates/{0:.0f}TeV/{1}/{2}/HtoZZ4l_gg2VV_125p6_TemplatesForCombine_D_Gamma_gg_r10_SysUp.root".format(self.sqrts,self.appendName,self.templRange)
@@ -191,27 +195,27 @@ class width_datacardClass:
         Sig_T_4 = TH2F("mZZ_inter","mZZ_inter",tmpSig_T_4.GetXaxis().GetNbins()-tmpSig_T_4.GetXaxis().FindBin(self.templRange)+1,self.templRange,tmpSig_T_4.GetXaxis().GetXmax(),tmpSig_T_4.GetYaxis().GetNbins(),tmpSig_T_4.GetYaxis().GetXmin(),tmpSig_T_4.GetYaxis().GetXmax())
         Bkg_T = TH2F("mZZ_bkg","mZZ_bkg",tmpBkg_T.GetXaxis().GetNbins()-tmpBkg_T.GetXaxis().FindBin(self.templRange)+1,self.templRange,tmpBkg_T.GetXaxis().GetXmax(),tmpBkg_T.GetYaxis().GetNbins(),tmpBkg_T.GetYaxis().GetXmin(),tmpBkg_T.GetYaxis().GetXmax())
 
-        #this part here is to adapt templates if they start from a range lower than self.templRange
-        if abs(tmpBkg_T.GetXaxis().GetBinLowEdge(1)-self.templRange<0.05):
-            listtmp = [tmpSig_T_1,tmpSig_T_2,tmpSig_T_4,tmpBkg_T]
-            listSig = [Sig_T_1, Sig_T_2, Sig_T_4, Bkg_T]
-            listSigUp = []
-            listSigDown = []
+##         #this part here is to adapt templates if they start from a range lower than self.templRange
+##         if abs(tmpBkg_T.GetXaxis().GetBinLowEdge(1)-self.templRange<0.05):
+##             listtmp = [tmpSig_T_1,tmpSig_T_2,tmpSig_T_4,tmpBkg_T]
+##             listSig = [Sig_T_1, Sig_T_2, Sig_T_4, Bkg_T]
+##             listSigUp = []
+##             listSigDown = []
 
-            #print "BINWIDTHSY  ",tmpSig_T_4.GetYaxis().GetBinWidth(1),"   ",Sig_T_4.GetYaxis().GetBinWidth(1)
-            #print "BINSY  ",tmpSig_T_4.GetYaxis().GetNbins(),"   ",Sig_T_4.GetYaxis().GetNbins()
-            #print "BINWIDTHSX  ",tmpSig_T_4.GetXaxis().GetBinWidth(1),"   ",Sig_T_4.GetXaxis().GetBinWidth(1)
-            #print "BINSX  ",tmpSig_T_4.GetXaxis().GetNbins(),"   ",Sig_T_4.GetXaxis().GetNbins()
+##             #print "BINWIDTHSY  ",tmpSig_T_4.GetYaxis().GetBinWidth(1),"   ",Sig_T_4.GetYaxis().GetBinWidth(1)
+##             #print "BINSY  ",tmpSig_T_4.GetYaxis().GetNbins(),"   ",Sig_T_4.GetYaxis().GetNbins()
+##             #print "BINWIDTHSX  ",tmpSig_T_4.GetXaxis().GetBinWidth(1),"   ",Sig_T_4.GetXaxis().GetBinWidth(1)
+##             #print "BINSX  ",tmpSig_T_4.GetXaxis().GetNbins(),"   ",Sig_T_4.GetXaxis().GetNbins()
             
-            for j in range(len(listSig)):
-                #listSigUp.append(listSig[j].Clone("hist_{0}_Up".format(j)))
-                #listSigDown.append(listSig[j].Clone("hist_{0}_Down".format(j)))
-                if j == 3 :
-                    for ix in range(1,listSig[j].GetXaxis().GetNbins()+1):
-                        for iy in range(1,listSig[j].GetYaxis().GetNbins()+1):
-                            bincontent = listtmp[j].GetBinContent(listtmp[j].FindBin(listSig[j].GetXaxis().GetBinCenter(ix),listSig[j].GetYaxis().GetBinCenter(iy)))
-                            listSig[j].SetBinContent(ix,iy,bincontent)
-        #else :
+##             for j in range(len(listSig)):
+##                 #listSigUp.append(listSig[j].Clone("hist_{0}_Up".format(j)))
+##                 #listSigDown.append(listSig[j].Clone("hist_{0}_Down".format(j)))
+##                 if j == 3 :
+##                     for ix in range(1,listSig[j].GetXaxis().GetNbins()+1):
+##                         for iy in range(1,listSig[j].GetYaxis().GetNbins()+1):
+##                             bincontent = listtmp[j].GetBinContent(listtmp[j].FindBin(listSig[j].GetXaxis().GetBinCenter(ix),listSig[j].GetYaxis().GetBinCenter(iy)))
+##                             listSig[j].SetBinContent(ix,iy,bincontent)
+##         else :
         Sig_T_1 = tmpSig_T_1.Clone("mZZ_bkg")
         Sig_T_2 = tmpSig_T_2.Clone("mZZ_sig")
         Sig_T_4 = tmpSig_T_4.Clone("mZZ_inter")
@@ -665,11 +669,17 @@ class width_datacardClass:
         ## ----------------------- SIGNAL AND BACKGROUND RATES ----------------------- ##
 
         ## rates per lumi for scaling
-        bkgRate_qqzz = theInputs['qqZZ_rate']/theInputs['qqZZ_lumi'] #recompute for 220
+        #bkgRate_qqzz = theInputs['qqZZ_rate']/theInputs['qqZZ_lumi'] #recompute for 220
         #totalRate_ggzz = theInputs['ggZZ_rate']/theInputs['qqZZ_lumi']
-        bkgRate_zjets = theInputs['zjets_rate']/theInputs['zjets_lumi']
+        #bkgRate_zjets = theInputs['zjets_rate']/theInputs['zjets_lumi']
 
-        totalRate_ggzz = Sig_T_1.Integral("width")+Sig_T_2.Integral("width")+Sig_T_4.Integral("width")
+        totalRate_ggzz = Sig_T_1.Integral("width")+Sig_T_2.Integral("width")-Sig_T_4.Integral("width")
+        totalRate_ggzz_Shape = totalRate*self.lumi
+        bkgRate_qqzz_Shape = theInputs['qqZZ_rate']
+        bkgRate_zjets_Shape = theInputs['zjets_rate']
+        rate_signal_ggzz_Shape = Sig_T_2.Integral("width")*self.lumi
+        rate_bkg_ggzz_Shape = Sig_T_1.Integral("width")*self.lumi
+        rate_interf_ggzz_Shape = Sig_T_4.Integral("width")*self.lumi
         #bkgRate_qqzz = Bkg_T.Integral("widht")
         
         ## rate_signal_ggzz = theInputs['ggZZ_signal_rate']/theInputs['qqZZ_lumi']
@@ -679,38 +689,38 @@ class width_datacardClass:
         ## rate_interf_ggzz = theInputs['ggZZ_interf_rate']/theInputs['qqZZ_lumi']
                 
         # Get Normalizations  - Do I still need this part?
-        normalizationBackground_qqzz = bkg_qqzz_FI.createIntegral( ROOT.RooArgSet(CMS_zz4l_mass_FI), ROOT.RooFit.Range("fullrange") ).getVal()
-        print 
-        normalizationBackground_ggzz = ggZZpdf_FI.createIntegral( ROOT.RooArgSet(CMS_zz4l_mass_FI), ROOT.RooFit.Range("fullrange") ).getVal()
-        #normalizationsignal_ggzz = ggZZsignal_TemplatePdf_FI.createIntegral( ROOT.RooArgSet(CMS_zz4l_mass_FI), ROOT.RooFit.Range("fullrange") ).getVal()
-        print " @@@@@@ total normalization: ",normalizationBackground_ggzz
-        #normalizationbkg_ggzz = ggZZbkg_TemplatePdf_FI.createIntegral( ROOT.RooArgSet(CMS_zz4l_mass_FI), ROOT.RooFit.Range("fullrange") ).getVal()
-        #normalizationinterf_ggzz = ggZZinterf_TemplatePdf_FI.createIntegral( ROOT.RooArgSet(CMS_zz4l_mass_FI), ROOT.RooFit.Range("fullrange") ).getVal()
-        normalizationBackground_zjets = bkg_zjets_FI.createIntegral( ROOT.RooArgSet(CMS_zz4l_mass_FI), ROOT.RooFit.Range("fullrange") ).getVal()
+##         normalizationBackground_qqzz = bkg_qqzz_FI.createIntegral( ROOT.RooArgSet(CMS_zz4l_mass_FI), ROOT.RooFit.Range("fullrange") ).getVal()
+##         print 
+##         normalizationBackground_ggzz = ggZZpdf_FI.createIntegral( ROOT.RooArgSet(CMS_zz4l_mass_FI), ROOT.RooFit.Range("fullrange") ).getVal()
+##         #normalizationsignal_ggzz = ggZZsignal_TemplatePdf_FI.createIntegral( ROOT.RooArgSet(CMS_zz4l_mass_FI), ROOT.RooFit.Range("fullrange") ).getVal()
+##         print " @@@@@@ total normalization: ",normalizationBackground_ggzz
+##         #normalizationbkg_ggzz = ggZZbkg_TemplatePdf_FI.createIntegral( ROOT.RooArgSet(CMS_zz4l_mass_FI), ROOT.RooFit.Range("fullrange") ).getVal()
+##         #normalizationinterf_ggzz = ggZZinterf_TemplatePdf_FI.createIntegral( ROOT.RooArgSet(CMS_zz4l_mass_FI), ROOT.RooFit.Range("fullrange") ).getVal()
+##         normalizationBackground_zjets = bkg_zjets_FI.createIntegral( ROOT.RooArgSet(CMS_zz4l_mass_FI), ROOT.RooFit.Range("fullrange") ).getVal()
 
-        #print " @@@@@@ channel: "+self.appendName
-        #print " @@@@@@ fullrange zz: ",normalizationBackground_qqzz
-        #print " @@@@@@ fullrange zjets: ",normalizationBackground_zjets
+##         #print " @@@@@@ channel: "+self.appendName
+##         #print " @@@@@@ fullrange zz: ",normalizationBackground_qqzz
+##         #print " @@@@@@ fullrange zjets: ",normalizationBackground_zjets
         
-        sclFactorBkg_qqzz = self.lumi*bkgRate_qqzz/normalizationBackground_qqzz
-        sclFactorTotal_ggzz = self.lumi*totalRate_ggzz/normalizationBackground_ggzz
-        #sclFactor_signal_ggzz = self.lumi*rate_signal_ggzz/normalizationsignal_ggzz
-        print " @@@@@@ scale factor: ",sclFactorTotal_ggzz
-        #sclFactor_bkg_ggzz = self.lumi*rate_bkg_ggzz/normalizationbkg_ggzz
-        #sclFactor_interf_ggzz = self.lumi*rate_interf_ggzz/normalizationinterf_ggzz
-        sclFactorBkg_zjets = self.lumi*bkgRate_zjets/normalizationBackground_zjets
+##         sclFactorBkg_qqzz = self.lumi*bkgRate_qqzz/normalizationBackground_qqzz
+##         sclFactorTotal_ggzz = self.lumi*totalRate_ggzz/normalizationBackground_ggzz
+##         #sclFactor_signal_ggzz = self.lumi*rate_signal_ggzz/normalizationsignal_ggzz
+##         print " @@@@@@ scale factor: ",sclFactorTotal_ggzz
+##         #sclFactor_bkg_ggzz = self.lumi*rate_bkg_ggzz/normalizationbkg_ggzz
+##         #sclFactor_interf_ggzz = self.lumi*rate_interf_ggzz/normalizationinterf_ggzz
+##         sclFactorBkg_zjets = self.lumi*bkgRate_zjets/normalizationBackground_zjets
                
-        bkgRate_qqzz_Shape = sclFactorBkg_qqzz * bkg_qqzz_FI.createIntegral( ROOT.RooArgSet(CMS_zz4l_mass_FI), ROOT.RooFit.Range("shape") ).getVal()
-        #totalRate_ggzz_Shape = sclFactorTotal_ggzz * ggZZpdfFI.createIntegral( ROOT.RooArgSet(CMS_zz4l_massFI), ROOT.RooFit.Range("shape") ).getVal()
-        rate_signal_ggzz_Shape = sclFactorTotal_ggzz * ggZZsignal_TemplatePdf_FI.createIntegral( ROOT.RooArgSet(CMS_zz4l_mass_FI), ROOT.RooFit.Range("shape") ).getVal() 
-        rate_bkg_ggzz_Shape = sclFactorTotal_ggzz * ggZZbkg_TemplatePdf_FI.createIntegral( ROOT.RooArgSet(CMS_zz4l_mass_FI), ROOT.RooFit.Range("shape") ).getVal() 
-        rate_interf_ggzz_Shape = sclFactorTotal_ggzz * ggZZinterf_TemplatePdf_FI.createIntegral( ROOT.RooArgSet(CMS_zz4l_mass_FI), ROOT.RooFit.Range("shape") ).getVal() 
-        totalRate_ggzz_Shape = rate_signal_ggzz_Shape + rate_bkg_ggzz_Shape - rate_interf_ggzz_Shape
-        bkgRate_zjets_Shape = sclFactorBkg_zjets * bkg_zjets_FI.createIntegral( ROOT.RooArgSet(CMS_zz4l_mass_FI), ROOT.RooFit.Range("shape") ).getVal()
-        print " @@@@@@ signal normalization in signal region: ",rate_signal_ggzz_Shape
-        #print " @@@@@@ signal normalization in signal region TEST: ",rate_signal_ggzz_Test
-        print " @@@@@@ interf normalization in signal region: ",rate_interf_ggzz_Shape
-        print " @@@@@@ bkg normalization in signal region: ",rate_bkg_ggzz_Shape
+##         bkgRate_qqzz_Shape = sclFactorBkg_qqzz * bkg_qqzz_FI.createIntegral( ROOT.RooArgSet(CMS_zz4l_mass_FI), ROOT.RooFit.Range("shape") ).getVal()
+##         #totalRate_ggzz_Shape = sclFactorTotal_ggzz * ggZZpdfFI.createIntegral( ROOT.RooArgSet(CMS_zz4l_massFI), ROOT.RooFit.Range("shape") ).getVal()
+##         rate_signal_ggzz_Shape = sclFactorTotal_ggzz * ggZZsignal_TemplatePdf_FI.createIntegral( ROOT.RooArgSet(CMS_zz4l_mass_FI), ROOT.RooFit.Range("shape") ).getVal() 
+##         rate_bkg_ggzz_Shape = sclFactorTotal_ggzz * ggZZbkg_TemplatePdf_FI.createIntegral( ROOT.RooArgSet(CMS_zz4l_mass_FI), ROOT.RooFit.Range("shape") ).getVal() 
+##         rate_interf_ggzz_Shape = sclFactorTotal_ggzz * ggZZinterf_TemplatePdf_FI.createIntegral( ROOT.RooArgSet(CMS_zz4l_mass_FI), ROOT.RooFit.Range("shape") ).getVal() 
+##         totalRate_ggzz_Shape = rate_signal_ggzz_Shape + rate_bkg_ggzz_Shape - rate_interf_ggzz_Shape
+##         bkgRate_zjets_Shape = sclFactorBkg_zjets * bkg_zjets_FI.createIntegral( ROOT.RooArgSet(CMS_zz4l_mass_FI), ROOT.RooFit.Range("shape") ).getVal()
+##         print " @@@@@@ signal normalization in signal region: ",rate_signal_ggzz_Shape
+##         #print " @@@@@@ signal normalization in signal region TEST: ",rate_signal_ggzz_Test
+##         print " @@@@@@ interf normalization in signal region: ",rate_interf_ggzz_Shape
+##         print " @@@@@@ bkg normalization in signal region: ",rate_bkg_ggzz_Shape
 
         sigRates.setVal(rate_signal_ggzz_Shape)
         sigRates.setConstant(True)
