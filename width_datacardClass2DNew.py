@@ -179,8 +179,8 @@ class width_datacardClass:
         tmpSig_T_2 = sigTempFileU.Get("T_2D_1")
         tmpSig_T_4 = sigTempFileU.Get("T_2D_4")
         if tmpSig_T_4.Integral("width")<0 : #negative interference, turn it positive
-            for ix in range (1,tmpSig_T_4.GetXaxis().GetNbins+1):
-                for iy in range (1,tmpSig_T_4.GetYaxis().GetNbins+1):
+            for ix in range (1,tmpSig_T_4.GetXaxis().GetNbins()+1):
+                for iy in range (1,tmpSig_T_4.GetYaxis().GetNbins()+1):
                     tmpSig_T_4.SetBinContent(ix,iy,-1.0*tmpSig_T_4.GetBinContent(ix,iy))
                     
         #tmpBkg_T = sigTempFile.Get("T_2D_qqZZ")
@@ -190,10 +190,10 @@ class width_datacardClass:
         sigTempFileUp = ROOT.TFile(templateSigNameUp)
         sigTempFileDown = ROOT.TFile(templateSigNameDown)
 
-        Sig_T_1 = TH2F("mZZ_bkg","mZZ_bkg",tmpSig_T_1.GetXaxis().GetNbins()-tmpSig_T_1.GetXaxis().FindBin(self.templRange)+1,self.templRange,tmpSig_T_1.GetXaxis().GetXmax(),tmpSig_T_1.GetYaxis().GetNbins(),tmpSig_T_1.GetYaxis().GetXmin(),tmpSig_T_1.GetYaxis().GetXmax())
-        Sig_T_2 = TH2F("mZZ_sig","mZZ_sig",tmpSig_T_2.GetXaxis().GetNbins()-tmpSig_T_2.GetXaxis().FindBin(self.templRange)+1,self.templRange,tmpSig_T_2.GetXaxis().GetXmax(),tmpSig_T_2.GetYaxis().GetNbins(),tmpSig_T_2.GetYaxis().GetXmin(),tmpSig_T_2.GetYaxis().GetXmax())
-        Sig_T_4 = TH2F("mZZ_inter","mZZ_inter",tmpSig_T_4.GetXaxis().GetNbins()-tmpSig_T_4.GetXaxis().FindBin(self.templRange)+1,self.templRange,tmpSig_T_4.GetXaxis().GetXmax(),tmpSig_T_4.GetYaxis().GetNbins(),tmpSig_T_4.GetYaxis().GetXmin(),tmpSig_T_4.GetYaxis().GetXmax())
-        Bkg_T = TH2F("mZZ_bkg","mZZ_bkg",tmpBkg_T.GetXaxis().GetNbins()-tmpBkg_T.GetXaxis().FindBin(self.templRange)+1,self.templRange,tmpBkg_T.GetXaxis().GetXmax(),tmpBkg_T.GetYaxis().GetNbins(),tmpBkg_T.GetYaxis().GetXmin(),tmpBkg_T.GetYaxis().GetXmax())
+        Sig_T_1 = TH2F("amZZ_bkg","amZZ_bkg",tmpSig_T_1.GetXaxis().GetNbins()-tmpSig_T_1.GetXaxis().FindBin(self.templRange)+1,self.templRange,tmpSig_T_1.GetXaxis().GetXmax(),tmpSig_T_1.GetYaxis().GetNbins(),tmpSig_T_1.GetYaxis().GetXmin(),tmpSig_T_1.GetYaxis().GetXmax())
+        Sig_T_2 = TH2F("amZZ_sig","amZZ_sig",tmpSig_T_2.GetXaxis().GetNbins()-tmpSig_T_2.GetXaxis().FindBin(self.templRange)+1,self.templRange,tmpSig_T_2.GetXaxis().GetXmax(),tmpSig_T_2.GetYaxis().GetNbins(),tmpSig_T_2.GetYaxis().GetXmin(),tmpSig_T_2.GetYaxis().GetXmax())
+        Sig_T_4 = TH2F("amZZ_inter","amZZ_inter",tmpSig_T_4.GetXaxis().GetNbins()-tmpSig_T_4.GetXaxis().FindBin(self.templRange)+1,self.templRange,tmpSig_T_4.GetXaxis().GetXmax(),tmpSig_T_4.GetYaxis().GetNbins(),tmpSig_T_4.GetYaxis().GetXmin(),tmpSig_T_4.GetYaxis().GetXmax())
+        Bkg_T = TH2F("amZZ_bkg","amZZ_bkg",tmpBkg_T.GetXaxis().GetNbins()-tmpBkg_T.GetXaxis().FindBin(self.templRange)+1,self.templRange,tmpBkg_T.GetXaxis().GetXmax(),tmpBkg_T.GetYaxis().GetNbins(),tmpBkg_T.GetYaxis().GetXmin(),tmpBkg_T.GetYaxis().GetXmax())
 
 ##         #this part here is to adapt templates if they start from a range lower than self.templRange
 ##         if abs(tmpBkg_T.GetXaxis().GetBinLowEdge(1)-self.templRange<0.05):
@@ -219,7 +219,7 @@ class width_datacardClass:
         Sig_T_1 = tmpSig_T_1.Clone("mZZ_bkg")
         Sig_T_2 = tmpSig_T_2.Clone("mZZ_sig")
         Sig_T_4 = tmpSig_T_4.Clone("mZZ_inter")
-        #Bkg_T = tmpBkg_T.Clone("mZZ_bkg")
+        Bkg_T = tmpBkg_T.Clone("mZZ_bkg")
         Sig_T_1_Up = sigTempFileUp.Get("T_2D_2").Clone("T_2D_2_Up")
         Sig_T_2_Up = sigTempFileUp.Get("T_2D_1").Clone("T_2D_1_Up")
         Sig_T_4_Up = sigTempFileUp.Get("T_2D_4").Clone("T_2D_4_Up")
@@ -669,12 +669,12 @@ class width_datacardClass:
         ## ----------------------- SIGNAL AND BACKGROUND RATES ----------------------- ##
 
         ## rates per lumi for scaling
-        #bkgRate_qqzz = theInputs['qqZZ_rate']/theInputs['qqZZ_lumi'] #recompute for 220
-        #totalRate_ggzz = theInputs['ggZZ_rate']/theInputs['qqZZ_lumi']
-        #bkgRate_zjets = theInputs['zjets_rate']/theInputs['zjets_lumi']
+        bkgRate_qqzz = theInputs['qqZZ_rate']/theInputs['qqZZ_lumi'] #recompute for 220
+        totalRate_ggzz = theInputs['ggZZ_rate']/theInputs['qqZZ_lumi']
+        bkgRate_zjets = theInputs['zjets_rate']/theInputs['zjets_lumi']
 
         totalRate_ggzz = Sig_T_1.Integral("width")+Sig_T_2.Integral("width")-Sig_T_4.Integral("width")
-        totalRate_ggzz_Shape = totalRate*self.lumi
+        totalRate_ggzz_Shape = totalRate_ggzz*self.lumi
         bkgRate_qqzz_Shape = theInputs['qqZZ_rate']
         bkgRate_zjets_Shape = theInputs['zjets_rate']
         rate_signal_ggzz_Shape = Sig_T_2.Integral("width")*self.lumi
@@ -688,7 +688,7 @@ class width_datacardClass:
         ## rate_bkg_ggzz = theInputs['ggZZ_bkg_rate']/theInputs['qqZZ_lumi']
         ## rate_interf_ggzz = theInputs['ggZZ_interf_rate']/theInputs['qqZZ_lumi']
                 
-        # Get Normalizations  - Do I still need this part?
+##         # Get Normalizations  - Do I still need this part?
 ##         normalizationBackground_qqzz = bkg_qqzz_FI.createIntegral( ROOT.RooArgSet(CMS_zz4l_mass_FI), ROOT.RooFit.Range("fullrange") ).getVal()
 ##         print 
 ##         normalizationBackground_ggzz = ggZZpdf_FI.createIntegral( ROOT.RooArgSet(CMS_zz4l_mass_FI), ROOT.RooFit.Range("fullrange") ).getVal()
@@ -718,7 +718,7 @@ class width_datacardClass:
 ##         totalRate_ggzz_Shape = rate_signal_ggzz_Shape + rate_bkg_ggzz_Shape - rate_interf_ggzz_Shape
 ##         bkgRate_zjets_Shape = sclFactorBkg_zjets * bkg_zjets_FI.createIntegral( ROOT.RooArgSet(CMS_zz4l_mass_FI), ROOT.RooFit.Range("shape") ).getVal()
 ##         print " @@@@@@ signal normalization in signal region: ",rate_signal_ggzz_Shape
-##         #print " @@@@@@ signal normalization in signal region TEST: ",rate_signal_ggzz_Test
+##         print " @@@@@@ total normalization in signal region TEST: ",totalRate_ggzz_Shape
 ##         print " @@@@@@ interf normalization in signal region: ",rate_interf_ggzz_Shape
 ##         print " @@@@@@ bkg normalization in signal region: ",rate_bkg_ggzz_Shape
 
