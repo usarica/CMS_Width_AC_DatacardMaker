@@ -178,11 +178,6 @@ class width_datacardClass:
         tmpSig_T_1 = sigTempFileU.Get("T_2D_2") #different numbering convention Ulascan-Roberto
         tmpSig_T_2 = sigTempFileU.Get("T_2D_1")
         tmpSig_T_4 = sigTempFileU.Get("T_2D_4")
-        if tmpSig_T_4.Integral("width")<0 : #negative interference, turn it positive
-            for ix in range (1,tmpSig_T_4.GetXaxis().GetNbins()+1):
-                for iy in range (1,tmpSig_T_4.GetYaxis().GetNbins()+1):
-                    tmpSig_T_4.SetBinContent(ix,iy,-1.0*tmpSig_T_4.GetBinContent(ix,iy))
-                    
         #tmpBkg_T = sigTempFile.Get("T_2D_qqZZ")
 
         templateSigNameUp = "/afs/cern.ch/work/u/usarica/public/forWidth/WidthTemplates/{0:.0f}TeV/{1}/{2}/HtoZZ4l_gg2VV_125p6_TemplatesForCombine_D_Gamma_gg_r10_SysUp.root".format(self.sqrts,self.appendName,self.templRange)
@@ -228,6 +223,14 @@ class width_datacardClass:
         Sig_T_2_Down = sigTempFileDown.Get("T_2D_1").Clone("T_2D_1_Down")
         Sig_T_4_Down = sigTempFileDown.Get("T_2D_4").Clone("T_2D_4_Down")
         Bkg_T_Down = sigTempFileDown.Get("T_2D_qqZZ").Clone("T_2D_qqZZ_Down")
+
+        if Sig_T_4.Integral("width")<0 : #negative interference, turn it positive
+            for ix in range (1,Sig_T_4.GetXaxis().GetNbins()+1):
+                for iy in range (1,tmpSig_T_4.GetYaxis().GetNbins()+1):
+                    Sig_T_4.SetBinContent(ix,iy,-1.0*Sig_T_4.GetBinContent(ix,iy))
+                    Sig_T_4_Down.SetBinContent(ix,iy,-1.0*Sig_T_4_Down.GetBinContent(ix,iy))
+                    Sig_T_4_Up.SetBinContent(ix,iy,-1.0*Sig_T_4_Up.GetBinContent(ix,iy))
+                    
 
 
         Proj_T_1 = Sig_T_1.ProjectionX("Proj_T_1")
