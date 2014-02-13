@@ -67,7 +67,7 @@ def processCmd(cmd):
 def creationLoop(directory):
     global opt, args
 
-    startMass=[ 180, 240, 300 ]
+    startMass=[ 240, 300 ]
 
     myClass = width_datacardClass()
     myClass.loadIncludes()

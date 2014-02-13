@@ -1,15 +1,14 @@
 void compareScans(){
 
   const int nfiles = 2;
-  TString files[]={"cards_test2D","cards_test2D_mysyst","cards_test2D_allsyst"};
+  //String files[]={"cards_test2D","cards_test2D_mysyst","cards_test2D_allsyst"};
+  TString files[]={"cards_freezing","cards_freezing_noSyst","cards_freezing_noshapesyst","cards_freezing2"};
   int colors[]={kBlack,kGreen+2,kBlue,kRed+1,kYellow+3};
-  TString grnames[]={"Expected - no syst","Expected #mu syst", "Expected - full syst"};
+  TString grnames[]={"Expected ","Expected no syst", "Expected - no shape syst", "Expected  correct"};
 
-  int mass = 240;
+  int mass = 220;
   int maxwidth = 30;
   bool blind = true;
-
-  TString filepath="HCG/240";
 
   // gROOT->ProcessLine(".x tdrstyle.cc");
   gStyle->SetPadLeftMargin(0.16);
@@ -20,6 +19,8 @@ void compareScans(){
 
   for(int i=0;i<nfiles;i++){
     char boh[200];
+    //if(i==3)mass=240;
+    TString filepath;filepath.Form("HCG/%d/",mass);
     sprintf(boh,"%s/%s/higgsCombine1D_exp.MultiDimFit.mH%d.root", files[i].Data(),filepath.Data(),mass);
     TFile *f1=TFile::Open(boh);
     TTree *t1=(TTree*)f1->Get("limit");
@@ -31,6 +32,13 @@ void compareScans(){
     gr0->SetLineStyle(2);
     gr0->SetTitle("");
     mg->Add(gr0,"l");
+    if(i==1 || i==3){
+      double *y = gr0->GetY();
+      double *x = gr0->GetX();
+      for(int ip = 0; ip < gr0->GetN();ip+=10){
+	printf("%d) %f -> %f\n",ip,x[ip],y[ip]);
+      }
+    }
   }
 
   TCanvas *c1=new TCanvas("can1","CANVAS-SCAN1D",800,800);
@@ -79,7 +87,7 @@ void compareScans(){
   oneSig->SetTextColor(kRed);
   oneSig->SetBorderSize(0);
   oneSig->AddText("1#sigma"); 
-  oneSig->Draw();
+  //  oneSig->Draw();
 
   TPaveText *twoSig = new TPaveText(0.85,0.44,0.9,0.48,"NDC");
   twoSig->SetFillColor(0);
@@ -87,7 +95,7 @@ void compareScans(){
   twoSig->SetTextColor(kRed);
   twoSig->SetBorderSize(0);
   twoSig->AddText("2#sigma"); 
-  twoSig->Draw();
+  //  twoSig->Draw();
 
   TLine *l1=new TLine();
   l1->SetLineStyle(9);
@@ -106,4 +114,7 @@ void compareScans(){
   //c1->SaveAs("can_scan1D_ggsm.root");
   //c1->SaveAs("can_scan1D_ggsm.eps");
   c1->SaveAs("compare_scan1D_ggsm.gif");
+  c1->SaveAs("compare_scan1D_ggsm.eps");
+  c1->SaveAs("compare_scan1D_ggsm.png");
+
 }

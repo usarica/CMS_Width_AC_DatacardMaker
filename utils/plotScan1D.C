@@ -74,7 +74,7 @@ void plotScan1D(int mass = 240, int maxwidth = 30, bool blind = true){
   oneSig->SetTextColor(kRed);
   oneSig->SetBorderSize(0);
   oneSig->AddText("1#sigma"); 
-  oneSig->Draw();
+  //  oneSig->Draw();
 
   TPaveText *twoSig = new TPaveText(0.85,0.44,0.9,0.48,"NDC");
   twoSig->SetFillColor(0);
@@ -82,7 +82,7 @@ void plotScan1D(int mass = 240, int maxwidth = 30, bool blind = true){
   twoSig->SetTextColor(kRed);
   twoSig->SetBorderSize(0);
   twoSig->AddText("2#sigma"); 
-  twoSig->Draw();
+  //  twoSig->Draw();
 
   TLine *l1=new TLine();
   l1->SetLineStyle(9);
@@ -99,6 +99,7 @@ void plotScan1D(int mass = 240, int maxwidth = 30, bool blind = true){
 
   //c1->SaveAs("can_scan1D_ggsm.C");
   //c1->SaveAs("can_scan1D_ggsm.root");
-  //c1->SaveAs("can_scan1D_ggsm.eps");
+  c1->SaveAs("can_scan1D_ggsm.eps");
   c1->SaveAs("can_scan1D_ggsm.gif");
+  c1->SaveAs("can_scan1D_ggsm.png");
 }

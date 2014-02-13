@@ -23,6 +23,7 @@ def parseOptions():
     parser.add_option('-a', '--append', dest='appendName', type='string', default="",    help='append name for cards dir')
     parser.add_option('-b', action='store_true', dest='noX', default=True ,help='no X11 windows')
     parser.add_option('-t', '--templateDir', type='string', dest='templateDir', default="templates2D" ,help='directory with 2D template histos')
+    parser.add_option('-d', '--dimension', type='int', dest='dimensions', default="2" ,help='0->1D(KD), 1->1D(m4l), 2->2D(m4l,KD)')
 
     
     # store options and arguments as global variables
@@ -71,6 +72,7 @@ def creationLoop(directory):
 
     myClass = width_datacardClass()
     myClass.loadIncludes()
+    myClass.setDimensions(opt.dimensions)
     
     myReader4e = inputReader(opt.inputDir+"/inputs_4e.txt")
     myReader4e.readInputs()
