@@ -143,7 +143,7 @@ class width_datacardClass:
 
         mu_name = "CMS_zz4l_mu"
 
-        mu = ROOT.RooRealVar(mu_name,mu_name,0.935929,10)
+        mu = ROOT.RooRealVar(mu_name,mu_name,1.0,0.1,10)
         mu.setVal(1)
         mu.setBins(100)
 
@@ -175,30 +175,34 @@ class width_datacardClass:
         #tmpSig_T_4 = sigTempFile.Get("mZZ_inter")
         tmpBkg_T = sigTempFile.Get("mZZ_qq")
         tmpBkg_T.RebinX(4)
-        
-        #Ulascan templates
-        templateSigName = "/afs/cern.ch/work/u/usarica/public/forWidth/WidthTemplates/{0:.0f}TeV/{1}/{2}/HtoZZ4l_gg2VV_125p6_TemplatesForCombine_D_Gamma_gg_r10_Nominal.root".format(self.sqrts,self.appendName,self.templRange)
-        sigTempFileU = ROOT.TFile(templateSigName)
-        tmpSig_T_1 = sigTempFileU.Get("T_2D_2") #different numbering convention Ulascan-Roberto
-        tmpSig_T_2 = sigTempFileU.Get("T_2D_1")
-        tmpSig_T_4 = sigTempFileU.Get("T_2D_4")
-        #tmpBkg_T = sigTempFile.Get("T_2D_qqZZ")
 
-        templateSigNameUp = "/afs/cern.ch/work/u/usarica/public/forWidth/WidthTemplates/{0:.0f}TeV/{1}/{2}/HtoZZ4l_gg2VV_125p6_TemplatesForCombine_D_Gamma_gg_r10_SysUp.root".format(self.sqrts,self.appendName,self.templRange)
-        templateSigNameDown = "/afs/cern.ch/work/u/usarica/public/forWidth/WidthTemplates/{0:.0f}TeV/{1}/{2}/HtoZZ4l_gg2VV_125p6_TemplatesForCombine_D_Gamma_gg_r10_SysDown.root".format(self.sqrts,self.appendName,self.templRange)
-        sigTempFileUp = ROOT.TFile(templateSigNameUp)
-        sigTempFileDown = ROOT.TFile(templateSigNameDown)
-
-        Sig_T_1 = TH2F("amZZ_bkg","amZZ_bkg",tmpSig_T_1.GetXaxis().GetNbins()-tmpSig_T_1.GetXaxis().FindBin(self.templRange)+1,self.templRange,tmpSig_T_1.GetXaxis().GetXmax(),tmpSig_T_1.GetYaxis().GetNbins(),tmpSig_T_1.GetYaxis().GetXmin(),tmpSig_T_1.GetYaxis().GetXmax())
-        Sig_T_2 = TH2F("amZZ_sig","amZZ_sig",tmpSig_T_2.GetXaxis().GetNbins()-tmpSig_T_2.GetXaxis().FindBin(self.templRange)+1,self.templRange,tmpSig_T_2.GetXaxis().GetXmax(),tmpSig_T_2.GetYaxis().GetNbins(),tmpSig_T_2.GetYaxis().GetXmin(),tmpSig_T_2.GetYaxis().GetXmax())
-        Sig_T_4 = TH2F("amZZ_inter","amZZ_inter",tmpSig_T_4.GetXaxis().GetNbins()-tmpSig_T_4.GetXaxis().FindBin(self.templRange)+1,self.templRange,tmpSig_T_4.GetXaxis().GetXmax(),tmpSig_T_4.GetYaxis().GetNbins(),tmpSig_T_4.GetYaxis().GetXmin(),tmpSig_T_4.GetYaxis().GetXmax())
         rangeBkg_T = TH2F("amZZ_bkg","amZZ_bkg",tmpBkg_T.GetXaxis().GetNbins()-tmpBkg_T.GetXaxis().FindBin(self.templRange)+1,self.templRange,tmpBkg_T.GetXaxis().GetXmax(),tmpBkg_T.GetYaxis().GetNbins(),tmpBkg_T.GetYaxis().GetXmin(),tmpBkg_T.GetYaxis().GetXmax())
-        
         for ix in range(1,rangeBkg_T.GetXaxis().GetNbins()+1):
             for iy in range(1,rangeBkg_T.GetYaxis().GetNbins()+1):
                 bincontent = tmpBkg_T.GetBinContent(tmpBkg_T.FindBin(rangeBkg_T.GetXaxis().GetBinCenter(ix),rangeBkg_T.GetYaxis().GetBinCenter(iy)))
                 rangeBkg_T.SetBinContent(ix,iy,bincontent)
+        
+        #Ulascan templates
+        templateSigName = "/afs/cern.ch/work/u/usarica/public/CombineTemplates/{1}/{2}/HtoZZ4l_gg2VV_125p6_ModifiedTemplatesForCombine_D_Gamma_gg_r10_Nominal.root".format(self.sqrts,self.appendName,self.templRange)
+        #templateSigName = "/afs/cern.ch/work/u/usarica/public/CombineTemplates/forGiacomo_OldTemplates/WidthTemplates/{0:.0f}TeV/{1}/{2}/HtoZZ4l_gg2VV_125p6_TemplatesForCombine_D_Gamma_gg_r10_Nominal.root".format(self.sqrts,self.appendName,self.templRange)
+        sigTempFileU = ROOT.TFile(templateSigName)
+        tmpSig_T_1 = sigTempFileU.Get("T_2D_2") #different numbering convention Ulascan-Roberto
+        tmpSig_T_2 = sigTempFileU.Get("T_2D_1")
+        tmpSig_T_4 = sigTempFileU.Get("T_2D_4")
+        #rangeBkg_T = sigTempFileU.Get("T_2D_qqZZ")
+        
+        templateSigNameUp = "/afs/cern.ch/work/u/usarica/public/CombineTemplates/{1}/{2}/HtoZZ4l_gg2VV_125p6_ModifiedTemplatesForCombine_D_Gamma_gg_r10_SysUp.root".format(self.sqrts,self.appendName,self.templRange)
+        templateSigNameDown = "/afs/cern.ch/work/u/usarica/public/CombineTemplates/{1}/{2}/HtoZZ4l_gg2VV_125p6_ModifiedTemplatesForCombine_D_Gamma_gg_r10_SysDown.root".format(self.sqrts,self.appendName,self.templRange)
+        #templateSigNameUp = "/afs/cern.ch/work/u/usarica/public/CombineTemplates/forGiacomo_OldTemplates/WidthTemplates/{0:.0f}TeV/{1}/{2}/HtoZZ4l_gg2VV_125p6_TemplatesForCombine_D_Gamma_gg_r10_SysUp.root".format(self.sqrts,self.appendName,self.templRange)
+        #templateSigNameDown = "/afs/cern.ch/work/u/usarica/public/CombineTemplates/forGiacomo_OldTemplates/WidthTemplates/{0:.0f}TeV/{1}/{2}/HtoZZ4l_gg2VV_125p6_TemplatesForCombine_D_Gamma_gg_r10_SysDown.root".format(self.sqrts,self.appendName,self.templRange)
+        sigTempFileUp = ROOT.TFile(templateSigNameUp)
+        sigTempFileDown = ROOT.TFile(templateSigNameDown)
 
+        #Sig_T_1 = TH2F("amZZ_bkg","amZZ_bkg",tmpSig_T_1.GetXaxis().GetNbins()-tmpSig_T_1.GetXaxis().FindBin(self.templRange)+1,self.templRange,tmpSig_T_1.GetXaxis().GetXmax(),tmpSig_T_1.GetYaxis().GetNbins(),tmpSig_T_1.GetYaxis().GetXmin(),tmpSig_T_1.GetYaxis().GetXmax())
+        #Sig_T_2 = TH2F("amZZ_sig","amZZ_sig",tmpSig_T_2.GetXaxis().GetNbins()-tmpSig_T_2.GetXaxis().FindBin(self.templRange)+1,self.templRange,tmpSig_T_2.GetXaxis().GetXmax(),tmpSig_T_2.GetYaxis().GetNbins(),tmpSig_T_2.GetYaxis().GetXmin(),tmpSig_T_2.GetYaxis().GetXmax())
+        #Sig_T_4 = TH2F("amZZ_inter","amZZ_inter",tmpSig_T_4.GetXaxis().GetNbins()-tmpSig_T_4.GetXaxis().FindBin(self.templRange)+1,self.templRange,tmpSig_T_4.GetXaxis().GetXmax(),tmpSig_T_4.GetYaxis().GetNbins(),tmpSig_T_4.GetYaxis().GetXmin(),tmpSig_T_4.GetYaxis().GetXmax())
+        #
+        
 #         #this part here is to adapt templates if they start from a range lower than self.templRange
 ##         if abs(tmpBkg_T.GetXaxis().GetBinLowEdge(1)-self.templRange<0.05):
 ##             listtmp = [tmpSig_T_1,tmpSig_T_2,tmpSig_T_4,tmpBkg_T]
@@ -239,7 +243,22 @@ class width_datacardClass:
                     Sig_T_4.SetBinContent(ix,iy,-1.0*Sig_T_4.GetBinContent(ix,iy))
                     Sig_T_4_Down.SetBinContent(ix,iy,-1.0*Sig_T_4_Down.GetBinContent(ix,iy))
                     Sig_T_4_Up.SetBinContent(ix,iy,-1.0*Sig_T_4_Up.GetBinContent(ix,iy))
-                    
+
+        for ix in range(1,Bkg_T.GetXaxis().GetNbins()+1):
+            yNorm = Bkg_T.Integral(ix,ix,1,Bkg_T.GetYaxis().GetNbins())
+            yNormUp = Bkg_T_Up.Integral(ix,ix,1,Bkg_T.GetYaxis().GetNbins())
+            yNormDown = Bkg_T_Down.Integral(ix,ix,1,Bkg_T.GetYaxis().GetNbins())
+            print yNorm
+            if yNorm == 0: yNorm = 0.000000001
+            if yNormUp == 0: yNormUp = 0.000000001
+            if yNormDown == 0: yNormDown = 0.000000001
+            for iy in range(1,Bkg_T.GetYaxis().GetNbins()+1):
+                Bkg_T.SetBinContent(ix,iy,Bkg_T.GetBinContent(ix,iy)/yNorm)
+                Bkg_T_Up.SetBinContent(ix,iy,Bkg_T_Up.GetBinContent(ix,iy)/yNormUp)
+                Bkg_T_Down.SetBinContent(ix,iy,Bkg_T_Down.GetBinContent(ix,iy)/yNormDown)
+
+
+
 
 ##         if self.dimensions == 0 :
 ##             Sig_T_1.Rebin(Sig_T_1.GetNbinsX())
@@ -772,6 +791,11 @@ class width_datacardClass:
 
             bkg_zjets_FI = ROOT.RooAddPdf("bkg_zjetsTmp_FI","bkg_zjetsTmp_FI",ROOT.RooArgList(bkg_zjets_2p2f_FI,bkg_zjets_3p1f_FI,bkg_zjets_2p2f_2_FI),ROOT.RooArgList(nlZjet_2p2f,nlZjet_3p1f,nlZjet_2p2f_2))
 
+        if self.dimensions == 0 :
+            bkg_zjets = ROOT.RooHistPdf("bkg_zjets","bkg_zjets",ROOT.RooArgSet(CMS_zz4l_widthKD),qqzz_TempDataHist1)
+        if self.dimensions == 1 :
+            bkg_zjets = bkg_zjets_mass
+            bkg_zjets.SetNameTitle("bkg_zjets","bkg_zjets")
         
         ## ------------------- LUMI -------------------- ##
         
