@@ -756,8 +756,8 @@ class systematicsClass:
         #if theInputs['useQCDscale_ggVV']:
         #    self.Write_QCDscale_ggVV(theFile,theInputs)
 
-        #if theInputs['useQCDscale_VV']:
-        #    self.Write_QCDscale_VV(theFile,theInputs)
+        if theInputs['useQCDscale_VV']:
+            self.Write_QCDscale_VV(theFile,theInputs)
 	
 	## Higgs BR
         if(self.model == "SM" or self.model == "FF") and theInputs['useBRhiggs_hzz4l']:
