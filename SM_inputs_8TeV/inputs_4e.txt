@@ -14,7 +14,7 @@ sqrts 8
 
 ## Channels to include in cards ##
 ##channels ggsignalZZ gginterfZZ ggbkgZZ qqZZ zjets
-channels ggZZ qqH qqZZ zjets
+channels ggZZ qqZZ zjets
 
 ## rates --- format = chan N lumi ##
 ## if lumi is blank, lumi for cards used ##

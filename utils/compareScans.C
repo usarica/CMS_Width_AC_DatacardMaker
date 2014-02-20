@@ -1,10 +1,10 @@
 void compareScans(){
 
-  const int nfiles = 4;
+  const int nfiles = 2;
   //String files[]={"cards_test2D","cards_test2D_mysyst","cards_test2D_allsyst"};
-  TString files[]={"cards_test_oldT_0","cards_test_newT_0","cards_test_oldT_fix_0","cards_test_newT_fix_0"};
+  TString files[]={"cards_freezing","cards_freezing_noSyst","cards_freezing_noshapesyst","cards_freezing2"};
   int colors[]={kBlack,kGreen+2,kBlue,kRed+1,kYellow+3};
-  TString grnames[]={"Old code, old Templates","Old code, new Templates", "fix old T", "fix new T"};
+  TString grnames[]={"Expected ","Expected no syst", "Expected - no shape syst", "Expected  correct"};
 
   int mass = 220;
   int maxwidth = 30;
