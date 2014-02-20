@@ -17,4 +17,14 @@ combine -M GenerateOnly hzz4l_allS_8TeV.root -m "$2" -t -1 --expectSignal=1 --sa
 root -b -l -q ../../../utils/addToyDataset.C\(\"hzz4l_allS_8TeV.root\",\"higgsCombineTest.GenerateOnly.mH"$2".123456.root\",\"toy_asimov\",\"workspaceWithAsimov.root\"\)
 combine -M MultiDimFit workspaceWithAsimov.root --algo=grid --points 200 -m "$2" -n 1D_exp -D toys/toy_asimov -v 3
 #(add "-S 0 --fastScan" if no systematics)
-root ../../../utils/plotScan1D.C\($2,30\)
+root -l -q ../../../utils/plotScan1D.C\($2,30\)
+cd ..
+cp -r "$2" "$2"_noSyst
+cd "$2"_noSyst
+combineCards.py hzz4l_2e2muS_8TeV.txt hzz4l_4muS_8TeV.txt hzz4l_4eS_8TeV.txt > hzz4l_allS_8TeV.txt
+
+text2workspace.py -m "$2" hzz4l_allS_8TeV.txt -P HiggsAnalysis.CombinedLimit.HiggsWidth:higgswidth --stat -o hzz4l_allS_8TeV.root
+combine -M GenerateOnly hzz4l_allS_8TeV.root -m "$2" -t -1 --expectSignal=1 --saveToys -V -v 7
+root -b -l -q ../../../utils/addToyDataset.C\(\"hzz4l_allS_8TeV.root\",\"higgsCombineTest.GenerateOnly.mH"$2".123456.root\",\"toy_asimov\",\"workspaceWithAsimov.root\"\)
+combine -M MultiDimFit workspaceWithAsimov.root --algo=grid --points 200 -m "$2" -n 1D_exp -D toys/toy_asimov -v 3 -S 0 --fastScan
+root -l -q ../../../utils/plotScan1D.C\($2,30\)

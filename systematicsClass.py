@@ -796,9 +796,11 @@ class systematicsClass:
         #Gamma_BW_errPerCent = theInputs['CMS_zz4l_gamma_sig']
 
         #theFile.write("CMS_zz4l_mu param 0.935929  -0.23/+0.26 \n") #stat only
-        theFile.write("CMS_zz4l_mu param 1.0 -0.255977/+0.30849 \n") #expected uncertainty
+        #theFile.write("CMS_zz4l_mu param 1.0 -0.255977/+0.30849 \n") #expected uncertainty
+        theFile.write("CMS_zz4l_mu param 1.00  -0.24/+0.27 \n")
+        #theFile.write("CMS_zz4l_mu param 0.93  -0.24/+0.26 \n")
         #theFile.write("CMS_zz4l_mu param 0.935929  -0.244308/+0.296613 \n") #stat + syst
-        theFile.write("CMS_zz4l_kbkg param 1.0  0.25 \n")
+        theFile.write("CMS_zz4l_kbkg param 1.0  0.10 \n")
         theFile.write("CMS_zz4l_scale_syst shape1 1 - - \n")
         #theFile.write("QCDScale shape 1 - - \n")
         #theFile.write("CMS_zz4l_pdfUnc shape 1 - - \n")
