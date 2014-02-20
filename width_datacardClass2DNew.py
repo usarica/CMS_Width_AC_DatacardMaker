@@ -804,7 +804,8 @@ class width_datacardClass:
             bkg_zjets_FI = ROOT.RooAddPdf("bkg_zjetsTmp_FI","bkg_zjetsTmp_FI",ROOT.RooArgList(bkg_zjets_2p2f_FI,bkg_zjets_3p1f_FI,bkg_zjets_2p2f_2_FI),ROOT.RooArgList(nlZjet_2p2f,nlZjet_3p1f,nlZjet_2p2f_2))
 
         if self.dimensions == 0 :
-            bkg_zjets = ROOT.RooHistPdf("bkg_zjets","bkg_zjets",ROOT.RooArgSet(CMS_zz4l_widthKD),zjet_TempDataHist)
+            zjet_TempDataHist1 = ROOT.RooDataHist(TemplateName,TemplateName,ROOT.RooArgList(CMS_zz4l_widthKD),Bkg_ZX.ProjectionY())
+            bkg_zjets = ROOT.RooHistPdf(PdfName,PdfName,ROOT.RooArgSet(CMS_zz4l_widthKD),zjet_TempDataHist1)
         if self.dimensions == 1 :
             bkg_zjets = bkg_zjets_mass
             bkg_zjets.SetNameTitle("bkg_zjets","bkg_zjets")
