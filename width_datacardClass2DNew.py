@@ -901,6 +901,7 @@ class width_datacardClass:
         rate_interf_ggzz_Shape = Sig_T_4.Integral("width")*self.lumi
 
         VBFrate_Shape = Sig_T_VBF.Integral("width")*self.lumi
+        print "VBF VBF VBF VBF VBF VBF ",VBFrate_Shape
         
         #bkgRate_qqzz_Shape = Bkg_T.Integral()*self.lumi
         
@@ -1152,10 +1153,10 @@ class width_datacardClass:
         file.write("bin ")        
 
         #channelList=['ggZZ_signal','ggZZ_interf','ggZZ_bkg','qqZZ','zjets']
-        channelList=['ggZZ','qqZZ','zjets'] 
+        channelList=['qqH','ggZZ','qqZZ','zjets'] 
 
         #channelName=['ggsignalzz','gginterfzz','ggbkgzz','bkg_qqzz','bkg_zjets']
-        channelName=['ggzz','bkg_qqzz','bkg_zjets'] 
+        channelName=['qqH','ggzz','bkg_qqzz','bkg_zjets'] 
          
         for chan in channelList:
             if theInputs[chan]:
@@ -1205,7 +1206,7 @@ class width_datacardClass:
         if inputs['ggZZ']:  counter+=1
         if inputs['ggZZ_signal']: counter+=1
         if inputs['ggZZ_interf']: counter+=1
-  ##       if inputs['qqH']: counter+=1
+        if inputs['qqH']: counter+=1
 ##         if inputs['WH']:  counter+=1
 ##         if inputs['ZH']:  counter+=1
 ##         if inputs['ttH']: counter+=1
