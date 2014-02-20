@@ -798,8 +798,14 @@ class systematicsClass:
         #theFile.write("CMS_zz4l_mu param 0.935929  -0.23/+0.26 \n") #stat only
         theFile.write("CMS_zz4l_mu param 1.0 -0.255977/+0.30849 \n") #expected uncertainty
         #theFile.write("CMS_zz4l_mu param 0.935929  -0.244308/+0.296613 \n") #stat + syst
+<<<<<<< HEAD
         theFile.write("CMS_zz4l_kbkg param 1.0  0.1 \n")
         theFile.write("CMS_zz4l_scale_syst param 0.0 1 [-3,3]\n")
+=======
+        theFile.write("CMS_zz4l_kbkg param 1.0  0.25 \n")
+        theFile.write("CMS_zz4l_scale_syst shape1 1 - - - \n")
+        theFile.write("CMS_zz4l_qqH_Morph_sys param 0.0 1 [-3,3] \n")
+>>>>>>> 78e248f258ce47e69b1cd04d8802c74fe8356157
         #theFile.write("QCDScale shape 1 - - \n")
         #theFile.write("CMS_zz4l_pdfUnc shape 1 - - \n")
         #theFile.write("CMS_zz4l_syst param 0.0 1 [-3,3] \n") 
