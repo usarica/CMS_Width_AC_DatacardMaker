@@ -143,7 +143,7 @@ class width_datacardClass:
 
         mu_name = "CMS_zz4l_mu"
 
-        mu = ROOT.RooRealVar(mu_name,mu_name,1.0,0.001,10)
+        mu = ROOT.RooRealVar(mu_name,mu_name,0.93,0.001,10)
         mu.setVal(1)
         mu.setBins(100)
 

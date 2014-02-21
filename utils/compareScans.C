@@ -1,10 +1,10 @@
 void compareScans(){
 
-  const int nfiles = 2;
+  const int nfiles = 3;
   //String files[]={"cards_test2D","cards_test2D_mysyst","cards_test2D_allsyst"};
-  TString files[]={"cards_freezing","cards_freezing_noSyst","cards_freezing_noshapesyst","cards_freezing2"};
+  TString files[]={"cards_preapproval02_20_1DDgg/HCG/220/","cards_preapproval02_20_1DDgg_093/HCG/220/","cards_preapproval02_20_1DDgg/HCG/220_noSyst/","cards_freezing2"};
   int colors[]={kBlack,kGreen+2,kBlue,kRed+1,kYellow+3};
-  TString grnames[]={"Expected ","Expected no syst", "Expected - no shape syst", "Expected  correct"};
+  TString grnames[]={"Expected 1D(Dgg) #mu_{exp}", "Expected 1D(Dgg) #mu_{obs}", "Expected 1D(Dgg) SM(#mu=1)","Expected  correct"};
 
   int mass = 220;
   int maxwidth = 30;
@@ -20,27 +20,32 @@ void compareScans(){
   for(int i=0;i<nfiles;i++){
     char boh[200];
     //if(i==3)mass=240;
-    TString filepath;filepath.Form("HCG/%d/",mass);
-    sprintf(boh,"%s/%s/higgsCombine1D_exp.MultiDimFit.mH%d.root", files[i].Data(),filepath.Data(),mass);
+    //TString filepath;filepath.Form("HCG/%d/",mass);
+    sprintf(boh,"%shiggsCombine1D_exp.MultiDimFit.mH%d.root", files[i].Data(),mass);
     TFile *f1=TFile::Open(boh);
     TTree *t1=(TTree*)f1->Get("limit");
     t1->Draw("2*deltaNLL:CMS_zz4l_GGsm", "deltaNLL > 0","PL");
     TGraph *gr0 = (TGraph*) gROOT->FindObject("Graph")->Clone();
     gr0->SetName(grnames[i].Data());
-    gr0->SetLineWidth(2);
+    gr0->SetLineWidth(2.5);
     gr0->SetLineColor(colors[i]);
     gr0->SetLineStyle(2);
     gr0->SetTitle("");
     mg->Add(gr0,"l");
-    if(i==1 || i==3){
-      double *y = gr0->GetY();
-      double *x = gr0->GetX();
-      for(int ip = 0; ip < gr0->GetN();ip+=10){
-	printf("%d) %f -> %f\n",ip,x[ip],y[ip]);
+    double *y = gr0->GetY();
+    double *x = gr0->GetX();
+    int ipol=-1;
+    for(int ipo=0;ipo<gr0->GetN();ipo++){
+      if(y[ipo]<3.84&&y[ipo+1]>3.84){
+	ipol = ipo;
+	break;
       }
     }
+    double a =  (y[ipol+1]-y[ipol])/(x[ipol+1]-x[ipol]);
+    double b = y[ipol]-a*x[ipol];
+    printf("%d) limit %.1f\n",i,(3.84-b)/a);
   }
-
+  
   TCanvas *c1=new TCanvas("can1","CANVAS-SCAN1D",800,800);
   c1->cd();
   mg->Draw("AL");
@@ -113,8 +118,8 @@ void compareScans(){
   //c1->SaveAs("can_scan1D_ggsm.C");
   //c1->SaveAs("can_scan1D_ggsm.root");
   //c1->SaveAs("can_scan1D_ggsm.eps");
-  c1->SaveAs("compare_scan1D_ggsm.gif");
-  c1->SaveAs("compare_scan1D_ggsm.eps");
-  c1->SaveAs("compare_scan1D_ggsm.png");
+  c1->SaveAs("compare_scan1Ddgg_ggsm.gif");
+  c1->SaveAs("compare_scan1Ddgg_ggsm.eps");
+  c1->SaveAs("compare_scan1Ddgg_ggsm.png");
 
 }
