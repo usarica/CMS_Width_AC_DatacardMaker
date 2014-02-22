@@ -38,6 +38,7 @@ class inputReader:
         self.ggZZ_signal_chan = False
         self.ggZZ_bkg_chan = False
         self.ggZZ_interf_chan = False
+        self.VBF_offshell_chan = False
         self.qqZZ_chan = False
         self.zjets_chan = False
         self.ttbar_chan = False
@@ -309,6 +310,7 @@ class inputReader:
                     elif chan.lower().startswith("ggsignalzz"):  self.ggZZ_signal_chan = True
                     elif chan.lower().startswith("ggbkgzz"):  self.ggZZ_bkg_chan = True
                     elif chan.lower().startswith("gginterfzz"):  self.ggZZ_interf_chan = True
+                    elif chan.lower().startswith("vbf_offshell"):   self.VBF_offshell_chan = True
                     elif chan.lower().startswith("ggzz"):  self.ggZZ_chan = True
                     elif chan.lower().startswith("zjets"): self.zjets_chan = True
                     elif chan.lower().startswith("ttbar"): self.ttbar_chan = True
@@ -879,6 +881,7 @@ class inputReader:
         dict['ggZZ_signal'] = self.ggZZ_signal_chan
         dict['ggZZ_bkg'] = self.ggZZ_bkg_chan
         dict['ggZZ_interf'] = self.ggZZ_interf_chan
+        dict['VBF_offshell'] = self.VBF_offshell_chan
         dict['zjets'] = self.zjets_chan
         dict['ttbar'] = self.ttbar_chan
         dict['zbb'] = self.zbb_chan

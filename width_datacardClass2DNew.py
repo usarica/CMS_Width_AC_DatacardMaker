@@ -76,6 +76,7 @@ class width_datacardClass:
         self.ggZZ_signal_chan = theInputs['ggZZ_signal']
         self.ggZZ_bkg_chan = theInputs['ggZZ_bkg']
         self.ggZZ_interf_chan = theInputs['ggZZ_interf']
+        self.VBF_offshell_chan = theInputs['VBF_offshell']
         self.zjets_chan = theInputs['zjets']
         self.templRange =220
         
@@ -104,7 +105,7 @@ class width_datacardClass:
         print "width: ",self.widthHVal
         
         self.low_M = theLowSide
-        self.high_M = 1400
+        self.high_M = 1600
         
         if (self.channel == self.ID_4mu): self.appendName = '4mu'
         elif (self.channel == self.ID_4e): self.appendName = '4e'
@@ -132,7 +133,7 @@ class width_datacardClass:
         ## use this variable only For Integration (FI)
         CMS_zz4l_mass_name = "CMS_zz4l_mass_FI"
             
-        CMS_zz4l_mass_FI = ROOT.RooRealVar(CMS_zz4l_mass_name,CMS_zz4l_mass_name,self.templRange,1400)    
+        CMS_zz4l_mass_FI = ROOT.RooRealVar(CMS_zz4l_mass_name,CMS_zz4l_mass_name,self.templRange,1600)    
         CMS_zz4l_mass_FI.setBins(bins)
 
         x_name = "CMS_zz4l_GGsm"
@@ -182,16 +183,22 @@ class width_datacardClass:
         #        rangeBkg_T.SetBinContent(ix,iy,bincontent)
         
         #Ulascan templates
-        templateSigName = "/afs/cern.ch/work/u/usarica/public/CombineTemplates/{0:.0f}TeV/{1}/{2}/HtoZZ4l_gg2VV_125p6_ModifiedTemplatesForCombine_D_Gamma_gg_r10_Nominal.root".format(self.sqrts,self.appendName,self.templRange)
+        templateSigName = "/afs/cern.ch/work/u/usarica/public/CombineTemplates/21_2_2014_newVBF/{0:.0f}TeV/{1}/{2}/HtoZZ4l_gg2VV_125p6_ModifiedTemplatesForCombine_D_Gamma_gg_r10_Nominal.root".format(self.sqrts,self.appendName,self.templRange)
+        #templateSigName = "/afs/cern.ch/work/u/usarica/public/CombineTemplates/{0:.0f}TeV/{1}/{2}/HtoZZ4l_gg2VV_125p6_ModifiedTemplatesForCombine_D_Gamma_gg_r10_Nominal.root".format(self.sqrts,self.appendName,self.templRange)
         #templateSigName = "/afs/cern.ch/work/u/usarica/public/CombineTemplates/forGiacomo_OldTemplates/WidthTemplates/{0:.0f}TeV/{1}/{2}/HtoZZ4l_gg2VV_125p6_TemplatesForCombine_D_Gamma_gg_r10_Nominal.root".format(self.sqrts,self.appendName,self.templRange)
         sigTempFileU = ROOT.TFile(templateSigName)
         tmpSig_T_1 = sigTempFileU.Get("T_2D_2") #different numbering convention Ulascan-Roberto
         tmpSig_T_2 = sigTempFileU.Get("T_2D_1")
         tmpSig_T_4 = sigTempFileU.Get("T_2D_4")
         rangeBkg_T = sigTempFileU.Get("T_2D_qqZZ")
-        
-        templateSigNameUp = "/afs/cern.ch/work/u/usarica/public/CombineTemplates/{0:.0f}TeV/{1}/{2}/HtoZZ4l_gg2VV_125p6_ModifiedTemplatesForCombine_D_Gamma_gg_r10_SysUp.root".format(self.sqrts,self.appendName,self.templRange)
-        templateSigNameDown = "/afs/cern.ch/work/u/usarica/public/CombineTemplates/{0:.0f}TeV/{1}/{2}/HtoZZ4l_gg2VV_125p6_ModifiedTemplatesForCombine_D_Gamma_gg_r10_SysDown.root".format(self.sqrts,self.appendName,self.templRange)
+        tmpVBF_T_1 = sigTempFileU.Get("T_2D_VBF_2") #different numbering convention Ulascan-Roberto
+        tmpVBF_T_2 = sigTempFileU.Get("T_2D_VBF_1")
+        tmpVBF_T_4 = sigTempFileU.Get("T_2D_VBF_4")
+
+        templateSigNameUp = "/afs/cern.ch/work/u/usarica/public/CombineTemplates/21_2_2014_newVBF/{0:.0f}TeV/{1}/{2}/HtoZZ4l_gg2VV_125p6_ModifiedTemplatesForCombine_D_Gamma_gg_r10_SysUp.root".format(self.sqrts,self.appendName,self.templRange)
+        templateSigNameDown = "/afs/cern.ch/work/u/usarica/public/CombineTemplates/21_2_2014_newVBF/{0:.0f}TeV/{1}/{2}/HtoZZ4l_gg2VV_125p6_ModifiedTemplatesForCombine_D_Gamma_gg_r10_SysDown.root".format(self.sqrts,self.appendName,self.templRange)
+        #templateSigNameUp = "/afs/cern.ch/work/u/usarica/public/CombineTemplates/{0:.0f}TeV/{1}/{2}/HtoZZ4l_gg2VV_125p6_ModifiedTemplatesForCombine_D_Gamma_gg_r10_SysUp.root".format(self.sqrts,self.appendName,self.templRange)
+        #templateSigNameDown = "/afs/cern.ch/work/u/usarica/public/CombineTemplates/{0:.0f}TeV/{1}/{2}/HtoZZ4l_gg2VV_125p6_ModifiedTemplatesForCombine_D_Gamma_gg_r10_SysDown.root".format(self.sqrts,self.appendName,self.templRange)
         #templateSigNameUp = "/afs/cern.ch/work/u/usarica/public/CombineTemplates/forGiacomo_OldTemplates/WidthTemplates/{0:.0f}TeV/{1}/{2}/HtoZZ4l_gg2VV_125p6_TemplatesForCombine_D_Gamma_gg_r10_SysUp.root".format(self.sqrts,self.appendName,self.templRange)
         #templateSigNameDown = "/afs/cern.ch/work/u/usarica/public/CombineTemplates/forGiacomo_OldTemplates/WidthTemplates/{0:.0f}TeV/{1}/{2}/HtoZZ4l_gg2VV_125p6_TemplatesForCombine_D_Gamma_gg_r10_SysDown.root".format(self.sqrts,self.appendName,self.templRange)
         sigTempFileUp = ROOT.TFile(templateSigNameUp)
@@ -226,15 +233,24 @@ class width_datacardClass:
         Sig_T_1 = tmpSig_T_1.Clone("mZZ_bkg")
         Sig_T_2 = tmpSig_T_2.Clone("mZZ_sig")
         Sig_T_4 = tmpSig_T_4.Clone("mZZ_inter")
+        VBF_T_1 = tmpVBF_T_1.Clone("mZZ_vbfbkg")
+        VBF_T_2 = tmpVBF_T_2.Clone("mZZ_vbfsig")
+        VBF_T_4 = tmpVBF_T_4.Clone("mZZ_vbfinter")
         Bkg_T = rangeBkg_T.Clone("mZZ_bkg")
         Bkg_ZX = sigTempFileU.Get("T_2D_ZX").Clone("Bkg_ZX")
         Sig_T_1_Up = sigTempFileUp.Get("T_2D_2").Clone("T_2D_2_Up")
         Sig_T_2_Up = sigTempFileUp.Get("T_2D_1").Clone("T_2D_1_Up")
         Sig_T_4_Up = sigTempFileUp.Get("T_2D_4").Clone("T_2D_4_Up")
+        VBF_T_1_Up = sigTempFileUp.Get("T_2D_VBF_2").Clone("T_2D_VBF_2_Up")
+        VBF_T_2_Up = sigTempFileUp.Get("T_2D_VBF_1").Clone("T_2D_VBF_1_Up")
+        VBF_T_4_Up = sigTempFileUp.Get("T_2D_VBF_4").Clone("T_2D_VBF_4_Up")
         #Bkg_T_Up = sigTempFileUp.Get("T_2D_qqZZ").Clone("T_2D_qqZZ_Up")
         Sig_T_1_Down = sigTempFileDown.Get("T_2D_2").Clone("T_2D_2_Down")
         Sig_T_2_Down = sigTempFileDown.Get("T_2D_1").Clone("T_2D_1_Down")
         Sig_T_4_Down = sigTempFileDown.Get("T_2D_4").Clone("T_2D_4_Down")
+        VBF_T_1_Down = sigTempFileDown.Get("T_2D_VBF_2").Clone("T_2D_VBF_2_Down")
+        VBF_T_2_Down = sigTempFileDown.Get("T_2D_VBF_1").Clone("T_2D_VBF_1_Down")
+        VBF_T_4_Down = sigTempFileDown.Get("T_2D_VBF_4").Clone("T_2D_VBF_4_Down")
         #Bkg_T_Down = sigTempFileDown.Get("T_2D_qqZZ").Clone("T_2D_qqZZ_Down")
         
 
@@ -244,6 +260,13 @@ class width_datacardClass:
                     Sig_T_4.SetBinContent(ix,iy,-1.0*Sig_T_4.GetBinContent(ix,iy))
                     Sig_T_4_Down.SetBinContent(ix,iy,-1.0*Sig_T_4_Down.GetBinContent(ix,iy))
                     Sig_T_4_Up.SetBinContent(ix,iy,-1.0*Sig_T_4_Up.GetBinContent(ix,iy))
+                    
+        if VBF_T_4.Integral()<0 : #negative interference, turn it positive, the sign will be taken into account later when building the pdf
+            for ix in range (1,VBF_T_4.GetXaxis().GetNbins()+1):
+                for iy in range (1,tmpVBF_T_4.GetYaxis().GetNbins()+1):
+                    VBF_T_4.SetBinContent(ix,iy,-1.0*VBF_T_4.GetBinContent(ix,iy))
+                    VBF_T_4_Down.SetBinContent(ix,iy,-1.0*VBF_T_4_Down.GetBinContent(ix,iy))
+                    VBF_T_4_Up.SetBinContent(ix,iy,-1.0*VBF_T_4_Up.GetBinContent(ix,iy))
 
         #protection against empty bins
         for ix in range(1,Bkg_T.GetXaxis().GetNbins()+1):
@@ -270,18 +293,42 @@ class width_datacardClass:
                     binB = Sig_T_1.GetBinContent(ix,iy)
                     if binI*binI >= 4*binS*binB:
                         Sig_T_4.SetBinContent(ix,iy,4*binS*binB-0.00001)#check signs (secondo me 4 -0.0)
+                        
+                binI = VBF_T_4.GetBinContent(ix,iy)
+                if binI > 0 : #check signs, should be < 0 for the template but I changed the sign above (secondo me >0)
+                    binS = VBF_T_2.GetBinContent(ix,iy)
+                    binB = VBF_T_1.GetBinContent(ix,iy)
+                    if binI*binI >= 4*binS*binB:
+                        VBF_T_4.SetBinContent(ix,iy,4*binS*binB-0.00001)#check signs (secondo me 4 -0.0)
+                        
                 binI = Sig_T_4_Up.GetBinContent(ix,iy)
                 if binI > 0 : #check signs, should be < 0 for the template but I changed the sign above (secondo me >0)
                     binS = Sig_T_2_Up.GetBinContent(ix,iy)
                     binB = Sig_T_1_Up.GetBinContent(ix,iy)
                     if binI*binI >= 4*binS*binB:
                         Sig_T_4_Up.SetBinContent(ix,iy,sqrt(4*binS*binB)-0.00001)#check signs (secondo me 4 -0.0)
+
+                binI = VBF_T_4_Up.GetBinContent(ix,iy)
+                if binI > 0 : #check signs, should be < 0 for the template but I changed the sign above (secondo me >0)
+                    binS = VBF_T_2_Up.GetBinContent(ix,iy)
+                    binB = VBF_T_1_Up.GetBinContent(ix,iy)
+                    if binI*binI >= 4*binS*binB:
+                        VBF_T_4_Up.SetBinContent(ix,iy,sqrt(4*binS*binB)-0.00001)#check signs (secondo me 4 -0.0)
+                        
                 binI = Sig_T_4_Down.GetBinContent(ix,iy)
                 if binI > 0 : #check signs, should be < 0 for the template but I changed the sign above (secondo me >0)
                     binS = Sig_T_2_Down.GetBinContent(ix,iy)
                     binB = Sig_T_1_Down.GetBinContent(ix,iy)
                     if binI*binI >= 4*binS*binB:
                         Sig_T_4_Down.SetBinContent(ix,iy,sqrt(4*binS*binB)-0.00001)#check signs (secondo me 4 -0.0)
+
+                binI = VBF_T_4_Down.GetBinContent(ix,iy)
+                if binI > 0 : #check signs, should be < 0 for the template but I changed the sign above (secondo me >0)
+                    binS = VBF_T_2_Down.GetBinContent(ix,iy)
+                    binB = VBF_T_1_Down.GetBinContent(ix,iy)
+                    if binI*binI >= 4*binS*binB:
+                        VBF_T_4_Down.SetBinContent(ix,iy,sqrt(4*binS*binB)-0.00001)#check signs (secondo me 4 -0.0)
+                
                 #Bkg_T_Up.SetBinContent(ix,iy,Bkg_T_Up.GetBinContent(ix,iy)/yNormUp)
                 #Bkg_T_Down.SetBinContent(ix,iy,Bkg_T_Down.GetBinContent(ix,iy)/yNormDown)
 
@@ -309,11 +356,11 @@ class width_datacardClass:
         ## -------------------------- gg2ZZ SHAPES ---------------------------------- ##
         
         sigRateName = "signal_ggZZrate_{0:.0f}_{1:.0f}".format(self.channel,self.sqrts)
-        sigRates = ROOT.RooRealVar(sigRateName,"sigRates",0.0,10000.0)
+        sigRates = ROOT.RooRealVar(sigRateName,sigRateName,0.0,10000.0)
         bkgRateName = "bkg_ggZZrate_{0:.0f}_{1:.0f}".format(self.channel,self.sqrts)
-        bkgRates = ROOT.RooRealVar(bkgRateName,"bkgRates",0.0,10000.0)
+        bkgRates = ROOT.RooRealVar(bkgRateName,bkgRateName,0.0,10000.0)
         interfRateName = "interf_ggZZrate_{0:.0f}_{1:.0f}".format(self.channel,self.sqrts)
-        interfRates = ROOT.RooRealVar(interfRateName,"interfRates",0.0,10000.0)
+        interfRates = ROOT.RooRealVar(interfRateName,interfRateName,0.0,10000.0)
         
         sigRateNameNorm = "signalNorm_ggZZrate_{0:.0f}_{1:.0f}".format(self.channel,self.sqrts)
         sigRatesNorm = ROOT.RooFormulaVar(sigRateNameNorm,"@0*@1/(@0*@1-sqrt(@0*@1)*sign(@2)*sqrt(abs(@2))+@2)",ROOT.RooArgList(x,mu,kbkg))
@@ -566,6 +613,184 @@ class width_datacardClass:
         #ggZZpdf = ROOT.RooProdPdf(ggZZpdfName,ggZZpdfName,ROOT.RooArgSet(ggZZpdf_1D),ROOT.RooFit.Conditional(ROOT.RooArgSet(systTemplateMorphPdf),ROOT.RooArgSet(CMS_zz4l_widthKD))) #VDCMS_zz4l_widthKD
         #ggZZpdf = ROOT.RooProdPdf(ggZZpdfName,ggZZpdfName,ggZZpdf_nominal,systTemplateMorphPdf) #VDCMS_zz4l_widthKD
         #ggZZpdf = ggZZpdf_1D
+
+
+        #Provo con formule Ulash
+
+         ## -------------------------- VBF offshell SHAPES ---------------------------------- ##
+        
+        sigRateName = "signal_VBFrate_{0:.0f}_{1:.0f}".format(self.channel,self.sqrts)
+        VBFsigRates = ROOT.RooRealVar(sigRateName,sigRateName,0.0,10000.0)
+        bkgRateName = "bkg_VBFrate_{0:.0f}_{1:.0f}".format(self.channel,self.sqrts)
+        VBFbkgRates = ROOT.RooRealVar(bkgRateName,bkgRateName,0.0,10000.0)
+        interfRateName = "interf_VBFrate_{0:.0f}_{1:.0f}".format(self.channel,self.sqrts)
+        VBFinterfRates = ROOT.RooRealVar(interfRateName,interfRateName,0.0,10000.0)
+
+        ##Assume BKG & INTERF are 0
+        
+        sigRateNameNorm = "signalNorm_VBFrate_{0:.0f}_{1:.0f}".format(self.channel,self.sqrts)
+        #VBFsigRatesNorm = ROOT.RooFormulaVar(sigRateNameNorm,"@0*@1/(@0*@1-sqrt(@0*@1)+1)",ROOT.RooArgList(x,mu))
+        VBFsigRatesNorm = ROOT.RooFormulaVar(sigRateNameNorm,"@0*@1*0.1",ROOT.RooArgList(x,mu))
+        interfRateNameNorm = "interfNorm_VBFrate_{0:.0f}_{1:.0f}".format(self.channel,self.sqrts)
+        #VBFinterfRatesNorm = ROOT.RooFormulaVar(interfRateNameNorm,"-sqrt(@0*@1)/(@0*@1-sqrt(@0*@1)+1)",ROOT.RooArgList(x,mu))
+        VBFinterfRatesNorm = ROOT.RooRealVar(interfRateNameNorm,interfRateNameNorm,0.)
+        VBFinterfRatesNorm.setConstant(True)
+        bkgRateNameNorm = "bkgNorm_VBFrate_{0:.0f}_{1:.0f}".format(self.channel,self.sqrts)
+        #VBFbkgRatesNorm = ROOT.RooFormulaVar(bkgRateNameNorm,"1/(@0*@1-sqrt(@0*@1)+1)",ROOT.RooArgList(x,mu))
+        VBFbkgRatesNorm = ROOT.RooRealVar(interfRateNameNorm,interfRateNameNorm,0.)
+        VBFbkgRatesNorm.setConstant(True)
+
+        VBFsignal_TempDataHist =ROOT.RooDataHist()
+        VBFsignal_TemplatePdf = ROOT.RooHistFunc()
+        VBFbkg_TempDataHist =ROOT.RooDataHist()
+        VBFbkg_TemplatePdf = ROOT.RooHistFunc()
+        VBFinterf_TempDataHist =ROOT.RooDataHist()
+        VBFinterf_TemplatePdf = ROOT.RooHistFunc()
+
+        
+        TemplateName = "VBFsignal_TempDataHist_{0:.0f}_{1:.0f}".format(self.channel,self.sqrts)
+        PdfName = "VBFsignal_TemplatePdf_{0:.0f}_{1:.0f}".format(self.channel,self.sqrts)
+        if self.dimensions > 1 :
+            VBFsignal_TempDataHist = ROOT.RooDataHist(TemplateName,TemplateName,ROOT.RooArgList(CMS_zz4l_mass,CMS_zz4l_widthKD),VBF_T_2) #nel rooarglist: ,CMS_zz4l_widthKD
+            VBFsignal_TemplatePdf = ROOT.RooHistFunc(PdfName,PdfName,ROOT.RooArgSet(CMS_zz4l_mass,CMS_zz4l_widthKD),VBFsignal_TempDataHist)
+        elif self.dimensions ==1  :
+            VBFsignal_TempDataHist = ROOT.RooDataHist(TemplateName,TemplateName,ROOT.RooArgList(CMS_zz4l_mass),VBF_T_2.ProjectionX()) #nel rooarglist: ,CMS_zz4l_widthKD
+            VBFsignal_TemplatePdf = ROOT.RooHistFunc(PdfName,PdfName,ROOT.RooArgSet(CMS_zz4l_mass),VBFsignal_TempDataHist)
+        elif self.dimensions == 0 :
+            VBFsignal_TempDataHist = ROOT.RooDataHist(TemplateName,TemplateName,ROOT.RooArgList(CMS_zz4l_widthKD),VBF_T_2.ProjectionY()) #nel rooarglist: ,CMS_zz4l_widthKD
+            VBFsignal_TemplatePdf = ROOT.RooHistFunc(PdfName,PdfName,ROOT.RooArgSet(CMS_zz4l_widthKD),VBFsignal_TempDataHist)
+
+
+        TemplateName = "VBFbkg_TempDataHist_{0:.0f}_{1:.0f}".format(self.channel,self.sqrts)
+        PdfName = "VBFbkg_TemplatePdf_{0:.0f}_{1:.0f}".format(self.channel,self.sqrts)
+        if self.dimensions > 1 :
+            VBFbkg_TempDataHist = ROOT.RooDataHist(TemplateName,TemplateName,ROOT.RooArgList(CMS_zz4l_mass,CMS_zz4l_widthKD),VBF_T_1)
+            VBFbkg_TemplatePdf = ROOT.RooHistFunc(PdfName,PdfName,ROOT.RooArgSet(CMS_zz4l_mass,CMS_zz4l_widthKD),VBFbkg_TempDataHist)
+        elif self.dimensions ==1  :
+            VBFbkg_TempDataHist = ROOT.RooDataHist(TemplateName,TemplateName,ROOT.RooArgList(CMS_zz4l_mass),VBF_T_1.ProjectionX())
+            VBFbkg_TemplatePdf = ROOT.RooHistFunc(PdfName,PdfName,ROOT.RooArgSet(CMS_zz4l_mass),VBFbkg_TempDataHist)
+        elif self.dimensions ==0  :            
+            VBFbkg_TempDataHist = ROOT.RooDataHist(TemplateName,TemplateName,ROOT.RooArgList(CMS_zz4l_widthKD),VBF_T_1.ProjectionY())
+            VBFbkg_TemplatePdf = ROOT.RooHistFunc(PdfName,PdfName,ROOT.RooArgSet(CMS_zz4l_widthKD),VBFbkg_TempDataHist)
+            
+        TemplateName = "VBFinterf_TempDataHist_{0:.0f}_{1:.0f}".format(self.channel,self.sqrts)
+        PdfName = "VBFinterf_TemplatePdf_{0:.0f}_{1:.0f}".format(self.channel,self.sqrts)
+        if self.dimensions > 1 :
+            VBFinterf_TempDataHist = ROOT.RooDataHist(TemplateName,TemplateName,ROOT.RooArgList(CMS_zz4l_mass,CMS_zz4l_widthKD),VBF_T_4)
+            VBFinterf_TemplatePdf = ROOT.RooHistFunc(PdfName,PdfName,ROOT.RooArgSet(CMS_zz4l_mass,CMS_zz4l_widthKD),VBFinterf_TempDataHist)
+        elif self.dimensions ==1  :
+            VBFinterf_TempDataHist = ROOT.RooDataHist(TemplateName,TemplateName,ROOT.RooArgList(CMS_zz4l_mass),VBF_T_4.ProjectionX())
+            VBFinterf_TemplatePdf = ROOT.RooHistFunc(PdfName,PdfName,ROOT.RooArgSet(CMS_zz4l_mass),VBFinterf_TempDataHist)
+        elif self.dimensions ==0  :
+            VBFinterf_TempDataHist = ROOT.RooDataHist(TemplateName,TemplateName,ROOT.RooArgList(CMS_zz4l_widthKD),VBF_T_4.ProjectionY())
+            VBFinterf_TemplatePdf = ROOT.RooHistFunc(PdfName,PdfName,ROOT.RooArgSet(CMS_zz4l_widthKD),VBFinterf_TempDataHist)
+            
+        VBFpdfName = "VBF_RooWidth_Nominal_{0:.0f}_{1:.0f}".format(self.channel,self.sqrts)
+        #VBFpdf_Nominal = ROOT.RooRealSumPdf(VBFpdfName,VBFpdfName,ROOT.RooArgList(VBFsignal_TemplatePdf,VBFinterf_TemplatePdf,VBFbkg_TemplatePdf),ROOT.RooArgList(VBFsigRatesNorm,VBFinterfRatesNorm,VBFbkgRatesNorm))
+        VBFpdf = ROOT.RooRealSumPdf(VBFpdfName,VBFpdfName,ROOT.RooArgList(VBFsignal_TemplatePdf,VBFinterf_TemplatePdf,VBFbkg_TemplatePdf),ROOT.RooArgList(VBFsigRatesNorm,VBFinterfRatesNorm,VBFbkgRatesNorm))
+
+        ## -------------------------- SHAPE Systematic ---------------------------------- ##
+
+        #CMS_zz4l_mass2 = ROOT.RooRealVar("CMS_zz4l_mass2","CMS_zz4l_mass2",self.low_M,self.high_M)
+        #CMS_zz4l_mass2.setBins(bins2)
+        
+        #D2name = "CMS_zz4l_widthKD2"
+        #CMS_zz4l_widthKD2 = ROOT.RooRealVar(D2name,D2name,0.,1.)
+        #CMS_zz4l_widthKD2.setBins(20)
+
+        #Up Systematics pdf
+        VBFsignal_TempDataHist_Up =ROOT.RooDataHist()
+        VBFsignal_TemplatePdf_Up = ROOT.RooHistFunc()
+        VBFbkg_TempDataHist_Up =ROOT.RooDataHist()
+        VBFbkg_TemplatePdf_Up = ROOT.RooHistFunc()
+        VBFinterf_TempDataHist_Up =ROOT.RooDataHist()
+        VBFinterf_TemplatePdf_Up = ROOT.RooHistFunc()
+        
+        TemplateName = "VBFsignal_TempDataHist_Up_{0:.0f}_{1:.0f}".format(self.channel,self.sqrts)
+        PdfName = "VBFsignal_TemplatePdf_Up_{0:.0f}_{1:.0f}".format(self.channel,self.sqrts)
+        if self.dimensions > 1 :
+            VBFsignal_TempDataHist_Up = ROOT.RooDataHist(TemplateName,TemplateName,ROOT.RooArgList(CMS_zz4l_mass,CMS_zz4l_widthKD),VBF_T_2_Up)
+            VBFsignal_TemplatePdf_Up = ROOT.RooHistFunc(PdfName,PdfName,ROOT.RooArgSet(CMS_zz4l_mass,CMS_zz4l_widthKD),VBFsignal_TempDataHist_Up)
+        elif self.dimensions ==1  :
+            VBFsignal_TempDataHist_Up = ROOT.RooDataHist(TemplateName,TemplateName,ROOT.RooArgList(CMS_zz4l_mass),VBF_T_2_Up.ProjectionX())
+            VBFsignal_TemplatePdf_Up = ROOT.RooHistFunc(PdfName,PdfName,ROOT.RooArgSet(CMS_zz4l_mass),VBFsignal_TempDataHist_Up)
+        elif self.dimensions ==0 :
+            VBFsignal_TempDataHist_Up = ROOT.RooDataHist(TemplateName,TemplateName,ROOT.RooArgList(CMS_zz4l_widthKD),VBF_T_2_Up.ProjectionY())
+            VBFsignal_TemplatePdf_Up = ROOT.RooHistFunc(PdfName,PdfName,ROOT.RooArgSet(CMS_zz4l_widthKD),VBFsignal_TempDataHist_Up)
+            
+        TemplateName = "VBFbkg_TempDataHist_Up_{0:.0f}_{1:.0f}".format(self.channel,self.sqrts)
+        PdfName = "VBFbkg_TemplatePdf_Up_{0:.0f}_{1:.0f}".format(self.channel,self.sqrts)
+        if self.dimensions > 1 :
+            VBFbkg_TempDataHist_Up = ROOT.RooDataHist(TemplateName,TemplateName,ROOT.RooArgList(CMS_zz4l_mass,CMS_zz4l_widthKD),VBF_T_1_Up)
+            VBFbkg_TemplatePdf_Up = ROOT.RooHistFunc(PdfName,PdfName,ROOT.RooArgSet(CMS_zz4l_mass,CMS_zz4l_widthKD),VBFbkg_TempDataHist_Up)
+        elif self.dimensions ==1  :
+            VBFbkg_TempDataHist_Up = ROOT.RooDataHist(TemplateName,TemplateName,ROOT.RooArgList(CMS_zz4l_mass),VBF_T_1_Up.ProjectionX())
+            VBFbkg_TemplatePdf_Up = ROOT.RooHistFunc(PdfName,PdfName,ROOT.RooArgSet(CMS_zz4l_mass),VBFbkg_TempDataHist_Up)
+        elif self.dimensions ==0  :
+            VBFbkg_TempDataHist_Up = ROOT.RooDataHist(TemplateName,TemplateName,ROOT.RooArgList(CMS_zz4l_widthKD),VBF_T_1_Up.ProjectionY())
+            VBFbkg_TemplatePdf_Up = ROOT.RooHistFunc(PdfName,PdfName,ROOT.RooArgSet(CMS_zz4l_widthKD),VBFbkg_TempDataHist_Up)
+        
+        TemplateName = "VBFinterf_TempDataHist_Up_{0:.0f}_{1:.0f}".format(self.channel,self.sqrts)
+        PdfName = "VBFinterf_TemplatePdf_Up_{0:.0f}_{1:.0f}".format(self.channel,self.sqrts)
+        if self.dimensions > 1 :   
+            VBFinterf_TempDataHist_Up = ROOT.RooDataHist(TemplateName,TemplateName,ROOT.RooArgList(CMS_zz4l_mass,CMS_zz4l_widthKD),VBF_T_4_Up)
+            VBFinterf_TemplatePdf_Up = ROOT.RooHistFunc(PdfName,PdfName,ROOT.RooArgSet(CMS_zz4l_mass,CMS_zz4l_widthKD),VBFinterf_TempDataHist_Up)
+        if self.dimensions == 1 :   
+            VBFinterf_TempDataHist_Up = ROOT.RooDataHist(TemplateName,TemplateName,ROOT.RooArgList(CMS_zz4l_mass),VBF_T_4_Up.ProjectionX())
+            VBFinterf_TemplatePdf_Up = ROOT.RooHistFunc(PdfName,PdfName,ROOT.RooArgSet(CMS_zz4l_mass),VBFinterf_TempDataHist_Up)            
+        if self.dimensions == 0 :   
+            VBFinterf_TempDataHist_Up = ROOT.RooDataHist(TemplateName,TemplateName,ROOT.RooArgList(CMS_zz4l_widthKD),VBF_T_4_Up.ProjectionY())
+            VBFinterf_TemplatePdf_Up = ROOT.RooHistFunc(PdfName,PdfName,ROOT.RooArgSet(CMS_zz4l_widthKD),VBFinterf_TempDataHist_Up)
+
+        VBFpdfName = "VBF_RooWidth_Up_{0:.0f}_{1:.0f}".format(self.channel,self.sqrts)
+        VBFpdf_Up = ROOT.RooRealSumPdf(VBFpdfName,VBFpdfName,ROOT.RooArgList(VBFsignal_TemplatePdf_Up,VBFinterf_TemplatePdf_Up,VBFbkg_TemplatePdf_Up),ROOT.RooArgList(VBFsigRatesNorm,VBFinterfRatesNorm,VBFbkgRatesNorm))
+
+        #Down Systematics pdf
+        VBFsignal_TempDataHist_Down =ROOT.RooDataHist()
+        VBFsignal_TemplatePdf_Down = ROOT.RooHistFunc()
+        VBFbkg_TempDataHist_Down =ROOT.RooDataHist()
+        VBFbkg_TemplatePdf_Down = ROOT.RooHistFunc()
+        VBFinterf_TempDataHist_Down =ROOT.RooDataHist()
+        VBFinterf_TemplatePdf_Down = ROOT.RooHistFunc()
+        
+        TemplateName = "VBFsignal_TempDataHist_Down_{0:.0f}_{1:.0f}".format(self.channel,self.sqrts)
+        PdfName = "VBFsignal_TemplatePdf_Down_{0:.0f}_{1:.0f}".format(self.channel,self.sqrts)
+        if self.dimensions > 1 :
+            VBFsignal_TempDataHist_Down = ROOT.RooDataHist(TemplateName,TemplateName,ROOT.RooArgList(CMS_zz4l_mass,CMS_zz4l_widthKD),VBF_T_2_Down)
+            VBFsignal_TemplatePdf_Down = ROOT.RooHistFunc(PdfName,PdfName,ROOT.RooArgSet(CMS_zz4l_mass,CMS_zz4l_widthKD),VBFsignal_TempDataHist_Down)
+        elif self.dimensions ==1  :
+            VBFsignal_TempDataHist_Down = ROOT.RooDataHist(TemplateName,TemplateName,ROOT.RooArgList(CMS_zz4l_mass),VBF_T_2_Down.ProjectionX())
+            VBFsignal_TemplatePdf_Down = ROOT.RooHistFunc(PdfName,PdfName,ROOT.RooArgSet(CMS_zz4l_mass),VBFsignal_TempDataHist_Down)
+        elif self.dimensions ==0 :
+            VBFsignal_TempDataHist_Down = ROOT.RooDataHist(TemplateName,TemplateName,ROOT.RooArgList(CMS_zz4l_widthKD),VBF_T_2_Down.ProjectionY())
+            VBFsignal_TemplatePdf_Down = ROOT.RooHistFunc(PdfName,PdfName,ROOT.RooArgSet(CMS_zz4l_widthKD),VBFsignal_TempDataHist_Down)
+            
+        TemplateName = "VBFbkg_TempDataHist_Down_{0:.0f}_{1:.0f}".format(self.channel,self.sqrts)
+        PdfName = "VBFbkg_TemplatePdf_Down_{0:.0f}_{1:.0f}".format(self.channel,self.sqrts)
+        if self.dimensions > 1 :
+            VBFbkg_TempDataHist_Down = ROOT.RooDataHist(TemplateName,TemplateName,ROOT.RooArgList(CMS_zz4l_mass,CMS_zz4l_widthKD),VBF_T_1_Down)
+            VBFbkg_TemplatePdf_Down = ROOT.RooHistFunc(PdfName,PdfName,ROOT.RooArgSet(CMS_zz4l_mass,CMS_zz4l_widthKD),VBFbkg_TempDataHist_Down)
+        elif self.dimensions ==1  :
+            VBFbkg_TempDataHist_Down = ROOT.RooDataHist(TemplateName,TemplateName,ROOT.RooArgList(CMS_zz4l_mass),VBF_T_1_Down.ProjectionX())
+            VBFbkg_TemplatePdf_Down = ROOT.RooHistFunc(PdfName,PdfName,ROOT.RooArgSet(CMS_zz4l_mass),VBFbkg_TempDataHist_Down)
+        elif self.dimensions ==0  :
+            VBFbkg_TempDataHist_Down = ROOT.RooDataHist(TemplateName,TemplateName,ROOT.RooArgList(CMS_zz4l_widthKD),VBF_T_1_Down.ProjectionY())
+            VBFbkg_TemplatePdf_Down = ROOT.RooHistFunc(PdfName,PdfName,ROOT.RooArgSet(CMS_zz4l_widthKD),VBFbkg_TempDataHist_Down)
+        
+        TemplateName = "VBFinterf_TempDataHist_Down_{0:.0f}_{1:.0f}".format(self.channel,self.sqrts)
+        PdfName = "VBFinterf_TemplatePdf_Down_{0:.0f}_{1:.0f}".format(self.channel,self.sqrts)
+        if self.dimensions > 1 :   
+            VBFinterf_TempDataHist_Down = ROOT.RooDataHist(TemplateName,TemplateName,ROOT.RooArgList(CMS_zz4l_mass,CMS_zz4l_widthKD),VBF_T_4_Down)
+            VBFinterf_TemplatePdf_Down = ROOT.RooHistFunc(PdfName,PdfName,ROOT.RooArgSet(CMS_zz4l_mass,CMS_zz4l_widthKD),VBFinterf_TempDataHist_Down)
+        if self.dimensions == 1 :   
+            VBFinterf_TempDataHist_Down = ROOT.RooDataHist(TemplateName,TemplateName,ROOT.RooArgList(CMS_zz4l_mass),VBF_T_4_Down.ProjectionX())
+            VBFinterf_TemplatePdf_Down = ROOT.RooHistFunc(PdfName,PdfName,ROOT.RooArgSet(CMS_zz4l_mass),VBFinterf_TempDataHist_Down)            
+        if self.dimensions == 0 :   
+            VBFinterf_TempDataHist_Down = ROOT.RooDataHist(TemplateName,TemplateName,ROOT.RooArgList(CMS_zz4l_widthKD),VBF_T_4_Down.ProjectionY())
+            VBFinterf_TemplatePdf_Down = ROOT.RooHistFunc(PdfName,PdfName,ROOT.RooArgSet(CMS_zz4l_widthKD),VBFinterf_TempDataHist_Down)
+
+        VBFpdfName = "VBF_RooWidth_Down_{0:.0f}_{1:.0f}".format(self.channel,self.sqrts)
+        VBFpdf_Down = ROOT.RooRealSumPdf(VBFpdfName,VBFpdfName,ROOT.RooArgList(VBFsignal_TemplatePdf_Down,VBFinterf_TemplatePdf_Down,VBFbkg_TemplatePdf_Down),ROOT.RooArgList(VBFsigRatesNorm,VBFinterfRatesNorm,VBFbkgRatesNorm))
 
 
         #Provo con formule Ulash
@@ -836,6 +1061,15 @@ class width_datacardClass:
         rate_signal_ggzz_Shape = Sig_T_2.Integral("width")*self.lumi
         rate_bkg_ggzz_Shape = Sig_T_1.Integral("width")*self.lumi
         rate_interf_ggzz_Shape = Sig_T_4.Integral("width")*self.lumi
+
+        ## SET VBF BKG AND INTERF TO 0
+
+        totalRate_vbf = VBF_T_1.Integral("width")*0.+VBF_T_2.Integral("width")-VBF_T_1.Integral("width")*0.
+        totalRate_vbf_Shape = totalRate_vbf*self.lumi
+        rate_signal_vbf_Shape = VBF_T_2.Integral("width")*self.lumi
+        rate_bkg_vbf_Shape = VBF_T_1.Integral("width")*self.lumi*0.
+        rate_interf_vbf_Shape = VBF_T_4.Integral("width")*self.lumi*0.
+        
         #bkgRate_qqzz_Shape = Bkg_T.Integral()*self.lumi
         
         ## rate_signal_ggzz = theInputs['ggZZ_signal_rate']/theInputs['qqZZ_lumi']
@@ -884,6 +1118,13 @@ class width_datacardClass:
         bkgRates.setConstant(True)
         interfRates.setVal(rate_interf_ggzz_Shape)
         interfRates.setConstant(True)
+
+        VBFsigRates.setVal(rate_signal_vbf_Shape)
+        VBFsigRates.setConstant(True)
+        VBFbkgRates.setVal(rate_bkg_vbf_Shape)
+        VBFbkgRates.setConstant(True)
+        VBFinterfRates.setVal(rate_interf_vbf_Shape)
+        VBFinterfRates.setConstant(True)
         
         if(DEBUG):
             print "Shape signal rate: ",sigRate_ggH_Shape,", background rate: ",bkgRate_qqzz_Shape,", ",bkgRate_zjets_Shape," in ",low_M," - ",high_M
@@ -971,6 +1212,15 @@ class width_datacardClass:
         ggZZpdf_Up.SetNameTitle("ggzz_CMS_zz4l_scale_systUp","ggzz_CMS_zz4l_scale_systUp")
         getattr(w,'import')(ggZZpdf_Up, ROOT.RooFit.RecycleConflictNodes())
 
+        VBFpdf.SetNameTitle("vbf_offshell","vbf_offshell")
+        getattr(w,'import')(VBFpdf, ROOT.RooFit.RecycleConflictNodes())
+
+        VBFpdf_Down.SetNameTitle("vbf_offshell_CMS_zz4l_scale_systDown","vbf_offshell_CMS_zz4l_scale_systDown")
+        getattr(w,'import')(VBFpdf_Down, ROOT.RooFit.RecycleConflictNodes())
+
+        VBFpdf_Up.SetNameTitle("vbf_offshell_CMS_zz4l_scale_systUp","vbf_offshell_CMS_zz4l_scale_systUp")
+        getattr(w,'import')(VBFpdf_Up, ROOT.RooFit.RecycleConflictNodes())
+
         #getattr(w,'import')(CMS_zz4l_syst, ROOT.RooFit.RecycleConflictNodes())
 
         #w.factory("EXPR::ggzz('ggzz_nominal*(one+ggzz_CMS_zz4l_scale_systUp*CMS_zz4l_syst)',one[1],ggzz_nominal,ggzz_CMS_zz4l_scale_systUp,CMS_zz4l_syst)")
@@ -980,6 +1230,11 @@ class width_datacardClass:
         #ggZZpdf_norm = ROOT.RooFormulaVar(ggZZpdfNormName,"@0*@3*@4-@1*sqrt(@3*@4*@5)+@2*@5",ROOT.RooArgList(sigRates,interfRates,bkgRates,x,mu,kbkg))
         ggZZpdf_norm.SetNameTitle("ggzz_norm","ggzz_norm")
         getattr(w,'import')(ggZZpdf_norm, ROOT.RooFit.RecycleConflictNodes())
+
+        VBFpdfNormName = "VBF_RooWidth_{0:.0f}_{1:.0f}_norm".format(self.channel,self.sqrts)
+        VBFpdf_norm = ROOT.RooFormulaVar(VBFpdfNormName,"@0*@3*@4-@1*sqrt(@3*@4)+@2",ROOT.RooArgList(VBFsigRates,VBFinterfRates,VBFbkgRates,x,mu))
+        VBFpdf_norm.SetNameTitle("vbf_offshell_norm","vbf_offshell_norm")
+        getattr(w,'import')(VBFpdf_norm, ROOT.RooFit.RecycleConflictNodes())
 
         bkg_qqzz.SetNameTitle("bkg_qqzz","bkg_qqzz")
         getattr(w,'import')(bkg_qqzz, ROOT.RooFit.RecycleConflictNodes())
@@ -1010,6 +1265,7 @@ class width_datacardClass:
         if not self.qqZZ_chan:  bkgRate_qqzz_Shape = 0
         if not self.ggZZ_chan:  totalRate_ggzz_Shape = 0
         if not self.zjets_chan: bkgRate_zjets_Shape = 0
+        if not self.VBF_offshell_chan: totalRate_vbf_Shape = 0
 
         rates = {}
         rates['ggH'] = sigRate_ggH_Shape
@@ -1020,11 +1276,17 @@ class width_datacardClass:
 
         rates['qqZZ']  = bkgRate_qqzz_Shape
         rates['ggZZ']  = 1
+        rates['VBF_offshell'] = 1
         rates['ggZZ_signal']  = rate_signal_ggzz_Shape
         rates['ggZZ_bkg']  = rate_bkg_ggzz_Shape
-        rates['ggZZ_interf']  = rate_interf_ggzz_Shape 
+        rates['ggZZ_interf']  = rate_interf_ggzz_Shape
+        rates['VBF_offshell_signal']  = rate_signal_vbf_Shape
+        rates['VBF_offshell_bkg']  = rate_bkg_vbf_Shape
+        rates['VBF_offshell_interf']  = rate_interf_vbf_Shape
         rates['zjets'] = bkgRate_zjets_Shape
-        rates['ttbar'] = totalRate_ggzz_Shape
+        rates['ggZZ_tot'] = totalRate_ggzz_Shape
+        rates['VBF_offshell_tot'] = totalRate_vbf_Shape
+        rates['ttbar'] = 0
         rates['zbb']   = 0
         
 
@@ -1074,14 +1336,15 @@ class width_datacardClass:
         
         file.write("------------\n")
         file.write("## mass window [{0},{1}] \n".format(self.low_M,self.high_M))
-        file.write("## signal,bkg,interf,tot rates [{0:.4f}, {1:.4f}, -{2:.4f}, {3:.4f}] \n".format(theRates["ggZZ_signal"],theRates["ggZZ_bkg"],theRates["ggZZ_interf"],theRates["ttbar"]))
+        file.write("## signal,bkg,interf,tot rates [{0:.4f}, {1:.4f}, -{2:.4f}, {3:.4f}] \n".format(theRates["ggZZ_signal"],theRates["ggZZ_bkg"],theRates["ggZZ_interf"],theRates["ggZZ_tot"]))
+        file.write("## vbfsig,vbfbkg,vbfinterf,vbftot rates [{0:.4f}, {1:.4f}, -{2:.4f}, {3:.4f}] \n".format(theRates["VBF_offshell_signal"],theRates["VBF_offshell_bkg"],theRates["VBF_offshell_interf"],theRates["VBF_offshell_tot"]))
         file.write("bin ")        
 
         #channelList=['ggZZ_signal','ggZZ_interf','ggZZ_bkg','qqZZ','zjets']
-        channelList=['ggZZ','qqZZ','zjets'] 
+        channelList=['ggZZ','VBF_offshell','qqZZ','zjets'] 
 
         #channelName=['ggsignalzz','gginterfzz','ggbkgzz','bkg_qqzz','bkg_zjets']
-        channelName=['ggzz','bkg_qqzz','bkg_zjets'] 
+        channelName=['ggzz','vbf_offshell','bkg_qqzz','bkg_zjets'] 
          
         for chan in channelList:
             if theInputs[chan]:
@@ -1131,6 +1394,7 @@ class width_datacardClass:
         if inputs['ggZZ']:  counter+=1
         if inputs['ggZZ_signal']: counter+=1
         if inputs['ggZZ_interf']: counter+=1
+        if inputs['VBF_offshell']: counter+=1
   ##       if inputs['qqH']: counter+=1
 ##         if inputs['WH']:  counter+=1
 ##         if inputs['ZH']:  counter+=1

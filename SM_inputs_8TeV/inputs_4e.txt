@@ -14,7 +14,7 @@ sqrts 8
 
 ## Channels to include in cards ##
 ##channels ggsignalZZ gginterfZZ ggbkgZZ qqZZ zjets
-channels ggZZ qqZZ zjets
+channels ggZZ VBF_offshell qqZZ zjets
 
 ## rates --- format = chan N lumi ##
 ## if lumi is blank, lumi for cards used ##
@@ -166,7 +166,7 @@ systematic QCDscale_ttH True
 systematic theoryUncXS_HighMH False
 systematic QCDscale_ggVV True
 systematic QCDscale_VV True
-systematic BRhiggs_hzz4l True
+systematic BRhiggs_hzz4l False
 systematic CMS_eff True
 systematic CMS_hzz4l_Zjets True
 systematic CMS_zz4l_bkgMELA False
