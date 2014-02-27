@@ -256,7 +256,7 @@ class width_datacardClass:
         #rates
         totalRateDown = Sig_T_1_Down.Integral("width")+Sig_T_2_Down.Integral("width")+Sig_T_4_Down.Integral("width")
         totalRateUp = Sig_T_1_Up.Integral("width")+Sig_T_2_Up.Integral("width")+Sig_T_4_Up.Integral("width")
-        totalrate_ggzz = Sig_T_1.Integral("width")+Sig_T_2.Integral("width")+Sig_T_4.Integral("width")
+        totalRate_ggzz = Sig_T_1.Integral("width")+Sig_T_2.Integral("width")+Sig_T_4.Integral("width")
         rate_signal_ggzz_Shape = Sig_T_2.Integral("width")*self.lumi
         rate_bkg_ggzz_Shape = Sig_T_1.Integral("width")*self.lumi
         rate_interf_ggzz_Shape = Sig_T_4.Integral("width")*self.lumi
@@ -554,7 +554,8 @@ class width_datacardClass:
         ggZZpdf_Down = ROOT.RooRealSumPdf(ggZZpdfName,ggZZpdfName,ROOT.RooArgList(ggZZsignal_TemplatePdf_Down,ggZZinterf_TemplatePdf_Down,ggZZbkg_TemplatePdf_Down),ROOT.RooArgList(sigRatesNorm,interfRatesNorm,bkgRatesNorm))
 
 
-        CMS_zz4l_APscale_syst = ROOT.RooRealVar("CMS_zz4l_APscale_syst","CMS_zz4l_APscale_syst",0.0,-3,3)
+        CMS_zz4l_APscale_syst = ROOT.RooRealVar("CMS_zz4l_APscale_syst","CMS_zz4l_APscale_syst",0.0,-1,1)
+        #CMS_zz4l_APscale_syst.setConstant(true)
         morphVarListggZZ = ROOT.RooArgList()
         morphVarListggZZ.add(CMS_zz4l_APscale_syst)
         MorphList_ggZZ_interf = ROOT.RooArgList()
@@ -588,14 +589,14 @@ class width_datacardClass:
 ##         systTemplateMorphPdf_bkg = ROOT.VerticalInterpPdf(TemplateName,TemplateName,MorphList_ggZZ_bkg,morphVarListggZZ)
         #ggZZpdf = ROOT.RooRealSumPdf(ggZZpdfName,ggZZpdfName,ROOT.RooArgList(systTemplateMorphPdf_sig,systTemplateMorphPdf_interf,systTemplateMorphPdf_bkg),ROOT.RooArgList(sigRatesNorm,interfRatesNorm,bkgRatesNorm))
         
-        #ggZZpdf = ROOT.VerticalInterpPdf("ggzz","ggzz",MorphList_ggZZ,morphVarListggZZ)
-        ggZZpdf = ggZZpdf_Nominal
+        ggZZpdf = ROOT.VerticalInterpPdf("ggzz","ggzz",MorphList_ggZZ,morphVarListggZZ)
+        #ggZZpdf = ggZZpdf_Nominal
         
 
         asympowname = "kappalow_ggZZ_{0:.0f}_{1:.0f}".format(self.channel,self.sqrts)
-        kappalow = ROOT.RooRealVar(asympowname,asympowname,totalRateDown)#kappalow = ROOT.RooRealVar(asympowname,asympowname,rateSignal_Down+rateBkg_Down-rateInterf_Down)
+        kappalow = ROOT.RooRealVar(asympowname,asympowname,totalRateDown/totalRate_ggzz)#kappalow = ROOT.RooRealVar(asympowname,asympowname,rateSignal_Down+rateBkg_Down-rateInterf_Down)
         asympowname = "kappahigh_ggZZ_{0:.0f}_{1:.0f}".format(self.channel,self.sqrts)
-        kappahigh = ROOT.RooRealVar(asympowname,asympowname,totalRateUp)#kappahigh = ROOT.RooRealVar(asympowname,asympowname,rateSignal_Up+rateBkg_Up-rateInterf_Up)        
+        kappahigh = ROOT.RooRealVar(asympowname,asympowname,totalRateUp/totalRate_ggzz)#kappahigh = ROOT.RooRealVar(asympowname,asympowname,rateSignal_Up+rateBkg_Up-rateInterf_Up)        
         asympowname = "Asympow_ggZZ_{0:.0f}_{1:.0f}".format(self.channel,self.sqrts)
         thetaSyst_ggZZ = AsymPow(asympowname,asympowname,kappalow,kappahigh,CMS_zz4l_APscale_syst)
 
@@ -923,7 +924,7 @@ class width_datacardClass:
 
         ## rates per lumi for scaling
         bkgRate_qqzz = theInputs['qqZZ_rate']/theInputs['qqZZ_lumi'] #recompute for 220
-        totalRate_ggzz = theInputs['ggZZ_rate']/theInputs['qqZZ_lumi']
+        #totalRate_ggzz = theInputs['ggZZ_rate']/theInputs['qqZZ_lumi']
         bkgRate_zjets = theInputs['zjets_rate']/theInputs['zjets_lumi']
 
         #totalRate_ggzz = Sig_T_1.Integral("width")+Sig_T_2.Integral("width")-Sig_T_4.Integral("width")
@@ -1068,11 +1069,11 @@ class width_datacardClass:
         ggZZpdf.SetNameTitle("ggzz","ggzz")
         getattr(w,'import')(ggZZpdf, ROOT.RooFit.RecycleConflictNodes())
 
-        ggZZpdf_Down.SetNameTitle("ggzz_CMS_zz4l_scale_systDown","ggzz_CMS_zz4l_scale_systDown")
-        getattr(w,'import')(ggZZpdf_Down, ROOT.RooFit.RecycleConflictNodes())
+        #ggZZpdf_Down.SetNameTitle("ggzz_CMS_zz4l_scale_systDown","ggzz_CMS_zz4l_scale_systDown")
+        #getattr(w,'import')(ggZZpdf_Down, ROOT.RooFit.RecycleConflictNodes())
 
-        ggZZpdf_Up.SetNameTitle("ggzz_CMS_zz4l_scale_systUp","ggzz_CMS_zz4l_scale_systUp")
-        getattr(w,'import')(ggZZpdf_Up, ROOT.RooFit.RecycleConflictNodes())
+        #ggZZpdf_Up.SetNameTitle("ggzz_CMS_zz4l_scale_systUp","ggzz_CMS_zz4l_scale_systUp")
+        #getattr(w,'import')(ggZZpdf_Up, ROOT.RooFit.RecycleConflictNodes())
 
         VBFpdf.SetNameTitle("vbf_offshell","vbf_offshell")
         getattr(w,'import')(VBFpdf, ROOT.RooFit.RecycleConflictNodes())
@@ -1082,8 +1083,8 @@ class width_datacardClass:
         #w.factory("EXPR::ggzz('ggzz_nominal*(one+ggzz_CMS_zz4l_scale_systUp*CMS_zz4l_syst)',one[1],ggzz_nominal,ggzz_CMS_zz4l_scale_systUp,CMS_zz4l_syst)")
         
         ggZZpdfNormName = "ggZZ_RooWidth_{0:.0f}_{1:.0f}_norm".format(self.channel,self.sqrts)
-        ggZZpdf_norm = ROOT.RooFormulaVar(ggZZpdfNormName,"@0*@3*@4-@1*sqrt(@3*@4)*sign(@5)*sqrt(abs(@5))+@2*@5",ROOT.RooArgList(sigRates,interfRates,bkgRates,x,mu,kbkg))
-        #ggZZpdf_norm = ROOT.RooFormulaVar(ggZZpdfNormName,"(@0*@3*@4-@1*sqrt(@3*@4)*sign(@5)*sqrt(abs(@5))+@2*@5)*@6",ROOT.RooArgList(sigRates,interfRates,bkgRates,x,mu,kbkg,thetaSyst_ggZZ))
+        #ggZZpdf_norm = ROOT.RooFormulaVar(ggZZpdfNormName,"@0*@3*@4-@1*sqrt(@3*@4)*sign(@5)*sqrt(abs(@5))+@2*@5",ROOT.RooArgList(sigRates,interfRates,bkgRates,x,mu,kbkg))
+        ggZZpdf_norm = ROOT.RooFormulaVar(ggZZpdfNormName,"(@0*@3*@4-@1*sqrt(@3*@4)*sign(@5)*sqrt(abs(@5))+@2*@5)*@6",ROOT.RooArgList(sigRates,interfRates,bkgRates,x,mu,kbkg,thetaSyst_ggZZ))
         ggZZpdf_norm.SetNameTitle("ggzz_norm","ggzz_norm")
         getattr(w,'import')(ggZZpdf_norm, ROOT.RooFit.RecycleConflictNodes())
 
