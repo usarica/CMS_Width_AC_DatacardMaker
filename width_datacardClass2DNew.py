@@ -252,12 +252,21 @@ class width_datacardClass:
         VBF_T_2_Down = sigTempFileDown.Get("T_2D_VBF_1").Clone("T_2D_VBF_1_Down")
         VBF_T_4_Down = sigTempFileDown.Get("T_2D_VBF_4").Clone("T_2D_VBF_4_Down")
         #Bkg_T_Down = sigTempFileDown.Get("T_2D_qqZZ").Clone("T_2D_qqZZ_Down")
+
+        #rates
         totalRateDown = Sig_T_1_Down.Integral("width")+Sig_T_2_Down.Integral("width")+Sig_T_4_Down.Integral("width")
         totalRateUp = Sig_T_1_Up.Integral("width")+Sig_T_2_Up.Integral("width")+Sig_T_4_Up.Integral("width")
         totalrate_ggzz = Sig_T_1.Integral("width")+Sig_T_2.Integral("width")+Sig_T_4.Integral("width")
         rate_signal_ggzz_Shape = Sig_T_2.Integral("width")*self.lumi
         rate_bkg_ggzz_Shape = Sig_T_1.Integral("width")*self.lumi
         rate_interf_ggzz_Shape = Sig_T_4.Integral("width")*self.lumi
+
+        totalRate_vbf = VBF_T_1.Integral("width")*0.+VBF_T_2.Integral("width")-VBF_T_1.Integral("width")*0.
+        totalRate_vbf_Shape = totalRate_vbf*self.lumi
+        rate_signal_vbf_Shape = VBF_T_2.Integral("width")*self.lumi
+        rate_bkg_vbf_Shape = VBF_T_1.Integral("width")*self.lumi*0.
+        rate_interf_vbf_Shape = VBF_T_4.Integral("width")*self.lumi*0.
+
         
         if Sig_T_4.Integral()<0 : #negative interference, turn it positive, the sign will be taken into account later when building the pdf
             for ix in range (1,Sig_T_4.GetXaxis().GetNbins()+1):
@@ -273,11 +282,21 @@ class width_datacardClass:
                     VBF_T_4.SetBinContent(ix,iy,-1.0*VBF_T_4.GetBinContent(ix,iy))
                     VBF_T_4_Down.SetBinContent(ix,iy,-1.0*VBF_T_4_Down.GetBinContent(ix,iy))
                     VBF_T_4_Up.SetBinContent(ix,iy,-1.0*VBF_T_4_Up.GetBinContent(ix,iy))
-
+            rate_interf_vbf_Shape = VBF_T_4.Integral("width")*self.lumi*0.
+            
         #protection against empty bins
         for ix in range(1,Bkg_T.GetXaxis().GetNbins()+1):
             for iy in range(1,Bkg_T.GetYaxis().GetNbins()+1):
                 if Bkg_T.GetBinContent(ix,iy) == 0 : Bkg_T.SetBinContent(ix,iy,0.000001)
+                if Sig_T_1.GetBinContent(ix,iy) == 0 : Sig_T_1.SetBinContent(ix,iy,0.000001)
+                if Sig_T_2.GetBinContent(ix,iy) == 0 : Sig_T_2.SetBinContent(ix,iy,0.000001)
+                if Sig_T_4.GetBinContent(ix,iy) == 0 : Sig_T_4.SetBinContent(ix,iy,0.000001)
+                if Sig_T_1_Up.GetBinContent(ix,iy) == 0 : Sig_T_1_Up.SetBinContent(ix,iy,0.000001)
+                if Sig_T_2_Up.GetBinContent(ix,iy) == 0 : Sig_T_2_Up.SetBinContent(ix,iy,0.000001)
+                if Sig_T_4_Up.GetBinContent(ix,iy) == 0 : Sig_T_4_Up.SetBinContent(ix,iy,0.000001)
+                if Sig_T_1_Down.GetBinContent(ix,iy) == 0 : Sig_T_1_Down.SetBinContent(ix,iy,0.000001)
+                if Sig_T_2_Down.GetBinContent(ix,iy) == 0 : Sig_T_2_Down.SetBinContent(ix,iy,0.000001)
+                if Sig_T_4_Down.GetBinContent(ix,iy) == 0 : Sig_T_4_Down.SetBinContent(ix,iy,0.000001)                                
                 if Bkg_ZX.GetBinContent(ix,iy) == 0 : Bkg_ZX.SetBinContent(ix,iy,0.000001)
 
 
@@ -298,42 +317,42 @@ class width_datacardClass:
                     binS = Sig_T_2.GetBinContent(ix,iy)
                     binB = Sig_T_1.GetBinContent(ix,iy)
                     if binI*binI >= 4*binS*binB:
-                        Sig_T_4.SetBinContent(ix,iy,4*binS*binB-0.00001)#check signs (secondo me 4 -0.0)
+                        Sig_T_4.SetBinContent(ix,iy,sqrt(4*binS*binB)-0.00001)#check signs (secondo me 4 -0.0)
                         
                 binI = VBF_T_4.GetBinContent(ix,iy)
                 if binI > 0 : #check signs, should be < 0 for the template but I changed the sign above (secondo me >0)
                     binS = VBF_T_2.GetBinContent(ix,iy)
                     binB = VBF_T_1.GetBinContent(ix,iy)                
                     if binI*binI >= 4*binS*binB:
-                        VBF_T_4.SetBinContent(ix,iy,4*binS*binB-0.00001)#check signs (secondo me 4 -0.0)
+                        VBF_T_4.SetBinContent(ix,iy,sqrt(4*binS*binB)-0.00001)#check signs (secondo me 4 -0.0)
                         
                 binI = Sig_T_4_Up.GetBinContent(ix,iy)
                 if binI > 0 : #check signs, should be < 0 for the template but I changed the sign above (secondo me >0)
                     binS = Sig_T_2_Up.GetBinContent(ix,iy)
                     binB = Sig_T_1_Up.GetBinContent(ix,iy)
                     if binI*binI >= 4*binS*binB:
-                        Sig_T_4_Up.SetBinContent(ix,iy,4*binS*binB-0.00001)#check signs (secondo me 4 -0.0)
+                        Sig_T_4_Up.SetBinContent(ix,iy,sqrt(4*binS*binB)-0.00001)#check signs (secondo me 4 -0.0)
 
                 binI = VBF_T_4_Up.GetBinContent(ix,iy)
                 if binI > 0 : #check signs, should be < 0 for the template but I changed the sign above (secondo me >0)
                     binS = VBF_T_2_Up.GetBinContent(ix,iy)
                     binB = VBF_T_1_Up.GetBinContent(ix,iy)
                     if binI*binI >= 4*binS*binB:
-                        VBF_T_4_Up.SetBinContent(ix,iy,4*binS*binB-0.00001)#check signs (secondo me 4 -0.0)
+                        VBF_T_4_Up.SetBinContent(ix,iy,sqrt(4*binS*binB)-0.00001)#check signs (secondo me 4 -0.0)
                         
                 binI = Sig_T_4_Down.GetBinContent(ix,iy)
                 if binI > 0 : #check signs, should be < 0 for the template but I changed the sign above (secondo me >0)
                     binS = Sig_T_2_Down.GetBinContent(ix,iy)
                     binB = Sig_T_1_Down.GetBinContent(ix,iy)
                     if binI*binI >= 4*binS*binB:
-                        Sig_T_4_Down.SetBinContent(ix,iy,4*binS*binB-0.00001)#check signs (secondo me 4 -0.0)
+                        Sig_T_4_Down.SetBinContent(ix,iy,sqrt(4*binS*binB)-0.00001)#check signs (secondo me 4 -0.0)
 
                 binI = VBF_T_4_Down.GetBinContent(ix,iy)
                 if binI > 0 : #check signs, should be < 0 for the template but I changed the sign above (secondo me >0)
                     binS = VBF_T_2_Down.GetBinContent(ix,iy)
                     binB = VBF_T_1_Down.GetBinContent(ix,iy)
                     if binI*binI >= 4*binS*binB:
-                        VBF_T_4_Down.SetBinContent(ix,iy,4*binS*binB-0.00001)#check signs (secondo me 4 -0.0)
+                        VBF_T_4_Down.SetBinContent(ix,iy,sqrt(4*binS*binB)-0.00001)#check signs (secondo me 4 -0.0)
                 
                 #Bkg_T_Up.SetBinContent(ix,iy,Bkg_T_Up.GetBinContent(ix,iy)/yNormUp)
                 #Bkg_T_Down.SetBinContent(ix,iy,Bkg_T_Down.GetBinContent(ix,iy)/yNormDown)
@@ -564,8 +583,9 @@ class width_datacardClass:
 ##         TemplateName = "ggZZbkg_Morphed_{0:.0f}_{1:.0f}".format(self.channel,self.sqrts)
 ##         systTemplateMorphPdf_bkg = ROOT.VerticalInterpPdf(TemplateName,TemplateName,MorphList_ggZZ_bkg,morphVarListggZZ)
         #ggZZpdf = ROOT.RooRealSumPdf(ggZZpdfName,ggZZpdfName,ROOT.RooArgList(systTemplateMorphPdf_sig,systTemplateMorphPdf_interf,systTemplateMorphPdf_bkg),ROOT.RooArgList(sigRatesNorm,interfRatesNorm,bkgRatesNorm))
-        ggZZpdf = ROOT.VerticalInterpPdf("ggzz","ggzz",MorphList_ggZZ,morphVarListggZZ)
-        #ggZZpdf = ggZZpdf_Nominal
+        
+        #ggZZpdf = ROOT.VerticalInterpPdf("ggzz","ggzz",MorphList_ggZZ,morphVarListggZZ)
+        ggZZpdf = ggZZpdf_Nominal
         
 
         asympowname = "kappalow_ggZZ_{0:.0f}_{1:.0f}".format(self.channel,self.sqrts)
@@ -1012,11 +1032,6 @@ class width_datacardClass:
 
         ## SET VBF BKG AND INTERF TO 0
 
-        totalRate_vbf = VBF_T_1.Integral("width")*0.+VBF_T_2.Integral("width")-VBF_T_1.Integral("width")*0.
-        totalRate_vbf_Shape = totalRate_vbf*self.lumi
-        rate_signal_vbf_Shape = VBF_T_2.Integral("width")*self.lumi
-        rate_bkg_vbf_Shape = VBF_T_1.Integral("width")*self.lumi*0.
-        rate_interf_vbf_Shape = VBF_T_4.Integral("width")*self.lumi*0.
         
         #bkgRate_qqzz_Shape = Bkg_T.Integral()*self.lumi
         
@@ -1104,7 +1119,7 @@ class width_datacardClass:
         
 
         data_obs = ROOT.RooDataSet(datasetName,datasetName,data_obs_tree,ROOT.RooArgSet(CMS_zz4l_widthMass,CMS_zz4l_widthKD))
-        data_obs_red = data_obs.reduce("CMS_zz4l_widthmass > {0}".format(self.low_M))
+        data_obs_red = data_obs.reduce("CMS_zz4l_widthMass > {0}".format(self.low_M))
   #      data_obs_red.append(data_obs_red)
   #      data_obs_red.append(data_obs_red)  ## 4 times the data!
 
@@ -1154,11 +1169,11 @@ class width_datacardClass:
         ggZZpdf.SetNameTitle("ggzz","ggzz")
         getattr(w,'import')(ggZZpdf, ROOT.RooFit.RecycleConflictNodes())
 
-        #ggZZpdf_Down.SetNameTitle("ggzz_CMS_zz4l_scale_systDown","ggzz_CMS_zz4l_scale_systDown")
-        #getattr(w,'import')(ggZZpdf_Down, ROOT.RooFit.RecycleConflictNodes())
+        ggZZpdf_Down.SetNameTitle("ggzz_CMS_zz4l_scale_systDown","ggzz_CMS_zz4l_scale_systDown")
+        getattr(w,'import')(ggZZpdf_Down, ROOT.RooFit.RecycleConflictNodes())
 
-        #ggZZpdf_Up.SetNameTitle("ggzz_CMS_zz4l_scale_systUp","ggzz_CMS_zz4l_scale_systUp")
-        #getattr(w,'import')(ggZZpdf_Up, ROOT.RooFit.RecycleConflictNodes())
+        ggZZpdf_Up.SetNameTitle("ggzz_CMS_zz4l_scale_systUp","ggzz_CMS_zz4l_scale_systUp")
+        getattr(w,'import')(ggZZpdf_Up, ROOT.RooFit.RecycleConflictNodes())
 
         VBFpdf.SetNameTitle("vbf_offshell","vbf_offshell")
         getattr(w,'import')(VBFpdf, ROOT.RooFit.RecycleConflictNodes())
@@ -1174,8 +1189,8 @@ class width_datacardClass:
         #w.factory("EXPR::ggzz('ggzz_nominal*(one+ggzz_CMS_zz4l_scale_systUp*CMS_zz4l_syst)',one[1],ggzz_nominal,ggzz_CMS_zz4l_scale_systUp,CMS_zz4l_syst)")
         
         ggZZpdfNormName = "ggZZ_RooWidth_{0:.0f}_{1:.0f}_norm".format(self.channel,self.sqrts)
-        #ggZZpdf_norm = ROOT.RooFormulaVar(ggZZpdfNormName,"@0*@3*@4-@1*sqrt(@3*@4)*sign(@5)*sqrt(abs(@5))+@2*@5",ROOT.RooArgList(sigRates,interfRates,bkgRates,x,mu,kbkg))
-        ggZZpdf_norm = ROOT.RooFormulaVar(ggZZpdfNormName,"(@0*@3*@4-@1*sqrt(@3*@4)*sign(@5)*sqrt(abs(@5))+@2*@5)*@6",ROOT.RooArgList(sigRates,interfRates,bkgRates,x,mu,kbkg,thetaSyst_ggZZ))
+        ggZZpdf_norm = ROOT.RooFormulaVar(ggZZpdfNormName,"@0*@3*@4-@1*sqrt(@3*@4)*sign(@5)*sqrt(abs(@5))+@2*@5",ROOT.RooArgList(sigRates,interfRates,bkgRates,x,mu,kbkg))
+        #ggZZpdf_norm = ROOT.RooFormulaVar(ggZZpdfNormName,"(@0*@3*@4-@1*sqrt(@3*@4)*sign(@5)*sqrt(abs(@5))+@2*@5)*@6",ROOT.RooArgList(sigRates,interfRates,bkgRates,x,mu,kbkg,thetaSyst_ggZZ))
         ggZZpdf_norm.SetNameTitle("ggzz_norm","ggzz_norm")
         getattr(w,'import')(ggZZpdf_norm, ROOT.RooFit.RecycleConflictNodes())
 
