@@ -825,7 +825,7 @@ class systematicsClass:
         theFile.write("CMS_zz4l_mu param 0.93  -0.24/+0.26 \n")
         #theFile.write("CMS_zz4l_mu param 0.935929  -0.244308/+0.296613 \n") #stat + syst
         theFile.write("CMS_zz4l_kbkg param 1.0  0.10 \n")
-        theFile.write("CMS_zz4l_scale_syst shape1 1 1 - - \n")
+        theFile.write("CMS_zz4l_scale_syst shape1 1 - - - \n")
         #theFile.write("CMS_zz4l_APscale_syst param 0.0 1 [-3,3] \n")
 
         
