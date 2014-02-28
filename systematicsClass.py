@@ -72,7 +72,7 @@ class systematicsClass:
                 self.sel_elefull = theInputs['elecFullUnc_HM']
 
         self.qqVV_scaleSys = 1. + 0.01*math.sqrt((self.mH - 20.)/13.)
-        self.qqVV_pdfSys = 1. + 0.0035*math.sqrt(self.mH - 30.)
+        self.qqVV_pdfSys = 1.04 #1. + 0.0035*math.sqrt(self.mH - 30.)
         self.ggVV_scaleSys = 1.04 + 0.10*math.sqrt((self.mH + 40.)/40.)
         self.ggVV_pdfSys = 1. + 0.0066*math.sqrt(self.mH - 10.)
             
@@ -780,8 +780,8 @@ class systematicsClass:
         #if theInputs['useQCDscale_ggVV']:
         #    self.Write_QCDscale_ggVV(theFile,theInputs)
 
-        if theInputs['useQCDscale_VV']:
-            self.Write_QCDscale_VV(theFile,theInputs)
+        #if theInputs['useQCDscale_VV']:
+        #    self.Write_QCDscale_VV(theFile,theInputs)
 	
 	## Higgs BR
         if(self.model == "SM" or self.model == "FF") and theInputs['useBRhiggs_hzz4l']:
@@ -827,6 +827,7 @@ class systematicsClass:
         theFile.write("CMS_zz4l_kbkg param 1.0  0.10 \n")
         theFile.write("CMS_zz4l_scale_syst shape1 - 1 - - \n")
         theFile.write("CMS_zz4l_APscale_syst param 0.0 1 [-3,3] \n")
+        theFile.write("CMS_zz4l_QCDscale_VV param 0.0 1 [-3,3]\n")
         
         #if( self.channel == self.ID_4mu):
 

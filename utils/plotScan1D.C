@@ -32,6 +32,19 @@ void plotScan1D(int mass = 240, int maxwidth = 30, bool blind = true){
       gr1->SetTitle("");
     }
 
+  double *y = gr0->GetY();
+  double *x = gr0->GetX();
+  int ipol=-1;
+  for(int ipo=0;ipo<gr0->GetN();ipo++){
+    if(y[ipo]<3.84&&y[ipo+1]>3.84){
+      ipol = ipo;
+      break;
+    }
+  }
+  double a =  (y[ipol+1]-y[ipol])/(x[ipol+1]-x[ipol]);
+  double b = y[ipol]-a*x[ipol];
+  printf("limit %.2f\n",(3.84-b)/a);
+
   TCanvas *c1=new TCanvas("can1","CANVAS-SCAN1D",800,800);
   c1->cd();
   gr0->GetXaxis()->SetTitle("#Gamma/#Gamma_{SM}");

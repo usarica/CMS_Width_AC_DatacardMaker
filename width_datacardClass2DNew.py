@@ -845,9 +845,31 @@ class width_datacardClass:
         CMS_qqzzbkg_a11.setConstant(True)
         CMS_qqzzbkg_a12.setConstant(True)
         CMS_qqzzbkg_a13.setConstant(True)
-        
-        bkg_qqzz_mass = ROOT.RooqqZZPdf_v2("bkg_qqzz_mass","bkg_qqzz_mass",CMS_zz4l_widthMass,CMS_qqzzbkg_a0,CMS_qqzzbkg_a1,CMS_qqzzbkg_a2,CMS_qqzzbkg_a3,CMS_qqzzbkg_a4,CMS_qqzzbkg_a5,CMS_qqzzbkg_a6,CMS_qqzzbkg_a7,CMS_qqzzbkg_a8,CMS_qqzzbkg_a9,CMS_qqzzbkg_a10,CMS_qqzzbkg_a11,CMS_qqzzbkg_a12,CMS_qqzzbkg_a13)
 
+        #TO BE CLEANED UP ->this part should be moved in inputs
+        CMS_qqzzbkg_p0=ROOT.RooRealVar("CMS_qqzzbkg_p0","CMS_qqzzbkg_p0",1.04012)
+        CMS_qqzzbkg_p1=ROOT.RooRealVar("CMS_qqzzbkg_p1","CMS_qqzzbkg_p1",-0.000125088)
+        CMS_qqzzbkg_p2=ROOT.RooRealVar("CMS_qqzzbkg_p2","CMS_qqzzbkg_p2",2.39404e-07)
+        CMS_qqzzbkg_p1=ROOT.RooRealVar("CMS_qqzzbkg_p3","CMS_qqzzbkg_p1",1.027)
+        CMS_qqzzbkg_p2=ROOT.RooRealVar("CMS_qqzzbkg_p4","CMS_qqzzbkg_p2",1-0.034)
+        CMS_qqzzbkg_p0.setConstant(True)
+        CMS_qqzzbkg_p1.setConstant(True)
+        CMS_qqzzbkg_p2.setConstant(True)
+        CMS_qqzzbkg_p3.setConstant(True)
+        CMS_qqzzbkg_p4.setConstant(True)        
+        
+        bkg_qqzz_mass_temp = ROOT.RooqqZZPdf_v2("bkg_qqzz_mass_temp","bkg_qqzz_mass_temp",CMS_zz4l_widthMass,CMS_qqzzbkg_a0,CMS_qqzzbkg_a1,CMS_qqzzbkg_a2,CMS_qqzzbkg_a3,CMS_qqzzbkg_a4,CMS_qqzzbkg_a5,CMS_qqzzbkg_a6,CMS_qqzzbkg_a7,CMS_qqzzbkg_a8,CMS_qqzzbkg_a9,CMS_qqzzbkg_a10,CMS_qqzzbkg_a11,CMS_qqzzbkg_a12,CMS_qqzzbkg_a13)
+
+        qqZZ_Scale_Syst = ROOT.RooRealVar("CMS_zz4l_QCDscale_VV","CMS_zz4l_QCDscale_VV",0.0,-3,3)
+        #qqZZ_Scale_Syst.setConstant(True)
+        bkg_qqzz_syst_shape = ROOT.RooGenericPdf("bkg_qqzz_syst_shape","1+@0*(@1-1+@2*@4+@3*@4*@4)",ROOT.RooArgList(qqZZ_Scale_Syst,CMS_qqzzbkg_p0,CMS_qqzzbkg_p1,CMS_qqzzbkg_p2,CMS_zz4l_widthMass))
+        bkg_qqzz_mass = ROOT.RooProdPdf("bkg_qqzz_mass","bkg_qqzz_mass",bkg_qqzz_mass_temp,bkg_qqzz_syst_shape)
+
+        asympowname = "kappalow_qqZZ_{0:.0f}_{1:.0f}".format(self.channel,self.sqrts)
+        kappalow_qqzz = ROOT.RooRealVar(asympowname,asympowname,CMS_qqzzbkg_p3.getVal())#kappalow = ROOT.RooRealVar(asympowname,asympowname,rateSignal_Down+rateBkg_Down-rateInterf_Down)
+        asympowname = "kappahigh_qqZZ_{0:.0f}_{1:.0f}".format(self.channel,self.sqrts)
+        kappahigh_qqzz = ROOT.RooRealVar(asympowname,asympowname,CMS_qqzzbkg_p4.getVal())#kappahigh = ROOT.RooRealVar(asympowname,asympowname,rateSignal_Up+rateBkg_Up-rateInterf_Up)        
+        bkg_qqzz_norm = AsymPow("qqzz_norm","qqzz_norm",kappalow_qqzz,kappahigh_qqzz,qqZZ_Scale_Syst)
         
         TemplateName = "qqzz_TempDataHist_{0:.0f}_{1:.0f}".format(self.channel,self.sqrts)
         qqzz_TempDataHist = ROOT.RooDataHist(TemplateName,TemplateName,ROOT.RooArgList(CMS_zz4l_widthMass,CMS_zz4l_widthKD),Bkg_T)
@@ -1202,6 +1224,9 @@ class width_datacardClass:
 
         bkg_qqzz.SetNameTitle("bkg_qqzz","bkg_qqzz")
         getattr(w,'import')(bkg_qqzz, ROOT.RooFit.RecycleConflictNodes())
+
+        bkg_qqzz_norm.SetNameTitle("bkg_qqzz_norm","bkg_qqzz_norm")
+        getattr(w,'import')(bkg_qqzz_norm, ROOT.RooFit.RecycleConflictNodes())
         ##ggZZsignal_TemplatePdf.SetNameTitle("ggsignalzz","ggsignalzz")
         ##ggZZbkg_TemplatePdf.SetNameTitle("ggbkgzz","ggbkgzz")
         ##ggZZinterf_TemplatePdf.SetNameTitle("gginterfzz","gginterfzz")
