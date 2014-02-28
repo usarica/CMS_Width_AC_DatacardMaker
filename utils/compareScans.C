@@ -2,9 +2,9 @@ void compareScans(){
 
   const int nfiles = 3;
   //String files[]={"cards_test2D","cards_test2D_mysyst","cards_test2D_allsyst"};
-  TString files[]={"cards_preapproval02_20_1DDgg/HCG/220/","cards_preapproval02_20_1DDgg_093/HCG/220/","cards_preapproval02_20_1DDgg/HCG/220_noSyst/","cards_freezing2"};
+  TString files[]={"cards_Observed/HCG/220/","cards_Expected/HCG/220/","cards_Expected/HCG/220_noSyst/","cards_freezing2"};
   int colors[]={kBlack,kGreen+2,kBlue,kRed+1,kYellow+3};
-  TString grnames[]={"Expected 1D(Dgg) #mu_{exp}", "Expected 1D(Dgg) #mu_{obs}", "Expected 1D(Dgg) SM(#mu=1)","Expected  correct"};
+  TString grnames[]={"Observed","Expected","Expected w/o syst"};
 
   int mass = 220;
   int maxwidth = 30;
@@ -118,8 +118,8 @@ void compareScans(){
   //c1->SaveAs("can_scan1D_ggsm.C");
   //c1->SaveAs("can_scan1D_ggsm.root");
   //c1->SaveAs("can_scan1D_ggsm.eps");
-  c1->SaveAs("compare_scan1Ddgg_ggsm.gif");
-  c1->SaveAs("compare_scan1Ddgg_ggsm.eps");
-  c1->SaveAs("compare_scan1Ddgg_ggsm.png");
+  c1->SaveAs("2DobsExp.gif");
+  c1->SaveAs("2DobsExp.eps");
+  c1->SaveAs("2DobsExp.png");
 
 }
