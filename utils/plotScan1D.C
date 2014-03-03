@@ -112,7 +112,7 @@ void plotScan1D(int mass = 240, int maxwidth = 30, bool blind = true){
 
   //c1->SaveAs("can_scan1D_ggsm.C");
   //c1->SaveAs("can_scan1D_ggsm.root");
-  c1->SaveAs("can_scan2D_ggsm.eps");
-  c1->SaveAs("can_scan2D_ggsm.gif");
-  c1->SaveAs("can_scan2D_ggsm.png");
+  c1->SaveAs("can_scan1D_ggsm.eps");
+  c1->SaveAs("can_scan1D_ggsm.gif");
+  c1->SaveAs("can_scan1D_ggsm.png");
 }
