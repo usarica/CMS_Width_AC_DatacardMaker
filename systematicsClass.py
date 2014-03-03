@@ -826,6 +826,7 @@ class systematicsClass:
         #theFile.write("CMS_zz4l_mu param 0.935929  -0.244308/+0.296613 \n") #stat + syst
         theFile.write("CMS_zz4l_kbkg param 1.0  0.10 \n")
         theFile.write("CMS_zz4l_APscale_syst param 0.0 1 [-3,3] \n")
+        theFile.write("CMS_zz4l_ZXshape_syst param 0.0 1 [-3,3] \n")
         theFile.write("CMS_zz4l_QCDscale_VV param 0.0 1 [-3,3]\n")
         
         #if( self.channel == self.ID_4mu):
