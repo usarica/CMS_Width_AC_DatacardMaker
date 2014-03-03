@@ -22,7 +22,6 @@ def parseOptions():
     parser.add_option('-i', '--input', dest='inputDir', type='string', default="",    help='inputs directory')
     parser.add_option('-a', '--append', dest='appendName', type='string', default="",    help='append name for cards dir')
     parser.add_option('-b', action='store_true', dest='noX', default=True ,help='no X11 windows')
-    parser.add_option('-t', '--templateDir', type='string', dest='templateDir', default="templates2D" ,help='directory with 2D template histos')
     parser.add_option('-d', '--dimension', type='int', dest='dimensions', default="2" ,help='0->1D(KD), 1->1D(m4l), 2->2D(m4l,KD)')
 
     
@@ -97,9 +96,9 @@ def creationLoop(directory):
        
        makeDirectory(directory+'/HCG/'+mhs)
        makeDirectory(directory+'/HCG_XSxBR/'+mhs)
-       myClass.makeCardsWorkspaces(mh,directory,theInputs4e,opt.templateDir)
-       myClass.makeCardsWorkspaces(mh,directory,theInputs4mu,opt.templateDir)
-       myClass.makeCardsWorkspaces(mh,directory,theInputs2e2mu,opt.templateDir)
+       myClass.makeCardsWorkspaces(mh,directory,theInputs4e)
+       myClass.makeCardsWorkspaces(mh,directory,theInputs4mu)
+       myClass.makeCardsWorkspaces(mh,directory,theInputs2e2mu)
        
        
        a += 1

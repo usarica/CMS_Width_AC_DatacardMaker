@@ -6,7 +6,7 @@ void plotScan1D(int mass = 240, int maxwidth = 30, bool blind = true){
   float gglimit = float(maxwidth);
 
   char boh[200];
-  sprintf(boh,"higgsCombine1D_exp.MultiDimFit.mH%d.root", mass);
+  sprintf(boh,"higgsCombine2D_exp.MultiDimFit.mH%d.root", mass);
   TFile *f=new TFile(boh);
   TTree *t=(TTree*)f->Get("limit");
   t->Draw("2*deltaNLL:CMS_zz4l_GGsm", "deltaNLL > 0","PL");
@@ -20,7 +20,7 @@ void plotScan1D(int mass = 240, int maxwidth = 30, bool blind = true){
 
   if(!blind)
     {
-      sprintf(boh,"higgsCombine1D_observed.MultiDimFit.mH%d.root", mass);
+      sprintf(boh,"higgsCombine2D_observed.MultiDimFit.mH%d.root", mass);
       TFile *f1=new TFile(boh);
       TTree *t1=(TTree*)f1->Get("limit");
       t1->Draw("2*deltaNLL:CMS_zz4l_GGsm", "deltaNLL > 0","PL");
@@ -112,7 +112,7 @@ void plotScan1D(int mass = 240, int maxwidth = 30, bool blind = true){
 
   //c1->SaveAs("can_scan1D_ggsm.C");
   //c1->SaveAs("can_scan1D_ggsm.root");
-  c1->SaveAs("can_scan1D_ggsm.eps");
-  c1->SaveAs("can_scan1D_ggsm.gif");
-  c1->SaveAs("can_scan1D_ggsm.png");
+  c1->SaveAs("can_scan2D_ggsm.eps");
+  c1->SaveAs("can_scan2D_ggsm.gif");
+  c1->SaveAs("can_scan2D_ggsm.png");
 }

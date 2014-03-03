@@ -2,10 +2,11 @@ void compareScans(){
 
   const int nfiles = 3;
   //String files[]={"cards_test2D","cards_test2D_mysyst","cards_test2D_allsyst"};
-  TString files[]={"cards_Observed/HCG/220/","cards_Expected/HCG/220/","cards_Expected/HCG/220_noSyst/","cards_freezing2"};
+  TString files[]={"cards_vbfsyst/HCG/220/","cards_vbfsyst/HCG/220/","cards_vbfsyst/HCG/220_noSyst/","cards_freezing2"};
   int colors[]={kBlack,kGreen+2,kBlue,kRed+1,kYellow+3};
   TString grnames[]={"Observed","Expected","Expected w/o syst"};
 
+  bool obs[] = {1,0,0,0};
   int mass = 220;
   int maxwidth = 30;
   bool blind = true;
@@ -21,7 +22,11 @@ void compareScans(){
     char boh[200];
     //if(i==3)mass=240;
     //TString filepath;filepath.Form("HCG/%d/",mass);
-    sprintf(boh,"%shiggsCombine1D_exp.MultiDimFit.mH%d.root", files[i].Data(),mass);
+    TString obsString = "exp";
+    if(obs[i])obsString="obs";
+    sprintf(boh,"%shiggsCombine2D_%s.MultiDimFit.mH%d.root", files[i].Data(),obsString.Data(),mass);
+    if(i==2)    sprintf(boh,"%shiggsCombine1D_%s.MultiDimFit.mH%d.root", files[i].Data(),obsString.Data(),mass);
+
     TFile *f1=TFile::Open(boh);
     TTree *t1=(TTree*)f1->Get("limit");
     t1->Draw("2*deltaNLL:CMS_zz4l_GGsm", "deltaNLL > 0","PL");

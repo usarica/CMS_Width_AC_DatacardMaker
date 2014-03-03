@@ -1,7 +1,7 @@
 #!/bin/bash
 
 
-python make_width2D_DCsandWSs.py -i SM_inputs_8TeV -a $1 -d 2 -b -t templates2D/
+python make_width2D_DCsandWSs.py -i SM_inputs_8TeV -a $1 -d 2 -b 
 
 #cd test1D/HCG/240 or test2D/HCG/240
 cd cards_"$1"/HCG/220

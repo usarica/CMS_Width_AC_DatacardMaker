@@ -40,7 +40,7 @@ class Higgswidth(PhysicsModel):
             self.modelBuilder.out.var("CMS_zz4l_GGsm").setVal(float(self.GGsmval))
             self.modelBuilder.out.var("CMS_zz4l_GGsm").setConstant(False)
             self.modelBuilder.out.var("CMS_zz4l_mu").setVal(1.)
-            self.modelBuilder.out.var("CMS_zz4l_mu").setConstant(True)
+            self.modelBuilder.out.var("CMS_zz4l_mu").setConstant(False)
             poi = "CMS_zz4l_GGsm"
         
         self.modelBuilder.doSet("POI",poi)
