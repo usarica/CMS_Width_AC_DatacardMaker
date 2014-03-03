@@ -25,7 +25,6 @@ void compareScans(){
     TString obsString = "exp";
     if(obs[i])obsString="obs";
     sprintf(boh,"%shiggsCombine2D_%s.MultiDimFit.mH%d.root", files[i].Data(),obsString.Data(),mass);
-    if(i==2)    sprintf(boh,"%shiggsCombine1D_%s.MultiDimFit.mH%d.root", files[i].Data(),obsString.Data(),mass);
 
     TFile *f1=TFile::Open(boh);
     TTree *t1=(TTree*)f1->Get("limit");
