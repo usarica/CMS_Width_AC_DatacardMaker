@@ -549,19 +549,7 @@ class width_datacardClass:
         #CMS_zz4l_APscale_syst.setConstant(true)
         morphVarListggZZ = ROOT.RooArgList()
         morphVarListggZZ.add(CMS_zz4l_APscale_syst)
-        MorphList_ggZZ_interf = ROOT.RooArgList()
-        MorphList_ggZZ_bkg = ROOT.RooArgList()
-        MorphList_ggZZ_sig = ROOT.RooArgList()
         MorphList_ggZZ = ROOT.RooArgList()
-        MorphList_ggZZ_interf.add(ggZZinterf_TemplatePdf)
-        MorphList_ggZZ_interf.add(ggZZinterf_TemplatePdf_Down)
-        MorphList_ggZZ_interf.add(ggZZinterf_TemplatePdf_Up)
-        MorphList_ggZZ_sig.add(ggZZsignal_TemplatePdf)
-        MorphList_ggZZ_sig.add(ggZZsignal_TemplatePdf_Up)
-        MorphList_ggZZ_sig.add(ggZZsignal_TemplatePdf_Down)
-        MorphList_ggZZ_bkg.add(ggZZbkg_TemplatePdf)
-        MorphList_ggZZ_bkg.add(ggZZbkg_TemplatePdf_Up)
-        MorphList_ggZZ_bkg.add(ggZZbkg_TemplatePdf_Down)
         MorphList_ggZZ.add(ggZZpdf_Nominal)
         MorphList_ggZZ.add(ggZZpdf_Up)
         MorphList_ggZZ.add(ggZZpdf_Down)
@@ -680,7 +668,7 @@ class width_datacardClass:
             VBFsignal_TemplatePdf_Up = ROOT.RooHistFunc(PdfName,PdfName,ROOT.RooArgSet(CMS_zz4l_widthMass,CMS_zz4l_widthKD),VBFsignal_TempDataHist_Up)
         elif self.dimensions ==1  :
             VBFsignal_TempDataHist_Up = ROOT.RooDataHist(TemplateName,TemplateName,ROOT.RooArgList(CMS_zz4l_widthMass),VBF_T_2_Up.ProjectionX()) #nel rooarglist: ,CMS_zz4l_widthKD
-            VBFsignal_TemplatePd_Upf = ROOT.RooHistFunc(PdfName,PdfName,ROOT.RooArgSet(CMS_zz4l_widthMass),VBFsignal_TempDataHist_Up)
+            VBFsignal_TemplatePdf_Up = ROOT.RooHistFunc(PdfName,PdfName,ROOT.RooArgSet(CMS_zz4l_widthMass),VBFsignal_TempDataHist_Up)
         elif self.dimensions == 0 :
             VBFsignal_TempDataHist_Up = ROOT.RooDataHist(TemplateName,TemplateName,ROOT.RooArgList(CMS_zz4l_widthKD),VBF_T_2_Up.ProjectionY()) #nel rooarglist: ,CMS_zz4l_widthKD
             VBFsignal_TemplatePdf_Up = ROOT.RooHistFunc(PdfName,PdfName,ROOT.RooArgSet(CMS_zz4l_widthKD),VBFsignal_TempDataHist_Up)
@@ -722,7 +710,7 @@ class width_datacardClass:
             VBFsignal_TemplatePdf_Down = ROOT.RooHistFunc(PdfName,PdfName,ROOT.RooArgSet(CMS_zz4l_widthMass,CMS_zz4l_widthKD),VBFsignal_TempDataHist_Down)
         elif self.dimensions ==1  :
             VBFsignal_TempDataHist_Down = ROOT.RooDataHist(TemplateName,TemplateName,ROOT.RooArgList(CMS_zz4l_widthMass),VBF_T_2_Down.ProjectionX()) #nel rooarglist: ,CMS_zz4l_widthKD
-            VBFsignal_TemplatePd_Downf = ROOT.RooHistFunc(PdfName,PdfName,ROOT.RooArgSet(CMS_zz4l_widthMass),VBFsignal_TempDataHist_Down)
+            VBFsignal_TemplatePdf_Down = ROOT.RooHistFunc(PdfName,PdfName,ROOT.RooArgSet(CMS_zz4l_widthMass),VBFsignal_TempDataHist_Down)
         elif self.dimensions == 0 :
             VBFsignal_TempDataHist_Down = ROOT.RooDataHist(TemplateName,TemplateName,ROOT.RooArgList(CMS_zz4l_widthKD),VBF_T_2_Down.ProjectionY()) #nel rooarglist: ,CMS_zz4l_widthKD
             VBFsignal_TemplatePdf_Down = ROOT.RooHistFunc(PdfName,PdfName,ROOT.RooArgSet(CMS_zz4l_widthKD),VBFsignal_TempDataHist_Down)
@@ -759,19 +747,7 @@ class width_datacardClass:
         CMS_zz4l_VBFscale_syst = ROOT.RooRealVar("CMS_zz4l_VBFscale_syst","CMS_zz4l_VBFscale_syst",0.0,-1,1)
         morphVarListVBF = ROOT.RooArgList()
         morphVarListVBF.add(CMS_zz4l_VBFscale_syst)
-        MorphList_VBF_interf = ROOT.RooArgList()
-        MorphList_VBF_bkg = ROOT.RooArgList()
-        MorphList_VBF_sig = ROOT.RooArgList()
         MorphList_VBF = ROOT.RooArgList()
-        MorphList_VBF_interf.add(VBFinterf_TemplatePdf)
-        MorphList_VBF_interf.add(VBFinterf_TemplatePdf_Down)
-        MorphList_VBF_interf.add(VBFinterf_TemplatePdf_Up)
-        MorphList_VBF_sig.add(VBFsignal_TemplatePdf)
-        MorphList_VBF_sig.add(VBFsignal_TemplatePdf_Up)
-        MorphList_VBF_sig.add(VBFsignal_TemplatePdf_Down)
-        MorphList_VBF_bkg.add(VBFbkg_TemplatePdf)
-        MorphList_VBF_bkg.add(VBFbkg_TemplatePdf_Up)
-        MorphList_VBF_bkg.add(VBFbkg_TemplatePdf_Down)
         MorphList_VBF.add(VBFpdf_Nominal)
         MorphList_VBF.add(VBFpdf_Up)
         MorphList_VBF.add(VBFpdf_Down)
@@ -780,9 +756,9 @@ class width_datacardClass:
         VBFpdf = ROOT.VerticalInterpPdf("VBFpdf","VBFpdf",MorphList_VBF,morphVarListVBF)
 
         asympowname = "kappalow_VBF_{0:.0f}_{1:.0f}".format(self.channel,self.sqrts)
-        kappalowVBF = ROOT.RooRealVar(asympowname,asympowname,totalRateDown/totalRate_vbf)#kappalow = ROOT.RooRealVar(asympowname,asympowname,rateSignal_Down+rateBkg_Down-rateInterf_Down)
+        kappalowVBF = ROOT.RooRealVar(asympowname,asympowname,totalRateVBFDown/totalRate_vbf)#kappalow = ROOT.RooRealVar(asympowname,asympowname,rateSignal_Down+rateBkg_Down-rateInterf_Down)
         asympowname = "kappahigh_VBF_{0:.0f}_{1:.0f}".format(self.channel,self.sqrts)
-        kappahighVBF = ROOT.RooRealVar(asympowname,asympowname,totalRateUp/totalRate_vbf)#kappahigh = ROOT.RooRealVar(asympowname,asympowname,rateSignal_Up+rateBkg_Up-rateInterf_Up)        
+        kappahighVBF = ROOT.RooRealVar(asympowname,asympowname,totalRateVBFUp/totalRate_vbf)#kappahigh = ROOT.RooRealVar(asympowname,asympowname,rateSignal_Up+rateBkg_Up-rateInterf_Up)        
         asympowname = "Asympow_VBF_{0:.0f}_{1:.0f}".format(self.channel,self.sqrts)
         thetaSyst_VBF = AsymPow(asympowname,asympowname,kappalowVBF,kappahighVBF,CMS_zz4l_VBFscale_syst)
 
@@ -1092,22 +1068,30 @@ class width_datacardClass:
         zjet_DataHistDown = RooDataHist(DataName,DataName,ROOT.RooArgList(CMS_zz4l_widthMass,CMS_zz4l_widthKD),bkg_zjets_Down.createHistogram("{0},{1}".format(CMS_zz4l_widthMass.GetName(),CMS_zz4l_widthKD.GetName())))
         zjet_HistPdfDown = ROOT.RooHistPdf(PdfName,PdfName,ROOT.RooArgSet(CMS_zz4l_widthMass,CMS_zz4l_widthKD),zjet_DataHistDown)
 
-        CMS_zz4l_ZXshape_syst = ROOT.RooRealVar("CMS_zz4l_ZXshape_syst","CMS_zz4l_ZXshape_syst",0.0,-1,1)
-        morphVarListZX = ROOT.RooArgList()
-        morphVarListZX.add(CMS_zz4l_ZXshape_syst)
-        MorphList_ZX = ROOT.RooArgList()
-        MorphList_ZX.add(zjet_HistPdfNominal)
-        MorphList_ZX.add(zjet_HistPdfUp)
-        MorphList_ZX.add(zjet_HistPdfDown)
-        
-        bkg_zjets = ROOT.VerticalInterpPdf("bkg_zjets","bkg_zjets",MorphList_ZX,morphVarListZX)
-
-        if self.dimensions == 0 :
-            zjet_TempDataHist1 = ROOT.RooDataHist(TemplateName,TemplateName,ROOT.RooArgList(CMS_zz4l_widthKD),Bkg_ZX.ProjectionY())
-            bkg_zjets = ROOT.RooHistPdf(PdfName,PdfName,ROOT.RooArgSet(CMS_zz4l_widthKD),zjet_TempDataHist1)
+        if self.dimensions == 0:
+            TemplateName = "zjet_TempDataHist1_{0:.0f}_{1:.0f}_Nominal".format(self.channel,self.sqrts)
+            zjet_TempDataHist1_Nominal = ROOT.RooDataHist(TemplateName,TemplateName,ROOT.RooArgList(CMS_zz4l_widthKD),Bkg_ZX.ProjectionY())
+            zjet_HistPdfNominal = ROOT.RooHistPdf(PdfName,PdfName,ROOT.RooArgSet(CMS_zz4l_widthKD),zjet_TempDataHist1_Nominal)
+            TemplateName = "zjet_TempDataHist1_{0:.0f}_{1:.0f}_Up".format(self.channel,self.sqrts)
+            zjet_TempDataHist1_Up = ROOT.RooDataHist(TemplateName,TemplateName,ROOT.RooArgList(CMS_zz4l_widthKD),Bkg_T.ProjectionY())
+            zjet_Up = ROOT.RooHistPdf(PdfName,PdfName,ROOT.RooArgSet(CMS_zz4l_widthKD),zjet_TempDataHist1_Up)
+            TemplateName = "zjet_TempDataHist1_{0:.0f}_{1:.0f}_Down".format(self.channel,self.sqrts)
+            zjet_TempDataHist1_Down = ROOT.RooDataHist(TemplateName,TemplateName,ROOT.RooArgList(CMS_zz4l_widthKD),Bkg_ZX_Down.ProjectionY())
+            zjet_HistPdf_Down = ROOT.RooHistPdf(PdfName,PdfName,ROOT.RooArgSet(CMS_zz4l_widthKD),zjet_TempDataHist1_Down)
+            
         if self.dimensions == 1 :
             bkg_zjets = bkg_zjets_mass
             bkg_zjets.SetNameTitle("bkg_zjets","bkg_zjets")
+        else:
+            CMS_zz4l_ZXshape_syst = ROOT.RooRealVar("CMS_zz4l_ZXshape_syst","CMS_zz4l_ZXshape_syst",0.0,-1,1)
+            morphVarListZX = ROOT.RooArgList()
+            morphVarListZX.add(CMS_zz4l_ZXshape_syst)
+            MorphList_ZX = ROOT.RooArgList()
+            MorphList_ZX.add(zjet_HistPdfNominal)
+            MorphList_ZX.add(zjet_HistPdfUp)
+            MorphList_ZX.add(zjet_HistPdfDown)
+        
+            bkg_zjets = ROOT.VerticalInterpPdf("bkg_zjets","bkg_zjets",MorphList_ZX,morphVarListZX)
         
         ## ------------------- LUMI -------------------- ##
         
