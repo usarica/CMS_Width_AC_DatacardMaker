@@ -147,11 +147,11 @@ class width_datacardClass:
         mu.setVal(1)
         mu.setBins(100)
 
-        mu_name = "CMS_zz4l_kbkg"
+        mu_name = "CMS_widthH_kbkg"
 
         kbkg = ROOT.RooRealVar(mu_name,mu_name,0.1,10)
         kbkg.setVal(1)
-        kbkg.setConstant(True)
+        #kbkg.setConstant(True)
         kbkg.setBins(100)
 
         D2name = "CMS_zz4l_widthKD"
@@ -545,7 +545,7 @@ class width_datacardClass:
         ggZZpdf_Down = ROOT.RooRealSumPdf(ggZZpdfName,ggZZpdfName,ROOT.RooArgList(ggZZsignal_TemplatePdf_Down,ggZZinterf_TemplatePdf_Down,ggZZbkg_TemplatePdf_Down),ROOT.RooArgList(sigRatesNorm,interfRatesNorm,bkgRatesNorm))
 
 
-        CMS_zz4l_APscale_syst = ROOT.RooRealVar("CMS_zz4l_APscale_syst","CMS_zz4l_APscale_syst",0.0,-1,1)
+        CMS_zz4l_APscale_syst = ROOT.RooRealVar("CMS_zz4l_pdf_QCDscale_gg_syst","CMS_zz4l_pdf_QCDscale_gg_syst",0.0,-1,1)
         #CMS_zz4l_APscale_syst.setConstant(true)
         morphVarListggZZ = ROOT.RooArgList()
         morphVarListggZZ.add(CMS_zz4l_APscale_syst)
@@ -858,7 +858,7 @@ class width_datacardClass:
         
         bkg_qqzz_mass_temp = ROOT.RooqqZZPdf_v2("bkg_qqzz_mass_temp","bkg_qqzz_mass_temp",CMS_zz4l_widthMass,CMS_qqzzbkg_a0,CMS_qqzzbkg_a1,CMS_qqzzbkg_a2,CMS_qqzzbkg_a3,CMS_qqzzbkg_a4,CMS_qqzzbkg_a5,CMS_qqzzbkg_a6,CMS_qqzzbkg_a7,CMS_qqzzbkg_a8,CMS_qqzzbkg_a9,CMS_qqzzbkg_a10,CMS_qqzzbkg_a11,CMS_qqzzbkg_a12,CMS_qqzzbkg_a13)
 
-        qqZZ_Scale_Syst = ROOT.RooRealVar("CMS_zz4l_QCDscale_VV","CMS_zz4l_QCDscale_VV",0.0,-3,3)
+        qqZZ_Scale_Syst = ROOT.RooRealVar("CMS_QCDscale_VV","CMS_QCDscale_VV",0.0,-3,3)
         #qqZZ_Scale_Syst.setConstant(True)
         bkg_qqzz_syst_shape = ROOT.RooGenericPdf("bkg_qqzz_syst_shape","TMath::Max(1+@0*(@1-1+@2*@4+@3*@4*@4),0.)",ROOT.RooArgList(qqZZ_Scale_Syst,CMS_qqzzbkg_p0,CMS_qqzzbkg_p1,CMS_qqzzbkg_p2,CMS_zz4l_widthMass))
         bkg_qqzz_mass = ROOT.RooProdPdf("bkg_qqzz_mass","bkg_qqzz_mass",bkg_qqzz_mass_temp,bkg_qqzz_syst_shape)
