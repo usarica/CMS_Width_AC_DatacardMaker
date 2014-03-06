@@ -151,7 +151,7 @@ class width_datacardClass:
 
         kbkg = ROOT.RooRealVar(mu_name,mu_name,0.1,10)
         kbkg.setVal(1)
-        #kbkg.setConstant(True)
+        if self.dimensions>0 : kbkg.setConstant(True)
         kbkg.setBins(100)
 
         D2name = "CMS_zz4l_widthKD"
@@ -1074,10 +1074,10 @@ class width_datacardClass:
             zjet_HistPdfNominal = ROOT.RooHistPdf(PdfName,PdfName,ROOT.RooArgSet(CMS_zz4l_widthKD),zjet_TempDataHist1_Nominal)
             TemplateName = "zjet_TempDataHist1_{0:.0f}_{1:.0f}_Up".format(self.channel,self.sqrts)
             zjet_TempDataHist1_Up = ROOT.RooDataHist(TemplateName,TemplateName,ROOT.RooArgList(CMS_zz4l_widthKD),Bkg_T.ProjectionY())
-            zjet_Up = ROOT.RooHistPdf(PdfName,PdfName,ROOT.RooArgSet(CMS_zz4l_widthKD),zjet_TempDataHist1_Up)
+            zjet_HistPdfUp = ROOT.RooHistPdf(PdfName,PdfName,ROOT.RooArgSet(CMS_zz4l_widthKD),zjet_TempDataHist1_Up)
             TemplateName = "zjet_TempDataHist1_{0:.0f}_{1:.0f}_Down".format(self.channel,self.sqrts)
             zjet_TempDataHist1_Down = ROOT.RooDataHist(TemplateName,TemplateName,ROOT.RooArgList(CMS_zz4l_widthKD),Bkg_ZX_Down.ProjectionY())
-            zjet_HistPdf_Down = ROOT.RooHistPdf(PdfName,PdfName,ROOT.RooArgSet(CMS_zz4l_widthKD),zjet_TempDataHist1_Down)
+            zjet_HistPdfDown = ROOT.RooHistPdf(PdfName,PdfName,ROOT.RooArgSet(CMS_zz4l_widthKD),zjet_TempDataHist1_Down)
             
         if self.dimensions == 1 :
             bkg_zjets = bkg_zjets_mass
