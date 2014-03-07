@@ -151,7 +151,7 @@ class width_datacardClass:
 
         kbkg = ROOT.RooRealVar(mu_name,mu_name,0.1,10)
         kbkg.setVal(1)
-        if self.dimensions>0 : kbkg.setConstant(True)
+        #if self.dimensions>0 : kbkg.setConstant(True)
         kbkg.setBins(100)
 
         D2name = "CMS_zz4l_widthKD"

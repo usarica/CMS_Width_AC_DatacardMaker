@@ -1,0 +1,27 @@
+imax 1
+jmax 2
+kmax *
+------------
+shapes * * hzz4l_2e2muS_8TeV.input.root w:$PROCESS w:$PROCESS_$SYSTEMATIC
+------------
+bin a3 
+observation 100 
+------------
+## mass window [220,1400] 
+## signal,bkg,interf,tot rates [1.0199, 14.4741, -1.7487, 13.7452] 
+bin a3 a3 a3 
+process ggzz bkg_qqzz bkg_zjets 
+process 0 1 2 
+rate 1.0000 76.8200 1.3800 
+------------
+lumi_8TeV lnN 1.026 1.026 - 
+CMS_eff_m lnN 1.026 1.026 - 
+CMS_eff_e lnN 1.046 1.046 - 
+CMS_hzz2e2mu_Zjets lnN - - 0.75/1.25 
+pdf_qqbar lnN - 1.0342 - 
+pdf_hzz4l_accept lnN - - - 
+QCDscale_VV lnN - 1.0285 - 
+BRhiggs_hzz4l lnN - - - 
+CMS_zz4l_mu param 1.00  -0.24/+0.27 
+CMS_zz4l_kbkg param 1.0  0.10 
+CMS_zz4l_scale_syst shape1 1 - - 

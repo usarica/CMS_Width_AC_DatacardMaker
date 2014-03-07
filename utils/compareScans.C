@@ -1,15 +1,21 @@
 void compareScans(){
 
-  const int nfiles = 3;
-  //String files[]={"cards_test2D","cards_test2D_mysyst","cards_test2D_allsyst"};
-  TString files[]={"cards_vbfsyst/HCG/220/","cards_vbfsyst/HCG/220/","cards_vbfsyst/HCG/220_noSyst/","cards_freezing2"};
-  int colors[]={kBlack,kGreen+2,kBlue,kRed+1,kYellow+3};
-  TString grnames[]={"Observed","Expected","Expected w/o syst"};
-
-  bool obs[] = {1,0,0,0};
+  const int nfiles = 4;
+  //TString files[]={"cards_03_05_Unblind_093_2D/HCG/220/","cards_03_05_Unblind_2D/HCG/220/","cards_03_05_Unblind_093_2D/HCG/220/","cards_03_05_Unblind_2D/HCG/220_noSyst/","cards_03_05_Unblind_2D/HCG/220/"}
+  //TString files[]={"cards_03_05_Unblind_093_1DDgg/HCG/220/","cards_03_05_Unblind_1DDgg/HCG/220/","cards_03_05_Unblind_093_1DDgg/HCG/220/","cards_03_05_Unblind_1DDgg/HCG/220_noSyst/","cards_03_05_Unblind_1DDgg/HCG/220/"}
+  TString files[]={"cards_1DDgg_093_NoCostant/HCG/220/","cards_1DDgg_093_NoCostant/HCG/220/","cards_1DDgg_093_NoCostant/HCG/220/","cards_1DDgg_093_NoCostant/HCG/220_noSyst/","cards_03_05_Unblind_1DDgg/HCG/220/"}
+  //TString files[]={"cards_lowRScanObs_Dgg_up2/HCG/220_all/","cards_lowRScanObs_Dgg_up2/HCG/220_2e2mu/","cards_lowRScanObs_Dgg_up2/HCG/220_4e/","cards_lowRScanObs_Dgg_up2/HCG/220_4mu/","cards_03_05_Unblind_Dgg/HCG/220/"};
+  int colors[]={kBlack,kBlue,kRed+1,kGreen+2,kYellow+3,kBlack,kBlue,kRed+1,kGreen+2};
+  TString grnames[]={"Observed","Expected #mu=#mu_{exp}","Expected #mu=#mu_{obs}","Expected #mu=1 w/o syst","Observed #mu=1"};
+  //TString grnames[]={"all","2e2mu","4e","4mu"};
+  bool obs[] = {1,0,0,0,1,0,1};
   int mass = 220;
-  int maxwidth = 30;
+  int maxwidth = 30.0;
   bool blind = true;
+
+  //values for 1DDgg_093, expected mu=0.93
+  double limits95[]={9.30681,12.6934,19.5321,31.2537,42.5569};
+  double limits68[]={3.33046,4.82275,9.2807,18.4322,27.625};
 
   // gROOT->ProcessLine(".x tdrstyle.cc");
   gStyle->SetPadLeftMargin(0.16);
@@ -18,23 +24,41 @@ void compareScans(){
 
   TMultiGraph *mg = new TMultiGraph();
 
+  TGraph *g[nfiles];
+
+  TLegend *leg = new TLegend(0.25,0.73,0.5,0.93);
+  //TLegend *leg = c1->BuildLegend();
+  leg->SetX1(0.22);
+  leg->SetX2(0.5);
+  leg->SetY1(0.7);
+  leg->SetY2(0.93);
+  leg->SetFillColor(0);
+  leg->SetLineColor(0);
+  leg->SetBorderSize(0);
+  leg->SetFillStyle(0);
+  leg->SetTextFont(42);
+
   for(int i=0;i<nfiles;i++){
     char boh[200];
+    //printf("%d\n",i);
     //if(i==3)mass=240;
     //TString filepath;filepath.Form("HCG/%d/",mass);
     TString obsString = "exp";
     if(obs[i])obsString="obs";
-    sprintf(boh,"%shiggsCombine2D_%s.MultiDimFit.mH%d.root", files[i].Data(),obsString.Data(),mass);
-
+    int nDi =2;
+    //printf("%d\n",i);
+    sprintf(boh,"%shiggsCombine%dD_%s.MultiDimFit.mH%d.root", files[i].Data(),nDi,obsString.Data(),mass);
     TFile *f1=TFile::Open(boh);
     TTree *t1=(TTree*)f1->Get("limit");
     t1->Draw("2*deltaNLL:CMS_zz4l_GGsm", "deltaNLL > 0","PL");
-    TGraph *gr0 = (TGraph*) gROOT->FindObject("Graph")->Clone();
+    TGraph *gr0 = (TGraph*)gROOT->FindObject("Graph")->Clone();
     gr0->SetName(grnames[i].Data());
     gr0->SetLineWidth(2.5);
     gr0->SetLineColor(colors[i]);
-    gr0->SetLineStyle(2);
-    gr0->SetTitle("");
+    //if(!obs[i])gr0->SetLineStyle(2);
+    gr0->SetTitle(grnames[i].Data());
+    leg->AddEntry(gr0);
+    g[i]=(TGraph*)gr0->Clone();
     mg->Add(gr0,"l");
     double *y = gr0->GetY();
     double *x = gr0->GetX();
@@ -47,30 +71,9 @@ void compareScans(){
     }
     double a =  (y[ipol+1]-y[ipol])/(x[ipol+1]-x[ipol]);
     double b = y[ipol]-a*x[ipol];
-    printf("%d) limit %.1f\n",i,(3.84-b)/a);
+    printf("%d) limit %.2f\n",i,(3.84-b)/a);
   }
-  
-  TCanvas *c1=new TCanvas("can1","CANVAS-SCAN1D",800,800);
-  c1->cd();
-  mg->Draw("AL");
-  mg->GetXaxis()->SetTitle("#Gamma/#Gamma_{SM}");
-  mg->GetYaxis()->SetTitle("-2 #Delta lnL");
-  mg->GetXaxis()->SetLabelSize(0.04);
-  mg->GetYaxis()->SetLabelSize(0.04);
-  mg->GetYaxis()->SetRangeUser(0.,12.);
-  mg->GetXaxis()->SetRangeUser(0.,gglimit);
 
-  //TLegend *leg = new TLegend(0.25,0.73,0.5,0.93);
-  TLegend *leg = c1->BuildLegend();
-  leg->SetX1(0.22);
-  leg->SetX2(0.5);
-  leg->SetY1(0.7);
-  leg->SetY2(0.93);
-  leg->SetFillColor(0);
-  leg->SetLineColor(0);
-  leg->SetBorderSize(0);
-  leg->SetFillStyle(0);
-  leg->SetTextFont(42);
 
   //  leg->AddEntry(gr0, "Expected - no Syst","l");
   //  leg->AddEntry(gr1, "Expected","l");
@@ -78,6 +81,47 @@ void compareScans(){
 
   float lumi7TeV=5.1;
   float lumi8TeV=19.7;
+
+
+  TCanvas *c1=new TCanvas("can1","CANVAS-SCAN1D",800,800);
+  c1->cd();
+  g[0]->Draw("AL");
+  g[0]->GetXaxis()->SetTitle("#Gamma/#Gamma_{SM}");
+  g[0]->GetYaxis()->SetTitle("-2 #Delta lnL");
+  g[0]->GetXaxis()->SetLabelSize(0.04);
+  g[0]->GetYaxis()->SetLabelSize(0.04);
+  g[0]->GetYaxis()->SetRangeUser(0.,12.);//12
+  g[0]->GetXaxis()->SetRangeUser(0.,gglimit);
+
+
+  TLine *l2_95=new TLine();
+  //l2_95->SetLineStyle(9);
+  l2_95->SetLineWidth(10);
+  l2_95->SetLineColor(kYellow);
+  l2_95->DrawLine(limits95[0],3.84,TMath::Min(limits95[4],gglimit),3.84);
+  l2_95->Draw();
+
+  TLine *l2_68=new TLine();
+  //l2_68->SetLineStyle(9);
+  l2_68->SetLineWidth(10);
+  l2_68->SetLineColor(kGreen);
+  l2_68->DrawLine(limits95[1],3.84,limits95[3],3.84);
+  l2_68->Draw("same");
+
+  TLine *l1_95=new TLine();
+  //l1_95->SetLineStyle(9);
+  l1_95->SetLineWidth(10);
+  l1_95->SetLineColor(kYellow);
+  l1_95->DrawLine(limits68[0],1,TMath::Min(limits68[4],gglimit),1);
+  l1_95->Draw("same");
+
+  TLine *l1_68=new TLine();
+  //l1_68->SetLineStyle(9);
+  l1_68->SetLineWidth(10);
+  l1_68->SetLineColor(kGreen);
+  l1_68->DrawLine(limits68[1],1,limits68[3],1);
+  l1_68->Draw("same");
+
 
   TPaveText *pt = new TPaveText(0.1577181,0.9562937,0.9580537,0.9947552,"brNDC");
   pt->SetBorderSize(0);
@@ -119,11 +163,23 @@ void compareScans(){
   l2->DrawLine(0.0,3.84,gglimit,3.84);
   l2->Draw("same");
 
+  for(int i=0;i<nfiles;i++)g[i]->Draw("LSAME");
+  leg->Draw("SAME");
+
+  TGraph *medians = new TGraph(2);
+  medians->SetPoint(0,limits95[2],3.84);
+  medians->SetPoint(1,limits68[2],1.0);
+  medians->SetFillStyle(0);
+  medians->SetMarkerStyle(30);
+  medians->SetMarkerColor(kBlue);
+  medians->Draw("PSAME");  
+
   //c1->SaveAs("can_scan1D_ggsm.C");
   //c1->SaveAs("can_scan1D_ggsm.root");
   //c1->SaveAs("can_scan1D_ggsm.eps");
-  c1->SaveAs("2DobsExp.gif");
-  c1->SaveAs("2DobsExp.eps");
-  c1->SaveAs("2DobsExp.png");
+  c1->SaveAs("03_05_1DDggUncBand.gif");
+  c1->SaveAs("03_05_1DDggUncBand.eps");
+  c1->SaveAs("03_05_1DDggUncBand.pdf");
+  c1->SaveAs("03_05_1DDggUncBand.png");
 
 }
