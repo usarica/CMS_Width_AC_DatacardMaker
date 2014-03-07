@@ -876,9 +876,10 @@ class width_datacardClass:
         bkg_qqzz = ROOT.RooProdPdf("bkg_qqzz","bkg_qqzz",ROOT.RooArgSet(bkg_qqzz_mass),ROOT.RooFit.Conditional(ROOT.RooArgSet(qqzz_TemplatePdf),ROOT.RooArgSet(CMS_zz4l_widthKD)))
         if self.dimensions ==1 : bkg_qqzz = bkg_qqzz_mass
         elif self.dimensions == 0:
-            qqzz_TempDataHist1 = ROOT.RooDataHist(TemplateName,TemplateName,ROOT.RooArgList(CMS_zz4l_widthKD),Bkg_T.ProjectionY())
-            bkg_qqzz = ROOT.RooHistPdf(PdfName,PdfName,ROOT.RooArgSet(CMS_zz4l_widthKD),qqzz_TempDataHist1)
-        
+            #qqzz_TempDataHist1 = ROOT.RooDataHist(TemplateName,TemplateName,ROOT.RooArgList(CMS_zz4l_widthKD),Bkg_T.ProjectionY())
+            #bkg_qqzz = ROOT.RooHistPdf(PdfName,PdfName,ROOT.RooArgSet(CMS_zz4l_widthKD),qqzz_TempDataHist1)
+            bkg_qqzz = qqzz_TemplatePdf.createProjection(ROOT.RooArgSet(CMS_zz4l_widthMass))
+            bkg_qqzz.SetNameTitle("bkg_qqzz","bkg_qqzz")
 ##         TemplateName = "qqzz_TempDataHist_Up_{0:.0f}_{1:.0f}".format(self.channel,self.sqrts)
 ##         qqzz_TempDataHist_Up = ROOT.RooDataHist(TemplateName,TemplateName,ROOT.RooArgList(CMS_zz4l_widthMass,CMS_zz4l_widthKD),Bkg_T_Up)
 ##         PdfName = "qqzz_TemplatePdf_Up_{0:.0f}_{1:.0f}".format(self.channel,self.sqrts)
@@ -1056,29 +1057,46 @@ class width_datacardClass:
         DataName = "ZX_FullDataHist_{0:.0f}_{1:.0f}".format(self.channel,self.sqrts)
         PdfName = "ZX_FullPdf_{0:.0f}_{1:.0f}".format(self.channel,self.sqrts)
         zjet_DataHistNominal = RooDataHist(DataName,DataName,ROOT.RooArgList(CMS_zz4l_widthMass,CMS_zz4l_widthKD),bkg_zjets_Nominal.createHistogram("{0},{1}".format(CMS_zz4l_widthMass.GetName(),CMS_zz4l_widthKD.GetName())))
-        zjet_HistPdfNominal = ROOT.RooHistPdf(PdfName,PdfName,ROOT.RooArgSet(CMS_zz4l_widthMass,CMS_zz4l_widthKD),zjet_DataHistNominal)
+        zjet_HistPdfNominaltemp = ROOT.RooHistPdf(PdfName,PdfName,ROOT.RooArgSet(CMS_zz4l_widthMass,CMS_zz4l_widthKD),zjet_DataHistNominal)
 
         DataName = "ZX_FullDataHist_Up_{0:.0f}_{1:.0f}".format(self.channel,self.sqrts)
         PdfName = "ZX_FullPdf_Up_{0:.0f}_{1:.0f}".format(self.channel,self.sqrts)
         zjet_DataHistUp = RooDataHist(DataName,DataName,ROOT.RooArgList(CMS_zz4l_widthMass,CMS_zz4l_widthKD),bkg_zjets_Up.createHistogram("{0},{1}".format(CMS_zz4l_widthMass.GetName(),CMS_zz4l_widthKD.GetName())))
-        zjet_HistPdfUp = ROOT.RooHistPdf(PdfName,PdfName,ROOT.RooArgSet(CMS_zz4l_widthMass,CMS_zz4l_widthKD),zjet_DataHistUp)
+        zjet_HistPdfUptemp = ROOT.RooHistPdf(PdfName,PdfName,ROOT.RooArgSet(CMS_zz4l_widthMass,CMS_zz4l_widthKD),zjet_DataHistUp)
 
         DataName = "ZX_FullDataHist_Down_{0:.0f}_{1:.0f}".format(self.channel,self.sqrts)
         PdfName = "ZX_FullPdf_Down_{0:.0f}_{1:.0f}".format(self.channel,self.sqrts)
         zjet_DataHistDown = RooDataHist(DataName,DataName,ROOT.RooArgList(CMS_zz4l_widthMass,CMS_zz4l_widthKD),bkg_zjets_Down.createHistogram("{0},{1}".format(CMS_zz4l_widthMass.GetName(),CMS_zz4l_widthKD.GetName())))
-        zjet_HistPdfDown = ROOT.RooHistPdf(PdfName,PdfName,ROOT.RooArgSet(CMS_zz4l_widthMass,CMS_zz4l_widthKD),zjet_DataHistDown)
+        zjet_HistPdfDowntemp = ROOT.RooHistPdf(PdfName,PdfName,ROOT.RooArgSet(CMS_zz4l_widthMass,CMS_zz4l_widthKD),zjet_DataHistDown)
 
         if self.dimensions == 0:
-            TemplateName = "zjet_TempDataHist1_{0:.0f}_{1:.0f}_Nominal".format(self.channel,self.sqrts)
-            zjet_TempDataHist1_Nominal = ROOT.RooDataHist(TemplateName,TemplateName,ROOT.RooArgList(CMS_zz4l_widthKD),Bkg_ZX.ProjectionY())
-            zjet_HistPdfNominal = ROOT.RooHistPdf(PdfName,PdfName,ROOT.RooArgSet(CMS_zz4l_widthKD),zjet_TempDataHist1_Nominal)
-            TemplateName = "zjet_TempDataHist1_{0:.0f}_{1:.0f}_Up".format(self.channel,self.sqrts)
-            zjet_TempDataHist1_Up = ROOT.RooDataHist(TemplateName,TemplateName,ROOT.RooArgList(CMS_zz4l_widthKD),Bkg_T.ProjectionY())
-            zjet_HistPdfUp = ROOT.RooHistPdf(PdfName,PdfName,ROOT.RooArgSet(CMS_zz4l_widthKD),zjet_TempDataHist1_Up)
-            TemplateName = "zjet_TempDataHist1_{0:.0f}_{1:.0f}_Down".format(self.channel,self.sqrts)
-            zjet_TempDataHist1_Down = ROOT.RooDataHist(TemplateName,TemplateName,ROOT.RooArgList(CMS_zz4l_widthKD),Bkg_ZX_Down.ProjectionY())
-            zjet_HistPdfDown = ROOT.RooHistPdf(PdfName,PdfName,ROOT.RooArgSet(CMS_zz4l_widthKD),zjet_TempDataHist1_Down)
+            zjet_HistPdfUpP = zjet_HistPdfUptemp.createProjection(RooArgSet(CMS_zz4l_widthMass))
+            zjet_HistPdfNominalP = zjet_HistPdfNominaltemp.createProjection(RooArgSet(CMS_zz4l_widthMass))
+            zjet_HistPdfDownP = zjet_HistPdfDowntemp.createProjection(RooArgSet(CMS_zz4l_widthMass))
+
             
+            PdfName = "ZX_FullPdf_Nominal1_{0:.0f}_{1:.0f}".format(self.channel,self.sqrts)
+            TemplateName = "zjet_TempDataHist1_{0:.0f}_{1:.0f}_Nominal".format(self.channel,self.sqrts)
+            #zjet_TempDataHist1_Nominal = ROOT.RooDataHist(TemplateName,TemplateName,ROOT.RooArgList(CMS_zz4l_widthKD),Bkg_ZX.ProjectionY())
+            zjet_TempDataHist1_Nominal = ROOT.RooDataHist(TemplateName,TemplateName,ROOT.RooArgList(CMS_zz4l_widthKD),zjet_HistPdfNominalP.createHistogram("histNom",CMS_zz4l_widthKD))
+            zjet_HistPdfNominal = ROOT.RooHistPdf(PdfName,PdfName,ROOT.RooArgSet(CMS_zz4l_widthKD),zjet_TempDataHist1_Nominal)
+
+            PdfName = "ZX_FullPdf_Up1_{0:.0f}_{1:.0f}".format(self.channel,self.sqrts)
+            TemplateName = "zjet_TempDataHist1_{0:.0f}_{1:.0f}_Up".format(self.channel,self.sqrts)           
+            #zjet_TempDataHist1_Up = ROOT.RooDataHist(TemplateName,TemplateName,ROOT.RooArgList(CMS_zz4l_widthKD),Bkg_T.ProjectionY())
+            zjet_TempDataHist1_Up = ROOT.RooDataHist(TemplateName,TemplateName,ROOT.RooArgList(CMS_zz4l_widthKD),zjet_HistPdfUpP.createHistogram("histUp",CMS_zz4l_widthKD))
+            zjet_HistPdfUp = ROOT.RooHistPdf(PdfName,PdfName,ROOT.RooArgSet(CMS_zz4l_widthKD),zjet_TempDataHist1_Up)
+
+            PdfName = "ZX_FullPdf_Down1_{0:.0f}_{1:.0f}".format(self.channel,self.sqrts)
+            TemplateName = "zjet_TempDataHist1_{0:.0f}_{1:.0f}_Down".format(self.channel,self.sqrts)
+            #zjet_TempDataHist1_Down = ROOT.RooDataHist(TemplateName,TemplateName,ROOT.RooArgList(CMS_zz4l_widthKD),Bkg_ZX_Down.ProjectionY())
+            zjet_TempDataHist1_Down = ROOT.RooDataHist(TemplateName,TemplateName,ROOT.RooArgList(CMS_zz4l_widthKD),zjet_HistPdfDownP.createHistogram("histUp",CMS_zz4l_widthKD))
+            zjet_HistPdfDown = ROOT.RooHistPdf(PdfName,PdfName,ROOT.RooArgSet(CMS_zz4l_widthKD),zjet_TempDataHist1_Down)
+
+        if self.dimensions == 2:
+            zjet_HistPdfNominal=zjet_HistPdfNominaltemp
+            zjet_HistPdfUp=zjet_HistPdfUptemp
+            zjet_HistPdfDown=zjet_HistPdfDowntemp
         if self.dimensions == 1 :
             bkg_zjets = bkg_zjets_mass
             bkg_zjets.SetNameTitle("bkg_zjets","bkg_zjets")
