@@ -739,7 +739,7 @@ class systematicsClass:
         if theInputs['useCMS_eff']:
             self.Write_eff_m(theFile,theInputs)
             self.Write_eff_e(theFile,theInputs)
-
+            
 	if (self.channel == self.ID_4mu) and theInputs['useCMS_hzz4l_Zjets']:
             self.Write_CMS_hzz4mu_Zjets(theFile,theInputs)
 	  
@@ -819,15 +819,22 @@ class systematicsClass:
         #sigmaCB_m_errPerCent = theInputs['CMS_zz4l_sigma_m_sig']
         #Gamma_BW_errPerCent = theInputs['CMS_zz4l_gamma_sig']
 
-        #theFile.write("CMS_zz4l_mu param 0.935929  -0.23/+0.26 \n") #stat only
-        #theFile.write("CMS_zz4l_mu param 1.0 -0.255977/+0.30849 \n") #expected uncertainty
+        ##theFile.write("CMS_zz4l_mu param 0.935929  -0.23/+0.26 \n") #stat only
+        ##theFile.write("CMS_zz4l_mu param 1.0 -0.255977/+0.30849 \n") #expected uncertainty
         #theFile.write("CMS_zz4l_mu param 1.00  -0.24/+0.27 \n")
         theFile.write("CMS_zz4l_mu param 0.93  -0.24/+0.26 \n")
-        theFile.write("CMS_widthH_kbkg param 1.0  0.10 \n")
+        theFile.write("CMS_widthH_kbkg param 1.0  0.1 \n")
         theFile.write("CMS_zz4l_pdf_QCDscale_gg_syst param 0.0 1 [-3,3] \n")
         theFile.write("CMS_zz4l_VBFscale_syst param 0.0 1 [-3,3] \n")
         theFile.write("CMS_zz4l_ZXshape_syst param 0.0 1 [-3,3] \n")
         theFile.write("CMS_QCDscale_VV param 0.0 1 [-3,3]\n")
+
+        #theFile.write("CMS_zz4l_mu param 0.93  0.0 \n")
+        #theFile.write("CMS_widthH_kbkg param 1.0  0.0 \n")
+        #theFile.write("CMS_zz4l_pdf_QCDscale_gg_syst param 0.0 0 \n")
+        #theFile.write("CMS_zz4l_VBFscale_syst param 0.0 0 \n")
+        #theFile.write("CMS_zz4l_ZXshape_syst param 0.0 0 \n")
+        #theFile.write("CMS_QCDscale_VV param 0.0 0\n")
         
         #if( self.channel == self.ID_4mu):
 

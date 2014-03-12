@@ -60,7 +60,8 @@ class width_datacardClass:
         ## --------------- SETTINGS AND DECLARATIONS --------------- ##
         DEBUG = False
         self.mH = 125.6   ## FIXED
-        self.lumi = theInputs['lumi']
+        self.lumi = 3000.0#theInputs['lumi']#100.0
+        self.inputlumi = theInputs['lumi']
         self.sqrts = theInputs['sqrts']
         self.channel = theInputs['decayChannel']
         self.outputDir = theOutputDir
@@ -145,13 +146,13 @@ class width_datacardClass:
 
         mu = ROOT.RooRealVar(mu_name,mu_name,0.93,0.001,10)
         #mu = ROOT.RooRealVar(mu_name,mu_name,1.0,0.001,10)
-        mu.setVal(1)
+        #mu.setVal(1)
         mu.setBins(100)
 
         mu_name = "CMS_widthH_kbkg"
 
         kbkg = ROOT.RooRealVar(mu_name,mu_name,0.1,10)
-        kbkg.setVal(1)
+        kbkg.setVal(1.0)
         #if self.dimensions==0 : kbkg.setConstant(True)
         kbkg.setBins(100)
 
@@ -258,9 +259,12 @@ class width_datacardClass:
         totalRateDown = Sig_T_1_Down.Integral("width")+Sig_T_2_Down.Integral("width")+Sig_T_4_Down.Integral("width")
         totalRateUp = Sig_T_1_Up.Integral("width")+Sig_T_2_Up.Integral("width")+Sig_T_4_Up.Integral("width")
         totalRate_ggzz = Sig_T_1.Integral("width")+Sig_T_2.Integral("width")+Sig_T_4.Integral("width")
-        rate_signal_ggzz_Shape = Sig_T_2.Integral("width")*self.lumi
-        rate_bkg_ggzz_Shape = Sig_T_1.Integral("width")*self.lumi
-        rate_interf_ggzz_Shape = Sig_T_4.Integral("width")*self.lumi
+        totalRate_ggzz = totalRate_ggzz #* 2.3
+        totalRateDown = totalRateDown #*2.3
+        totalRateUp  = totalRateUp #*2.3
+        rate_signal_ggzz_Shape = Sig_T_2.Integral("width")*self.lumi #*2.3
+        rate_bkg_ggzz_Shape = Sig_T_1.Integral("width")*self.lumi #*2.3
+        rate_interf_ggzz_Shape = Sig_T_4.Integral("width")*self.lumi #*2.3
 
         #Assume BKG and INTERF are from templates
         totalRateVBFDown = VBF_T_1_Down.Integral("width")+VBF_T_2_Down.Integral("width")+VBF_T_4_Down.Integral("width")
@@ -270,6 +274,16 @@ class width_datacardClass:
         rate_signal_vbf_Shape = VBF_T_2.Integral("width")*self.lumi
         rate_bkg_vbf_Shape = VBF_T_1.Integral("width")*self.lumi
         rate_interf_vbf_Shape = VBF_T_4.Integral("width")*self.lumi
+
+        ## rates per lumi for scaling
+        bkgRate_qqzz = theInputs['qqZZ_rate']/theInputs['qqZZ_lumi'] #*1.8
+        #totalRate_ggzz = theInputs['ggZZ_rate']/theInputs['qqZZ_lumi']
+        bkgRate_zjets = theInputs['zjets_rate']/theInputs['zjets_lumi']
+
+        #totalRate_ggzz = Sig_T_1.Integral("width")+Sig_T_2.Integral("width")-Sig_T_4.Integral("width")
+        totalRate_ggzz_Shape = totalRate_ggzz*self.lumi
+        bkgRate_qqzz_Shape = bkgRate_qqzz*self.lumi
+        bkgRate_zjets_Shape = bkgRate_zjets*self.lumi
 
         
         if Sig_T_4.Integral()<0 : #negative interference, turn it positive, the sign will be taken into account later when building the pdf
@@ -1116,7 +1130,9 @@ class width_datacardClass:
             morphVarListZX.add(CMS_zz4l_ZXshape_syst)
             MorphList_ZX = ROOT.RooArgList()
             MorphList_ZX.add(zjet_HistPdfNominal)
-            MorphList_ZX.add(zjet_HistPdfUp)
+            #MorphList_ZX.add(zjet_HistPdfDown)
+            #MorphList_ZX.add(zjet_HistPdfUp)
+            MorphList_ZX.add(zjet_HistPdfUp)            
             MorphList_ZX.add(zjet_HistPdfDown)
         
             bkg_zjets = ROOT.VerticalInterpPdf("bkg_zjets","bkg_zjets",MorphList_ZX,morphVarListZX)
@@ -1135,17 +1151,6 @@ class width_datacardClass:
              
         ## ----------------------- SIGNAL AND BACKGROUND RATES ----------------------- ##
 
-        ## rates per lumi for scaling
-        bkgRate_qqzz = theInputs['qqZZ_rate']/theInputs['qqZZ_lumi'] #recompute for 220
-        #totalRate_ggzz = theInputs['ggZZ_rate']/theInputs['qqZZ_lumi']
-        bkgRate_zjets = theInputs['zjets_rate']/theInputs['zjets_lumi']
-
-        #totalRate_ggzz = Sig_T_1.Integral("width")+Sig_T_2.Integral("width")-Sig_T_4.Integral("width")
-        totalRate_ggzz_Shape = totalRate_ggzz*self.lumi
-        bkgRate_qqzz_Shape = theInputs['qqZZ_rate']
-        bkgRate_zjets_Shape = theInputs['zjets_rate']
-
-        
         #bkgRate_qqzz_Shape = Bkg_T.Integral()*self.lumi
         
         ## rate_signal_ggzz = theInputs['ggZZ_signal_rate']/theInputs['qqZZ_lumi']
@@ -1215,7 +1220,7 @@ class width_datacardClass:
 
         dataFileDir = "CMSdata"
         dataTreeName = "data_obs" 
-        dataFileName = "{0}/hzz{1}_{2}.root".format(dataFileDir,self.appendName,self.lumi)
+        dataFileName = "{0}/hzz{1}_{2}.root".format(dataFileDir,self.appendName,self.inputlumi)
         if (DEBUG): print dataFileName," ",dataTreeName 
         data_obs_file = ROOT.TFile(dataFileName)
 

@@ -1,38 +1,54 @@
 void compareScans(){
   gStyle->SetOptTitle(0);
-  const int nfiles = 6;
+  const int nfiles = 4;
   //2D fits
-  //TString files[]={"cards_03_05_Unblind_093_2D/HCG/220/","cards_03_05_Unblind_2D/HCG/220/","cards_03_05_Unblind_093_2D/HCG/220/","cards_03_05_Unblind_2D/HCG/220_noSyst/","cards_03_05_Unblind_2D/HCG/220/"}
+  //TString files[]={"cards_03_05_Unblind_093_2D/HCG/220/","cards_03_05_Unblind_2D/HCG/220/","cards_03_05_Unblind_093_2D/HCG/220/","cards_03_05_Unblind_2D/HCG/220_noSyst/","cards_03_05_Unblind_2D/HCG/220/"}//Unblind
+  //TString files[]={"cards_03_11_Approval_093_2D/HCG/220_all/","cards_03_11_Approval_093_2D/HCG/220_all/"};//Approval
+  //TString files[]={"cards_03_11_Approval_093_2D/HCG/220_all/","cards_03_11_Approval_093_2D/HCG/220_2e2mu/","cards_03_11_Approval_093_2D/HCG/220_4e/","cards_03_11_Approval_093_2D/HCG/220_4mu/","cards_03_11_Approval_093_2D/HCG/220_all/","cards_03_11_Approval_093_2D/HCG/220_2e2mu/","cards_03_11_Approval_093_2D/HCG/220_4e/","cards_03_11_Approval_093_2D/HCG/220_4mu/"};//Approval, channel splitting
   //1D(m4l) fits
   //TString files[]={"cards_03_05_Unblind_093_1Dm4l/HCG/220/","cards_03_05_Unblind_1Dm4l/HCG/220/","cards_03_05_Unblind_093_1Dm4l/HCG/220/","cards_03_05_Unblind_1Dm4l/HCG/220_noSyst/","cards_03_05_Unblind_1Dm4l/HCG/220/"}
   //1D(Dgg)
   //TString files[]={"cards_03_09_bkgFix_093_1DDgg/HCG/220/","cards_03_09_bkgFix_1_1DDgg/HCG/220/","cards_03_09_bkgFix_093_1DDgg/HCG/220/","cards_03_09_bkgFix_1_1DDgg/HCG/220_noSyst/"};
+  //TString files[]={"cards_03_11_Approval_093_1DDgg/HCG/220/","cards_03_09_bkgFix_1_1DDgg/HCG/220/","cards_03_11_Approval_093_1DDgg/HCG/220/","cards_03_11_Approval_1_1DDgg/HCG/220_noSyst/"}
   //Alternative K hyp.
-  TString files[]={"cards_03_05_Unblind_093_2D/HCG/220/","cards_03_05_Unblind_093_2D/HCG/220_noSyst/","cards_093_AlternativeKBKG/HCG/220/","cards_093_AlternativeKBKG/HCG/220_noSyst/","cards_093_AlternativeKBKG_28/HCG/220/","cards_093_AlternativeKBKG_28/HCG/220_noSyst/"};
+  //TString files[]={"cards_03_05_Unblind_093_2D/HCG/220/","cards_03_05_Unblind_093_2D/HCG/220_noSyst/","cards_093_AlternativeKBKG/HCG/220/","cards_093_AlternativeKBKG/HCG/220_noSyst/","cards_093_AlternativeKBKG_28/HCG/220/","cards_093_AlternativeKBKG_28/HCG/220/"};
+  //TString files[]={"cards_KBKG_noUnc/HCG/220/","cards_KBKG_noUnc/HCG/220/","cards_AltKBKG_noUnc/HCG/220/","cards_AltKBKG_noUnc/HCG/220_noSyst/","cards_AltKBKG28_noUnc/HCG/220/","cards_AltKBKG28_noUnc/HCG/220_noSyst/"};
   //low r scans
   //TString files[]={"cards_lowRScan_mu1_2D/HCG/220_all/","cards_lowRScan_mu1_2D/HCG/220_2e2mu/","cards_lowRScan_mu1_2D/HCG/220_4e/","cards_lowRScan_mu1_2D/HCG/220_4mu/","cards_lowRScanObs_2D/HCG/220_all/"}
+  //13TeV projections and lumi
+  //TString files[]={"cards_03_11_Approval_093_2D/HCG/220_all/","cards_03_11_13TeV_2013lumi_093_2D/HCG/220/","cards_03_11_13TeV_100fblumi_093_2D/HCG/220/"};
+  TString files[]={"cards_03_11_Approval_093_2D/HCG/220_all/","cards_03_11_8TeV_100fblumi_093_2D/HCG/220/","cards_03_11_8TeV_300fblumi_093_2D/HCG/220/","cards_03_11_8TeV_3000fblumi_093_2D/HCG/220/"};
 
   //int colors[]={kBlack,kRed+1,kBlue,kGreen+2,kYellow+2,kYellow+2,kYellow+3,kBlack,kBlue,kRed+1,kGreen+2};
-  int colors[]={kBlack,kBlack,kYellow+2,kYellow+2,kPink-1,kPink-1};
+  //int colors[]={kBlack,kRed+1,kBlue,kGreen+2,kBlack,kRed+1,kBlue,kGreen+2,kYellow+2,kYellow+2,kYellow+3,kBlack,kBlue,kRed+1,kGreen+2};
+  //int colors[]={kBlack,kBlack,kYellow+2,kYellow+2,kPink-1,kPink-1,kPink-4,kPink-4,kYellow-1,kYellow-1};
+  //int colors[]={kBlack,kTeal-5,kPink+5};
+  int colors[]={kRed-7,kRed,kRed+2,kRed+4};
 
   //fit plots
-  //TString grnames[]={"Observed","Expected #mu=#mu_{exp}","Expected #mu=#mu_{obs}","Expected #mu=1 w/o syst","Observed #mu=1"};
+  //TString grnames[]={"Observed","Expected #mu=1","Expected #mu=#mu_{obs}","Expected #mu=1 w/o syst","Observed #mu=1"};
+  //TString grnames[]={"Observed","Expected #mu=#mu_{obs}","Expected #mu=#mu_{obs} w/o syst","Observed #mu=1"};
   //channels plots
-  //TString grnames[]={"Observed #mu=1","Observed #mu=1, 2e2#mu","Observed #mu=1 4e","Observed #mu=1 4#mu","Observed #mu=0.93"};
+  //TString grnames[]={"Observed #mu=#mu_{obs}","Observed #mu=#mu_{obs}, 2e2#mu","Observed #mu=#mu_{obs} 4e","Observed #mu=#mu_{obs} 4#mu","Expected #mu=#mu_{obs}","Expected #mu=#mu_{obs}, 2e2#mu","Expected #mu=#mu_{obs} 4e","Expected #mu=#mu_{obs} 4#mu"};
   //Alternative K plots
-  TString grnames[]={"Observed #mu=#mu_{obs}","Expected #mu=#mu_{obs}","Observed #mu=#mu_{obs} K=1/2.8","Expected #mu=#mu_{obs} K=1/2.8","Observed #mu=#mu_{obs} K=2.8","Expected #mu=#mu_{obs} K=2.8"};
-
+  //TString grnames[]={"Observed #mu=#mu_{obs}","Expected #mu=#mu_{obs}","Observed #mu=#mu_{obs} K=1/2.8","Expected #mu=#mu_{obs} K=1/2.8","Observed #mu=#mu_{obs} K=2.8","Expected #mu=#mu_{obs} K=2.8","Observed #mu=#mu_{obs} K=2.8 w/o unc","Observed #mu=#mu_{obs} K=1/2.8 w/o unc"};
+  //13 TeV
+  //TString grnames[]={"Expected 2013","Expected 13TeV 17.912/fb","Expected 13TeV 100/fb","Expected #mu=1 w/o syst","Observed #mu=1"};
+  TString grnames[]={"Expected 2014, 19.712/fb","Expected 100/fb","Expected 300/fb","Expected 3000/fb","Observed #mu=1"};
   //tell this flag which are obsered
-  bool obs[] = {1,0,0,0,1,0,0};
+  bool obs[] = {0,0,0,0,0,0,0,0,1,1,0};
   int mass = 220;
   int maxwidth = 30.0;
   bool blind = true;
   bool uncBand = false;
-
+  
 
   //values for 1DDgg_093, expected mu=0.93
-  double limits95[]={6.1548, 7.98996, 12.193, 19.1693, 26.382};
-  double limits68[]={2.3321, 3.17787, 5.65613, 10.973, 16.4882x};
+  //double limits95[]={6.1548, 7.98996, 12.193, 19.1693, 26.382};
+  //double limits68[]={2.3321, 3.17787, 5.65613, 10.973, 16.4882};
+  //values for 1Dm4l_093, expected mu=0.93
+  //double limits95[]={ };
+  //double limits68[]={ }:
   //values for 2D_093, expected mu=0.93
   //double limits95[]={ 5.48667, 7.1966,10.8518,17.2703,24.0398};
   //double limits68[]={2.07673,2.81889,4.97083,9.94989, 14.86};
@@ -79,19 +95,24 @@ void compareScans(){
     gr0->SetTitle(grnames[i].Data());
     leg->AddEntry(gr0);
     g[i]=(TGraph*)gr0->Clone();
-    mg->Add(gr0,"l");
+    mg->Add(gr0,"p");
     double *y = gr0->GetY();
     double *x = gr0->GetX();
-    int ipol=-1;
+    int ipol=-1,ipol68=-1;
     for(int ipo=0;ipo<gr0->GetN();ipo++){
       if(y[ipo]<3.84&&y[ipo+1]>3.84){
 	ipol = ipo;
-	break;
+      }
+      if(y[ipo]<1&&y[ipo+1]>1){
+	ipol68 = ipo;
       }
     }
     double a =  (y[ipol+1]-y[ipol])/(x[ipol+1]-x[ipol]);
     double b = y[ipol]-a*x[ipol];
-    printf("%d) limit %.5f\n",i,(3.84-b)/a);
+    printf("%s limit@95CL %.2f\n",grnames[i].Data(),(3.84-b)/a);
+    a =  (y[ipol+1]-y[ipol])/(x[ipol+1]-x[ipol]);
+    b = y[ipol]-a*x[ipol];
+    printf("%s limit@68CL %.2f\n",grnames[i].Data(),(1-b)/a);
   }
 
 
@@ -197,9 +218,9 @@ void compareScans(){
     medians->Draw("PSAME");  
   }
 
-  c1->SaveAs("compareK_2.gif");
-  c1->SaveAs("compareK_2.eps");
-  c1->SaveAs("compareK_2.pdf");
-  c1->SaveAs("compareK_2.png");
-
+  c1->SaveAs("03_11_2Dlumi_093.gif");
+  c1->SaveAs("03_11_2Dlumi_093.eps");
+  c1->SaveAs("03_11_2Dlumi_093.pdf");
+  c1->SaveAs("03_11_2Dlumi_093.png");
+  c1->SaveAs("03_11_2Dlumi_093.root");
 }
