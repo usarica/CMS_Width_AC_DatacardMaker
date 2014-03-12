@@ -2,7 +2,7 @@ void compareScans(){
   gStyle->SetOptTitle(0);
   const int nfiles = 4;
   //2D fits
-  //TString files[]={"cards_03_05_Unblind_093_2D/HCG/220/","cards_03_05_Unblind_2D/HCG/220/","cards_03_05_Unblind_093_2D/HCG/220/","cards_03_05_Unblind_2D/HCG/220_noSyst/","cards_03_05_Unblind_2D/HCG/220/"}//Unblind
+  TString files[]={"cards_03_05_Unblind_093_2D/HCG/220/","cards_03_05_Unblind_2D/HCG/220/","cards_03_05_Unblind_093_2D/HCG/220/","cards_03_05_Unblind_2D/HCG/220_noSyst/","cards_03_05_Unblind_2D/HCG/220/"}//Unblind
   //TString files[]={"cards_03_11_Approval_093_2D/HCG/220_all/","cards_03_11_Approval_093_2D/HCG/220_all/"};//Approval
   //TString files[]={"cards_03_11_Approval_093_2D/HCG/220_all/","cards_03_11_Approval_093_2D/HCG/220_2e2mu/","cards_03_11_Approval_093_2D/HCG/220_4e/","cards_03_11_Approval_093_2D/HCG/220_4mu/","cards_03_11_Approval_093_2D/HCG/220_all/","cards_03_11_Approval_093_2D/HCG/220_2e2mu/","cards_03_11_Approval_093_2D/HCG/220_4e/","cards_03_11_Approval_093_2D/HCG/220_4mu/"};//Approval, channel splitting
   //1D(m4l) fits
@@ -17,16 +17,16 @@ void compareScans(){
   //TString files[]={"cards_lowRScan_mu1_2D/HCG/220_all/","cards_lowRScan_mu1_2D/HCG/220_2e2mu/","cards_lowRScan_mu1_2D/HCG/220_4e/","cards_lowRScan_mu1_2D/HCG/220_4mu/","cards_lowRScanObs_2D/HCG/220_all/"}
   //13TeV projections and lumi
   //TString files[]={"cards_03_11_Approval_093_2D/HCG/220_all/","cards_03_11_13TeV_2013lumi_093_2D/HCG/220/","cards_03_11_13TeV_100fblumi_093_2D/HCG/220/"};
-  TString files[]={"cards_03_11_Approval_093_2D/HCG/220_all/","cards_03_11_8TeV_100fblumi_093_2D/HCG/220/","cards_03_11_8TeV_300fblumi_093_2D/HCG/220/","cards_03_11_8TeV_3000fblumi_093_2D/HCG/220/"};
+  //TString files[]={"cards_03_11_Approval_093_2D/HCG/220_all/","cards_03_11_8TeV_100fblumi_093_2D/HCG/220/","cards_03_11_8TeV_300fblumi_093_2D/HCG/220/","cards_03_11_8TeV_3000fblumi_093_2D/HCG/220/"};
 
-  //int colors[]={kBlack,kRed+1,kBlue,kGreen+2,kYellow+2,kYellow+2,kYellow+3,kBlack,kBlue,kRed+1,kGreen+2};
+  int colors[]={kBlack,kRed+1,kBlue,kGreen+2,kYellow+2,kYellow+2,kYellow+3,kBlack,kBlue,kRed+1,kGreen+2};
   //int colors[]={kBlack,kRed+1,kBlue,kGreen+2,kBlack,kRed+1,kBlue,kGreen+2,kYellow+2,kYellow+2,kYellow+3,kBlack,kBlue,kRed+1,kGreen+2};
   //int colors[]={kBlack,kBlack,kYellow+2,kYellow+2,kPink-1,kPink-1,kPink-4,kPink-4,kYellow-1,kYellow-1};
   //int colors[]={kBlack,kTeal-5,kPink+5};
-  int colors[]={kRed-7,kRed,kRed+2,kRed+4};
+  //int colors[]={kRed-7,kRed,kRed+2,kRed+4};
 
   //fit plots
-  //TString grnames[]={"Observed","Expected #mu=1","Expected #mu=#mu_{obs}","Expected #mu=1 w/o syst","Observed #mu=1"};
+  TString grnames[]={"Observed","Expected #mu=1","Expected #mu=#mu_{obs}","Expected #mu=1 w/o syst","Observed #mu=1"};
   //TString grnames[]={"Observed","Expected #mu=#mu_{obs}","Expected #mu=#mu_{obs} w/o syst","Observed #mu=1"};
   //channels plots
   //TString grnames[]={"Observed #mu=#mu_{obs}","Observed #mu=#mu_{obs}, 2e2#mu","Observed #mu=#mu_{obs} 4e","Observed #mu=#mu_{obs} 4#mu","Expected #mu=#mu_{obs}","Expected #mu=#mu_{obs}, 2e2#mu","Expected #mu=#mu_{obs} 4e","Expected #mu=#mu_{obs} 4#mu"};
@@ -34,13 +34,14 @@ void compareScans(){
   //TString grnames[]={"Observed #mu=#mu_{obs}","Expected #mu=#mu_{obs}","Observed #mu=#mu_{obs} K=1/2.8","Expected #mu=#mu_{obs} K=1/2.8","Observed #mu=#mu_{obs} K=2.8","Expected #mu=#mu_{obs} K=2.8","Observed #mu=#mu_{obs} K=2.8 w/o unc","Observed #mu=#mu_{obs} K=1/2.8 w/o unc"};
   //13 TeV
   //TString grnames[]={"Expected 2013","Expected 13TeV 17.912/fb","Expected 13TeV 100/fb","Expected #mu=1 w/o syst","Observed #mu=1"};
-  TString grnames[]={"Expected 2014, 19.712/fb","Expected 100/fb","Expected 300/fb","Expected 3000/fb","Observed #mu=1"};
+  //TString grnames[]={"Expected 2014, 19.712/fb","Expected 100/fb","Expected 300/fb","Expected 3000/fb","Observed #mu=1"};
+
   //tell this flag which are obsered
-  bool obs[] = {0,0,0,0,0,0,0,0,1,1,0};
+  bool obs[] = {1,0,0,0,0,0,0,0,1,1,0};
   int mass = 220;
   int maxwidth = 30.0;
   bool blind = true;
-  bool uncBand = false;
+  bool uncBand = true;
   
 
   //values for 1DDgg_093, expected mu=0.93
@@ -50,8 +51,8 @@ void compareScans(){
   //double limits95[]={ };
   //double limits68[]={ }:
   //values for 2D_093, expected mu=0.93
-  //double limits95[]={ 5.48667, 7.1966,10.8518,17.2703,24.0398};
-  //double limits68[]={2.07673,2.81889,4.97083,9.94989, 14.86};
+  double limits95[]={ 5.48667, 7.1966,10.8518,17.2703,24.0398};
+  double limits68[]={2.07673,2.81889,4.97083,9.94989, 14.86};
 
   // gROOT->ProcessLine(".x tdrstyle.cc");
   gStyle->SetPadLeftMargin(0.16);
