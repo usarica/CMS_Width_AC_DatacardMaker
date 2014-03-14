@@ -1,10 +1,10 @@
 void compareScans(){
   gStyle->SetOptTitle(0);
-  const int nfiles = 4;
+  const int nfiles = 8;
   //2D fits
-  TString files[]={"cards_03_05_Unblind_093_2D/HCG/220/","cards_03_05_Unblind_2D/HCG/220/","cards_03_05_Unblind_093_2D/HCG/220/","cards_03_05_Unblind_2D/HCG/220_noSyst/","cards_03_05_Unblind_2D/HCG/220/"}//Unblind
+  //TString files[]={"cards_03_05_Unblind_093_2D/HCG/220/","cards_03_05_Unblind_2D/HCG/220/","cards_03_05_Unblind_093_2D/HCG/220/","cards_03_05_Unblind_2D/HCG/220_noSyst/","cards_03_05_Unblind_2D/HCG/220/"}//Unblind
   //TString files[]={"cards_03_11_Approval_093_2D/HCG/220_all/","cards_03_11_Approval_093_2D/HCG/220_all/"};//Approval
-  //TString files[]={"cards_03_11_Approval_093_2D/HCG/220_all/","cards_03_11_Approval_093_2D/HCG/220_2e2mu/","cards_03_11_Approval_093_2D/HCG/220_4e/","cards_03_11_Approval_093_2D/HCG/220_4mu/","cards_03_11_Approval_093_2D/HCG/220_all/","cards_03_11_Approval_093_2D/HCG/220_2e2mu/","cards_03_11_Approval_093_2D/HCG/220_4e/","cards_03_11_Approval_093_2D/HCG/220_4mu/"};//Approval, channel splitting
+  TString files[]={"cards_03_11_Approval_093_2D/HCG/220_all/","cards_03_11_Approval_093_2D/HCG/220_2e2mu/","cards_03_11_Approval_093_2D/HCG/220_4e/","cards_03_11_Approval_093_2D/HCG/220_4mu/","cards_03_11_Approval_093_2D/HCG/220_all/","cards_03_11_Approval_093_2D/HCG/220_2e2mu/","cards_03_11_Approval_093_2D/HCG/220_4e/","cards_03_11_Approval_093_2D/HCG/220_4mu/"};//Approval, channel splitting
   //1D(m4l) fits
   //TString files[]={"cards_03_05_Unblind_093_1Dm4l/HCG/220/","cards_03_05_Unblind_1Dm4l/HCG/220/","cards_03_05_Unblind_093_1Dm4l/HCG/220/","cards_03_05_Unblind_1Dm4l/HCG/220_noSyst/","cards_03_05_Unblind_1Dm4l/HCG/220/"}
   //1D(Dgg)
@@ -14,34 +14,37 @@ void compareScans(){
   //TString files[]={"cards_03_05_Unblind_093_2D/HCG/220/","cards_03_05_Unblind_093_2D/HCG/220_noSyst/","cards_093_AlternativeKBKG/HCG/220/","cards_093_AlternativeKBKG/HCG/220_noSyst/","cards_093_AlternativeKBKG_28/HCG/220/","cards_093_AlternativeKBKG_28/HCG/220/"};
   //TString files[]={"cards_KBKG_noUnc/HCG/220/","cards_KBKG_noUnc/HCG/220/","cards_AltKBKG_noUnc/HCG/220/","cards_AltKBKG_noUnc/HCG/220_noSyst/","cards_AltKBKG28_noUnc/HCG/220/","cards_AltKBKG28_noUnc/HCG/220_noSyst/"};
   //low r scans
-  //TString files[]={"cards_lowRScan_mu1_2D/HCG/220_all/","cards_lowRScan_mu1_2D/HCG/220_2e2mu/","cards_lowRScan_mu1_2D/HCG/220_4e/","cards_lowRScan_mu1_2D/HCG/220_4mu/","cards_lowRScanObs_2D/HCG/220_all/"}
+  //TString files[]={"cards_lowRScan_mu1_2D/HCG/220_all/","cards_lowRScan_mu1_2D/HCG/220_2e2mu/","cards_lowRScan_mu1_2D/HCG/220_4e/","cards_lowRScan_mu1_2D/HCG/220_4mu/","cards_lowRScanObs_2D/HCG/220_all/"};
+  //TString files[]={"cards_lowRScanObs_2D/HCG/220_all/","cards_lowRScanObs_2D/HCG/220_2e2mu/","cards_lowRScanObs_2D/HCG/220_4e/","cards_lowRScanObs_2D/HCG/220_4mu/"};
   //13TeV projections and lumi
   //TString files[]={"cards_03_11_Approval_093_2D/HCG/220_all/","cards_03_11_13TeV_2013lumi_093_2D/HCG/220/","cards_03_11_13TeV_100fblumi_093_2D/HCG/220/"};
   //TString files[]={"cards_03_11_Approval_093_2D/HCG/220_all/","cards_03_11_8TeV_100fblumi_093_2D/HCG/220/","cards_03_11_8TeV_300fblumi_093_2D/HCG/220/","cards_03_11_8TeV_3000fblumi_093_2D/HCG/220/"};
 
-  int colors[]={kBlack,kRed+1,kBlue,kGreen+2,kYellow+2,kYellow+2,kYellow+3,kBlack,kBlue,kRed+1,kGreen+2};
-  //int colors[]={kBlack,kRed+1,kBlue,kGreen+2,kBlack,kRed+1,kBlue,kGreen+2,kYellow+2,kYellow+2,kYellow+3,kBlack,kBlue,kRed+1,kGreen+2};
+  //int colors[]={kBlack,kRed+1,kBlue,kGreen+2,kYellow+2,kYellow+2,kYellow+3,kBlack,kBlue,kRed+1,kGreen+2};
+  int colors[]={kBlack,kRed+1,kBlue,kGreen+2,kBlack,kRed+1,kBlue,kGreen+2,kYellow+2,kYellow+2,kYellow+3,kBlack,kBlue,kRed+1,kGreen+2};
   //int colors[]={kBlack,kBlack,kYellow+2,kYellow+2,kPink-1,kPink-1,kPink-4,kPink-4,kYellow-1,kYellow-1};
   //int colors[]={kBlack,kTeal-5,kPink+5};
   //int colors[]={kRed-7,kRed,kRed+2,kRed+4};
 
   //fit plots
-  TString grnames[]={"Observed","Expected #mu=1","Expected #mu=#mu_{obs}","Expected #mu=1 w/o syst","Observed #mu=1"};
+  //TString grnames[]={"Observed","Expected #mu=1","Expected #mu=#mu_{obs}","Expected #mu=1 w/o syst","Observed #mu=1"};
   //TString grnames[]={"Observed","Expected #mu=#mu_{obs}","Expected #mu=#mu_{obs} w/o syst","Observed #mu=1"};
   //channels plots
-  //TString grnames[]={"Observed #mu=#mu_{obs}","Observed #mu=#mu_{obs}, 2e2#mu","Observed #mu=#mu_{obs} 4e","Observed #mu=#mu_{obs} 4#mu","Expected #mu=#mu_{obs}","Expected #mu=#mu_{obs}, 2e2#mu","Expected #mu=#mu_{obs} 4e","Expected #mu=#mu_{obs} 4#mu"};
+  TString grnames[]={"Observed #mu=#mu_{obs} 4l","Observed #mu=#mu_{obs}, 2e2#mu","Observed #mu=#mu_{obs} 4e","Observed #mu=#mu_{obs} 4#mu","Expected #mu=#mu_{obs} 4l","Expected #mu=#mu_{obs}, 2e2#mu","Expected #mu=#mu_{obs} 4e","Expected #mu=#mu_{obs} 4#mu"};
   //Alternative K plots
   //TString grnames[]={"Observed #mu=#mu_{obs}","Expected #mu=#mu_{obs}","Observed #mu=#mu_{obs} K=1/2.8","Expected #mu=#mu_{obs} K=1/2.8","Observed #mu=#mu_{obs} K=2.8","Expected #mu=#mu_{obs} K=2.8","Observed #mu=#mu_{obs} K=2.8 w/o unc","Observed #mu=#mu_{obs} K=1/2.8 w/o unc"};
   //13 TeV
   //TString grnames[]={"Expected 2013","Expected 13TeV 17.912/fb","Expected 13TeV 100/fb","Expected #mu=1 w/o syst","Observed #mu=1"};
   //TString grnames[]={"Expected 2014, 19.712/fb","Expected 100/fb","Expected 300/fb","Expected 3000/fb","Observed #mu=1"};
 
+  //TString plotLabel = "H#rightarrow ZZ#rightarrow 4l, 1D(m4l)";
+  TString plotLabel = "H#rightarrow ZZ#rightarrow 4l";
   //tell this flag which are obsered
-  bool obs[] = {1,0,0,0,0,0,0,0,1,1,0};
+  bool obs[] = {1,1,1,1,0,0,0,0,1,1,0};
   int mass = 220;
   int maxwidth = 30.0;
   bool blind = true;
-  bool uncBand = true;
+  bool uncBand = false;
   
 
   //values for 1DDgg_093, expected mu=0.93
@@ -74,6 +77,7 @@ void compareScans(){
   leg->SetBorderSize(0);
   leg->SetFillStyle(0);
   leg->SetTextFont(42);
+  leg->AddEntry((TObject*)0,plotLabel.Data(),"");
 
   for(int i=0;i<nfiles;i++){
     char boh[200];
@@ -141,28 +145,31 @@ void compareScans(){
     l2_95->SetLineWidth(10);
     l2_95->SetLineColor(kYellow);
     l2_95->DrawLine(limits95[0],3.84,TMath::Min(limits95[4],gglimit),3.84);
-    if(uncBand)l2_95->Draw();
+    l2_95->Draw();
     
     TLine *l2_68=new TLine();
     //l2_68->SetLineStyle(9);
     l2_68->SetLineWidth(10);
     l2_68->SetLineColor(kGreen);
     l2_68->DrawLine(limits95[1],3.84,limits95[3],3.84);
-    if(uncBand)l2_68->Draw("same");
+    l2_68->Draw("same");
     
     TLine *l1_95=new TLine();
     //l1_95->SetLineStyle(9);
     l1_95->SetLineWidth(10);
     l1_95->SetLineColor(kYellow);
     l1_95->DrawLine(limits68[0],1,TMath::Min(limits68[4],gglimit),1);
-    if(uncBand)l1_95->Draw("same");
+    l1_95->Draw("same");
     
     TLine *l1_68=new TLine();
     //l1_68->SetLineStyle(9);
     l1_68->SetLineWidth(10);
     l1_68->SetLineColor(kGreen);
     l1_68->DrawLine(limits68[1],1,limits68[3],1);
-    if(uncBand)l1_68->Draw("same");
+    leg->AddEntry(l1_68,"68% CL","l");
+    leg->AddEntry(l1_95,"95% CL","l");
+    l1_68->Draw("same");
+
   }
 
   TPaveText *pt = new TPaveText(0.1577181,0.9562937,0.9580537,0.9947552,"brNDC");
@@ -171,9 +178,9 @@ void compareScans(){
   pt->SetFillStyle(0);
   pt->SetTextFont(42);
   pt->SetTextSize(0.03);
-  TText *text = pt->AddText(0.01,0.5,"CMS");
+  TText *text = pt->AddText(0.01,0.5,"CMS Preliminary");
   // text = pt->AddText(0.2,0.6,Form("#sqrt{s} = 7 TeV, L = %.1f fb^{-1}  #sqrt{s} = 8 TeV, L = %.1f fb^{-1}",lumi7TeV,lumi8TeV));
-  text = pt->AddText(0.2,0.6,Form("#sqrt{s} = 8 TeV, L = %.1f fb^{-1}",lumi8TeV));
+  text = pt->AddText(0.5,0.5,Form("#sqrt{s} = 8 TeV, L = %.1f fb^{-1}",lumi8TeV));
   pt->Draw();  
 
   TPaveText *oneSig = new TPaveText(0.85,0.18,0.9,0.22,"NDC");
@@ -219,9 +226,9 @@ void compareScans(){
     medians->Draw("PSAME");  
   }
 
-  c1->SaveAs("03_11_2Dlumi_093.gif");
-  c1->SaveAs("03_11_2Dlumi_093.eps");
-  c1->SaveAs("03_11_2Dlumi_093.pdf");
-  c1->SaveAs("03_11_2Dlumi_093.png");
-  c1->SaveAs("03_11_2Dlumi_093.root");
+  c1->SaveAs("03_11_2Dchan_093_PAS.gif");
+  c1->SaveAs("03_11_2Dchan_093_PAS.eps");
+  c1->SaveAs("03_11_2Dchan_093_PAS.pdf");
+  c1->SaveAs("03_11_2Dchan_093_PAS.png");
+  c1->SaveAs("03_11_2Dchan_093_PAS.root");
 }
