@@ -1148,8 +1148,10 @@ class width_datacardClass:
             zjet_HistPdfUp=zjet_HistPdfUptemp
             zjet_HistPdfDown=zjet_HistPdfDowntemp
         if self.dimensions == 1 :
-            bkg_zjets = bkg_zjets_mass
-            bkg_zjets.SetNameTitle("bkg_zjets","bkg_zjets")
+            PdfName = "ZX_FullPdf_Nominal1_{0:.0f}_{1:.0f}".format(self.channel,self.sqrts)
+            TemplateName = "zjet_TempDataHist1_{0:.0f}_{1:.0f}_Nominal".format(self.channel,self.sqrts)
+            zjet_TempDataHist1_Nominal = ROOT.RooDataHist(TemplateName,TemplateName,ROOT.RooArgList(CMS_zz4l_widthKD),bkg_zjets_Nominal.createHistogram("CMS_zz4l_widthMass,CMS_zz4l_widthKD").ProjectionX())
+            bkg_zjets = ROOT.RooHistPdf("bkg_zjets","bkg_zjets",ROOT.RooArgSet(CMS_zz4l_widthKD),zjet_TempDataHist1_Nominal)
         else:
             CMS_zz4l_ZXshape_syst = ROOT.RooRealVar("CMS_zz4l_ZXshape_syst","CMS_zz4l_ZXshape_syst",0.0,-1,1)
             morphVarListZX = ROOT.RooArgList()
