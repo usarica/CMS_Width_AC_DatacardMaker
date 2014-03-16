@@ -184,23 +184,26 @@ class width_datacardClass:
         #        rangeBkg_T.SetBinContent(ix,iy,bincontent)
         
         #Ulascan templates
-        templateSigName = "/afs/cern.ch/work/u/usarica/public/CombineTemplates/2_3_2014/{0:.0f}TeV_Smooth/{1}/{2}/HtoZZ4l_MCFM_125p6_ModifiedSmoothTemplatesForCombine__GenLevelVBF_wResolution_D_Gamma_gg_r10_Nominal.root".format(self.sqrts,self.appendName,self.templRange)
+        #templateSigName = "/afs/cern.ch/work/u/usarica/public/CombineTemplates/2_3_2014/{0:.0f}TeV_Smooth/{1}/{2}/HtoZZ4l_MCFM_125p6_ModifiedSmoothTemplatesForCombine__GenLevelVBF_wResolution_D_Gamma_gg_r10_Nominal.root".format(self.sqrts,self.appendName,self.templRange)
         #templateSigName = "/afs/cern.ch/work/u/usarica/public/CombineTemplates/14_3_2014/{0:.0f}TeV/{1}/{2}/HtoZZ4l_MCFM_125p6_ModifiedTemplatesForCombine_Raw_D_Gamma_gg_r10_Nominal.root".format(self.sqrts,self.appendName,self.templRange)
+        templateSigName = "/afs/cern.ch/work/u/usarica/public/CombineTemplates/14_3_2014/{0:.0f}TeV/{1}/{2}/HtoZZ4l_MCFM_125p6_ModifiedSmoothTemplatesForCombine__GenLevelVBF_wResolution_D_Gamma_gg_r10_Nominal.root".format(self.sqrts,self.appendName,self.templRange)
         #templateSigName = "/afs/cern.ch/work/u/usarica/public/CombineTemplates/{0:.0f}TeV/{1}/{2}/HtoZZ4l_gg2VV_125p6_ModifiedTemplatesForCombine_D_Gamma_gg_r10_Nominal.root".format(self.sqrts,self.appendName,self.templRange)
         #templateSigName = "/afs/cern.ch/work/u/usarica/public/CombineTemplates/forGiacomo_OldTemplates/WidthTemplates/{0:.0f}TeV/{1}/{2}/HtoZZ4l_gg2VV_125p6_TemplatesForCombine_D_Gamma_gg_r10_Nominal.root".format(self.sqrts,self.appendName,self.templRange)
         sigTempFileU = ROOT.TFile(templateSigName)
         tmpSig_T_1 = sigTempFileU.Get("T_2D_2") #different numbering convention Ulascan-Roberto
         tmpSig_T_2 = sigTempFileU.Get("T_2D_1")
         tmpSig_T_4 = sigTempFileU.Get("T_2D_4")
-        rangeBkg_T = sigTempFileU.Get("T_2D_qqZZ")
+        rangeBkg_T = sigTempFileU.Get("T_2D_qqZZ_Raw")
         tmpVBF_T_1 = sigTempFileU.Get("T_2D_VBF_2") #different numbering convention Ulascan-Roberto
         tmpVBF_T_2 = sigTempFileU.Get("T_2D_VBF_1")
         tmpVBF_T_4 = sigTempFileU.Get("T_2D_VBF_4")
 
-        templateSigNameUp = "/afs/cern.ch/work/u/usarica/public/CombineTemplates/2_3_2014/{0:.0f}TeV_Smooth/{1}/{2}/HtoZZ4l_MCFM_125p6_ModifiedSmoothTemplatesForCombine__GenLevelVBF_wResolution_D_Gamma_gg_r10_SysUp.root".format(self.sqrts,self.appendName,self.templRange)
-        templateSigNameDown = "/afs/cern.ch/work/u/usarica/public/CombineTemplates/2_3_2014/{0:.0f}TeV_Smooth/{1}/{2}/HtoZZ4l_MCFM_125p6_ModifiedSmoothTemplatesForCombine__GenLevelVBF_wResolution_D_Gamma_gg_r10_SysDown.root".format(self.sqrts,self.appendName,self.templRange)
+        #templateSigNameUp = "/afs/cern.ch/work/u/usarica/public/CombineTemplates/2_3_2014/{0:.0f}TeV_Smooth/{1}/{2}/HtoZZ4l_MCFM_125p6_ModifiedSmoothTemplatesForCombine__GenLevelVBF_wResolution_D_Gamma_gg_r10_SysUp.root".format(self.sqrts,self.appendName,self.templRange)
+        #templateSigNameDown = "/afs/cern.ch/work/u/usarica/public/CombineTemplates/2_3_2014/{0:.0f}TeV_Smooth/{1}/{2}/HtoZZ4l_MCFM_125p6_ModifiedSmoothTemplatesForCombine__GenLevelVBF_wResolution_D_Gamma_gg_r10_SysDown.root".format(self.sqrts,self.appendName,self.templRange)
         #templateSigNameUp = "/afs/cern.ch/work/u/usarica/public/CombineTemplates/14_3_2014/{0:.0f}TeV/{1}/{2}/HtoZZ4l_MCFM_125p6_ModifiedTemplatesForCombine_Raw_D_Gamma_gg_r10_SysUp.root".format(self.sqrts,self.appendName,self.templRange)
         #templateSigNameDown = "/afs/cern.ch/work/u/usarica/public/CombineTemplates/14_3_2014/{0:.0f}TeV/{1}/{2}/HtoZZ4l_MCFM_125p6_ModifiedTemplatesForCombine_Raw_D_Gamma_gg_r10_SysDown.root".format(self.sqrts,self.appendName,self.templRange)
+        templateSigNameUp = "/afs/cern.ch/work/u/usarica/public/CombineTemplates/14_3_2014/{0:.0f}TeV/{1}/{2}/HtoZZ4l_MCFM_125p6_ModifiedSmoothTemplatesForCombine__GenLevelVBF_wResolution_D_Gamma_gg_r10_SysUp.root".format(self.sqrts,self.appendName,self.templRange)
+        templateSigNameDown = "/afs/cern.ch/work/u/usarica/public/CombineTemplates/14_3_2014/{0:.0f}TeV/{1}/{2}/HtoZZ4l_MCFM_125p6_ModifiedSmoothTemplatesForCombine__GenLevelVBF_wResolution_D_Gamma_gg_r10_SysDown.root".format(self.sqrts,self.appendName,self.templRange)
         #templateSigNameUp = "/afs/cern.ch/work/u/usarica/public/CombineTemplates/{0:.0f}TeV/{1}/{2}/HtoZZ4l_gg2VV_125p6_ModifiedTemplatesForCombine_D_Gamma_gg_r10_SysUp.root".format(self.sqrts,self.appendName,self.templRange)
         #templateSigNameDown = "/afs/cern.ch/work/u/usarica/public/CombineTemplates/{0:.0f}TeV/{1}/{2}/HtoZZ4l_gg2VV_125p6_ModifiedTemplatesForCombine_D_Gamma_gg_r10_SysDown.root".format(self.sqrts,self.appendName,self.templRange)
         #templateSigNameUp = "/afs/cern.ch/work/u/usarica/public/CombineTemplates/forGiacomo_OldTemplates/WidthTemplates/{0:.0f}TeV/{1}/{2}/HtoZZ4l_gg2VV_125p6_TemplatesForCombine_D_Gamma_gg_r10_SysUp.root".format(self.sqrts,self.appendName,self.templRange)
@@ -892,8 +895,15 @@ class width_datacardClass:
         PdfName = "qqzz_TemplatePdf_{0:.0f}_{1:.0f}".format(self.channel,self.sqrts)
         qqzz_TemplatePdf = ROOT.RooHistPdf(PdfName,PdfName,ROOT.RooArgSet(CMS_zz4l_widthMass,CMS_zz4l_widthKD),qqzz_TempDataHist)
         #qqzz_TemplatePdf.forceNumInt(True)
+        #bkg_qqzz_orig = ROOT.RooProdPdf("qqzz_orig_{0:.0f}_{1:.0f}".format(self.channel,self.sqrts),"qqzz_orig_{0:.0f}_{1:.0f}".format(self.channel,self.sqrts),ROOT.RooArgSet(bkg_qqzz_mass),ROOT.RooFit.Conditional(ROOT.RooArgSet(qqzz_TemplatePdf),ROOT.RooArgSet(CMS_zz4l_widthKD)))
         bkg_qqzz = ROOT.RooProdPdf("bkg_qqzz","bkg_qqzz",ROOT.RooArgSet(bkg_qqzz_mass),ROOT.RooFit.Conditional(ROOT.RooArgSet(qqzz_TemplatePdf),ROOT.RooArgSet(CMS_zz4l_widthKD)))
-        if self.dimensions ==1 : bkg_qqzz = bkg_qqzz_mass
+        #TemplateName = "qqzz_orig_TempDataHist_{0:.0f}_{1:.0f}".format(self.channel,self.sqrts)
+        #qqzz_TempDataHist1 = ROOT.RooDataHist(TemplateName,TemplateName,ROOT.RooArgList(CMS_zz4l_widthMass,CMS_zz4l_widthKD),bkg_qqzz_orig.createHistogram("CMS_zz4l_widthMass,CMS_zz4l_widthKD"))
+        #bkg_qqzz = ROOT.RooHistPdf("bkg_qqzz","bkg_qqzz",ROOT.RooArgSet(CMS_zz4l_widthMass,CMS_zz4l_widthKD),qqzz_TempDataHist1)
+        if self.dimensions ==1 :
+            #bkg_qqzz = bkg_qqzz_mass
+            qqzz_TempDataHist1 = ROOT.RooDataHist(TemplateName,TemplateName,ROOT.RooArgList(CMS_zz4l_widthMass),bkg_qqzz.createHistogram("CMS_zz4l_widthMass,CMS_zz4l_widthKD").ProjectionX())
+            bkg_qqzz = ROOT.RooHistPdf("bkg_qqzz","bkg_qqzz",ROOT.RooArgSet(CMS_zz4l_widthMass),qqzz_TempDataHist1)
         elif self.dimensions == 0:
             #qqzz_TempDataHist1 = ROOT.RooDataHist(TemplateName,TemplateName,ROOT.RooArgList(CMS_zz4l_widthKD),Bkg_T.ProjectionY())
             #bkg_qqzz = ROOT.RooHistPdf(PdfName,PdfName,ROOT.RooArgSet(CMS_zz4l_widthKD),qqzz_TempDataHist1)
