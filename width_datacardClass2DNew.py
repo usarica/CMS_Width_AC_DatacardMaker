@@ -184,26 +184,26 @@ class width_datacardClass:
         #        rangeBkg_T.SetBinContent(ix,iy,bincontent)
         
         #Ulascan templates
-        #templateSigName = "/afs/cern.ch/work/u/usarica/public/CombineTemplates/2_3_2014/{0:.0f}TeV_Smooth/{1}/{2}/HtoZZ4l_MCFM_125p6_ModifiedSmoothTemplatesForCombine__GenLevelVBF_wResolution_D_Gamma_gg_r10_Nominal.root".format(self.sqrts,self.appendName,self.templRange)
-        #templateSigName = "/afs/cern.ch/work/u/usarica/public/CombineTemplates/14_3_2014/{0:.0f}TeV/{1}/{2}/HtoZZ4l_MCFM_125p6_ModifiedTemplatesForCombine_Raw_D_Gamma_gg_r10_Nominal.root".format(self.sqrts,self.appendName,self.templRange)
         templateSigName = "/afs/cern.ch/work/u/usarica/public/CombineTemplates/14_3_2014/{0:.0f}TeV/{1}/{2}/HtoZZ4l_MCFM_125p6_ModifiedSmoothTemplatesForCombine__GenLevelVBF_wResolution_D_Gamma_gg_r10_Nominal.root".format(self.sqrts,self.appendName,self.templRange)
+        #templateSigName = "/afs/cern.ch/work/u/usarica/public/CombineTemplates/14_3_2014/{0:.0f}TeV/{1}/{2}/HtoZZ4l_MCFM_125p6_ModifiedTemplatesForCombine_Raw_D_Gamma_gg_r10_Nominal.root".format(self.sqrts,self.appendName,self.templRange)
+        #templateSigName = "/afs/cern.ch/work/u/usarica/public/CombineTemplates/14_3_2014/{0:.0f}TeV/{1}/{2}/HtoZZ4l_MCFM_125p6_ModifiedSmoothTemplatesForCombine__GenLevelVBF_wResolution_D_Gamma_gg_r10_Nominal.root".format(self.sqrts,self.appendName,self.templRange)
         #templateSigName = "/afs/cern.ch/work/u/usarica/public/CombineTemplates/{0:.0f}TeV/{1}/{2}/HtoZZ4l_gg2VV_125p6_ModifiedTemplatesForCombine_D_Gamma_gg_r10_Nominal.root".format(self.sqrts,self.appendName,self.templRange)
         #templateSigName = "/afs/cern.ch/work/u/usarica/public/CombineTemplates/forGiacomo_OldTemplates/WidthTemplates/{0:.0f}TeV/{1}/{2}/HtoZZ4l_gg2VV_125p6_TemplatesForCombine_D_Gamma_gg_r10_Nominal.root".format(self.sqrts,self.appendName,self.templRange)
         sigTempFileU = ROOT.TFile(templateSigName)
         tmpSig_T_1 = sigTempFileU.Get("T_2D_2") #different numbering convention Ulascan-Roberto
         tmpSig_T_2 = sigTempFileU.Get("T_2D_1")
         tmpSig_T_4 = sigTempFileU.Get("T_2D_4")
-        rangeBkg_T = sigTempFileU.Get("T_2D_qqZZ_Raw")
+        rangeBkg_T = sigTempFileU.Get("T_2D_qqZZ_UnConditional")
         tmpVBF_T_1 = sigTempFileU.Get("T_2D_VBF_2") #different numbering convention Ulascan-Roberto
         tmpVBF_T_2 = sigTempFileU.Get("T_2D_VBF_1")
         tmpVBF_T_4 = sigTempFileU.Get("T_2D_VBF_4")
 
-        #templateSigNameUp = "/afs/cern.ch/work/u/usarica/public/CombineTemplates/2_3_2014/{0:.0f}TeV_Smooth/{1}/{2}/HtoZZ4l_MCFM_125p6_ModifiedSmoothTemplatesForCombine__GenLevelVBF_wResolution_D_Gamma_gg_r10_SysUp.root".format(self.sqrts,self.appendName,self.templRange)
-        #templateSigNameDown = "/afs/cern.ch/work/u/usarica/public/CombineTemplates/2_3_2014/{0:.0f}TeV_Smooth/{1}/{2}/HtoZZ4l_MCFM_125p6_ModifiedSmoothTemplatesForCombine__GenLevelVBF_wResolution_D_Gamma_gg_r10_SysDown.root".format(self.sqrts,self.appendName,self.templRange)
-        #templateSigNameUp = "/afs/cern.ch/work/u/usarica/public/CombineTemplates/14_3_2014/{0:.0f}TeV/{1}/{2}/HtoZZ4l_MCFM_125p6_ModifiedTemplatesForCombine_Raw_D_Gamma_gg_r10_SysUp.root".format(self.sqrts,self.appendName,self.templRange)
-        #templateSigNameDown = "/afs/cern.ch/work/u/usarica/public/CombineTemplates/14_3_2014/{0:.0f}TeV/{1}/{2}/HtoZZ4l_MCFM_125p6_ModifiedTemplatesForCombine_Raw_D_Gamma_gg_r10_SysDown.root".format(self.sqrts,self.appendName,self.templRange)
         templateSigNameUp = "/afs/cern.ch/work/u/usarica/public/CombineTemplates/14_3_2014/{0:.0f}TeV/{1}/{2}/HtoZZ4l_MCFM_125p6_ModifiedSmoothTemplatesForCombine__GenLevelVBF_wResolution_D_Gamma_gg_r10_SysUp.root".format(self.sqrts,self.appendName,self.templRange)
         templateSigNameDown = "/afs/cern.ch/work/u/usarica/public/CombineTemplates/14_3_2014/{0:.0f}TeV/{1}/{2}/HtoZZ4l_MCFM_125p6_ModifiedSmoothTemplatesForCombine__GenLevelVBF_wResolution_D_Gamma_gg_r10_SysDown.root".format(self.sqrts,self.appendName,self.templRange)
+        #templateSigNameUp = "/afs/cern.ch/work/u/usarica/public/CombineTemplates/14_3_2014/{0:.0f}TeV/{1}/{2}/HtoZZ4l_MCFM_125p6_ModifiedTemplatesForCombine_Raw_D_Gamma_gg_r10_SysUp.root".format(self.sqrts,self.appendName,self.templRange)
+        #templateSigNameDown = "/afs/cern.ch/work/u/usarica/public/CombineTemplates/14_3_2014/{0:.0f}TeV/{1}/{2}/HtoZZ4l_MCFM_125p6_ModifiedTemplatesForCombine_Raw_D_Gamma_gg_r10_SysDown.root".format(self.sqrts,self.appendName,self.templRange)
+        #templateSigNameUp = "/afs/cern.ch/work/u/usarica/public/CombineTemplates/14_3_2014/{0:.0f}TeV/{1}/{2}/HtoZZ4l_MCFM_125p6_ModifiedSmoothTemplatesForCombine__GenLevelVBF_wResolution_D_Gamma_gg_r10_SysUp.root".format(self.sqrts,self.appendName,self.templRange)
+        #templateSigNameDown = "/afs/cern.ch/work/u/usarica/public/CombineTemplates/14_3_2014/{0:.0f}TeV/{1}/{2}/HtoZZ4l_MCFM_125p6_ModifiedSmoothTemplatesForCombine__GenLevelVBF_wResolution_D_Gamma_gg_r10_SysDown.root".format(self.sqrts,self.appendName,self.templRange)
         #templateSigNameUp = "/afs/cern.ch/work/u/usarica/public/CombineTemplates/{0:.0f}TeV/{1}/{2}/HtoZZ4l_gg2VV_125p6_ModifiedTemplatesForCombine_D_Gamma_gg_r10_SysUp.root".format(self.sqrts,self.appendName,self.templRange)
         #templateSigNameDown = "/afs/cern.ch/work/u/usarica/public/CombineTemplates/{0:.0f}TeV/{1}/{2}/HtoZZ4l_gg2VV_125p6_ModifiedTemplatesForCombine_D_Gamma_gg_r10_SysDown.root".format(self.sqrts,self.appendName,self.templRange)
         #templateSigNameUp = "/afs/cern.ch/work/u/usarica/public/CombineTemplates/forGiacomo_OldTemplates/WidthTemplates/{0:.0f}TeV/{1}/{2}/HtoZZ4l_gg2VV_125p6_TemplatesForCombine_D_Gamma_gg_r10_SysUp.root".format(self.sqrts,self.appendName,self.templRange)
@@ -244,7 +244,7 @@ class width_datacardClass:
         VBF_T_2 = tmpVBF_T_2.Clone("mZZ_vbfsig")
         VBF_T_4 = tmpVBF_T_4.Clone("mZZ_vbfinter")
         Bkg_T = rangeBkg_T.Clone("mZZ_bkg")
-        Bkg_ZX = sigTempFileU.Get("T_2D_ZX").Clone("Bkg_ZX_Nominal")
+        Bkg_ZX = sigTempFileU.Get("T_2D_ZX_UnConditional").Clone("Bkg_ZX_Nominal")
         Sig_T_1_Up = sigTempFileUp.Get("T_2D_2").Clone("T_2D_2_Up")
         Sig_T_2_Up = sigTempFileUp.Get("T_2D_1").Clone("T_2D_1_Up")
         Sig_T_4_Up = sigTempFileUp.Get("T_2D_4").Clone("T_2D_4_Up")
@@ -252,6 +252,7 @@ class width_datacardClass:
         VBF_T_2_Up = sigTempFileUp.Get("T_2D_VBF_1").Clone("T_2D_VBF_1_Up")
         VBF_T_4_Up = sigTempFileUp.Get("T_2D_VBF_4").Clone("T_2D_VBF_4_Up")
         #Bkg_T_Up = sigTempFileUp.Get("T_2D_qqZZ").Clone("T_2D_qqZZ_Up")
+        Bkg_ZX_Up = sigTempFileDown.Get("T_2D_ZX_UnConditional").Clone("Bkg_ZX_Down")
         Sig_T_1_Down = sigTempFileDown.Get("T_2D_2").Clone("T_2D_2_Down")
         Sig_T_2_Down = sigTempFileDown.Get("T_2D_1").Clone("T_2D_1_Down")
         Sig_T_4_Down = sigTempFileDown.Get("T_2D_4").Clone("T_2D_4_Down")
@@ -259,7 +260,7 @@ class width_datacardClass:
         VBF_T_2_Down = sigTempFileDown.Get("T_2D_VBF_1").Clone("T_2D_VBF_1_Down")
         VBF_T_4_Down = sigTempFileDown.Get("T_2D_VBF_4").Clone("T_2D_VBF_4_Down")
         #Bkg_T_Down = sigTempFileDown.Get("T_2D_qqZZ").Clone("T_2D_qqZZ_Down")
-        Bkg_ZX_Down = sigTempFileDown.Get("T_2D_ZX").Clone("Bkg_ZX_Down")
+        Bkg_ZX_Down = sigTempFileDown.Get("T_2D_ZX_UnConditional").Clone("Bkg_ZX_Down")
 
         #rates
         totalRateDown = Sig_T_1_Down.Integral("width")+Sig_T_2_Down.Integral("width")+Sig_T_4_Down.Integral("width")
@@ -323,21 +324,33 @@ class width_datacardClass:
                 if Sig_T_1_Down.GetBinContent(ix,iy) == 0 : Sig_T_1_Down.SetBinContent(ix,iy,0.000001)
                 if Sig_T_2_Down.GetBinContent(ix,iy) == 0 : Sig_T_2_Down.SetBinContent(ix,iy,0.000001)
                 if Sig_T_4_Down.GetBinContent(ix,iy) == 0 : Sig_T_4_Down.SetBinContent(ix,iy,0.000001)                                
-                if Bkg_ZX.GetBinContent(ix,iy) == 0 : Bkg_ZX.SetBinContent(ix,iy,0.000001)
+                if Bkg_ZX.GetBinContent(ix,iy) == 0 : Bkg_ZX.SetBinContent(ix,iy,0.000001)                                
+                if Bkg_ZX_Up.GetBinContent(ix,iy) == 0 : Bkg_ZX_Up.SetBinContent(ix,iy,0.000001)                                
+                if Bkg_ZX_Down.GetBinContent(ix,iy) == 0 : Bkg_ZX_Down.SetBinContent(ix,iy,0.000001)
 
 
         #normalization on background and protection against negative fluctuations
         for ix in range(1,Bkg_T.GetXaxis().GetNbins()+1):
             yNorm = Bkg_T.Integral(ix,ix,1,Bkg_T.GetYaxis().GetNbins())
-            #yNormUp = Bkg_T_Up.Integral(ix,ix,1,Bkg_T.GetYaxis().GetNbins())
-            #yNormDown = Bkg_T_Down.Integral(ix,ix,1,Bkg_T.GetYaxis().GetNbins())
+            yNorm_zx = Bkg_ZX.Integral(ix,ix,1,Bkg_ZX.GetYaxis().GetNbins())
+            yNorm_zx_Up = Bkg_ZX_Up.Integral(ix,ix,1,Bkg_ZX.GetYaxis().GetNbins())
+            yNorm_zx_Down = Bkg_ZX_Down.Integral(ix,ix,1,Bkg_ZX.GetYaxis().GetNbins())
             #print yNorm
             if yNorm == 0: yNorm = 1.0
+            if yNorm_zx == 0: yNorm = 1.0
+            if yNorm_zx_Up == 0: yNorm_Up = 1.0
+            if yNorm_zx_Down == 0: yNorm_Down = 1.0
             #if yNormUp == 0: yNormUp = 0.000000001
             #if yNormDown == 0: yNormDown = 0.000000001
             for iy in range(1,Bkg_T.GetYaxis().GetNbins()+1):
                 Bkg_T.SetBinContent(ix,iy,Bkg_T.GetBinContent(ix,iy)/yNorm)
                 if Bkg_T.GetBinContent(ix,iy) == 0: Bkg_T.SetBinContent(ix,iy,0.000001)
+                Bkg_ZX.SetBinContent(ix,iy,Bkg_ZX.GetBinContent(ix,iy)/yNorm_zx)
+                if Bkg_ZX.GetBinContent(ix,iy) == 0: Bkg_ZX.SetBinContent(ix,iy,0.000001)
+                Bkg_ZX_Up.SetBinContent(ix,iy,Bkg_ZX_Up.GetBinContent(ix,iy)/yNorm_zx_Up)
+                if Bkg_ZX_Up.GetBinContent(ix,iy) == 0: Bkg_ZX_Up.SetBinContent(ix,iy,0.000001)
+                Bkg_ZX_Down.SetBinContent(ix,iy,Bkg_ZX_Down.GetBinContent(ix,iy)/yNorm_zx_Down)
+                if Bkg_ZX_Down.GetBinContent(ix,iy) == 0: Bkg_ZX_Down.SetBinContent(ix,iy,0.000001)
                 binI = Sig_T_4.GetBinContent(ix,iy)
                 if binI > 0 : #check signs, should be < 0 for the template but I changed the sign above (secondo me >0)
                     binS = Sig_T_2.GetBinContent(ix,iy)
@@ -948,7 +961,7 @@ class width_datacardClass:
         zjet_TemplatePdfNominal = ROOT.RooHistPdf(PdfName,PdfName,ROOT.RooArgSet(CMS_zz4l_widthMass,CMS_zz4l_widthKD),zjet_TempDataHist)
 
         TemplateName = "zjet_TempDataHist_Up_{0:.0f}_{1:.0f}".format(self.channel,self.sqrts)
-        zjet_TempDataHistUp = ROOT.RooDataHist(TemplateName,TemplateName,ROOT.RooArgList(CMS_zz4l_widthMass,CMS_zz4l_widthKD),Bkg_T)
+        zjet_TempDataHistUp = ROOT.RooDataHist(TemplateName,TemplateName,ROOT.RooArgList(CMS_zz4l_widthMass,CMS_zz4l_widthKD),Bkg_ZX_Up)
         PdfName = "zjet_TemplatePdf_Up_{0:.0f}_{1:.0f}".format(self.channel,self.sqrts)
         zjet_TemplatePdfUp = ROOT.RooHistPdf(PdfName,PdfName,ROOT.RooArgSet(CMS_zz4l_widthMass,CMS_zz4l_widthKD),zjet_TempDataHistUp)
 
