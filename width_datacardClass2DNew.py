@@ -144,8 +144,8 @@ class width_datacardClass:
 
         mu_name = "CMS_zz4l_mu"
 
-        #mu = ROOT.RooRealVar(mu_name,mu_name,0.93,0.001,10)
-        mu = ROOT.RooRealVar(mu_name,mu_name,1.0,0.001,10)
+        mu = ROOT.RooRealVar(mu_name,mu_name,0.93,0.001,10)
+        #mu = ROOT.RooRealVar(mu_name,mu_name,1.0,0.001,10)
         #mu.setVal(1)
         mu.setBins(100)
 
@@ -1150,8 +1150,10 @@ class width_datacardClass:
         if self.dimensions == 1 :
             PdfName = "ZX_FullPdf_Nominal1_{0:.0f}_{1:.0f}".format(self.channel,self.sqrts)
             TemplateName = "zjet_TempDataHist1_{0:.0f}_{1:.0f}_Nominal".format(self.channel,self.sqrts)
-            zjet_TempDataHist1_Nominal = ROOT.RooDataHist(TemplateName,TemplateName,ROOT.RooArgList(CMS_zz4l_widthKD),bkg_zjets_Nominal.createHistogram("CMS_zz4l_widthMass,CMS_zz4l_widthKD").ProjectionX())
-            bkg_zjets = ROOT.RooHistPdf("bkg_zjets","bkg_zjets",ROOT.RooArgSet(CMS_zz4l_widthKD),zjet_TempDataHist1_Nominal)
+            zjet_TempDataHist1_Nominal = ROOT.RooDataHist(TemplateName,TemplateName,ROOT.RooArgList(CMS_zz4l_widthMass),bkg_zjets_Nominal.createHistogram("CMS_zz4l_widthMass,CMS_zz4l_widthKD").ProjectionX())
+            bkg_zjets = ROOT.RooHistPdf("bkg_zjets","bkg_zjets",ROOT.RooArgSet(CMS_zz4l_widthMass),zjet_TempDataHist1_Nominal)
+            #bkg_zjets = bkg_zjets_mass
+            #bkg_zjets.SetNameTitle("bkg_zjets","bkg_zjets")
         else:
             CMS_zz4l_ZXshape_syst = ROOT.RooRealVar("CMS_zz4l_ZXshape_syst","CMS_zz4l_ZXshape_syst",0.0,-1,1)
             morphVarListZX = ROOT.RooArgList()
