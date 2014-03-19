@@ -2,9 +2,9 @@ void compareScans(){
   gStyle->SetOptTitle(0);
   const int nfiles = 4;
   //TString files[]={"cards_03_17_Moriond_093_1DDgg/HCG/220/","cards_03_17_Moriond_093_1Dm4l/HCG/220/","cards_03_17_Moriond_093_2D/HCG/220/","cards_03_17_Moriond_093_1DDgg/HCG/220/","cards_03_17_Moriond_093_1Dm4l/HCG/220/","cards_03_17_Moriond_093_2D/HCG/220/","cards_03_17_Moriond_093_2D/HCG/220/","cards_03_17_Moriond_1_2D/HCG/220_noSyst/","cards_03_17_Moriond_1_2D/HCG/220/"}//Unblind
+  //TString files[]={"cards_03_17_Moriond_093_2D/HCG/220/","cards_03_17_Moriond_093_2D/HCG/220_postFit/"};
   //Combined 4l-2l2n
-  TString files[]={"cards_03_17_Combined/HCG/220/","cards_03_17_Combined/HCG/220/","cards_03_17_Combined/HCG/220_1/","cards_03_17_Combined/HCG/220_noSyst/"};
-  //TString files[]={"cards_03_17_Combined/HCG/220_lowR/","cards_03_17_Combined/HCG/220/","cards_03_17_Combined/HCG/220_1/","cards_03_17_Combined/HCG/220_noSyst/"};
+  //TString files[]={"cards_03_17_Combined/HCG/220/","cards_03_17_Combined/HCG/220/","cards_03_17_Combined/HCG/220_1/","cards_03_17_Combined/HCG/220_noSyst/"};
   //2D fits
   //TString files[]={"cards_03_17_Moriond_093_2D/HCG/220/","cards_03_17_Moriond_093_2D/HCG/220/","cards_03_17_Moriond_1_2D/HCG/220/","cards_03_17_Moriond_1_2D/HCG/220_noSyst/"}
   //TString files[]={"cards_03_17_Moriond_093_2D/HCG/220/","cards_03_17_Moriond_1_2D/HCG/220/","cards_03_17_Moriond_1_2D/HCG/220_noSyst/"}
@@ -17,11 +17,12 @@ void compareScans(){
   //1D(m4l) fits
   //TString files[]={"cards_03_17_Moriond_093_1Dm4l/HCG/220/","cards_03_17_Moriond_093_1Dm4l/HCG/220/","cards_03_17_Moriond_1_1Dm4l/HCG/220/","cards_03_17_Moriond_1_1Dm4l/HCG/220_noSyst/"}
   //1D(Dgg)
-  //TString files[]={"cards_03_17_Moriond_093_1DDgg/HCG/220/","cards_03_17_Moriond_093_1DDgg/HCG/220/","cards_03_17_Moriond_1_1DDgg/HCG/220/","cards_03_17_Moriond_1_1DDgg/HCG/220_noSyst/"}
+  TString files[]={"cards_03_17_Moriond_093_1DDgg/HCG/220/","cards_03_17_Moriond_093_1DDgg/HCG/220/","cards_03_17_Moriond_1_1DDgg/HCG/220/","cards_03_17_Moriond_1_1DDgg/HCG/220_noSyst/"}
   //Alternative K hyp.
   //TString files[]={"cards_03_05_Unblind_093_2D/HCG/220/","cards_03_05_Unblind_093_2D/HCG/220_noSyst/","cards_093_AlternativeKBKG/HCG/220/","cards_093_AlternativeKBKG/HCG/220_noSyst/","cards_093_AlternativeKBKG_28/HCG/220/","cards_093_AlternativeKBKG_28/HCG/220/"};
   //TString files[]={"cards_KBKG_noUnc/HCG/220/","cards_KBKG_noUnc/HCG/220/","cards_AltKBKG_noUnc/HCG/220/","cards_AltKBKG_noUnc/HCG/220_noSyst/","cards_AltKBKG28_noUnc/HCG/220/","cards_AltKBKG28_noUnc/HCG/220_noSyst/"};
   //low r scans
+  //TString files[]={"cards_03_17_Combined/HCG/220_lowR/","cards_03_17_Combined/HCG/220/","cards_03_17_Combined/HCG/220_1/","cards_03_17_Combined/HCG/220_noSyst/"};
   //TString files[]={"cards_lowRScan_mu1_2D/HCG/220_all/","cards_lowRScan_mu1_2D/HCG/220_2e2mu/","cards_lowRScan_mu1_2D/HCG/220_4e/","cards_lowRScan_mu1_2D/HCG/220_4mu/","cards_lowRScanObs_2D/HCG/220_all/"};
   //TString files[]={"cards_lowRScanObs_2D/HCG/220_all/","cards_lowRScanObs_2D/HCG/220_2e2mu/","cards_lowRScanObs_2D/HCG/220_4e/","cards_lowRScanObs_2D/HCG/220_4mu/"};
   //TString files[]={"cards_03_17_lowRscan2D_093/HCG/220_all/","cards_03_17_lowRscan2D_093/HCG/220_2e2mu/","cards_03_17_lowRscan2D_093/HCG/220_4e/","cards_03_17_lowRscan2D_093/HCG/220_4mu/"}
@@ -53,25 +54,28 @@ void compareScans(){
   //TString grnames[]={"Expected 2013","Expected 13TeV 17.912/fb","Expected 13TeV 100/fb","Expected #mu=1 w/o syst","Observed #mu=1"};
   //TString grnames[]={"Expected 2014, 19.712/fb","Expected 100/fb","Expected 300/fb","Expected 3000/fb","Observed #mu=1"};
 
-  TString plotLabel = "H#rightarrow ZZ#rightarrow 4l + 2l2#nu";
-  //TString plotLabel = "H#rightarrow ZZ#rightarrow 4l";
+  //TString plotLabel = "H#rightarrow ZZ#rightarrow 4l+2l2#nu";
+  TString plotLabel = "H#rightarrow ZZ#rightarrow 4l 1D(D_{gg})";
   //tell this flag which are obsered
   bool obs[] = {1,0,0,0,1,1,1,1,1,1,0};
   int mass = 220;
   int maxwidth = 30.0;
   bool blind = true;
-  bool uncBand =false;
-  TString outString = "03_17_Combined";//"03_17_2DchanExp_093";
+  bool uncBand =true;
+  TString outString = "03_17_1DDgg_093_noStar";//"03_17_2DchanExp_093";
 
   //values for 1DDgg_093, expected mu=0.93
-  //double limits95[]={6.05994,7.97529,12.1601,18.8235,26.9906};
-  //double limits68[]={2.40192,3.22084,5.71285,10.862,16.2785};
+  double limits95[]={6.05994,7.97529,12.1601,18.8235,26.9906};
+  double limits68[]={2.40192,3.22084,5.71285,10.862,16.2785};
   //values for 1Dm4l_093, expected mu=0.93
   //double limits95[]={ 8.00674,10.8502,16.7568,26.2496,35.4528};
   //double limits68[]={3.09662,4.28213,7.78485,14.8901,22.1333 }:
   //values for 2D_093, expected mu=0.93
-  double limits95[]={ 5.01781,6.99495,10.6292,17.0564,24.4662};
-  double limits68[]={ 1.65029,2.7713,4.90192,9.99193,15.0928 };
+  //double limits95[]={ 5.01781,6.99495,10.6292,17.0564,24.4662};
+  //double limits68[]={ 1.65029,2.7713,4.90192,9.99193,15.0928 };
+  //values for 4l+2l2n Combination (from Chris)
+  //double limits95[]={4.382,5.973,9.09,13.879,18.823};
+  //double limits68[]={1.594,2.567,4.925,8.409,11.752};
 
   // gROOT->ProcessLine(".x tdrstyle.cc");
   gStyle->SetPadLeftMargin(0.16);
@@ -82,12 +86,12 @@ void compareScans(){
 
   TGraph *g[nfiles];
 
-  TLegend *leg = new TLegend(0.25,0.73,0.5,0.93);
-  //TLegend *leg = c1->BuildLegend();
-  leg->SetX1(0.22);
-  leg->SetX2(0.5);
-  leg->SetY1(0.7);
-  leg->SetY2(0.93);
+  TLegend *leg = new TLegend(0.22,0.7,0.5,0.93);
+  //TLegend *leg = new TLegend(0.55,0.41,0.81,0.71);
+  //leg->SetX1(0.22);
+  //leg->SetX2(0.5);
+  //leg->SetY1(0.7);
+  //leg->SetY2(0.93);
   leg->SetFillColor(0);
   leg->SetLineColor(0);
   leg->SetBorderSize(0);
@@ -191,14 +195,14 @@ void compareScans(){
 
   }
   //p-value 0.13;
- //  TPaveText *pval = new TPaveText(0.54,0.45,0.85,0.55,"brNDC");
-//   pval->SetBorderSize(0);
-//   pval->SetTextAlign(12);
-//   pval->SetFillStyle(0);
-//   pval->SetTextFont(42);
-//   pval->SetTextSize(0.03);
-//   pval->AddText(0.5,0.5,"p-value=0.13");
-//   pval->Draw();
+  TPaveText *pval = new TPaveText(0.54,0.45,0.85,0.55,"brNDC");
+  pval->SetBorderSize(0);
+  pval->SetTextAlign(12);
+  pval->SetFillStyle(0);
+  pval->SetTextFont(42);
+  pval->SetTextSize(0.03);
+  pval->AddText(0.5,0.5,"p-value=0.13");
+  //pval->Draw();
 		
   TPaveText *pt = new TPaveText(0.1577181,0.9562937,0.9580537,0.9947552,"brNDC");
   pt->SetBorderSize(0);
@@ -251,7 +255,9 @@ void compareScans(){
     medians->SetMarkerStyle(30);
     medians->SetMarkerSize(1.5);
     medians->SetMarkerColor(kBlue);
-    medians->Draw("PSAME");  
+    medians->SetLineColor(0);
+    //medians->Draw("PSAME");  
+    //leg->AddEntry(medians,"Expected median","p");
   }
 
   TString saveString;

@@ -40,4 +40,13 @@ void getQuantiles(TString str = "higgsCombine2D_.ProfileLikelihood.mH220.root")
   cout << "68: " << gr->Eval(0.16) << " " << gr->Eval(0.84) << endl;
   cout << "50: " << gr->Eval(0.5)  << endl;
 
+  cout<<gr->Eval(0.025)<<","<<gr->Eval(0.16)<<","<<gr->Eval(0.5)<<","<<gr->Eval(0.84)<<","<<gr->Eval(0.975) << endl;
+
+  for(double p =0; p<1;p=p+0.01){
+    if(gr->Eval(p)>6.62){
+      cout<<"p-value "<<p<<endl;
+      p=100;
+    }
+  }
+  
 }
