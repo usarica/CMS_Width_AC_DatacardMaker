@@ -1,13 +1,12 @@
-void compareScans(){
+void compareScans(bool mev=false){
   gStyle->SetOptTitle(0);
-  const int nfiles = 4;
+  const int nfiles = 3;
   //TString files[]={"cards_03_17_Moriond_093_1DDgg/HCG/220/","cards_03_17_Moriond_093_1Dm4l/HCG/220/","cards_03_17_Moriond_093_2D/HCG/220/","cards_03_17_Moriond_093_1DDgg/HCG/220/","cards_03_17_Moriond_093_1Dm4l/HCG/220/","cards_03_17_Moriond_093_2D/HCG/220/","cards_03_17_Moriond_093_2D/HCG/220/","cards_03_17_Moriond_1_2D/HCG/220_noSyst/","cards_03_17_Moriond_1_2D/HCG/220/"}//Unblind
   //TString files[]={"cards_03_17_Moriond_093_2D/HCG/220/","cards_03_17_Moriond_093_2D/HCG/220_postFit/"};
   //Combined 4l-2l2n
   //TString files[]={"cards_03_17_Combined/HCG/220/","cards_03_17_Combined/HCG/220/","cards_03_17_Combined/HCG/220_1/","cards_03_17_Combined/HCG/220_noSyst/"};
   //2D fits
-  //TString files[]={"cards_03_17_Moriond_093_2D/HCG/220/","cards_03_17_Moriond_093_2D/HCG/220/","cards_03_17_Moriond_1_2D/HCG/220/","cards_03_17_Moriond_1_2D/HCG/220_noSyst/"}
-  //TString files[]={"cards_03_17_Moriond_093_2D/HCG/220/","cards_03_17_Moriond_1_2D/HCG/220/","cards_03_17_Moriond_1_2D/HCG/220_noSyst/"}
+  TString files[]={"cards_03_17_Moriond_093_2D/HCG/220/","cards_03_17_Moriond_093_2D/HCG/220/","cards_03_17_Moriond_1_2D/HCG/220/","cards_03_17_Moriond_1_2D/HCG/220_noSyst/"}
   //TString files[]={"cards_03_17_Moriond_093_2D/HCG/220/","cards_03_17_Moriond_093_2D/HCG/220/","cards_03_17_Moriond_093_2D/HCG/220/","cards_03_17_Moriond_1_2D/HCG/220_noSyst/"}
   //TString files[]={"cards_03_17_Moriond_093_2D/HCG/220/","cards_03_17_Moriond_1_2D/HCG/220/","cards_03_17_Moriond_093_2D/HCG/220/","cards_03_17_Moriond_1_2D/HCG/220_noSyst/","cards_03_17_Moriond_1_2D/HCG/220/"}//Unblind
   //TString files[]={"cards_03_05_Unblind_2D/HCG/220/","cards_03_05_Unblind_093_2D/HCG/220/","cards_03_05_Unblind_2D/HCG/220_noSyst/","cards_03_05_Unblind_2D/HCG/220/"}//Unblind
@@ -17,7 +16,7 @@ void compareScans(){
   //1D(m4l) fits
   //TString files[]={"cards_03_17_Moriond_093_1Dm4l/HCG/220/","cards_03_17_Moriond_093_1Dm4l/HCG/220/","cards_03_17_Moriond_1_1Dm4l/HCG/220/","cards_03_17_Moriond_1_1Dm4l/HCG/220_noSyst/"}
   //1D(Dgg)
-  TString files[]={"cards_03_17_Moriond_093_1DDgg/HCG/220/","cards_03_17_Moriond_093_1DDgg/HCG/220/","cards_03_17_Moriond_1_1DDgg/HCG/220/","cards_03_17_Moriond_1_1DDgg/HCG/220_noSyst/"}
+  //TString files[]={"cards_03_17_Moriond_093_1DDgg/HCG/220/","cards_03_17_Moriond_093_1DDgg/HCG/220/","cards_03_17_Moriond_1_1DDgg/HCG/220/","cards_03_17_Moriond_1_1DDgg/HCG/220_noSyst/"}
   //Alternative K hyp.
   //TString files[]={"cards_03_05_Unblind_093_2D/HCG/220/","cards_03_05_Unblind_093_2D/HCG/220_noSyst/","cards_093_AlternativeKBKG/HCG/220/","cards_093_AlternativeKBKG/HCG/220_noSyst/","cards_093_AlternativeKBKG_28/HCG/220/","cards_093_AlternativeKBKG_28/HCG/220/"};
   //TString files[]={"cards_KBKG_noUnc/HCG/220/","cards_KBKG_noUnc/HCG/220/","cards_AltKBKG_noUnc/HCG/220/","cards_AltKBKG_noUnc/HCG/220_noSyst/","cards_AltKBKG28_noUnc/HCG/220/","cards_AltKBKG28_noUnc/HCG/220_noSyst/"};
@@ -55,24 +54,24 @@ void compareScans(){
   //TString grnames[]={"Expected 2014, 19.712/fb","Expected 100/fb","Expected 300/fb","Expected 3000/fb","Observed #mu=1"};
 
   //TString plotLabel = "H#rightarrow ZZ#rightarrow 4l+2l2#nu";
-  TString plotLabel = "H#rightarrow ZZ#rightarrow 4l 1D(D_{gg})";
+  TString plotLabel = "H#rightarrow ZZ#rightarrow 4l";
   //tell this flag which are obsered
-  bool obs[] = {1,0,0,0,1,1,1,1,1,1,0};
+  bool obs[] = {1,0,0,0,0,0,0,0,1,1,0};
   int mass = 220;
   int maxwidth = 30.0;
   bool blind = true;
   bool uncBand =true;
-  TString outString = "03_17_1DDgg_093_noStar";//"03_17_2DchanExp_093";
+  TString outString = "03_17_093_2D_PAS";//"03_17_2DchanExp_093";
 
   //values for 1DDgg_093, expected mu=0.93
-  double limits95[]={6.05994,7.97529,12.1601,18.8235,26.9906};
-  double limits68[]={2.40192,3.22084,5.71285,10.862,16.2785};
+  //double limits95[]={6.05994,7.97529,12.1601,18.8235,26.9906};
+  //double limits68[]={2.40192,3.22084,5.71285,10.862,16.2785};
   //values for 1Dm4l_093, expected mu=0.93
   //double limits95[]={ 8.00674,10.8502,16.7568,26.2496,35.4528};
   //double limits68[]={3.09662,4.28213,7.78485,14.8901,22.1333 }:
   //values for 2D_093, expected mu=0.93
-  //double limits95[]={ 5.01781,6.99495,10.6292,17.0564,24.4662};
-  //double limits68[]={ 1.65029,2.7713,4.90192,9.99193,15.0928 };
+  double limits95[]={ 5.01781,6.99495,10.6292,17.0564,24.4662};
+  double limits68[]={ 1.65029,2.7713,4.90192,9.99193,15.0928 };
   //values for 4l+2l2n Combination (from Chris)
   //double limits95[]={4.382,5.973,9.09,13.879,18.823};
   //double limits68[]={1.594,2.567,4.925,8.409,11.752};
@@ -82,11 +81,10 @@ void compareScans(){
   gStyle->SetPadTopMargin(0.05);
   float gglimit = float(maxwidth);
 
-  TMultiGraph *mg = new TMultiGraph();
-
   TGraph *g[nfiles];
 
-  TLegend *leg = new TLegend(0.22,0.7,0.5,0.93);
+  //TLegend *leg = new TLegend(0.22,0.7,0.5,0.93);
+  TLegend *leg = new TLegend(0.18,0.55,0.5,0.93);
   //TLegend *leg = new TLegend(0.55,0.41,0.81,0.71);
   //leg->SetX1(0.22);
   //leg->SetX2(0.5);
@@ -100,6 +98,17 @@ void compareScans(){
   TLegendEntry *tentry = leg->AddEntry((TObject*)0,plotLabel.Data(),"");
   tentry->SetTextSize(0.04);
   //leg->AddEntry((TObject*)0, "","");
+
+  if(mev){
+    for (int imev=0;imev<5;imev++){
+      limits95[imev]=limits95[imev]*4.15;
+      limits68[imev]=limits68[imev]*4.15;
+    }
+    maxwidth=maxwidth*4.15;
+    outString+="_MeV";
+    gglimit*=4.15;
+  }
+
   for(int i=0;i<nfiles;i++){
     char boh[200];
     //printf("%d\n",i);
@@ -121,7 +130,6 @@ void compareScans(){
     gr0->SetTitle(grnames[i].Data());
     leg->AddEntry(gr0);
     g[i]=(TGraph*)gr0->Clone();
-    mg->Add(gr0,"p");
     double *y = gr0->GetY();
     double *x = gr0->GetX();
     int ipol=-1,ipol68=-1;
@@ -132,12 +140,15 @@ void compareScans(){
       if(y[ipo]<1&&y[ipo+1]>1){
 	ipol68 = ipo;
       }
+      if(mev)g[i]->SetPoint(ipo,x[ipo]*4.15,y[ipo]);
     }
-    double a =  (y[ipol+1]-y[ipol])/(x[ipol+1]-x[ipol]);
-    double b = y[ipol]-a*x[ipol];
+    double fact=1;
+    if(mev)fact=4.15;
+    double a =  (y[ipol+1]-y[ipol])/(x[ipol+1]-x[ipol])/fact;
+    double b = y[ipol]-a*x[ipol]*fact;
     printf("%s limit@95CL %.2f\n",grnames[i].Data(),(3.84-b)/a);
-    a =  (y[ipol+1]-y[ipol])/(x[ipol+1]-x[ipol]);
-    b = y[ipol]-a*x[ipol];
+    a =  (y[ipol+1]-y[ipol])/(x[ipol+1]-x[ipol])/fact;
+    b = y[ipol]-a*x[ipol]*fact;
     printf("%s limit@68CL %.2f\n",grnames[i].Data(),(1-b)/a);
   }
 
@@ -154,6 +165,7 @@ void compareScans(){
   c1->cd();
   g[0]->Draw("AL");
   g[0]->GetXaxis()->SetTitle("#Gamma/#Gamma_{SM}");
+  if(mev)  g[0]->GetXaxis()->SetTitle("#Gamma [MeV]");
   g[0]->GetYaxis()->SetTitle("-2 #Delta lnL");
   g[0]->GetXaxis()->SetLabelSize(0.04);
   g[0]->GetYaxis()->SetLabelSize(0.04);
@@ -194,15 +206,15 @@ void compareScans(){
     l1_68->Draw("same");
 
   }
-  //p-value 0.13;
-  TPaveText *pval = new TPaveText(0.54,0.45,0.85,0.55,"brNDC");
-  pval->SetBorderSize(0);
-  pval->SetTextAlign(12);
-  pval->SetFillStyle(0);
-  pval->SetTextFont(42);
-  pval->SetTextSize(0.03);
-  pval->AddText(0.5,0.5,"p-value=0.13");
-  //pval->Draw();
+//   //p-value 0.13;
+//   TPaveText *pval = new TPaveText(0.54,0.45,0.85,0.55,"brNDC");
+//   pval->SetBorderSize(0);
+//   pval->SetTextAlign(12);
+//   pval->SetFillStyle(0);
+//   pval->SetTextFont(42);
+//   pval->SetTextSize(0.03);
+//   pval->AddText(0.5,0.5,"p-value=0.13");
+//   //pval->Draw();
 		
   TPaveText *pt = new TPaveText(0.1577181,0.9562937,0.9580537,0.9947552,"brNDC");
   pt->SetBorderSize(0);
