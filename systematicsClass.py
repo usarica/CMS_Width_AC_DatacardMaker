@@ -137,9 +137,9 @@ class systematicsClass:
 
     def Write_Systematics_Line(self,systLine,theFile,theInputs):
         print "~~~~~~~~~~~~~~~~~"
-        channelList=['ggH','qqH','WH','ZH','ttH','ggZZ','ggZZ_signal','ggZZ_bkg','ggZZ_interf','VBF_offshell','qqZZ','zjets','ttbar','zbb']
+        channelList=['ggH','qqH','WH','ZH','ttH','ggZZ','ggZZ_signal','ggZZbkg','ggZZ_interf','VBF_offshell','qqZZ','zjets','ttbar','zbb']
         if theInputs["all"]:
-            channelList=['ggH','ggZZ','ggZZ_signal','ggZZ_bkg','ggZZ_interf','VBF_offshell','qqZZ','zjets','ttbar','zbb']
+            channelList=['ggH','ggZZ','ggZZ_signal','ggZZbkg','ggZZ_interf','VBF_offshell','qqZZ','zjets','ttbar','zbb']
         
         for chan in channelList:
             if theInputs[chan] or (chan.startswith("gg") and theInputs["all"]):
@@ -162,7 +162,7 @@ class systematicsClass:
         systLine['ttH']  = "{0} ".format(self.lumiUncertainty)
         systLine['ggZZ'] = "{0} ".format(self.lumiUncertainty)
         systLine['ggZZ_signal'] = "{0} ".format(self.lumiUncertainty)
-        systLine['ggZZ_bkg'] = "{0} ".format(self.lumiUncertainty)
+        systLine['ggZZbkg'] = "{0} ".format(self.lumiUncertainty)
         systLine['ggZZ_interf'] = "{0} ".format(self.lumiUncertainty)
         systLine['VBF_offshell'] = "{0} ".format(self.lumiUncertainty)
         systLine['qqZZ'] = "{0} ".format(self.lumiUncertainty)
@@ -184,7 +184,7 @@ class systematicsClass:
             systLine['ttH']  = "- "
             systLine['ggZZ'] = "- "
             systLine['ggZZ_signal'] = "- "
-            systLine['ggZZ_bkg'] = "- "
+            systLine['ggZZbkg'] = "- "
             systLine['ggZZ_interf'] = "- "
             systLine['VBF_offshell'] = "{0:.4f} ".format(self.qqVV_pdfSys)
             systLine['qqZZ'] = "{0:.4f} ".format(self.qqVV_pdfSys)
@@ -202,7 +202,7 @@ class systematicsClass:
             systLine['ttH']  = "- " 
             systLine['ggZZ'] = "- "
             systLine['ggZZ_signal'] = "- "
-            systLine['ggZZ_bkg'] = "- "
+            systLine['ggZZbkg'] = "- "
             systLine['ggZZ_interf'] = "- "
             systLine['VBF_offshell'] = "{0:.4f} ".format(self.qqVV_pdfSys)
             systLine['qqZZ'] = "{0:.4f} ".format(self.qqVV_pdfSys)
@@ -225,7 +225,7 @@ class systematicsClass:
             systLine['qqZZ'] = "- " 
             systLine['ggZZ'] = "{0:.4f} ".format(self.ggVV_pdfSys)
             systLine['ggZZ_signal'] = "{0:.4f} ".format(self.ggVV_pdfSys)
-            systLine['ggZZ_bkg'] = "{0:.4f} ".format(self.ggVV_pdfSys)
+            systLine['ggZZbkg'] = "{0:.4f} ".format(self.ggVV_pdfSys)
             systLine['ggZZ_interf'] = "{0:.4f} ".format(self.ggVV_pdfSys)
             systLine['VBF_offshell'] = "- "
             systLine['zjets']= "- " 
@@ -243,7 +243,7 @@ class systematicsClass:
             systLine['qqZZ'] = "- " 
             systLine['ggZZ'] = "{0:.4f} ".format(self.ggVV_pdfSys)
             systLine['ggZZ_signal'] = "{0:.4f} ".format(self.ggVV_pdfSys)
-            systLine['ggZZ_bkg'] = "{0:.4f} ".format(self.ggVV_pdfSys)
+            systLine['ggZZbkg'] = "{0:.4f} ".format(self.ggVV_pdfSys)
             systLine['ggZZ_interf'] = "{0:.4f} ".format(self.ggVV_pdfSys)
             systLine['VBF_offshell'] = "- "
             systLine['zjets']= "- " 
@@ -260,7 +260,7 @@ class systematicsClass:
         systLine['ZH']   = "1.02 "
         systLine['ttH']  = "1.02 "
         systLine['ggZZ_signal'] = "1.02 "
-        systLine['ggZZ_bkg'] = "- "
+        systLine['ggZZbkg'] = "- "
         systLine['ggZZ_interf'] = "- "
         systLine['qqZZ'] = "- " 
         systLine['ggZZ'] = "- "
@@ -283,7 +283,7 @@ class systematicsClass:
         systLine['qqZZ'] = "- " 
         systLine['ggZZ'] = "- "
         systLine['ggZZ_signal'] = "- "
-        systLine['ggZZ_bkg'] = "- "
+        systLine['ggZZbkg'] = "- "
         systLine['ggZZ_interf'] = "- "
         systLine['VBF_offshell'] = "- "
         systLine['zjets']= "- " 
@@ -304,7 +304,7 @@ class systematicsClass:
         systLine['qqZZ'] = "- " 
         systLine['ggZZ'] = "- "
         systLine['ggZZ_signal'] = "- "
-        systLine['ggZZ_bkg'] = "- "
+        systLine['ggZZbkg'] = "- "
         systLine['ggZZ_interf'] = "- "
         systLine['VBF_offshell'] = "- "
         systLine['zjets']= "- " 
@@ -324,7 +324,7 @@ class systematicsClass:
         systLine['qqZZ'] = "- " 
         systLine['ggZZ'] = "- "
         systLine['ggZZ_signal'] = "- "
-        systLine['ggZZ_bkg'] = "- "
+        systLine['ggZZbkg'] = "- "
         systLine['ggZZ_interf'] = "- "
         systLine['VBF_offshell'] = "- "
         systLine['zjets']= "- " 
@@ -345,7 +345,7 @@ class systematicsClass:
         systLine['qqZZ'] = "- " 
         systLine['ggZZ'] = "- "
         systLine['ggZZ_signal'] = "- "
-        systLine['ggZZ_bkg'] = "- "
+        systLine['ggZZbkg'] = "- "
         systLine['ggZZ_interf'] = "- "
         systLine['VBF_offshell'] = "- "
         systLine['zjets']= "- " 
@@ -366,7 +366,7 @@ class systematicsClass:
         systLine['qqZZ'] = "- " 
         systLine['ggZZ'] = "{0:.4f} ".format(self.ggVV_scaleSys)
         systLine['ggZZ_signal'] = "{0:.4f} ".format(self.ggVV_scaleSys)
-        systLine['ggZZ_bkg'] = "{0:.4f} ".format(self.ggVV_scaleSys)
+        systLine['ggZZbkg'] = "{0:.4f} ".format(self.ggVV_scaleSys)
         systLine['ggZZ_interf'] = "{0:.4f} ".format(self.ggVV_scaleSys)
         systLine['VBF_offshell'] = "- "
         systLine['zjets']= "- " 
@@ -387,7 +387,7 @@ class systematicsClass:
         systLine['qqZZ'] = "{0:.4f} ".format(self.qqVV_scaleSys) 
         systLine['ggZZ'] = "- "
         systLine['ggZZ_signal'] = "- "
-        systLine['ggZZ_bkg'] = "- "
+        systLine['ggZZbkg'] = "- "
         systLine['ggZZ_interf'] = "- "
         systLine['VBF_offshell'] = "{0:.4f} ".format(self.qqVV_scaleSys)
         systLine['zjets']= "- " 
@@ -408,7 +408,7 @@ class systematicsClass:
         systLine['qqZZ'] = "- "
         systLine['ggZZ'] = "- "
         systLine['ggZZ_signal'] = "- "
-        systLine['ggZZ_bkg'] = "- "
+        systLine['ggZZbkg'] = "- "
         systLine['ggZZ_interf'] = "- "
         systLine['VBF_offshell'] = "- "
         systLine['zjets']= "- "
@@ -429,7 +429,7 @@ class systematicsClass:
         systLine['qqZZ'] = "- "
         systLine['ggZZ'] = "- "
         systLine['ggZZ_signal'] = "- "
-        systLine['ggZZ_bkg'] = "- "
+        systLine['ggZZbkg'] = "- "
         systLine['ggZZ_interf'] = "- "
         systLine['VBF_offshell'] = "- "
         systLine['zjets']= "- "
@@ -449,7 +449,7 @@ class systematicsClass:
         systLine['qqZZ'] = "- "
         systLine['ggZZ'] = "- "
         systLine['ggZZ_signal'] = "- "
-        systLine['ggZZ_bkg'] = "- "
+        systLine['ggZZbkg'] = "- "
         systLine['ggZZ_interf'] = "- "
         systLine['VBF_offshell'] = "- "
         systLine['zjets']= "- "
@@ -470,7 +470,7 @@ class systematicsClass:
         systLine['qqZZ'] = "- "
         systLine['ggZZ'] = "- "
         systLine['ggZZ_signal'] = "- "
-        systLine['ggZZ_bkg'] = "- "
+        systLine['ggZZbkg'] = "- "
         systLine['ggZZ_interf'] = "- "
         systLine['VBF_offshell'] = "- "
         systLine['zjets']= "- "
@@ -490,7 +490,7 @@ class systematicsClass:
         systLine['qqZZ'] = "- "
         systLine['ggZZ'] = "- "
         systLine['ggZZ_signal'] = "- "
-        systLine['ggZZ_bkg'] = "- "
+        systLine['ggZZbkg'] = "- "
         systLine['ggZZ_interf'] = "- "
         systLine['VBF_offshell'] = "- "
         systLine['zjets']= "- "
@@ -511,7 +511,7 @@ class systematicsClass:
             systLine['qqZZ'] = "{0:.3f} ".format(self.eSelError)
             systLine['ggZZ'] = "{0:.3f} ".format(self.eSelError)
             systLine['ggZZ_signal'] = "{0:.3f} ".format(self.eSelError)
-            systLine['ggZZ_bkg'] = "{0:.3f} ".format(self.eSelError)
+            systLine['ggZZbkg'] = "{0:.3f} ".format(self.eSelError)
             systLine['ggZZ_interf'] = "{0:.3f} ".format(self.eSelError)
             systLine['VBF_offshell'] = "{0:.3f} ".format(self.eSelError)
             systLine['zjets']= "- "
@@ -531,7 +531,7 @@ class systematicsClass:
             systLine['qqZZ'] = "{0:.3f} ".format(self.eSelError2e2mu)
             systLine['ggZZ'] = "{0:.3f} ".format(self.eSelError2e2mu)
             systLine['ggZZ_signal'] = "{0:.3f} ".format(self.eSelError2e2mu)
-            systLine['ggZZ_bkg'] = "{0:.3f} ".format(self.eSelError2e2mu)
+            systLine['ggZZbkg'] = "{0:.3f} ".format(self.eSelError2e2mu)
             systLine['ggZZ_interf'] = "{0:.3f} ".format(self.eSelError2e2mu)
             systLine['VBF_offshell'] = "{0:.3f} ".format(self.eSelError2e2mu)
             systLine['zjets']= "- "
@@ -552,7 +552,7 @@ class systematicsClass:
             systLine['qqZZ'] = "{0:.3f} ".format(self.muSelError)
             systLine['ggZZ'] = "{0:.3f} ".format(self.muSelError)
             systLine['ggZZ_signal'] = "{0:.3f} ".format(self.muSelError)
-            systLine['ggZZ_bkg'] = "{0:.3f} ".format(self.muSelError)
+            systLine['ggZZbkg'] = "{0:.3f} ".format(self.muSelError)
             systLine['ggZZ_interf'] = "{0:.3f} ".format(self.muSelError)
             systLine['VBF_offshell'] = "{0:.3f} ".format(self.muSelError)
             systLine['zjets']= "- "
@@ -572,7 +572,7 @@ class systematicsClass:
             systLine['qqZZ'] = "{0:.3f} ".format(self.muSelError2e2mu)
             systLine['ggZZ'] = "{0:.3f} ".format(self.muSelError2e2mu)
             systLine['ggZZ_signal'] = "{0:.3f} ".format(self.muSelError2e2mu)
-            systLine['ggZZ_bkg'] = "{0:.3f} ".format(self.muSelError2e2mu)
+            systLine['ggZZbkg'] = "{0:.3f} ".format(self.muSelError2e2mu)
             systLine['ggZZ_interf'] = "{0:.3f} ".format(self.muSelError2e2mu)
             systLine['VBF_offshell'] = "{0:.3f} ".format(self.muSelError2e2mu)
             systLine['zjets']= "- "
@@ -593,7 +593,7 @@ class systematicsClass:
         systLine['qqZZ'] = "- " 
         systLine['ggZZ'] = "- "
         systLine['ggZZ_signal'] = "- "
-        systLine['ggZZ_bkg'] = "- "
+        systLine['ggZZbkg'] = "- "
         systLine['ggZZ_interf'] = "- "
         systLine['VBF_offshell'] = "- "
         systLine['zjets']= "{0}/{1} ".format(self.zjetKappaLow,self.zjetKappaHigh)
@@ -614,7 +614,7 @@ class systematicsClass:
         systLine['qqZZ'] = "- " 
         systLine['ggZZ'] = "- "
         systLine['ggZZ_signal'] = "- "
-        systLine['ggZZ_bkg'] = "- "
+        systLine['ggZZbkg'] = "- "
         systLine['ggZZ_interf'] = "- "
         systLine['VBF_offshell'] = "- "
         systLine['zjets']= "{0}/{1} ".format(self.zjetKappaLow,self.zjetKappaHigh)
@@ -635,7 +635,7 @@ class systematicsClass:
         systLine['qqZZ'] = "- " 
         systLine['ggZZ'] = "- "
         systLine['ggZZ_signal'] = "- "
-        systLine['ggZZ_bkg'] = "- "
+        systLine['ggZZbkg'] = "- "
         systLine['ggZZ_interf'] = "- "
         systLine['VBF_offshell'] = "- "
         systLine['zjets']= "{0}/{1} ".format(self.zjetKappaLow,self.zjetKappaHigh)
@@ -819,17 +819,17 @@ class systematicsClass:
         #sigmaCB_m_errPerCent = theInputs['CMS_zz4l_sigma_m_sig']
         #Gamma_BW_errPerCent = theInputs['CMS_zz4l_gamma_sig']
 
-        ##theFile.write("CMS_zz4l_mu param 0.935929  -0.23/+0.26 \n") #stat only
-        ##theFile.write("CMS_zz4l_mu param 1.0 -0.255977/+0.30849 \n") #expected uncertainty
-        #theFile.write("CMS_zz4l_mu param 1.00  -0.24/+0.27 \n")
-        theFile.write("CMS_zz4l_mu param 0.93  -0.24/+0.26 \n")
+        ##theFile.write("R param 0.935929  -0.23/+0.26 \n") #stat only
+        ##theFile.write("R param 1.0 -0.255977/+0.30849 \n") #expected uncertainty
+        #theFile.write("R param 1.00  -0.24/+0.27 \n")
+#        theFile.write("R param 0.93  -0.24/+0.26 \n")
         theFile.write("CMS_widthH_kbkg param 1.0  0.1 \n")
         theFile.write("CMS_zz4l_pdf_QCDscale_gg_syst param 0.0 1 [-3,3] \n")
         theFile.write("CMS_zz4l_VBFscale_syst param 0.0 1 [-3,3] \n")
         theFile.write("CMS_zz4l_ZXshape_syst param 0.0 1 [-3,3] \n")
         theFile.write("CMS_QCDscale_VV param 0.0 1 [-3,3]\n")
 
-        #theFile.write("CMS_zz4l_mu param 0.93  0.0 \n")
+        #theFile.write("R param 0.93  0.0 \n")
         #theFile.write("CMS_widthH_kbkg param 1.0  0.0 \n")
         #theFile.write("CMS_zz4l_pdf_QCDscale_gg_syst param 0.0 0 \n")
         #theFile.write("CMS_zz4l_VBFscale_syst param 0.0 0 \n")

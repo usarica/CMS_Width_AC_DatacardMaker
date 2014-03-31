@@ -74,7 +74,7 @@ class width_datacardClass:
         self.qqZZ_chan = theInputs['qqZZ']
         self.ggZZ_chan = theInputs['ggZZ']
         self.ggZZ_signal_chan = theInputs['ggZZ_signal']
-        self.ggZZ_bkg_chan = theInputs['ggZZ_bkg']
+        self.ggZZ_bkg_chan = theInputs['ggZZbkg']
         self.ggZZ_interf_chan = theInputs['ggZZ_interf']
         self.VBF_offshell_chan = theInputs['VBF_offshell']
         self.zjets_chan = theInputs['zjets']
@@ -138,27 +138,33 @@ class width_datacardClass:
 
         x_name = "CMS_zz4l_GGsm"
 
-        x = ROOT.RooRealVar(x_name,x_name,0.0001,100)
+        x = ROOT.RooRealVar(x_name,x_name,0,50)
         x.setVal(1)
         x.setBins(100)
 
-        mu_name = "CMS_zz4l_mu"
-
-        mu = ROOT.RooRealVar(mu_name,mu_name,0.93,0.001,10)
-        #mu = ROOT.RooRealVar(mu_name,mu_name,1.0,0.001,10)
-        #mu.setVal(1)
+        mu_name = "R"
+        mu = ROOT.RooRealVar(mu_name,mu_name,1.0,0,4)
+        mu.setVal(1)
         mu.setBins(100)
+        mu_name = "RV"
+        muV = ROOT.RooRealVar(mu_name,mu_name,1.0,0,4)
+        muV.setVal(1)
+        muV.setBins(100)
+        mu_name = "RF"
+        muF = ROOT.RooRealVar(mu_name,mu_name,1.0,0,4)
+        muF.setVal(1)
+        muF.setBins(100)
 
         mu_name = "CMS_widthH_kbkg"
 
-        kbkg = ROOT.RooRealVar(mu_name,mu_name,0.1,10)
+        kbkg = ROOT.RooRealVar(mu_name,mu_name,0,2)
         kbkg.setVal(1.0)
         #if self.dimensions==0 : kbkg.setConstant(True)
         kbkg.setBins(100)
 
         D2name = "CMS_zz4l_widthKD"
         CMS_zz4l_widthKD = ROOT.RooRealVar(D2name,D2name,0.,1.)
-        CMS_zz4l_widthKD.setBins(20)
+        CMS_zz4l_widthKD.setBins(30)
 
         self.LUMI = ROOT.RooRealVar("LUMI_{0:.0f}".format(self.sqrts),"LUMI_{0:.0f}".format(self.sqrts),self.lumi)
         self.LUMI.setConstant(True)
@@ -424,11 +430,11 @@ class width_datacardClass:
         interfRates = ROOT.RooRealVar(interfRateName,interfRateName,0.0,10000.0)
         
         sigRateNameNorm = "signalNorm_ggZZrate_{0:.0f}_{1:.0f}".format(self.channel,self.sqrts)
-        sigRatesNorm = ROOT.RooFormulaVar(sigRateNameNorm,"@0*@1/(@0*@1-sqrt(@0*@1)*sign(@2)*sqrt(abs(@2))+@2)",ROOT.RooArgList(x,mu,kbkg))
+        sigRatesNorm = ROOT.RooFormulaVar(sigRateNameNorm,"@0*@1*@3/(@0*@1*@3-sqrt(@0*@1*@3)*sign(@2)*sqrt(abs(@2))+@2)",ROOT.RooArgList(x,mu,kbkg,muF))
         interfRateNameNorm = "interfNorm_ggZZrate_{0:.0f}_{1:.0f}".format(self.channel,self.sqrts)
-        interfRatesNorm = ROOT.RooFormulaVar(interfRateNameNorm,"-sqrt(@0*@1)*sign(@2)*sqrt(abs(@2))/(@0*@1-sqrt(@0*@1)*sign(@2)*sqrt(abs(@2))+@2)",ROOT.RooArgList(x,mu,kbkg))
+        interfRatesNorm = ROOT.RooFormulaVar(interfRateNameNorm,"-sqrt(@0*@1*@3)*sign(@2)*sqrt(abs(@2))/(@0*@1*@3-sqrt(@0*@1*@3)*sign(@2)*sqrt(abs(@2))+@2)",ROOT.RooArgList(x,mu,kbkg,muF))
         bkgRateNameNorm = "bkgNorm_ggZZrate_{0:.0f}_{1:.0f}".format(self.channel,self.sqrts)
-        bkgRatesNorm = ROOT.RooFormulaVar(bkgRateNameNorm,"@2/(@0*@1-sqrt(@0*@1)*sign(@2)*sqrt(abs(@2))+@2)",ROOT.RooArgList(x,mu,kbkg))
+        bkgRatesNorm = ROOT.RooFormulaVar(bkgRateNameNorm,"@2/(@0*@1*@3-sqrt(@0*@1*@3)*sign(@2)*sqrt(abs(@2))+@2)",ROOT.RooArgList(x,mu,kbkg,muF))
 
         #ggZZpdfName = "ggZZ_RooWidth_{0:.0f}_{1:.0f}".format(self.channel,self.sqrts)
         #ggZZpdf = ROOT.HZZ4lWidth(ggZZpdfName,ggZZpdfName,CMS_zz4l_widthMass,one,x,bkgRates,sigRates,interfRates,Sig_T_1,Sig_T_2,Sig_T_4)
@@ -625,16 +631,11 @@ class width_datacardClass:
 
         ##Assume BKG & INTERF are from templates
         sigRateNameNorm = "signalNorm_VBFrate_{0:.0f}_{1:.0f}".format(self.channel,self.sqrts)
-        VBFsigRatesNorm = ROOT.RooFormulaVar(sigRateNameNorm,"@0*@1/(@0*@1-sqrt(@0*@1)+1)",ROOT.RooArgList(x,mu))
-        #VBFsigRatesNorm = ROOT.RooFormulaVar(sigRateNameNorm,"@0*@1",ROOT.RooArgList(x,mu))
+        VBFsigRatesNorm = ROOT.RooFormulaVar(sigRateNameNorm,"@0*@1*@2/(@0*@1*@2-sqrt(@0*@1*@2)+1)",ROOT.RooArgList(x,mu,muV))
         interfRateNameNorm = "interfNorm_VBFrate_{0:.0f}_{1:.0f}".format(self.channel,self.sqrts)
-        VBFinterfRatesNorm = ROOT.RooFormulaVar(interfRateNameNorm,"-sqrt(@0*@1)/(@0*@1-sqrt(@0*@1)+1)",ROOT.RooArgList(x,mu))
-        #VBFinterfRatesNorm = ROOT.RooRealVar(interfRateNameNorm,interfRateNameNorm,0.)
-        #VBFinterfRatesNorm.setConstant(True)
+        VBFinterfRatesNorm = ROOT.RooFormulaVar(interfRateNameNorm,"-sqrt(@0*@1*@2)/(@0*@1*@2-sqrt(@0*@1*@2)+1)",ROOT.RooArgList(x,mu,muV))
         bkgRateNameNorm = "bkgNorm_VBFrate_{0:.0f}_{1:.0f}".format(self.channel,self.sqrts)
-        VBFbkgRatesNorm = ROOT.RooFormulaVar(bkgRateNameNorm,"1/(@0*@1-sqrt(@0*@1)+1)",ROOT.RooArgList(x,mu))
-        #VBFbkgRatesNorm = ROOT.RooRealVar(interfRateNameNorm,interfRateNameNorm,0.)
-        #VBFbkgRatesNorm.setConstant(True)
+        VBFbkgRatesNorm = ROOT.RooFormulaVar(bkgRateNameNorm,"1/(@0*@1*@2-sqrt(@0*@1*@2)+1)",ROOT.RooArgList(x,mu,muV))
 
         TemplateName = "VBFsignal_TempDataHist_{0:.0f}_{1:.0f}".format(self.channel,self.sqrts)
         PdfName = "VBFsignal_TemplatePdf_{0:.0f}_{1:.0f}".format(self.channel,self.sqrts)
@@ -1186,7 +1187,7 @@ class width_datacardClass:
         ## rate_signal_ggzz = theInputs['ggZZ_signal_rate']/theInputs['qqZZ_lumi']
         ## print " @@@@@@ initial rate: ",theInputs['ggZZ_signal_rate']
         ## print " @@@@@@ corrected rate: ",rate_signal_ggzz
-        ## rate_bkg_ggzz = theInputs['ggZZ_bkg_rate']/theInputs['qqZZ_lumi']
+        ## rate_bkg_ggzz = theInputs['ggZZbkg_rate']/theInputs['qqZZ_lumi']
         ## rate_interf_ggzz = theInputs['ggZZ_interf_rate']/theInputs['qqZZ_lumi']
                 
 ##         # Get Normalizations  - Do I still need this part?
@@ -1386,7 +1387,7 @@ class width_datacardClass:
         rates['ggZZ']  = 1
         rates['VBF_offshell'] = 1
         rates['ggZZ_signal']  = rate_signal_ggzz_Shape
-        rates['ggZZ_bkg']  = rate_bkg_ggzz_Shape
+        rates['ggZZbkg']  = rate_bkg_ggzz_Shape
         rates['ggZZ_interf']  = rate_interf_ggzz_Shape
         rates['VBF_offshell_signal']  = rate_signal_vbf_Shape
         rates['VBF_offshell_bkg']  = rate_bkg_vbf_Shape
@@ -1444,14 +1445,14 @@ class width_datacardClass:
         
         file.write("------------\n")
         file.write("## mass window [{0},{1}] \n".format(self.low_M,self.high_M))
-        file.write("## signal,bkg,interf,tot rates [{0:.4f}, {1:.4f}, -{2:.4f}, {3:.4f}] \n".format(theRates["ggZZ_signal"],theRates["ggZZ_bkg"],theRates["ggZZ_interf"],theRates["ggZZ_tot"]))
+        file.write("## signal,bkg,interf,tot rates [{0:.4f}, {1:.4f}, -{2:.4f}, {3:.4f}] \n".format(theRates["ggZZ_signal"],theRates["ggZZbkg"],theRates["ggZZ_interf"],theRates["ggZZ_tot"]))
         file.write("## vbfsig,vbfbkg,vbfinterf,vbftot rates [{0:.4f}, {1:.4f}, -{2:.4f}, {3:.4f}] \n".format(theRates["VBF_offshell_signal"],theRates["VBF_offshell_bkg"],theRates["VBF_offshell_interf"],theRates["VBF_offshell_tot"]))
         file.write("bin ")        
 
-        #channelList=['ggZZ_signal','ggZZ_interf','ggZZ_bkg','qqZZ','zjets']
+        #channelList=['ggZZ_signal','ggZZ_interf','ggZZbkg','qqZZ','zjets']
         channelList=['ggZZ','VBF_offshell','qqZZ','zjets'] 
 
-        #channelName=['ggsignalzz','gginterfzz','ggbkgzz','bkg_qqzz','bkg_zjets']
+        #channelName=['ggsignalzz','gginterfzz','ggZZbkg','bkg_qqzz','bkg_zjets']
         channelName=['ggzz','vbf_offshell','bkg_qqzz','bkg_zjets'] 
          
         for chan in channelList:
@@ -1516,7 +1517,7 @@ class width_datacardClass:
 
         ##if inputs['ggZZ']:  counter+=1
         if inputs['qqZZ']:  counter+=1
-        if inputs['ggZZ_bkg']:  counter+=1
+        if inputs['ggZZbkg']:  counter+=1
         if inputs['zjets']: counter+=1
         if inputs['ttbar']: counter+=1
         if inputs['zbb']:   counter+=1

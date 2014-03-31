@@ -308,7 +308,7 @@ class inputReader:
                     elif chan.lower().startswith("tth"):   self.ttH_chan = True
                     elif chan.lower().startswith("qqzz"):  self.qqZZ_chan = True
                     elif chan.lower().startswith("ggsignalzz"):  self.ggZZ_signal_chan = True
-                    elif chan.lower().startswith("ggbkgzz"):  self.ggZZ_bkg_chan = True
+                    elif chan.lower().startswith("ggzzbkg"):  self.ggZZ_bkg_chan = True
                     elif chan.lower().startswith("gginterfzz"):  self.ggZZ_interf_chan = True
                     elif chan.lower().startswith("vbf_offshell"):   self.VBF_offshell_chan = True
                     elif chan.lower().startswith("ggzz"):  self.ggZZ_chan = True
@@ -329,7 +329,7 @@ class inputReader:
                     if len(f) == 4: self.qqZZ_lumi = float(f[3]) 
                 if f[1].lower().startswith("ggsignalzz"):
                     self.ggZZ_signal_rate = float(f[2])
-                if f[1].lower().startswith("ggbkgzz"):
+                if f[1].lower().startswith("ggzzbkg"):
                     self.ggZZ_bkg_rate = float(f[2])
                 if f[1].lower().startswith("gginterfzz"):
                     self.ggZZ_interf_rate = float(f[2])    
@@ -879,7 +879,7 @@ class inputReader:
         dict['qqZZ'] = self.qqZZ_chan
         dict['ggZZ'] = self.ggZZ_chan
         dict['ggZZ_signal'] = self.ggZZ_signal_chan
-        dict['ggZZ_bkg'] = self.ggZZ_bkg_chan
+        dict['ggZZbkg'] = self.ggZZ_bkg_chan
         dict['ggZZ_interf'] = self.ggZZ_interf_chan
         dict['VBF_offshell'] = self.VBF_offshell_chan
         dict['zjets'] = self.zjets_chan
