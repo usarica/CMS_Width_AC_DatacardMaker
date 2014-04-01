@@ -3,10 +3,14 @@
 echo "python make_width2D_DCsandWSs.py -i SM_inputs_8TeV -a $1 -d $2 -b "
 
 python make_width2D_DCsandWSs.py -i SM_inputs_8TeV -a $1 -d $2 -b 
+python make_width2D_DCsandWSs.py -i SM_inputs_7TeV -a $1_7 -d $2 -b 
+
+mv cards_"$1"_7/HCG/220/*.* cards_"$1"/HCG/220/.
+rm -rf cards_"$1"_7
 
 #cd test1D/HCG/240 or test2D/HCG/240
 cd cards_"$1"/HCG/220
-combineCards.py hzz4l_2e2muS_8TeV.txt hzz4l_4muS_8TeV.txt hzz4l_4eS_8TeV.txt > hzz4l_allS_8TeV.txt
+combineCards.py hzz4l_2e2muS_8TeV.txt hzz4l_4muS_8TeV.txt hzz4l_4eS_8TeV.txt hzz4l_2e2muS_7TeV.txt hzz4l_4muS_7TeV.txt hzz4l_4eS_7TeV.txt > hzz4l_allS_8TeV.txt
 
 #text2workspace.py -m 240 hzz4l_allS_8TeV.txt -P HiggsAnalysis.CombinedLimit.HiggsWidth:higgswidth -o hzz4l_allS_8TeV.root
 text2workspace.py -m 220 hzz4l_allS_8TeV.txt -P HiggsAnalysis.CombinedLimit.HiggsWidth:higgswidth -o hzz4l_allS_8TeV.root
@@ -21,7 +25,8 @@ text2workspace.py -m 220 hzz4l_allS_8TeV.txt -P HiggsAnalysis.CombinedLimit.Higg
 #combine -M MultiDimFit workspaceWithAsimovObs.root --algo=grid --points 200 -m 220 -n 2D_obs -D toys/toy_asimov -v 3
 #(add "-S 0 --fastScan" if no systematics)
 
-combine -M MultiDimFit hzz4l_allS_8TeV.root -m 220 -t -1 --expectSignal=1 -V --algo=grid --points 200 -n 2D_exp -v 3
+combine -M MultiDimFit hzz4l_allS_8TeV.root -m 220 -t -1 --expectSignal=1 -V --algo=grid --points 50 -n 2D_exp -v 3
+combine -M MultiDimFit hzz4l_allS_8TeV.root -m 220 -V --algo=grid --points 50 -n 2D_obs -v 3
 
 root -l -q ../../../utils/plotScan1D.C\(220,30\)  #-q
 
