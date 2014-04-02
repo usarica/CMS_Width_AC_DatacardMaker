@@ -433,7 +433,7 @@ class width_datacardClass:
         interfRates = ROOT.RooRealVar(interfRateName,interfRateName,0.0,10000.0)
         
         sigRateNameNorm = "signalNorm_ggZZrate_{0:.0f}_{1:.0f}".format(self.channel,self.sqrts)
-        sigRatesNorm = ROOT.RooFormulaVar(sigRateNameNorm,"@0*@1*@3/(@0*@1*@3-sqrt(@0*@1*@3)*sign(@2)*sqrt(abs(@2))+@2)",ROOT.RooArgList(x,mu,kbkg,muF))
+        sigRatesNorm = ROOT.RooFormulaVar(sigRateNameNorm,"@0*@1*@3/(@0*@1*@3-sqrt(@0*@1*@3)*sign(@2)*sqrt(abs(@2))+@2)",ROOT.RooArgList(x,mu,kbkg,muF)) 
         interfRateNameNorm = "interfNorm_ggZZrate_{0:.0f}_{1:.0f}".format(self.channel,self.sqrts)
         interfRatesNorm = ROOT.RooFormulaVar(interfRateNameNorm,"-sqrt(@0*@1*@3)*sign(@2)*sqrt(abs(@2))/(@0*@1*@3-sqrt(@0*@1*@3)*sign(@2)*sqrt(abs(@2))+@2)",ROOT.RooArgList(x,mu,kbkg,muF))
         bkgRateNameNorm = "bkgNorm_ggZZrate_{0:.0f}_{1:.0f}".format(self.channel,self.sqrts)
@@ -1319,12 +1319,12 @@ class width_datacardClass:
         
         ggZZpdfNormName = "ggZZ_RooWidth_{0:.0f}_{1:.0f}_norm".format(self.channel,self.sqrts)
         #ggZZpdf_norm = ROOT.RooFormulaVar(ggZZpdfNormName,"@0*@3*@4-@1*sqrt(@3*@4)*sign(@5)*sqrt(abs(@5))+@2*@5",ROOT.RooArgList(sigRates,interfRates,bkgRates,x,mu,kbkg))
-        ggZZpdf_norm = ROOT.RooFormulaVar(ggZZpdfNormName,"(@0*@3*@4-@1*sqrt(@3*@4)*sign(@5)*sqrt(abs(@5))+@2*@5)*@6",ROOT.RooArgList(sigRates,interfRates,bkgRates,x,mu,kbkg,thetaSyst_ggZZ))
+        ggZZpdf_norm = ROOT.RooFormulaVar(ggZZpdfNormName,"(@0*@3*@7*@4-@1*sqrt(@3*@7*@4)*sign(@5)*sqrt(abs(@5))+@2*@5)*@6",ROOT.RooArgList(sigRates,interfRates,bkgRates,x,mu,kbkg,thetaSyst_ggZZ,muF))
         ggZZpdf_norm.SetNameTitle("ggzz_norm","ggzz_norm")
         getattr(w,'import')(ggZZpdf_norm, ROOT.RooFit.RecycleConflictNodes())
 
         VBFpdfNormName = "VBF_RooWidth_{0:.0f}_{1:.0f}_norm".format(self.channel,self.sqrts)
-        VBFpdf_norm = ROOT.RooFormulaVar(VBFpdfNormName,"(@0*@3*@4-@1*sqrt(@3*@4)+@2)*@5",ROOT.RooArgList(VBFsigRates,VBFinterfRates,VBFbkgRates,x,mu,thetaSyst_VBF))
+        VBFpdf_norm = ROOT.RooFormulaVar(VBFpdfNormName,"(@0*@3*@6*@4-@1*sqrt(@3*@6*@4)+@2)*@5",ROOT.RooArgList(VBFsigRates,VBFinterfRates,VBFbkgRates,x,mu,thetaSyst_VBF,muV))
         VBFpdf_norm.SetNameTitle("vbf_offshell_norm","vbf_offshell_norm")
         getattr(w,'import')(VBFpdf_norm, ROOT.RooFit.RecycleConflictNodes())
 
