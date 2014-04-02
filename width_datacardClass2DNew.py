@@ -90,6 +90,8 @@ class width_datacardClass:
         ForXSxBR = False
 
         myCSW = HiggsCSandWidth()
+        
+        w = ROOT.RooWorkspace("w","w")
                 
         ## ----------------- WIDTH AND RANGES ----------------- ##
         self.widthHVal =  myCSW.HiggsWidth(0,self.mH)
@@ -147,7 +149,7 @@ class width_datacardClass:
         mu.setVal(1)
         mu.setBins(100)
         mu_name = "RV"
-        muV = ROOT.RooRealVar(mu_name,mu_name,1.0,0,4)
+        muV = ROOT.RooRealVar(mu_name,mu_name,1.0,0,8)
         muV.setVal(1)
         muV.setBins(100)
         mu_name = "RF"
@@ -271,10 +273,14 @@ class width_datacardClass:
         #rates
         totalRateDown = Sig_T_1_Down.Integral("width")+Sig_T_2_Down.Integral("width")+Sig_T_4_Down.Integral("width")
         totalRateUp = Sig_T_1_Up.Integral("width")+Sig_T_2_Up.Integral("width")+Sig_T_4_Up.Integral("width")
+        totalRateDown_pdf = Sig_T_1_Down.Integral("width")+Sig_T_2_Down.Integral("width")+Sig_T_4_Down.Integral("width")
+        totalRateUp_pdf = Sig_T_1_Up.Integral("width")+Sig_T_2_Up.Integral("width")+Sig_T_4_Up.Integral("width")
         totalRate_ggzz = Sig_T_1.Integral("width")+Sig_T_2.Integral("width")+Sig_T_4.Integral("width")
         totalRate_ggzz = totalRate_ggzz #* 2.3
         totalRateDown = totalRateDown #*2.3
         totalRateUp  = totalRateUp #*2.3
+        totalRateDown_pdf = totalRateDown_pdf #*2.3
+        totalRateUp_pdf  = totalRateUp_pdf #*2.3
         rate_signal_ggzz_Shape = Sig_T_2.Integral("width")*self.lumi #*2.3
         rate_bkg_ggzz_Shape = Sig_T_1.Integral("width")*self.lumi #*2.3
         rate_interf_ggzz_Shape = Sig_T_4.Integral("width")*self.lumi #*2.3
@@ -585,8 +591,9 @@ class width_datacardClass:
         ggZZpdf_Down = ROOT.RooRealSumPdf(ggZZpdfName,ggZZpdfName,ROOT.RooArgList(ggZZsignal_TemplatePdf_Down,ggZZinterf_TemplatePdf_Down,ggZZbkg_TemplatePdf_Down),ROOT.RooArgList(sigRatesNorm,interfRatesNorm,bkgRatesNorm))
 
 
-        CMS_zz4l_APscale_syst = ROOT.RooRealVar("CMS_zz4l_pdf_QCDscale_gg_syst","CMS_zz4l_pdf_QCDscale_gg_syst",0.0,-1,1)
+        #CMS_zz4l_APscale_syst = ROOT.RooRealVar("QCDscale_ggH","QCDscale_ggH",0.0,-1,1)
         #CMS_zz4l_APscale_syst.setConstant(true)
+        CMS_zz4l_APscale_syst = w.factory("QCDscale_ggH[-7,7]")
         morphVarListggZZ = ROOT.RooArgList()
         morphVarListggZZ.add(CMS_zz4l_APscale_syst)
         MorphList_ggZZ = ROOT.RooArgList()
@@ -594,30 +601,113 @@ class width_datacardClass:
         MorphList_ggZZ.add(ggZZpdf_Up)
         MorphList_ggZZ.add(ggZZpdf_Down)
         
-##         TemplateName = "ggZZinterf_Morphed_{0:.0f}_{1:.0f}".format(self.channel,self.sqrts)
-##         systTemplateMorphPdf_interf = ROOT.FastVerticalInterpHistPdf2D(TemplateName,TemplateName,CMS_zz4l_widthMass,CMS_zz4l_widthKD,true,MorphList_ggZZ_interf,morphVarListggZZ,1.0,1)
-##         TemplateName = "ggZZsig_Morphed_{0:.0f}_{1:.0f}".format(self.channel,self.sqrts)
-##         systTemplateMorphPdf_sig = ROOT.FastVerticalInterpHistPdf2D(TemplateName,TemplateName,CMS_zz4l_widthMass,CMS_zz4l_widthKD,true,MorphList_ggZZ_sig,morphVarListggZZ,1.0,1)
-##         TemplateName = "ggZZbkg_Morphed_{0:.0f}_{1:.0f}".format(self.channel,self.sqrts)
-##         systTemplateMorphPdf_bkg = ROOT.FastVerticalInterpHistPdf2D(TemplateName,TemplateName,CMS_zz4l_widthMass,CMS_zz4l_widthKD,true,MorphList_ggZZ_bkg,morphVarListggZZ,1.0,1)
-##         TemplateName = "ggZZinterf_Morphed_{0:.0f}_{1:.0f}".format(self.channel,self.sqrts)
-##         systTemplateMorphPdf_interf = ROOT.VerticalInterpPdf(TemplateName,TemplateName,MorphList_ggZZ_interf,morphVarListggZZ)
-##         TemplateName = "ggZZsig_Morphed_{0:.0f}_{1:.0f}".format(self.channel,self.sqrts)
-##         systTemplateMorphPdf_sig = ROOT.VerticalInterpPdf(TemplateName,TemplateName,MorphList_ggZZ_sig,morphVarListggZZ)
-##         TemplateName = "ggZZbkg_Morphed_{0:.0f}_{1:.0f}".format(self.channel,self.sqrts)
-##         systTemplateMorphPdf_bkg = ROOT.VerticalInterpPdf(TemplateName,TemplateName,MorphList_ggZZ_bkg,morphVarListggZZ)
-        #ggZZpdf = ROOT.RooRealSumPdf(ggZZpdfName,ggZZpdfName,ROOT.RooArgList(systTemplateMorphPdf_sig,systTemplateMorphPdf_interf,systTemplateMorphPdf_bkg),ROOT.RooArgList(sigRatesNorm,interfRatesNorm,bkgRatesNorm))
+
+        asympowname = "kappalow_ggZZ_QCD_{0:.0f}_{1:.0f}".format(self.channel,self.sqrts)
+        kappalow = ROOT.RooRealVar(asympowname,asympowname,totalRateDown/totalRate_ggzz)#kappalow = ROOT.RooRealVar(asympowname,asympowname,rateSignal_Down+rateBkg_Down-rateInterf_Down)
+        asympowname = "kappahigh_ggZZ_QCD_{0:.0f}_{1:.0f}".format(self.channel,self.sqrts)
+        kappahigh = ROOT.RooRealVar(asympowname,asympowname,totalRateUp/totalRate_ggzz)#kappahigh = ROOT.RooRealVar(asympowname,asympowname,rateSignal_Up+rateBkg_Up-rateInterf_Up)        
+        asympowname = "Asympow_ggZZ_QCD_{0:.0f}_{1:.0f}".format(self.channel,self.sqrts)
+        thetaSyst_ggZZ = AsymPow(asympowname,asympowname,kappalow,kappahigh,CMS_zz4l_APscale_syst)
+
+        ## -------------------------- SHAPE Systematic 2 ---------------------------------- ##
+
+        #Up Systematics pdf
+        TemplateName = "ggZZsignal_TempDataHist_Up_pdf_{0:.0f}_{1:.0f}".format(self.channel,self.sqrts)
+        PdfName = "ggZZsignal_TemplatePdf_Up_pdf_{0:.0f}_{1:.0f}".format(self.channel,self.sqrts)
+        if self.dimensions > 1 :
+            ggZZsignal_TempDataHist_Up_pdf = ROOT.RooDataHist(TemplateName,TemplateName,ROOT.RooArgList(CMS_zz4l_widthMass,CMS_zz4l_widthKD),Sig_T_2_Up)
+            ggZZsignal_TemplatePdf_Up_pdf = ROOT.RooHistFunc(PdfName,PdfName,ROOT.RooArgSet(CMS_zz4l_widthMass,CMS_zz4l_widthKD),ggZZsignal_TempDataHist_Up_pdf)
+        elif self.dimensions ==1  :
+            ggZZsignal_TempDataHist_Up_pdf = ROOT.RooDataHist(TemplateName,TemplateName,ROOT.RooArgList(CMS_zz4l_widthMass),Sig_T_2_Up.ProjectionX())
+            ggZZsignal_TemplatePdf_Up_pdf = ROOT.RooHistFunc(PdfName,PdfName,ROOT.RooArgSet(CMS_zz4l_widthMass),ggZZsignal_TempDataHist_Up_pdf)
+        elif self.dimensions ==0 :
+            ggZZsignal_TempDataHist_Up_pdf = ROOT.RooDataHist(TemplateName,TemplateName,ROOT.RooArgList(CMS_zz4l_widthKD),Sig_T_2_Up.ProjectionY())
+            ggZZsignal_TemplatePdf_Up_pdf = ROOT.RooHistFunc(PdfName,PdfName,ROOT.RooArgSet(CMS_zz4l_widthKD),ggZZsignal_TempDataHist_Up_pdf)
+            
+        TemplateName = "ggZZbkg_TempDataHist_Up_pdf_{0:.0f}_{1:.0f}".format(self.channel,self.sqrts)
+        PdfName = "ggZZbkg_TemplatePdf_Up_pdf_{0:.0f}_{1:.0f}".format(self.channel,self.sqrts)
+        if self.dimensions > 1 :
+            ggZZbkg_TempDataHist_Up_pdf = ROOT.RooDataHist(TemplateName,TemplateName,ROOT.RooArgList(CMS_zz4l_widthMass,CMS_zz4l_widthKD),Sig_T_1_Up)
+            ggZZbkg_TemplatePdf_Up_pdf = ROOT.RooHistFunc(PdfName,PdfName,ROOT.RooArgSet(CMS_zz4l_widthMass,CMS_zz4l_widthKD),ggZZbkg_TempDataHist_Up_pdf)
+        elif self.dimensions ==1  :
+            ggZZbkg_TempDataHist_Up_pdf = ROOT.RooDataHist(TemplateName,TemplateName,ROOT.RooArgList(CMS_zz4l_widthMass),Sig_T_1_Up.ProjectionX())
+            ggZZbkg_TemplatePdf_Up_pdf = ROOT.RooHistFunc(PdfName,PdfName,ROOT.RooArgSet(CMS_zz4l_widthMass),ggZZbkg_TempDataHist_Up_pdf)
+        elif self.dimensions ==0  :
+            ggZZbkg_TempDataHist_Up_pdf = ROOT.RooDataHist(TemplateName,TemplateName,ROOT.RooArgList(CMS_zz4l_widthKD),Sig_T_1_Up.ProjectionY())
+            ggZZbkg_TemplatePdf_Up_pdf = ROOT.RooHistFunc(PdfName,PdfName,ROOT.RooArgSet(CMS_zz4l_widthKD),ggZZbkg_TempDataHist_Up_pdf)
+        
+        TemplateName = "ggZZinterf_TempDataHist_Up_pdf_{0:.0f}_{1:.0f}".format(self.channel,self.sqrts)
+        PdfName = "ggZZinterf_TemplatePdf_Up_pdf_{0:.0f}_{1:.0f}".format(self.channel,self.sqrts)
+        if self.dimensions > 1 :   
+            ggZZinterf_TempDataHist_Up_pdf = ROOT.RooDataHist(TemplateName,TemplateName,ROOT.RooArgList(CMS_zz4l_widthMass,CMS_zz4l_widthKD),Sig_T_4_Up)
+            ggZZinterf_TemplatePdf_Up_pdf = ROOT.RooHistFunc(PdfName,PdfName,ROOT.RooArgSet(CMS_zz4l_widthMass,CMS_zz4l_widthKD),ggZZinterf_TempDataHist_Up_pdf)
+        if self.dimensions == 1 :   
+            ggZZinterf_TempDataHist_Up_pdf = ROOT.RooDataHist(TemplateName,TemplateName,ROOT.RooArgList(CMS_zz4l_widthMass),Sig_T_4_Up.ProjectionX())
+            ggZZinterf_TemplatePdf_Up_pdf = ROOT.RooHistFunc(PdfName,PdfName,ROOT.RooArgSet(CMS_zz4l_widthMass),ggZZinterf_TempDataHist_Up_pdf)            
+        if self.dimensions == 0 :   
+            ggZZinterf_TempDataHist_Up_pdf = ROOT.RooDataHist(TemplateName,TemplateName,ROOT.RooArgList(CMS_zz4l_widthKD),Sig_T_4_Up.ProjectionY())
+            ggZZinterf_TemplatePdf_Up_pdf = ROOT.RooHistFunc(PdfName,PdfName,ROOT.RooArgSet(CMS_zz4l_widthKD),ggZZinterf_TempDataHist_Up_pdf)
+
+        ggZZpdfName = "ggZZ_RooWidth_Up_pdf_{0:.0f}_{1:.0f}".format(self.channel,self.sqrts)
+        ggZZpdf_Up_pdf = ROOT.RooRealSumPdf(ggZZpdfName,ggZZpdfName,ROOT.RooArgList(ggZZsignal_TemplatePdf_Up_pdf,ggZZinterf_TemplatePdf_Up_pdf,ggZZbkg_TemplatePdf_Up_pdf),ROOT.RooArgList(sigRatesNorm,interfRatesNorm,bkgRatesNorm))
+
+        #Down Systematics pdf        
+        TemplateName = "ggZZsignal_TempDataHist_Down_pdf_{0:.0f}_{1:.0f}".format(self.channel,self.sqrts)
+        PdfName = "ggZZsignal_TemplatePdf_Down_pdf_{0:.0f}_{1:.0f}".format(self.channel,self.sqrts)
+        if self.dimensions > 1 :
+            ggZZsignal_TempDataHist_Down_pdf = ROOT.RooDataHist(TemplateName,TemplateName,ROOT.RooArgList(CMS_zz4l_widthMass,CMS_zz4l_widthKD),Sig_T_2_Down)
+            ggZZsignal_TemplatePdf_Down_pdf = ROOT.RooHistFunc(PdfName,PdfName,ROOT.RooArgSet(CMS_zz4l_widthMass,CMS_zz4l_widthKD),ggZZsignal_TempDataHist_Down_pdf)
+        elif self.dimensions ==1  :
+            ggZZsignal_TempDataHist_Down_pdf = ROOT.RooDataHist(TemplateName,TemplateName,ROOT.RooArgList(CMS_zz4l_widthMass),Sig_T_2_Down.ProjectionX())
+            ggZZsignal_TemplatePdf_Down_pdf = ROOT.RooHistFunc(PdfName,PdfName,ROOT.RooArgSet(CMS_zz4l_widthMass),ggZZsignal_TempDataHist_Down_pdf)
+        elif self.dimensions ==0 :
+            ggZZsignal_TempDataHist_Down_pdf = ROOT.RooDataHist(TemplateName,TemplateName,ROOT.RooArgList(CMS_zz4l_widthKD),Sig_T_2_Down.ProjectionY())
+            ggZZsignal_TemplatePdf_Down_pdf = ROOT.RooHistFunc(PdfName,PdfName,ROOT.RooArgSet(CMS_zz4l_widthKD),ggZZsignal_TempDataHist_Down_pdf)
+            
+        TemplateName = "ggZZbkg_TempDataHist_Down_pdf_{0:.0f}_{1:.0f}".format(self.channel,self.sqrts)
+        PdfName = "ggZZbkg_TemplatePdf_Down_pdf_{0:.0f}_{1:.0f}".format(self.channel,self.sqrts)
+        if self.dimensions > 1 :
+            ggZZbkg_TempDataHist_Down_pdf = ROOT.RooDataHist(TemplateName,TemplateName,ROOT.RooArgList(CMS_zz4l_widthMass,CMS_zz4l_widthKD),Sig_T_1_Down)
+            ggZZbkg_TemplatePdf_Down_pdf = ROOT.RooHistFunc(PdfName,PdfName,ROOT.RooArgSet(CMS_zz4l_widthMass,CMS_zz4l_widthKD),ggZZbkg_TempDataHist_Down_pdf)
+        elif self.dimensions ==1  :
+            ggZZbkg_TempDataHist_Down_pdf = ROOT.RooDataHist(TemplateName,TemplateName,ROOT.RooArgList(CMS_zz4l_widthMass),Sig_T_1_Down.ProjectionX())
+            ggZZbkg_TemplatePdf_Down_pdf = ROOT.RooHistFunc(PdfName,PdfName,ROOT.RooArgSet(CMS_zz4l_widthMass),ggZZbkg_TempDataHist_Down_pdf)
+        elif self.dimensions ==0  :
+            ggZZbkg_TempDataHist_Down_pdf = ROOT.RooDataHist(TemplateName,TemplateName,ROOT.RooArgList(CMS_zz4l_widthKD),Sig_T_1_Down.ProjectionY())
+            ggZZbkg_TemplatePdf_Down_pdf = ROOT.RooHistFunc(PdfName,PdfName,ROOT.RooArgSet(CMS_zz4l_widthKD),ggZZbkg_TempDataHist_Down_pdf)
+        
+        TemplateName = "ggZZinterf_TempDataHist_Down_pdf_{0:.0f}_{1:.0f}".format(self.channel,self.sqrts)
+        PdfName = "ggZZinterf_TemplatePdf_Down_pdf_{0:.0f}_{1:.0f}".format(self.channel,self.sqrts)
+        if self.dimensions > 1 :   
+            ggZZinterf_TempDataHist_Down_pdf = ROOT.RooDataHist(TemplateName,TemplateName,ROOT.RooArgList(CMS_zz4l_widthMass,CMS_zz4l_widthKD),Sig_T_4_Down)
+            ggZZinterf_TemplatePdf_Down_pdf = ROOT.RooHistFunc(PdfName,PdfName,ROOT.RooArgSet(CMS_zz4l_widthMass,CMS_zz4l_widthKD),ggZZinterf_TempDataHist_Down_pdf)
+        if self.dimensions == 1 :   
+            ggZZinterf_TempDataHist_Down_pdf = ROOT.RooDataHist(TemplateName,TemplateName,ROOT.RooArgList(CMS_zz4l_widthMass),Sig_T_4_Down.ProjectionX())
+            ggZZinterf_TemplatePdf_Down_pdf = ROOT.RooHistFunc(PdfName,PdfName,ROOT.RooArgSet(CMS_zz4l_widthMass),ggZZinterf_TempDataHist_Down_pdf)            
+        if self.dimensions == 0 :   
+            ggZZinterf_TempDataHist_Down_pdf = ROOT.RooDataHist(TemplateName,TemplateName,ROOT.RooArgList(CMS_zz4l_widthKD),Sig_T_4_Down.ProjectionY())
+            ggZZinterf_TemplatePdf_Down_pdf = ROOT.RooHistFunc(PdfName,PdfName,ROOT.RooArgSet(CMS_zz4l_widthKD),ggZZinterf_TempDataHist_Down_pdf)
+
+        ggZZpdfName = "ggZZ_RooWidth_Down_pdf_{0:.0f}_{1:.0f}".format(self.channel,self.sqrts)
+        ggZZpdf_Down_pdf = ROOT.RooRealSumPdf(ggZZpdfName,ggZZpdfName,ROOT.RooArgList(ggZZsignal_TemplatePdf_Down_pdf,ggZZinterf_TemplatePdf_Down_pdf,ggZZbkg_TemplatePdf_Down_pdf),ROOT.RooArgList(sigRatesNorm,interfRatesNorm,bkgRatesNorm))
+
+
+        #CMS_zz4l_pdf_gg_syst = ROOT.RooRealVar("pdf_gg","pdf_gg",0.0,-1,1)
+        CMS_zz4l_pdf_gg_syst = w.factory("pdf_gg[-7,7]")
+        morphVarListggZZ.add(CMS_zz4l_pdf_gg_syst)
+        MorphList_ggZZ.add(ggZZpdf_Up_pdf)
+        MorphList_ggZZ.add(ggZZpdf_Down_pdf)
         
         ggZZpdf = ROOT.VerticalInterpPdf("ggzz","ggzz",MorphList_ggZZ,morphVarListggZZ)
         #ggZZpdf = ggZZpdf_Nominal
         
 
-        asympowname = "kappalow_ggZZ_{0:.0f}_{1:.0f}".format(self.channel,self.sqrts)
-        kappalow = ROOT.RooRealVar(asympowname,asympowname,totalRateDown/totalRate_ggzz)#kappalow = ROOT.RooRealVar(asympowname,asympowname,rateSignal_Down+rateBkg_Down-rateInterf_Down)
-        asympowname = "kappahigh_ggZZ_{0:.0f}_{1:.0f}".format(self.channel,self.sqrts)
-        kappahigh = ROOT.RooRealVar(asympowname,asympowname,totalRateUp/totalRate_ggzz)#kappahigh = ROOT.RooRealVar(asympowname,asympowname,rateSignal_Up+rateBkg_Up-rateInterf_Up)        
-        asympowname = "Asympow_ggZZ_{0:.0f}_{1:.0f}".format(self.channel,self.sqrts)
-        thetaSyst_ggZZ = AsymPow(asympowname,asympowname,kappalow,kappahigh,CMS_zz4l_APscale_syst)
+        asympowname = "kappalow_ggZZ_pdf_{0:.0f}_{1:.0f}".format(self.channel,self.sqrts)
+        kappalow_pdf = ROOT.RooRealVar(asympowname,asympowname,totalRateDown_pdf/totalRate_ggzz)
+        asympowname = "kappahigh_ggZZ_pdf_{0:.0f}_{1:.0f}".format(self.channel,self.sqrts)
+        kappahigh_pdf = ROOT.RooRealVar(asympowname,asympowname,totalRateUp_pdf/totalRate_ggzz)    
+        asympowname = "Asympow_ggZZ_pdf_{0:.0f}_{1:.0f}".format(self.channel,self.sqrts)
+        thetaSyst_ggZZ_pdf = AsymPow(asympowname,asympowname,kappalow_pdf,kappahigh_pdf,CMS_zz4l_pdf_gg_syst)
 
 
          ## -------------------------- VBF offshell SHAPES ---------------------------------- ##
@@ -893,8 +983,9 @@ class width_datacardClass:
         
         bkg_qqzz_mass_temp = ROOT.RooqqZZPdf_v2("bkg_qqzz_mass_temp","bkg_qqzz_mass_temp",CMS_zz4l_widthMass,CMS_qqzzbkg_a0,CMS_qqzzbkg_a1,CMS_qqzzbkg_a2,CMS_qqzzbkg_a3,CMS_qqzzbkg_a4,CMS_qqzzbkg_a5,CMS_qqzzbkg_a6,CMS_qqzzbkg_a7,CMS_qqzzbkg_a8,CMS_qqzzbkg_a9,CMS_qqzzbkg_a10,CMS_qqzzbkg_a11,CMS_qqzzbkg_a12,CMS_qqzzbkg_a13)
 
-        qqZZ_Scale_Syst = ROOT.RooRealVar("CMS_QCDscale_VV","CMS_QCDscale_VV",0.0,-3,3)
+        #qqZZ_Scale_Syst = ROOT.RooRealVar("QCDscale_VV","QCDscale_VV",0.0,-3,3)
         #qqZZ_Scale_Syst.setConstant(True)
+        qqZZ_Scale_Syst = w.factory("QCDscale_VV[-7,7]")
         bkg_qqzz_syst_shape = ROOT.RooGenericPdf("bkg_qqzz_syst_shape","TMath::Max(1+@0*(@1-1+@2*@4+@3*@4*@4),0.)",ROOT.RooArgList(qqZZ_Scale_Syst,CMS_qqzzbkg_p0,CMS_qqzzbkg_p1,CMS_qqzzbkg_p2,CMS_zz4l_widthMass))
         bkg_qqzz_mass = ROOT.RooProdPdf("bkg_qqzz_mass","bkg_qqzz_mass",bkg_qqzz_mass_temp,bkg_qqzz_syst_shape)
 
@@ -1291,14 +1382,10 @@ class width_datacardClass:
         if (endsInP5): name_ShapeWS = "{0}/HCG/{1:.1f}/hzz4l_{2}S_{3:.0f}TeV.input.root".format(self.outputDir,self.low_M,self.appendName,self.sqrts)
         else: name_ShapeWS = "{0}/HCG/{1:.0f}/hzz4l_{2}S_{3:.0f}TeV.input.root".format(self.outputDir,self.low_M,self.appendName,self.sqrts)
         
-        if (endsInP5): name_ShapeWSXSBR = "{0}/HCG_XSxBR/{1:.1f}/hzz4l_{2}S_{3:.0f}TeV.input.root".format(self.outputDir,self.low_M,self.appendName,self.sqrts)
-        else: name_ShapeWSXSBR = "{0}/HCG_XSxBR/{1:.0f}/hzz4l_{2}S_{3:.0f}TeV.input.root".format(self.outputDir,self.low_M,self.appendName,self.sqrts)
         
         name_ShapeWS2 = "hzz4l_{0}S_{1:.0f}TeV.input.root".format(self.appendName,self.sqrts)
 
         if(DEBUG): print name_Shape,"  ",name_ShapeWS2
-        
-        w = ROOT.RooWorkspace("w","w")
         
         w.importClassCode(RooqqZZPdf_v2.Class(),True)
 ##        w.importClassCode(RooggZZPdf_v2.Class(),True)
@@ -1332,13 +1419,13 @@ class width_datacardClass:
         #w.factory("EXPR::ggzz('ggzz_nominal*(one+ggzz_CMS_zz4l_scale_systUp*CMS_zz4l_syst)',one[1],ggzz_nominal,ggzz_CMS_zz4l_scale_systUp,CMS_zz4l_syst)")
         
         ggZZpdfNormName = "ggZZ_RooWidth_{0:.0f}_{1:.0f}_norm".format(self.channel,self.sqrts)
-        #ggZZpdf_norm = ROOT.RooFormulaVar(ggZZpdfNormName,"@0*@3*@4-@1*sqrt(@3*@4)*sign(@5)*sqrt(abs(@5))+@2*@5",ROOT.RooArgList(sigRates,interfRates,bkgRates,x,mu,kbkg))
-        ggZZpdf_norm = ROOT.RooFormulaVar(ggZZpdfNormName,"(@0*@3*@4-@1*sqrt(@3*@4)*sign(@5)*sqrt(abs(@5))+@2*@5)*@6",ROOT.RooArgList(sigRates,interfRates,bkgRates,x,mu,kbkg,thetaSyst_ggZZ))
+        #ggZZpdf_norm = ROOT.RooFormulaVar(ggZZpdfNormName,"@0*@3*@7*@4-@1*sqrt(@3*@7*@4)*sign(@5)*sqrt(abs(@5))+@2*@5",ROOT.RooArgList(sigRates,interfRates,bkgRates,x,mu,kbkg,muF))
+        ggZZpdf_norm = ROOT.RooFormulaVar(ggZZpdfNormName,"(@0*@3*@7*@4-@1*sqrt(@3*@7*@4)*sign(@5)*sqrt(abs(@5))+@2*@5)*@6",ROOT.RooArgList(sigRates,interfRates,bkgRates,x,mu,kbkg,thetaSyst_ggZZ,muF))
         ggZZpdf_norm.SetNameTitle("ggzz_norm","ggzz_norm")
         getattr(w,'import')(ggZZpdf_norm, ROOT.RooFit.RecycleConflictNodes())
 
         VBFpdfNormName = "VBF_RooWidth_{0:.0f}_{1:.0f}_norm".format(self.channel,self.sqrts)
-        VBFpdf_norm = ROOT.RooFormulaVar(VBFpdfNormName,"(@0*@3*@4-@1*sqrt(@3*@4)+@2)*@5",ROOT.RooArgList(VBFsigRates,VBFinterfRates,VBFbkgRates,x,mu,thetaSyst_VBF))
+        VBFpdf_norm = ROOT.RooFormulaVar(VBFpdfNormName,"(@0*@3*@6*@4-@1*sqrt(@3*@6*@4)+@2)*@5",ROOT.RooArgList(VBFsigRates,VBFinterfRates,VBFbkgRates,x,mu,thetaSyst_VBF,muV))
         VBFpdf_norm.SetNameTitle("vbf_offshell_norm","vbf_offshell_norm")
         getattr(w,'import')(VBFpdf_norm, ROOT.RooFit.RecycleConflictNodes())
 
@@ -1357,7 +1444,6 @@ class width_datacardClass:
         getattr(w,'import')(bkg_zjets, ROOT.RooFit.RecycleConflictNodes())
   
         w.writeToFile(name_ShapeWS)
-        w.writeToFile(name_ShapeWSXSBR)
         
         ## --------------------------- DATACARDS -------------------------- ##
 
@@ -1410,19 +1496,6 @@ class width_datacardClass:
         fo.close()
         print "GOT HERE"
         
-
-        ## forXSxBR
-
-        if (endsInP5): name_Shape = "{0}/HCG_XSxBR/{2:.1f}/hzz4l_{1}S_{3:.0f}TeV.txt".format(self.outputDir,self.appendName,self.low_M,self.sqrts)	
-        else: name_Shape = "{0}/HCG_XSxBR/{2:.0f}/hzz4l_{1}S_{3:.0f}TeV.txt".format(self.outputDir,self.appendName,self.low_M,self.sqrts)
-            
-        fo = open( name_Shape, "wb" )
-
-        self.WriteDatacard(fo, theInputs,name_ShapeWS2, rates, data_obs.numEntries())
-        
-        systematics_forXSxBR.WriteSystematics(fo, theInputs)
-        systematics_forXSxBR.WriteShapeSystematics(fo,theInputs)
-        fo.close()
         
 
 
