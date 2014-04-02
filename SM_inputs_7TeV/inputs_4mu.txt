@@ -13,7 +13,8 @@ systematic lumiUnc 1.022
 sqrts 7
 
 ## Channels to include in cards ##
-channels ggH qqH WH ZH ttH qqZZ ggZZ zjets
+#channels ggH qqH WH ZH ttH qqZZ ggZZ zjets
+channels ggZZ VBF_offshell qqZZ zjets
 
 ## rates --- format = chan N lumi ##
 ## if lumi is blank, lumi for cards used ##
