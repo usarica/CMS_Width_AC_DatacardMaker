@@ -1,0 +1,117 @@
+Mass: 125
+Energy: 7
+Channel: 4mu
+Untagged
+ggH: 1.03013
+qqH: 0.0501882
+ttH: 9.55826e-05
+WH: 0.0187703
+ZH: 0.0141947
+observation 3 
+process ggH qqH WH ZH ttH bkg2d_qqzz bkg2d_ggzz bkg2d_zjets 
+rate 1.0000 1.0000 1.0000 1.0000 1.0000 1.7139 0.0280 0.1784 
+Tagged
+ggH: 0.0893842
+qqH: 0.0553091
+ttH: 0.00408747
+WH: 0.0132106
+ZH: 0.00953715
+observation 0 
+process ggH qqH WH ZH ttH bkg2d_qqzz bkg2d_ggzz bkg2d_zjets 
+rate 1.0000 1.0000 1.0000 1.0000 1.0000 0.0833 0.0019 0.0446 
+Channel: 4e
+Untagged
+ggH: 0.572728
+qqH: 0.0280735
+ttH: 6.74672e-05
+WH: 0.0106018
+ZH: 0.00783334
+observation 1 
+process ggH qqH WH ZH ttH bkg2d_qqzz bkg2d_ggzz bkg2d_zjets 
+rate 1.0000 1.0000 1.0000 1.0000 1.0000 0.7990 0.0153 0.4981 
+Tagged
+ggH: 0.0527659
+qqH: 0.031248
+ttH: 0.00242283
+WH: 0.00758708
+ZH: 0.00539711
+observation 0 
+process ggH qqH WH ZH ttH bkg2d_qqzz bkg2d_ggzz bkg2d_zjets 
+rate 1.0000 1.0000 1.0000 1.0000 1.0000 0.0396 0.0011 0.1245 
+Channel: 2e2mu
+Untagged
+ggH: 1.36638
+qqH: 0.0686553
+ttH: 0.000166105
+WH: 0.0282725
+ZH: 0.0212484
+observation 5 
+process ggH qqH WH ZH ttH bkg2d_qqzz bkg2d_ggzz bkg2d_zjets 
+rate 1.0000 1.0000 1.0000 1.0000 1.0000 2.1448 0.0331 0.8502 
+Tagged
+ggH: 0.12217
+qqH: 0.0770877
+ttH: 0.00629153
+WH: 0.019856
+ZH: 0.0146619
+observation 1 
+process ggH qqH WH ZH ttH bkg2d_qqzz bkg2d_ggzz bkg2d_zjets 
+rate 1.0000 1.0000 1.0000 1.0000 1.0000 0.1008 0.0023 0.2126 
+Energy: 8
+Channel: 4mu
+Untagged
+ggH: 4.80249
+qqH: 0.210443
+ttH: 0.000484986
+WH: 0.0808943
+ZH: 0.0627292
+observation 14 
+process ggH qqH WH ZH ttH bkg2d_qqzz bkg2d_ggzz bkg2d_zjets 
+rate 1.0000 1.0000 1.0000 1.0000 1.0000 7.2165 0.1431 0.9503 
+Tagged
+ggH: 0.519182
+qqH: 0.264233
+ttH: 0.0236731
+WH: 0.0624923
+ZH: 0.0472409
+observation 2 
+process ggH qqH WH ZH ttH bkg2d_qqzz bkg2d_ggzz bkg2d_zjets 
+rate 1.0000 1.0000 1.0000 1.0000 1.0000 0.4313 0.0122 0.2376 
+Channel: 4e
+Untagged
+ggH: 2.4727
+qqH: 0.108409
+ttH: 0.000304028
+WH: 0.0422846
+ZH: 0.031471
+observation 8 
+process ggH qqH WH ZH ttH bkg2d_qqzz bkg2d_ggzz bkg2d_zjets 
+rate 1.0000 1.0000 1.0000 1.0000 1.0000 2.7660 0.0708 2.2141 
+Tagged
+ggH: 0.274274
+qqH: 0.14084
+ttH: 0.0131979
+WH: 0.0335153
+ZH: 0.0240846
+observation 1 
+process ggH qqH WH ZH ttH bkg2d_qqzz bkg2d_ggzz bkg2d_zjets 
+rate 1.0000 1.0000 1.0000 1.0000 1.0000 0.1704 0.0060 0.5535 
+Channel: 2e2mu
+Untagged
+ggH: 6.18605
+qqH: 0.275669
+ttH: 0.000871429
+WH: 0.116855
+ZH: 0.0890391
+observation 13 
+process ggH qqH WH ZH ttH bkg2d_qqzz bkg2d_ggzz bkg2d_zjets 
+rate 1.0000 1.0000 1.0000 1.0000 1.0000 8.3541 0.1731 3.4344 
+Tagged
+ggH: 0.688613
+qqH: 0.3514
+ttH: 0.0348824
+WH: 0.0909939
+ZH: 0.0666925
+observation 3 
+process ggH qqH WH ZH ttH bkg2d_qqzz bkg2d_ggzz bkg2d_zjets 
+rate 1.0000 1.0000 1.0000 1.0000 1.0000 0.5044 0.0150 0.8586 
