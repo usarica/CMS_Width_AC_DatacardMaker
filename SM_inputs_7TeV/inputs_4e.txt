@@ -18,7 +18,7 @@ channels ggZZ VBF_offshell qqZZ zjets
 
 ## rates --- format = chan N lumi ##
 ## if lumi is blank, lumi for cards used ##
-rate qqZZ  13.19
+rate qqZZ 6.71628
 rate ggZZ  0.937864
 rate zjets 1.37
 
