@@ -18,7 +18,7 @@ channels ggZZ VBF_offshell qqZZ zjets
 
 ## rates --- format = chan N lumi ##
 ## if lumi is blank, lumi for cards used ##
-rate qqZZ  33.1946
+rate qqZZ  31.22
 rate ggZZ  2.22536
 rate zjets 2.29
 
@@ -96,21 +96,20 @@ signalEff ttHg2  0
 signalEff ttHg3  1
 
 ### background functions ###
-qqZZshape a0_bkgd   110.356
-qqZZshape a1_bkgd   12.3282
-qqZZshape a2_bkgd   117.432
-qqZZshape a3_bkgd   0.0428989
-qqZZshape a4_bkgd   185.123
-qqZZshape a5_bkgd   10.3705
-qqZZshape a6_bkgd   29.4263
-qqZZshape a7_bkgd   0.0839611
-qqZZshape a8_bkgd   53.6076
-qqZZshape a9_bkgd   0.089579
-qqZZshape a10_bkgd  85.3175
-qqZZshape a11_bkgd  -13.3708
-qqZZshape a12_bkgd  38.3368
-qqZZshape a13_bkgd  0.315673
-
+qqZZshape a0_bkgd   109.668
+qqZZshape a1_bkgd   11.119
+qqZZshape a2_bkgd   118.048
+qqZZshape a3_bkgd   0.0432513
+qqZZshape a4_bkgd   185.088
+qqZZshape a5_bkgd   9.19723
+qqZZshape a6_bkgd   31.9686
+qqZZshape a7_bkgd   0.0820995
+qqZZshape a8_bkgd   51.1886
+qqZZshape a9_bkgd   0.0878471
+qqZZshape a10_bkgd  86.0879
+qqZZshape a11_bkgd  -13.6994
+qqZZshape a12_bkgd  8201.8
+qqZZshape a13_bkgd  0.374843
 
 ggZZshape a0_bkgd  141.681
 ggZZshape a1_bkgd  42.5332

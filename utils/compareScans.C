@@ -1,11 +1,14 @@
 void compareScans(){
   gStyle->SetOptTitle(0);
-  const int nfiles = 2;
+  const int nfiles = 6;
+  TString files[]={"../../SVN_AFTERFIX/hzz4l/","../../SVN_AFTERFIX/hzz4l/","../../7and8TeVwidth/zz_lowhigh_mu/","../../7and8TeVwidth/zz_lowhigh_mu/","../../7and8TeVwidth/zz_lowhigh_muVmuF/","../../7and8TeVwidth/zz_lowhigh_muVmuF/"};
   //TString files[]={"cards_03_17_lowRscan2D_093/HCG/220_all/","cards_03_17_Moriond_093_2D/HCG/220_0.25/","cards_03_17_Moriond_093_2D/HCG/220_0.47/","cards_03_17_Moriond_093_2D/HCG/220_0.5/","cards_03_17_Moriond_093_2D/HCG/220_0.75/","cards_03_17_Moriond_093_2D/HCG/220_1/"};
+  //TString files[]={"cards_03_17_Moriond_093_1DDgg/HCG/220/","cards_03_17_Moriond_093_1Dm4l/HCG/220/","cards_03_17_Moriond_093_2D/HCG/220/","cards_03_17_Moriond_093_1DDgg/HCG/220/","cards_03_17_Moriond_093_1Dm4l/HCG/220/","cards_03_17_Moriond_093_2D/HCG/220/","cards_03_17_Moriond_093_2D/HCG/220/","cards_03_17_Moriond_1_2D/HCG/220_noSyst/","cards_03_17_Moriond_1_2D/HCG/220/"}//Unblind
+  //TString files[]={"cards_03_17_Moriond_093_2D/HCG/220/","cards_03_17_Moriond_093_2D/HCG/220_postFit/"};
   //Combined 4l-2l2n
   //TString files[]={"cards_03_17_Combined/HCG/220/","cards_03_17_Combined/HCG/220/","cards_03_17_Combined/HCG/220_1/","cards_03_17_Combined/HCG/220_noSyst/"};
   //2D fits
-  TString files[]={"cards_03_17_Moriond_093_2D/HCG/220/","cards_03_17_Moriond_093_2D/HCG/220/","cards_03_17_Moriond_1_2D/HCG/220/","cards_03_17_Moriond_1_2D/HCG/220_noSyst/"}
+  //TString files[]={"cards_03_17_Moriond_093_2D/HCG/220/","cards_03_17_Moriond_093_2D/HCG/220/","cards_03_17_Moriond_1_2D/HCG/220/","cards_03_17_Moriond_1_2D/HCG/220_noSyst/"}
   //TString files[]={"cards_03_17_Moriond_093_2D/HCG/220/","cards_03_17_Moriond_093_2D/HCG/220/","cards_03_17_Moriond_093_2D/HCG/220/","cards_03_17_Moriond_1_2D/HCG/220_noSyst/"}
   //TString files[]={"cards_03_17_Moriond_093_2D/HCG/220/","cards_03_17_Moriond_1_2D/HCG/220/","cards_03_17_Moriond_093_2D/HCG/220/","cards_03_17_Moriond_1_2D/HCG/220_noSyst/","cards_03_17_Moriond_1_2D/HCG/220/"}//Unblind
   //TString files[]={"cards_03_05_Unblind_2D/HCG/220/","cards_03_05_Unblind_093_2D/HCG/220/","cards_03_05_Unblind_2D/HCG/220_noSyst/","cards_03_05_Unblind_2D/HCG/220/"}//Unblind
@@ -28,17 +31,19 @@ void compareScans(){
   //TString files[]={"cards_03_11_Approval_093_2D/HCG/220_all/","cards_03_11_13TeV_2013lumi_093_2D/HCG/220/","cards_03_11_13TeV_100fblumi_093_2D/HCG/220/"};
   //TString files[]={"cards_03_11_Approval_093_2D/HCG/220_all/","cards_03_11_8TeV_100fblumi_093_2D/HCG/220/","cards_03_11_8TeV_300fblumi_093_2D/HCG/220/","cards_03_11_8TeV_3000fblumi_093_2D/HCG/220/"};
 
-  int colors[]={kBlack,kBlack,kRed+1,kBlue,kGreen+2,kBlack,kRed+1,kBlue,kGreen+2,kYellow+2,kYellow+2,kYellow+3,kBlack,kBlue,kRed+1,kGreen+2};
+  //int colors[]={kBlack,kBlack,kRed+1,kBlue,kGreen+2,kBlack,kRed+1,kBlue,kGreen+2,kYellow+2,kYellow+2,kYellow+3,kBlack,kBlue,kRed+1,kGreen+2};
   //int colors[]={kBlack,kRed+1,kBlue,kGreen+2,kBlack,kRed+1,kBlue,kGreen+2,kYellow+2,kYellow+2,kYellow+3,kBlack,kBlue,kRed+1,kGreen+2};
   //int colors[]={kBlack,kRed+1,kBlue,kBlack,kRed+1,kBlue,kGreen+2,kYellow+2,kYellow+2,kYellow+3,kBlack,kBlue,kRed+1,kGreen+2};
   //int colors[]={kBlack,kBlack,kYellow+2,kYellow+2,kPink-1,kPink-1,kPink-4,kPink-4,kYellow-1,kYellow-1};
   //int colors[]={kBlack,kRed+1,kBlue,kGreen+2,kYellow+2,kYellow+2,kYellow+3,kBlack,kBlue,kRed+1,kGreen+2};
   //int colors[]={kBlack,kTeal-5,kRed,kPink+5,kRed-7,kYellow-1};
   //int colors[]={kRed-7,kRed,kRed+2,kRed+4};
+  int colors[] = {kPink+5,kPink+5,kTeal-5,kTeal-5,kBlack,kBlack};
 
   //fit plots
   //TString grnames[]={"Observed","Expected r=0.25","Expected r=0.47","Expected r=0.5","Expected r=0.75","Expected r=1",};
-  TString grnames[]={"Observed","Expected #mu=#mu_{obs}","Expected #mu=1","Expected #mu=1 w/o syst","Observed #mu=1"};
+  //TString grnames[]={"Observed","Expected #mu=#mu_{obs}","Expected #mu=1","Expected #mu=1 w/o syst","Observed #mu=1"};
+  TString grnames[]={"Moriond Obs #mu=#mu_{obs} (8TeV)","Moriond Exp #mu=#mu_{obs} (8TeV)","low+high Obs #mu float (7+8TeV)","low+high Exp #mu float (7+8TeV)","low+high Obs #mu_{V},#mu_{F} float (7+8TeV)","low+high Exp #mu_{V},#mu_{F} (7+8TeV)"};
   //TString grnames[]={"Expected #mu=#mu_{obs}","Expected #mu=1","Expected #mu=1 w/o syst","Observed #mu=1"};
   //TString grnames[]={"Observed","Expected #mu=#mu_{obs}","Expected #mu=1 w/o syst","Observed #mu=1"};
   //TString grnames[]={"Observed","Expected #mu=#mu_{obs}","Expected #mu=#mu_{obs} w/o syst","Observed #mu=1"};
@@ -55,11 +60,14 @@ void compareScans(){
 
   //TString plotLabel = "H#rightarrow ZZ#rightarrow 4l+2l2#nu";
   TString plotLabel = "H#rightarrow ZZ#rightarrow 4l";
+  //TString plotLabel = "H#rightarrow ZZ#rightarrow 4l_{low}+4l_{high}+2l2#nu_{high}";
+
   TString toyPlotname = "toyParallel2D_093_95/toPlot.root";
   //TFile toyPlotFile = "toPlot";
+
   //tell this flag which are obsered
-  bool obs[] = {1,0,0,0,0,0,0,0,1,1,0};
-  int mass = 220;
+  bool obs[] = {1,0,1,0,1,0};
+  double mass[] = {220.0,220.0,125.6,125.6,125.6,125.6};
   int maxwidth = 30.0;
   bool mev=true;
   bool printpval=false;
@@ -126,7 +134,7 @@ void compareScans(){
     if(obs[i])obsString="obs";
     int nDi =2;
     //printf("%d\n",i);
-    sprintf(boh,"%shiggsCombine%dD_%s.MultiDimFit.mH%d.root", files[i].Data(),nDi,obsString.Data(),mass);
+    sprintf(boh,"%shiggsCombine%dD_%s.MultiDimFit.mH%.1f.root", files[i].Data(),nDi,obsString.Data(),mass[i]);
     TFile *f1=TFile::Open(boh);
     TTree *t1=(TTree*)f1->Get("limit");
     t1->Draw("2*deltaNLL:CMS_zz4l_GGsm", "deltaNLL > 0","PL");
@@ -183,7 +191,7 @@ void compareScans(){
   g[0]->GetXaxis()->SetTitleSize(0.05);
   g[0]->GetXaxis()->SetLabelSize(0.04);
   g[0]->GetYaxis()->SetLabelSize(0.04);
-  float upLim =12.;
+  float upLim =20.;
   if(gglimit<5)upLim=1.01;
   g[0]->GetYaxis()->SetRangeUser(0.,upLim);//12
   g[0]->GetXaxis()->SetRangeUser(0.,gglimit);
@@ -307,8 +315,8 @@ void compareScans(){
   TString saveString;
   saveString.Form("%s.C",outString.Data());
   c1->SaveAs(saveString.Data());
-  saveString.Form("%s.gif",outString.Data());
-  c1->SaveAs(saveString.Data());
+  //saveString.Form("%s.gif",outString.Data());
+  //c1->SaveAs(saveString.Data());
   saveString.Form("%s.eps",outString.Data());
   c1->SaveAs(saveString.Data());
   saveString.Form("%s.pdf",outString.Data());
