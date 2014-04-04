@@ -1,7 +1,7 @@
 void getQuantiles(TString str = "higgsCombine2D_.ProfileLikelihood.mH220.root")
 {
 
-  float limitObs = 4.8;
+  float limitObs = 6.62; //4.8
   TFile* f = new TFile(str,"OPEN");
   TTree* limit = f->Get("limit");
   double values;
@@ -11,7 +11,7 @@ void getQuantiles(TString str = "higgsCombine2D_.ProfileLikelihood.mH220.root")
   for(int i = 0; i < limit->GetEntries(); i++)
     {
       limit->GetEntry(i);
-      if(values > 0. && values <= 50)
+      if(values > 1. && values <= 50)
 	{
 	  h->Fill(values);
 	}
@@ -35,18 +35,27 @@ void getQuantiles(TString str = "higgsCombine2D_.ProfileLikelihood.mH220.root")
   gr->SetTitle("Quantiles");
   gr->SetMarkerStyle(21);
   gr->Draw("al");
-  
+
   cout << "95: " << gr->Eval(0.025) << " " << gr->Eval(0.975) << endl;
   cout << "68: " << gr->Eval(0.16) << " " << gr->Eval(0.84) << endl;
   cout << "50: " << gr->Eval(0.5)  << endl;
 
   cout<<gr->Eval(0.025)<<","<<gr->Eval(0.16)<<","<<gr->Eval(0.5)<<","<<gr->Eval(0.84)<<","<<gr->Eval(0.975) << endl;
-
+  //  double pval=0;
   for(double p =0; p<1;p=p+0.01){
-    if(gr->Eval(p)>6.62){
+    if(gr->Eval(p)>limitObs){
       cout<<"p-value "<<p<<endl;
-      p=100;
+      //pval=p;
+      break;
     }
   }
-  
+  gStyle->SetOptStat(0);
+  gStyle->SetOptTitle(0);
+  TCanvas *cToPlot = new TCanvas("toPlot","toPlot");
+  cToPlot->cd();
+  h->Draw();
+  h->GetXaxis()->SetRange(3.0,70.0);
+  cToPlot->SaveAs("toPlot.root");
 }
+
+
