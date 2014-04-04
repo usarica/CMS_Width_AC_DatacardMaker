@@ -1030,8 +1030,8 @@ class width_datacardClass:
         bkg_qqzz_norm = AsymPow("qqzz_norm","qqzz_norm",kappalow_qqzz,kappahigh_qqzz,qqZZ_Scale_Syst)
 
         qqZZ_EWK_Syst = w.factory("EWKcorr_VV[-7,7]")
-        bkg_qqzz_EWK_syst_shape = ROOT.RooGenericPdf("bkg_qqzz_syst_shape","TMath::Max(1+@0*(@1-1+@2*@5+@3*@5*@5+@4*@5*@5*@5),0.)",ROOT.RooArgList(qqZZ_EWK_Syst,CMS_qqzzbkg_EKW_p0,CMS_qqzzbkg_EKW_p1,CMS_qqzzbkg_EWK_p2,CMS_qqzzbkg_EWK_p3,CMS_zz4l_widthMass))
-        bkg_qqzz_mass = ROOT.RooProdPdf("bkg_qqzz_mass","bkg_qqzz_mass",bkg_qqzz_mass_temp,bkg_qqzz_syst_shape,bkg_qqzz_EWK_syst_shape)
+        bkg_qqzz_EWK_syst_shape = ROOT.RooGenericPdf("bkg_qqzz_syst_shape","TMath::Max(1+@0*(@1-1+@2*@5+@3*@5*@5+@4*@5*@5*@5),0.)",ROOT.RooArgList(qqZZ_EWK_Syst,CMS_qqzzbkg_EWK_p0,CMS_qqzzbkg_EWK_p1,CMS_qqzzbkg_EWK_p2,CMS_qqzzbkg_EWK_p3,CMS_zz4l_widthMass))
+        bkg_qqzz_mass = ROOT.RooProdPdf("bkg_qqzz_mass","bkg_qqzz_mass",ROOT.RooArgList(bkg_qqzz_mass_temp,bkg_qqzz_syst_shape,bkg_qqzz_EWK_syst_shape))
 
         asympowname = "kappalow_qqZZ_EWK_{0:.0f}_{1:.0f}".format(self.channel,self.sqrts)
         kappalow_qqzz = ROOT.RooRealVar(asympowname,asympowname,CMS_qqzzbkg_EWK_p4.getVal())

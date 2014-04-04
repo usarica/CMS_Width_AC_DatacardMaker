@@ -1,7 +1,7 @@
-void compareScans(bool mev=false){
+void compareScans(bool mev=true){
   gStyle->SetOptTitle(0);
-  const int nfiles = 6;
-  TString files[]={"../../SVN_AFTERFIX/hzz4l/","../../SVN_AFTERFIX/hzz4l/","../../7and8TeVwidth/zz_lowhigh_mu/","../../7and8TeVwidth/zz_lowhigh_mu/","../../7and8TeVwidth/zz_lowhigh_muVmuF/","../../7and8TeVwidth/zz_lowhigh_muVmuF/"};
+  const int nfiles = 10;
+  TString files[]={"../../AFTERfix/cards_test_14_3_smooth_manualConditional_093_2D/HCG/220/","../../AFTERfix/cards_test_14_3_smooth_manualConditional_093_2D/HCG/220/","../../7TeVwidth/zz4l_lowhigh_mu/","../../7TeVwidth/zz4l_lowhigh_mu/","../../8TeVwidth/zz4l_lowhigh_mu/","../../8TeVwidth/zz4l_lowhigh_mu/","../../7and8TeVwidth/zz4l_lowhigh_mu/","../../7and8TeVwidth/zz4l_lowhigh_mu/","../../7and8TeVwidth/zz4l_lowhigh_muVmuF/","../../7and8TeVwidth/zz4l_lowhigh_muVmuF/"};
 
   //TString files[]={"cards_03_17_Moriond_093_1DDgg/HCG/220/","cards_03_17_Moriond_093_1Dm4l/HCG/220/","cards_03_17_Moriond_093_2D/HCG/220/","cards_03_17_Moriond_093_1DDgg/HCG/220/","cards_03_17_Moriond_093_1Dm4l/HCG/220/","cards_03_17_Moriond_093_2D/HCG/220/","cards_03_17_Moriond_093_2D/HCG/220/","cards_03_17_Moriond_1_2D/HCG/220_noSyst/","cards_03_17_Moriond_1_2D/HCG/220/"}//Unblind
   //TString files[]={"cards_03_17_Moriond_093_2D/HCG/220/","cards_03_17_Moriond_093_2D/HCG/220_postFit/"};
@@ -38,10 +38,10 @@ void compareScans(bool mev=false){
   //int colors[]={kBlack,kRed+1,kBlue,kGreen+2,kYellow+2,kYellow+2,kYellow+3,kBlack,kBlue,kRed+1,kGreen+2};
   //int colors[]={kBlack,kTeal-5,kPink+5};
   //int colors[]={kRed-7,kRed,kRed+2,kRed+4};
-  int colors[] = {kPink+5,kPink+5,kTeal-5,kTeal-5,kBlack,kBlack};
+  int colors[] = {kPink+5,kPink+5,kRed,kRed,kBlue,kBlue,kTeal-5,kTeal-5,kBlack,kBlack};
 
   //fit plots
-  TString grnames[]={"Moriond Obs #mu=#mu_{obs} (8TeV)","Moriond Exp #mu=#mu_{obs} (8TeV)","low+high Obs #mu float (7+8TeV)","low+high Exp #mu float (7+8TeV)","low+high Obs #mu_{V},#mu_{F} float (7+8TeV)","low+high Exp #mu_{V},#mu_{F} (7+8TeV)"};
+  TString grnames[]={"Moriond Obs #mu=#mu_{obs} (8TeV)","Moriond Exp #mu=#mu_{obs} (8TeV)","low+high Obs #mu float (7TeV)","low+high Exp #mu float (7TeV)","low+high Obs #mu float (8TeV)","low+high Exp #mu float (8TeV)","low+high Obs #mu float (7+8TeV)","low+high Exp #mu float (7+8TeV)","low+high Obs #mu_{V},#mu_{F} float (7+8TeV)","low+high Exp #mu_{V},#mu_{F} (7+8TeV)"};
   //TString grnames[]={"Expected #mu=#mu_{obs}","Expected #mu=1","Expected #mu=1 w/o syst","Observed #mu=1"};
   //TString grnames[]={"Observed","Expected #mu=#mu_{obs}","Expected #mu=1 w/o syst","Observed #mu=1"};
   //TString grnames[]={"Observed","Expected #mu=#mu_{obs}","Expected #mu=#mu_{obs} w/o syst","Observed #mu=1"};
@@ -56,15 +56,15 @@ void compareScans(bool mev=false){
   //TString grnames[]={"Expected 2013","Expected 13TeV 17.912/fb","Expected 13TeV 100/fb","Expected #mu=1 w/o syst","Observed #mu=1"};
   //TString grnames[]={"Expected 2014, 19.712/fb","Expected 100/fb","Expected 300/fb","Expected 3000/fb","Observed #mu=1"};
 
-  //TString plotLabel = "H#rightarrow ZZ#rightarrow 4l+2l2#nu";
-  TString plotLabel = "H#rightarrow ZZ#rightarrow 4l_{low}+4l_{high}+2l2#nu_{high}";
+  //TString plotLabel = "H#rightarrow ZZ#rightarrow 4l";
+  TString plotLabel = "H#rightarrow ZZ#rightarrow 4l_{low}+4l_{high}";
   //tell this flag which are obsered
-  bool obs[] = {1,0,1,0,1,0};
-  double mass[] = {220.0,220.0,125.6,125.6,125.6,125.6};
+  bool obs[] = {1,0,1,0,1,0,1,0,1,0};
+  double mass[] = {220.0,220.0,125.6,125.6,125.6,125.6,125.6,125.6,125.6,125.6};
   int maxwidth = 30.0;
   bool blind = true;
   bool uncBand =false;
-  TString outString = "03_04_2014_4l+2l2nu_first";//"03_17_2DchanExp_093";
+  TString outString = "03_04_2014_4l_third";//"03_17_2DchanExp_093";
 
   //values for 1DDgg_093, expected mu=0.93
   //double limits95[]={6.05994,7.97529,12.1601,18.8235,26.9906};
