@@ -1,8 +1,8 @@
+
 void compareScans(bool mev=true){
   gStyle->SetOptTitle(0);
   const int nfiles = 10;
   TString files[]={"../../AFTERfix/cards_test_14_3_smooth_manualConditional_093_2D/HCG/220/","../../AFTERfix/cards_test_14_3_smooth_manualConditional_093_2D/HCG/220/","../../7TeVwidth/zz4l_lowhigh_mu/","../../7TeVwidth/zz4l_lowhigh_mu/","../../8TeVwidth/zz4l_lowhigh_mu/","../../8TeVwidth/zz4l_lowhigh_mu/","../../7and8TeVwidth/zz4l_lowhigh_mu/","../../7and8TeVwidth/zz4l_lowhigh_mu/","../../7and8TeVwidth/zz4l_lowhigh_muVmuF/","../../7and8TeVwidth/zz4l_lowhigh_muVmuF/"};
-
   //TString files[]={"cards_03_17_Moriond_093_1DDgg/HCG/220/","cards_03_17_Moriond_093_1Dm4l/HCG/220/","cards_03_17_Moriond_093_2D/HCG/220/","cards_03_17_Moriond_093_1DDgg/HCG/220/","cards_03_17_Moriond_093_1Dm4l/HCG/220/","cards_03_17_Moriond_093_2D/HCG/220/","cards_03_17_Moriond_093_2D/HCG/220/","cards_03_17_Moriond_1_2D/HCG/220_noSyst/","cards_03_17_Moriond_1_2D/HCG/220/"}//Unblind
   //TString files[]={"cards_03_17_Moriond_093_2D/HCG/220/","cards_03_17_Moriond_093_2D/HCG/220_postFit/"};
   //Combined 4l-2l2n
@@ -36,7 +36,7 @@ void compareScans(bool mev=true){
   //int colors[]={kBlack,kRed+1,kBlue,kBlack,kRed+1,kBlue,kGreen+2,kYellow+2,kYellow+2,kYellow+3,kBlack,kBlue,kRed+1,kGreen+2};
   //int colors[]={kBlack,kBlack,kYellow+2,kYellow+2,kPink-1,kPink-1,kPink-4,kPink-4,kYellow-1,kYellow-1};
   //int colors[]={kBlack,kRed+1,kBlue,kGreen+2,kYellow+2,kYellow+2,kYellow+3,kBlack,kBlue,kRed+1,kGreen+2};
-  //int colors[]={kBlack,kTeal-5,kPink+5};
+  //int colors[]={kBlack,kTeal-5,kRed,kPink+5,kRed-7,kYellow-1};
   //int colors[]={kRed-7,kRed,kRed+2,kRed+4};
   int colors[] = {kPink+5,kPink+5,kRed,kRed,kBlue,kBlue,kTeal-5,kTeal-5,kBlack,kBlack};
 
@@ -56,15 +56,24 @@ void compareScans(bool mev=true){
   //TString grnames[]={"Expected 2013","Expected 13TeV 17.912/fb","Expected 13TeV 100/fb","Expected #mu=1 w/o syst","Observed #mu=1"};
   //TString grnames[]={"Expected 2014, 19.712/fb","Expected 100/fb","Expected 300/fb","Expected 3000/fb","Observed #mu=1"};
 
-  //TString plotLabel = "H#rightarrow ZZ#rightarrow 4l";
-  TString plotLabel = "H#rightarrow ZZ#rightarrow 4l_{low}+4l_{high}";
+
+  //TString plotLabel = "H#rightarrow ZZ#rightarrow 4l+2l2#nu";
+  TString plotLabel = "H#rightarrow ZZ#rightarrow 4l";
+  //TString plotLabel = "H#rightarrow ZZ#rightarrow 4l_{low}+4l_{high}+2l2#nu_{high}";
+
+  TString toyPlotname = "toyParallel2D_093_95/toPlot.root";
+  //TFile toyPlotFile = "toPlot";
+
   //tell this flag which are obsered
   bool obs[] = {1,0,1,0,1,0,1,0,1,0};
   double mass[] = {220.0,220.0,125.6,125.6,125.6,125.6,125.6,125.6,125.6,125.6};
   int maxwidth = 30.0;
-  bool blind = true;
+  bool mev=true;
+  bool printpval=false;
   bool uncBand =false;
-  TString outString = "03_04_2014_4l_third";//"03_17_2DchanExp_093";
+  bool toyPlot =false;
+  if(uncBand)toyPlot=false;
+  TString outString = "test";//"03_17_2DchanExp_093";
 
   //values for 1DDgg_093, expected mu=0.93
   //double limits95[]={6.05994,7.97529,12.1601,18.8235,26.9906};
@@ -86,8 +95,8 @@ void compareScans(bool mev=true){
 
   TGraph *g[nfiles];
 
-  //TLegend *leg = new TLegend(0.22,0.7,0.5,0.93);
-  TLegend *leg = new TLegend(0.18,0.55,0.5,0.93);
+  TLegend *leg = new TLegend(0.22,0.7,0.5,0.93);
+  //TLegend *leg = new TLegend(0.18,0.55,0.5,0.93);
   //TLegend *leg = new TLegend(0.55,0.41,0.81,0.71);
   //leg->SetX1(0.22);
   //leg->SetX2(0.5);
@@ -101,6 +110,8 @@ void compareScans(bool mev=true){
   TLegendEntry *tentry = leg->AddEntry((TObject*)0,plotLabel.Data(),"");
   tentry->SetTextSize(0.04);
   //leg->AddEntry((TObject*)0, "","");
+
+  double limitObs =0;
 
   if(mev){
     for (int imev=0;imev<5;imev++){
@@ -118,6 +129,7 @@ void compareScans(bool mev=true){
     //if(i==3)mass=240;
     //TString filepath;filepath.Form("HCG/%d/",mass);
     TString obsString = "exp";
+    //if(i)obsString="NoSyst";
     if(obs[i])obsString="obs";
     int nDi =2;
     //printf("%d\n",i);
@@ -149,6 +161,7 @@ void compareScans(bool mev=true){
     if(mev)fact=4.15;
     double a =  (y[ipol+1]-y[ipol])/(x[ipol+1]-x[ipol])/fact;
     double b = y[ipol]-a*x[ipol]*fact;
+    if(obs[i] && limitObs<1)limitObs=(3.84-b)/a;
     printf("%s limit@95CL %.2f\n",grnames[i].Data(),(3.84-b)/a);
     a =  (y[ipol+1]-y[ipol])/(x[ipol+1]-x[ipol])/fact;
     b = y[ipol]-a*x[ipol]*fact;
@@ -163,6 +176,9 @@ void compareScans(bool mev=true){
   float lumi7TeV=5.1;
   float lumi8TeV=19.7;
 
+  TFile *fToy = TFile::Open(toyPlotname.Data());
+  TCanvas *cToy = fToy->Get("toPlot");
+  TH1F *htoy = (TH1F*)toPlot->FindObject("Toys");
 
   TCanvas *c1=new TCanvas("can1","CANVAS-SCAN1D",800,800);
   c1->cd();
@@ -170,6 +186,8 @@ void compareScans(bool mev=true){
   g[0]->GetXaxis()->SetTitle("#Gamma/#Gamma_{SM}");
   if(mev)  g[0]->GetXaxis()->SetTitle("#Gamma [MeV]");
   g[0]->GetYaxis()->SetTitle("-2 #Delta lnL");
+  g[0]->GetYaxis()->SetTitleSize(0.05);
+  g[0]->GetXaxis()->SetTitleSize(0.05);
   g[0]->GetXaxis()->SetLabelSize(0.04);
   g[0]->GetYaxis()->SetLabelSize(0.04);
   float upLim =20.;
@@ -210,22 +228,25 @@ void compareScans(bool mev=true){
 
   }
 //   //p-value 0.13;
-//   TPaveText *pval = new TPaveText(0.54,0.45,0.85,0.55,"brNDC");
-//   pval->SetBorderSize(0);
-//   pval->SetTextAlign(12);
-//   pval->SetFillStyle(0);
-//   pval->SetTextFont(42);
-//   pval->SetTextSize(0.03);
-//   pval->AddText(0.5,0.5,"p-value=0.13");
-//   //pval->Draw();
-		
+  if(printpval){
+    TPaveText *pval = new TPaveText(0.54,0.35,0.85,0.45,"brNDC");
+    pval->SetBorderSize(0);
+    pval->SetTextAlign(12);
+    pval->SetFillStyle(0);
+    pval->SetTextFont(42);
+    pval->SetTextSize(0.03);
+    pval->AddText(0,0,"p-value @ 95%CL = 0.12");
+    pval->Draw();
+  }
+
   TPaveText *pt = new TPaveText(0.1577181,0.9562937,0.9580537,0.9947552,"brNDC");
   pt->SetBorderSize(0);
   pt->SetTextAlign(12);
   pt->SetFillStyle(0);
   pt->SetTextFont(42);
   pt->SetTextSize(0.03);
-  TText *text = pt->AddText(0.01,0.5,"CMS Preliminary");
+  //TText *text = pt->AddText(0.01,0.5,"CMS Preliminary");
+  TText *text = pt->AddText(0.01,0.5,"CMS ");
   // text = pt->AddText(0.2,0.6,Form("#sqrt{s} = 7 TeV, L = %.1f fb^{-1}  #sqrt{s} = 8 TeV, L = %.1f fb^{-1}",lumi7TeV,lumi8TeV));
   text = pt->AddText(0.5,0.5,Form("#sqrt{s} = 8 TeV, L = %.1f fb^{-1}",lumi8TeV));
   pt->Draw();  
@@ -273,6 +294,21 @@ void compareScans(bool mev=true){
     medians->SetLineColor(0);
     //medians->Draw("PSAME");  
     //leg->AddEntry(medians,"Expected median","p");
+  }
+  if(toyPlot){
+    TPad *p = new TPad("p","p",0.6,4.5/12.0,0.9,7.3/12.0);
+    p->SetMargin(0.05,0,0.05,0);
+    p->Draw();
+    p->cd();
+    htoy->SetStats(0);
+    htoy->Draw();
+    //TText *pvalt = new TText(limitObs+1,20,"p-value @ 95%CL = 0.12");
+    TText *pvalt = new TText(12,200,"p-value @ 95%CL = 0.12");
+    pvalt->SetTextSize(0.08);
+    TArrow *ar2 = new TArrow(limitObs,0.0,limitObs,htoy->GetBinContent(htoy->FindBin(limitObs)),0.02,"<|");
+    ar2->SetAngle(30);
+    ar2->Draw();  
+    pvalt->Draw();
   }
 
   TString saveString;
