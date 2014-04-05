@@ -11,7 +11,7 @@ observation 0
 bin a1_1 a1_1 a1_1 a1_1 a1_1 a1_1 a1_1 a1_1 
 process ggH qqH WH ZH ttH bkg2d_qqzz bkg2d_ggzz bkg2d_zjets 
 process -4 -3 -2 -1 0 1 2 3 
-rate 1.0000 1.0000 1.0000 1.0000 1.0000 0.0833 0.0019 0.0446 
+rate 1.0000 1.0000 1.0000 1.0000 1.0000 0.0833 0.0040 0.0446 
 ------------
 lumi_7TeV lnN 1.022 1.022 1.022 1.022 1.022 1.022 1.022 - 
 pdf_gg lnN 1.0735 - - - 0.9150 - 1.0710 - 
