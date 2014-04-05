@@ -20,7 +20,7 @@ channels ggZZ VBF_offshell qqZZ zjets
 ## if lumi is blank, lumi for cards used ##
 rate qqZZ 6.83104
 rate ggZZ  0.937864
-rate zjets 1.37
+rate zjets 0.40
 
 
 ## signal functions --- no spaces! ##
