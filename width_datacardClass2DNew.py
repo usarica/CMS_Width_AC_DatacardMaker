@@ -302,6 +302,81 @@ class width_datacardClass:
         rate_bkg_ggzz_Shape = Sig_T_1.Integral("width")*self.lumi #*2.3
         rate_interf_ggzz_Shape = Sig_T_4.Integral("width")*self.lumi #*2.3
 
+
+	ggZZVarNormQCDUp_Name = "ggZZVarQCDUpNorm_{0:.0f}_{1:.0f}".format(self.channel,self.sqrts)
+        sigRateQCDUpName = "signal_ggZZQCDUprate_{0:.0f}_{1:.0f}".format(self.channel,self.sqrts)
+        bkgRateQCDUpName = "bkg_ggZZQCDUprate_{0:.0f}_{1:.0f}".format(self.channel,self.sqrts)
+        interfRateQCDUpName = "interf_ggZZQCDUprate_{0:.0f}_{1:.0f}".format(self.channel,self.sqrts)
+        sigRates_QCDUp = ROOT.RooRealVar(sigRateQCDUpName ,sigRateQCDUpName ,0.0,10000.0)
+        bkgRates_QCDUp = ROOT.RooRealVar(bkgRateQCDUpName ,bkgRateQCDUpName ,0.0,10000.0)
+        interfRates_QCDUp = ROOT.RooRealVar(interfRateQCDUpName,interfRateQCDUpName,0.0,10000.0)
+	sigRates_QCDUp.setVal(Sig_T_2_Up_QCD.Integral("width"))
+	sigRates_QCDUp.setConstant(true)
+	bkgRates_QCDUp.setVal(Sig_T_1_Up_QCD.Integral("width"))
+	bkgRates_QCDUp.setConstant(true)
+	interfRates_QCDUp.setVal(Sig_T_4_Up_QCD.Integral("width"))
+	interfRates_QCDUp.setConstant(true)
+        ggZZQCDUp_norm = ROOT.RooFormulaVar(ggZZVarNormQCDUp_Name,"(@0*@3*@6*@4+@1*sqrt(@3*@6*@4)*sign(@5)*sqrt(abs(@5))+@2*@5)",ROOT.RooArgList(sigRates_QCDUp,interfRates_QCDUp,bkgRates_QCDUp,x,mu,kbkg,muF))
+	ggZZVarNormQCDDown_Name = "ggZZVarQCDDownNorm_{0:.0f}_{1:.0f}".format(self.channel,self.sqrts)
+        sigRateQCDDownName = "signal_ggZZQCDDownrate_{0:.0f}_{1:.0f}".format(self.channel,self.sqrts)
+        bkgRateQCDDownName = "bkg_ggZZQCDDownrate_{0:.0f}_{1:.0f}".format(self.channel,self.sqrts)
+        interfRateQCDDownName = "interf_ggZZQCDDownrate_{0:.0f}_{1:.0f}".format(self.channel,self.sqrts)
+        sigRates_QCDDown = ROOT.RooRealVar(sigRateQCDDownName ,sigRateQCDDownName ,0.0,10000.0)
+        bkgRates_QCDDown = ROOT.RooRealVar(bkgRateQCDDownName ,bkgRateQCDDownName ,0.0,10000.0)
+        interfRates_QCDDown = ROOT.RooRealVar(interfRateQCDDownName,interfRateQCDDownName,0.0,10000.0)
+	sigRates_QCDDown.setVal(Sig_T_2_Down_QCD.Integral("width"))
+	sigRates_QCDDown.setConstant(true)
+	bkgRates_QCDDown.setVal(Sig_T_1_Down_QCD.Integral("width"))
+	bkgRates_QCDDown.setConstant(true)
+	interfRates_QCDDown.setVal(Sig_T_4_Down_QCD.Integral("width"))
+	interfRates_QCDDown.setConstant(true)
+        ggZZQCDDown_norm = ROOT.RooFormulaVar(ggZZVarNormQCDDown_Name,"(@0*@3*@6*@4+@1*sqrt(@3*@6*@4)*sign(@5)*sqrt(abs(@5))+@2*@5)",ROOT.RooArgList(sigRates_QCDDown,interfRates_QCDDown,bkgRates_QCDDown,x,mu,kbkg,muF))
+
+	ggZZVarNormPDFUp_Name = "ggZZVarPDFUpNorm_{0:.0f}_{1:.0f}".format(self.channel,self.sqrts)
+        sigRatePDFUpName = "signal_ggZZPDFUprate_{0:.0f}_{1:.0f}".format(self.channel,self.sqrts)
+        bkgRatePDFUpName = "bkg_ggZZPDFUprate_{0:.0f}_{1:.0f}".format(self.channel,self.sqrts)
+        interfRatePDFUpName = "interf_ggZZPDFUprate_{0:.0f}_{1:.0f}".format(self.channel,self.sqrts)
+        sigRates_PDFUp = ROOT.RooRealVar(sigRatePDFUpName ,sigRatePDFUpName ,0.0,10000.0)
+        bkgRates_PDFUp = ROOT.RooRealVar(bkgRatePDFUpName ,bkgRatePDFUpName ,0.0,10000.0)
+        interfRates_PDFUp = ROOT.RooRealVar(interfRatePDFUpName,interfRatePDFUpName,0.0,10000.0)
+	sigRates_PDFUp.setVal(Sig_T_2_Up_PDF.Integral("width"))
+	sigRates_PDFUp.setConstant(true)
+	bkgRates_PDFUp.setVal(Sig_T_1_Up_PDF.Integral("width"))
+	bkgRates_PDFUp.setConstant(true)
+	interfRates_PDFUp.setVal(Sig_T_4_Up_PDF.Integral("width"))
+	interfRates_PDFUp.setConstant(true)
+        ggZZPDFUp_norm = ROOT.RooFormulaVar(ggZZVarNormPDFUp_Name,"(@0*@3*@6*@4+@1*sqrt(@3*@6*@4)*sign(@5)*sqrt(abs(@5))+@2*@5)",ROOT.RooArgList(sigRates_PDFUp,interfRates_PDFUp,bkgRates_PDFUp,x,mu,kbkg,muF))
+	ggZZVarNormPDFDown_Name = "ggZZVarPDFDownNorm_{0:.0f}_{1:.0f}".format(self.channel,self.sqrts)
+        sigRatePDFDownName = "signal_ggZZPDFDownrate_{0:.0f}_{1:.0f}".format(self.channel,self.sqrts)
+        bkgRatePDFDownName = "bkg_ggZZPDFDownrate_{0:.0f}_{1:.0f}".format(self.channel,self.sqrts)
+        interfRatePDFDownName = "interf_ggZZPDFDownrate_{0:.0f}_{1:.0f}".format(self.channel,self.sqrts)
+        sigRates_PDFDown = ROOT.RooRealVar(sigRatePDFDownName ,sigRatePDFDownName ,0.0,10000.0)
+        bkgRates_PDFDown = ROOT.RooRealVar(bkgRatePDFDownName ,bkgRatePDFDownName ,0.0,10000.0)
+        interfRates_PDFDown = ROOT.RooRealVar(interfRatePDFDownName,interfRatePDFDownName,0.0,10000.0)
+	sigRates_PDFDown.setVal(Sig_T_2_Down_PDF.Integral("width"))
+	sigRates_PDFDown.setConstant(true)
+	bkgRates_PDFDown.setVal(Sig_T_1_Down_PDF.Integral("width"))
+	bkgRates_PDFDown.setConstant(true)
+	interfRates_PDFDown.setVal(Sig_T_4_Down_PDF.Integral("width"))
+	interfRates_PDFDown.setConstant(true)
+        ggZZPDFDown_norm = ROOT.RooFormulaVar(ggZZVarNormPDFDown_Name,"(@0*@3*@6*@4+@1*sqrt(@3*@6*@4)*sign(@5)*sqrt(abs(@5))+@2*@5)",ROOT.RooArgList(sigRates_PDFDown,interfRates_PDFDown,bkgRates_PDFDown,x,mu,kbkg,muF))
+
+	ggZZVarNorm_Name = "ggZZVarNominalNorm_{0:.0f}_{1:.0f}".format(self.channel,self.sqrts)
+        sigRateNominalName = "signal_ggZZNominalrate_{0:.0f}_{1:.0f}".format(self.channel,self.sqrts)
+        bkgRateNominalName = "bkg_ggZZNominalrate_{0:.0f}_{1:.0f}".format(self.channel,self.sqrts)
+        interfRateNominalName = "interf_ggZZNominalrate_{0:.0f}_{1:.0f}".format(self.channel,self.sqrts)
+        sigRates_Nominal = ROOT.RooRealVar(sigRateNominalName ,sigRateNominalName ,0.0,10000.0)
+        bkgRates_Nominal = ROOT.RooRealVar(bkgRateNominalName ,bkgRateNominalName ,0.0,10000.0)
+        interfRates_Nominal = ROOT.RooRealVar(interfRateNominalName,interfRateNominalName,0.0,10000.0)
+	sigRates_Nominal.setVal(Sig_T_2.Integral("width"))
+	sigRates_Nominal.setConstant(true)
+	bkgRates_Nominal.setVal(Sig_T_1.Integral("width"))
+	bkgRates_Nominal.setConstant(true)
+	interfRates_Nominal.setVal(Sig_T_4.Integral("width"))
+	interfRates_Nominal.setConstant(true)
+        ggZZNominal_norm = ROOT.RooFormulaVar(ggZZVarNorm_Name,"(@0*@3*@6*@4+@1*sqrt(@3*@6*@4)*sign(@5)*sqrt(abs(@5))+@2*@5)",ROOT.RooArgList(sigRates_Nominal,interfRates_Nominal,bkgRates_Nominal,x,mu,kbkg,muF))
+	
+
         #Assume BKG and INTERF are from templates
         totalRateVBFDown = VBF_T_1_Down.Integral("width")+VBF_T_2_Down.Integral("width")+VBF_T_4_Down.Integral("width")
         totalRateVBFUp = VBF_T_1_Up.Integral("width")+VBF_T_2_Up.Integral("width")+VBF_T_4_Up.Integral("width")
@@ -310,6 +385,52 @@ class width_datacardClass:
         rate_signal_vbf_Shape = VBF_T_2.Integral("width")*self.lumi
         rate_bkg_vbf_Shape = VBF_T_1.Integral("width")*self.lumi
         rate_interf_vbf_Shape = VBF_T_4.Integral("width")*self.lumi
+
+	VBFVarNormUp_Name = "VBFVarUpNorm_{0:.0f}_{1:.0f}".format(self.channel,self.sqrts)
+        VBFsigRateUpName = "signal_VBFUprate_{0:.0f}_{1:.0f}".format(self.channel,self.sqrts)
+        VBFbkgRateUpName = "bkg_VBFUprate_{0:.0f}_{1:.0f}".format(self.channel,self.sqrts)
+        VBFinterfRateUpName = "interf_VBFUprate_{0:.0f}_{1:.0f}".format(self.channel,self.sqrts)
+        VBFsigRates_Up = ROOT.RooRealVar(VBFsigRateUpName ,VBFsigRateUpName ,0.0,10000.0)
+        VBFbkgRates_Up = ROOT.RooRealVar(VBFbkgRateUpName ,VBFbkgRateUpName ,0.0,10000.0)
+        VBFinterfRates_Up = ROOT.RooRealVar(VBFinterfRateUpName,VBFinterfRateUpName,0.0,10000.0)
+	VBFsigRates_Up.setVal(VBF_T_2_Up.Integral("width"))
+	VBFsigRates_Up.setConstant(true)
+	VBFbkgRates_Up.setVal(VBF_T_1_Up.Integral("width"))
+	VBFbkgRates_Up.setConstant(true)
+	VBFinterfRates_Up.setVal(VBF_T_4_Up.Integral("width"))
+	VBFinterfRates_Up.setConstant(true)
+        VBFUp_norm = ROOT.RooFormulaVar(VBFVarNormUp_Name,"(@0*@3*@5*@4+@1*sqrt(@3*@5*@4)+@2)",ROOT.RooArgList(VBFsigRates_Up,VBFinterfRates_Up,VBFbkgRates_Up,x,mu,muV))
+	VBFVarNormDown_Name = "VBFVarDownNorm_{0:.0f}_{1:.0f}".format(self.channel,self.sqrts)
+        VBFsigRateDownName = "signal_VBFDownrate_{0:.0f}_{1:.0f}".format(self.channel,self.sqrts)
+        VBFbkgRateDownName = "bkg_VBFDownrate_{0:.0f}_{1:.0f}".format(self.channel,self.sqrts)
+        VBFinterfRateDownName = "interf_VBFDownrate_{0:.0f}_{1:.0f}".format(self.channel,self.sqrts)
+        VBFsigRates_Down = ROOT.RooRealVar(VBFsigRateDownName ,VBFsigRateDownName ,0.0,10000.0)
+        VBFbkgRates_Down = ROOT.RooRealVar(VBFbkgRateDownName ,VBFbkgRateDownName ,0.0,10000.0)
+        VBFinterfRates_Down = ROOT.RooRealVar(VBFinterfRateDownName,VBFinterfRateDownName,0.0,10000.0)
+	VBFsigRates_Down.setVal(VBF_T_2_Down.Integral("width"))
+	VBFsigRates_Down.setConstant(true)
+	VBFbkgRates_Down.setVal(VBF_T_1_Down.Integral("width"))
+	VBFbkgRates_Down.setConstant(true)
+	VBFinterfRates_Down.setVal(VBF_T_4_Down.Integral("width"))
+	VBFinterfRates_Down.setConstant(true)
+        VBFDown_norm = ROOT.RooFormulaVar(VBFVarNormDown_Name,"(@0*@3*@5*@4+@1*sqrt(@3*@5*@4)+@2)",ROOT.RooArgList(VBFsigRates_Down,VBFinterfRates_Down,VBFbkgRates_Down,x,mu,muV))
+
+	VBFVarNormNominal_Name = "VBFVarNominalNorm_{0:.0f}_{1:.0f}".format(self.channel,self.sqrts)
+        VBFsigRateNominalName = "signal_VBFNominalrate_{0:.0f}_{1:.0f}".format(self.channel,self.sqrts)
+        VBFbkgRateNominalName = "bkg_VBFNominalrate_{0:.0f}_{1:.0f}".format(self.channel,self.sqrts)
+        VBFinterfRateNominalName = "interf_VBFNominalrate_{0:.0f}_{1:.0f}".format(self.channel,self.sqrts)
+        VBFsigRates_Nominal = ROOT.RooRealVar(VBFsigRateNominalName ,VBFsigRateNominalName ,0.0,10000.0)
+        VBFbkgRates_Nominal = ROOT.RooRealVar(VBFbkgRateNominalName ,VBFbkgRateNominalName ,0.0,10000.0)
+        VBFinterfRates_Nominal = ROOT.RooRealVar(VBFinterfRateNominalName,VBFinterfRateNominalName,0.0,10000.0)
+	VBFsigRates_Nominal.setVal(VBF_T_2.Integral("width"))
+	VBFsigRates_Nominal.setConstant(true)
+	VBFbkgRates_Nominal.setVal(VBF_T_1.Integral("width"))
+	VBFbkgRates_Nominal.setConstant(true)
+	VBFinterfRates_Nominal.setVal(VBF_T_4.Integral("width"))
+	VBFinterfRates_Nominal.setConstant(true)
+        VBFNominal_norm = ROOT.RooFormulaVar(VBFVarNormNominal_Name,"(@0*@3*@5*@4+@1*sqrt(@3*@5*@4)+@2)",ROOT.RooArgList(VBFsigRates_Nominal,VBFinterfRates_Nominal,VBFbkgRates_Nominal,x,mu,muV))
+
+
 
         ## rates per lumi for scaling
         bkgRate_qqzz = theInputs['qqZZ_rate']/theInputs['qqZZ_lumi'] #*1.8
@@ -642,9 +763,11 @@ class width_datacardClass:
         
 
         asympowname = "kappalow_ggZZ_QCD_{0:.0f}_{1:.0f}".format(self.channel,self.sqrts)
-        kappalow = ROOT.RooRealVar(asympowname,asympowname,totalRateDown/totalRate_ggzz)#kappalow = ROOT.RooRealVar(asympowname,asympowname,rateSignal_Down+rateBkg_Down-rateInterf_Down)
+        #kappalow = ROOT.RooRealVar(asympowname,asympowname,totalRateDown/totalRate_ggzz)#kappalow = ROOT.RooRealVar(asympowname,asympowname,rateSignal_Down+rateBkg_Down-rateInterf_Down)
+        kappalow = ROOT.RooFormulaVar(asympowname,"@1/@0",ROOT.RooArgList(ggZZQCDDown_norm,ggZZNominal_norm))
         asympowname = "kappahigh_ggZZ_QCD_{0:.0f}_{1:.0f}".format(self.channel,self.sqrts)
-        kappahigh = ROOT.RooRealVar(asympowname,asympowname,totalRateUp/totalRate_ggzz)#kappahigh = ROOT.RooRealVar(asympowname,asympowname,rateSignal_Up+rateBkg_Up-rateInterf_Up)        
+        #kappahigh = ROOT.RooRealVar(asympowname,asympowname,totalRateUp/totalRate_ggzz)#kappahigh = ROOT.RooRealVar(asympowname,asympowname,rateSignal_Up+rateBkg_Up-rateInterf_Up)        
+        kappahigh = ROOT.RooFormulaVar(asympowname,"@1/@0",ROOT.RooArgList(ggZZQCDUp_norm,ggZZNominal_norm))
         asympowname = "Asympow_ggZZ_QCD_{0:.0f}_{1:.0f}".format(self.channel,self.sqrts)
         thetaSyst_ggZZ = AsymPow(asympowname,asympowname,kappalow,kappahigh,CMS_zz4l_APscale_syst)
 
@@ -742,12 +865,13 @@ class width_datacardClass:
         
 
         asympowname = "kappalow_ggZZ_pdf_{0:.0f}_{1:.0f}".format(self.channel,self.sqrts)
-        kappalow_pdf = ROOT.RooRealVar(asympowname,asympowname,totalRateDown_pdf/totalRate_ggzz)
+        #kappalow_pdf = ROOT.RooRealVar(asympowname,asympowname,totalRateDown_pdf/totalRate_ggzz)
+        kappalow_pdf = ROOT.RooFormulaVar(asympowname,"@1/@0",ROOT.RooArgList(ggZZPDFDown_norm,ggZZNominal_norm))
         asympowname = "kappahigh_ggZZ_pdf_{0:.0f}_{1:.0f}".format(self.channel,self.sqrts)
-        kappahigh_pdf = ROOT.RooRealVar(asympowname,asympowname,totalRateUp_pdf/totalRate_ggzz)    
+        #kappahigh_pdf = ROOT.RooRealVar(asympowname,asympowname,totalRateUp_pdf/totalRate_ggzz)    
+        kappahigh_pdf = ROOT.RooFormulaVar(asympowname,"@1/@0",ROOT.RooArgList(ggZZPDFUp_norm,ggZZNominal_norm))
         asympowname = "Asympow_ggZZ_pdf_{0:.0f}_{1:.0f}".format(self.channel,self.sqrts)
         thetaSyst_ggZZ_pdf = AsymPow(asympowname,asympowname,kappalow_pdf,kappahigh_pdf,CMS_zz4l_pdf_gg_syst)
-
 
          ## -------------------------- VBF offshell SHAPES ---------------------------------- ##
         
@@ -920,9 +1044,11 @@ class width_datacardClass:
         VBFpdf = ROOT.VerticalInterpPdf("VBFpdf","VBFpdf",MorphList_VBF,morphVarListVBF)
 
         asympowname = "kappalow_VBF_{0:.0f}_{1:.0f}".format(self.channel,self.sqrts)
-        kappalowVBF = ROOT.RooRealVar(asympowname,asympowname,totalRateVBFDown/totalRate_vbf)#kappalow = ROOT.RooRealVar(asympowname,asympowname,rateSignal_Down+rateBkg_Down-rateInterf_Down)
+        #kappalowVBF = ROOT.RooRealVar(asympowname,asympowname,totalRateVBFDown/totalRate_vbf)#kappalow = ROOT.RooRealVar(asympowname,asympowname,rateSignal_Down+rateBkg_Down-rateInterf_Down)
+        kappalowVBF = ROOT.RooFormulaVar(asympowname,"@1/@0",ROOT.RooArgList(VBFDown_norm,VBFNominal_norm))#kappalow = ROOT.RooRealVar(asympowname,asympowname,rateSignal_Down+rateBkg_Down-rateInterf_Down)
         asympowname = "kappahigh_VBF_{0:.0f}_{1:.0f}".format(self.channel,self.sqrts)
-        kappahighVBF = ROOT.RooRealVar(asympowname,asympowname,totalRateVBFUp/totalRate_vbf)#kappahigh = ROOT.RooRealVar(asympowname,asympowname,rateSignal_Up+rateBkg_Up-rateInterf_Up)        
+        #kappahighVBF = ROOT.RooRealVar(asympowname,asympowname,totalRateVBFUp/totalRate_vbf)#kappahigh = ROOT.RooRealVar(asympowname,asympowname,rateSignal_Up+rateBkg_Up-rateInterf_Up)        
+        kappahighVBF = ROOT.RooFormulaVar(asympowname,"@1/@0",ROOT.RooArgList(VBFUp_norm,VBFNominal_norm))#kappalow = ROOT.RooRealVar(asympowname,asympowname,rateSignal_Down+rateBkg_Down-rateInterf_Down)
         asympowname = "Asympow_VBF_{0:.0f}_{1:.0f}".format(self.channel,self.sqrts)
         thetaSyst_VBF = AsymPow(asympowname,asympowname,kappalowVBF,kappahighVBF,CMS_zz4l_VBFscale_syst)
 
@@ -1464,7 +1590,7 @@ class width_datacardClass:
         
         ggZZpdfNormName = "ggZZ_RooWidth_{0:.0f}_{1:.0f}_norm".format(self.channel,self.sqrts)
         #ggZZpdf_norm = ROOT.RooFormulaVar(ggZZpdfNormName,"@0*@3*@4-@1*sqrt(@3*@4)*sign(@5)*sqrt(abs(@5))+@2*@5",ROOT.RooArgList(sigRates,interfRates,bkgRates,x,mu,kbkg))
-        ggZZpdf_norm = ROOT.RooFormulaVar(ggZZpdfNormName,"(@0*@3*@7*@4-@1*sqrt(@3*@7*@4)*sign(@5)*sqrt(abs(@5))+@2*@5)*@6",ROOT.RooArgList(sigRates,interfRates,bkgRates,x,mu,kbkg,thetaSyst_ggZZ,muF))
+        ggZZpdf_norm = ROOT.RooFormulaVar(ggZZpdfNormName,"(@0*@3*@7*@4-@1*sqrt(@3*@7*@4)*sign(@5)*sqrt(abs(@5))+@2*@5)*@6*@8",ROOT.RooArgList(sigRates,interfRates,bkgRates,x,mu,kbkg,thetaSyst_ggZZ,muF,thetaSyst_ggZZ_pdf))
         ggZZpdf_norm.SetNameTitle("ggzz_norm","ggzz_norm")
         getattr(w,'import')(ggZZpdf_norm, ROOT.RooFit.RecycleConflictNodes())
 
