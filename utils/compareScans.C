@@ -1,8 +1,8 @@
 
 void compareScans(bool mev=true){
   gStyle->SetOptTitle(0);
-  const int nfiles = 10;
-  TString files[]={"../../AFTERfix/cards_test_14_3_smooth_manualConditional_093_2D/HCG/220/","../../AFTERfix/cards_test_14_3_smooth_manualConditional_093_2D/HCG/220/","../../7TeVwidth/zz4l_lowhigh_mu/","../../7TeVwidth/zz4l_lowhigh_mu/","../../8TeVwidth/zz4l_lowhigh_mu/","../../8TeVwidth/zz4l_lowhigh_mu/","../../7and8TeVwidth/zz4l_lowhigh_mu/","../../7and8TeVwidth/zz4l_lowhigh_mu/","../../7and8TeVwidth/zz4l_lowhigh_muVmuF/","../../7and8TeVwidth/zz4l_lowhigh_muVmuF/"};
+  const int nfiles = 6;
+  TString files[]={"cards_07_04_14_update_2D_8TeV/HCG/220/","cards_07_04_14_update_2D_8TeV/HCG/220/","cards_07_04_14_update_2D_8TeV/HCG/only2l2nu/","cards_07_04_14_update_2D_8TeV/HCG/only2l2nu/","cards_07_04_14_update_2D_8TeV/HCG/220_2l2nu/","cards_07_04_14_update_2D_8TeV/HCG/220_2l2nu/"};
   //TString files[]={"cards_03_17_Moriond_093_1DDgg/HCG/220/","cards_03_17_Moriond_093_1Dm4l/HCG/220/","cards_03_17_Moriond_093_2D/HCG/220/","cards_03_17_Moriond_093_1DDgg/HCG/220/","cards_03_17_Moriond_093_1Dm4l/HCG/220/","cards_03_17_Moriond_093_2D/HCG/220/","cards_03_17_Moriond_093_2D/HCG/220/","cards_03_17_Moriond_1_2D/HCG/220_noSyst/","cards_03_17_Moriond_1_2D/HCG/220/"}//Unblind
   //TString files[]={"cards_03_17_Moriond_093_2D/HCG/220/","cards_03_17_Moriond_093_2D/HCG/220_postFit/"};
   //Combined 4l-2l2n
@@ -38,10 +38,11 @@ void compareScans(bool mev=true){
   //int colors[]={kBlack,kRed+1,kBlue,kGreen+2,kYellow+2,kYellow+2,kYellow+3,kBlack,kBlue,kRed+1,kGreen+2};
   //int colors[]={kBlack,kTeal-5,kRed,kPink+5,kRed-7,kYellow-1};
   //int colors[]={kRed-7,kRed,kRed+2,kRed+4};
-  int colors[] = {kPink+5,kPink+5,kRed,kRed,kBlue,kBlue,kTeal-5,kTeal-5,kBlack,kBlack};
+  int colors[] = {kGreen+2,kGreen+2,kBlue,kBlue,kBlack,kBlack};
 
   //fit plots
-  TString grnames[]={"Moriond Obs #mu=#mu_{obs} (8TeV)","Moriond Exp #mu=#mu_{obs} (8TeV)","low+high Obs #mu float (7TeV)","low+high Exp #mu float (7TeV)","low+high Obs #mu float (8TeV)","low+high Exp #mu float (8TeV)","low+high Obs #mu float (7+8TeV)","low+high Exp #mu float (7+8TeV)","low+high Obs #mu_{V},#mu_{F} float (7+8TeV)","low+high Exp #mu_{V},#mu_{F} (7+8TeV)"};
+  TString grnames[]={"4l [105.6,140.6]#cup[220,#infty]","4l [105.6,140.6]#cup[220,#infty]","4l [105.6,140.6], 2l2#nu(8TeV) [220,#infty]","4l [105.6,140.6], 2l2#nu(8TeV) [220,#infty]","4l [105.6,140.6]#cup[220,#infty], 2l2#nu(8TeV) [220,#infty]","4l [105.6,140.6]#cup[220,#infty], 2l2#nu(8TeV) [220,#infty]"};
+  TString grnames2[] = {"Observed","Expected"};
   //TString grnames[]={"Expected #mu=#mu_{obs}","Expected #mu=1","Expected #mu=1 w/o syst","Observed #mu=1"};
   //TString grnames[]={"Observed","Expected #mu=#mu_{obs}","Expected #mu=1 w/o syst","Observed #mu=1"};
   //TString grnames[]={"Observed","Expected #mu=#mu_{obs}","Expected #mu=#mu_{obs} w/o syst","Observed #mu=1"};
@@ -57,23 +58,23 @@ void compareScans(bool mev=true){
   //TString grnames[]={"Expected 2014, 19.712/fb","Expected 100/fb","Expected 300/fb","Expected 3000/fb","Observed #mu=1"};
 
 
-  //TString plotLabel = "H#rightarrow ZZ#rightarrow 4l+2l2#nu";
-  TString plotLabel = "H#rightarrow ZZ#rightarrow 4l";
-  //TString plotLabel = "H#rightarrow ZZ#rightarrow 4l_{low}+4l_{high}+2l2#nu_{high}";
+  //TString plotLabel = "H#rightarrow ZZ#rightarrow 4l+2l#nu";
+  TString plotLabel = "H#rightarrow ZZ";
+  //TString plotLabel = "H#rightarrow ZZ#rightarrow 4l_{105.6-140.6GeV}+4l_{220+GeV}+2l2#nu_{220+GeV}";
 
-  TString toyPlotname = "toyParallel2D_093_95/toPlot.root";
+  //TString toyPlotname = "toyParallel2D_093_95/toPlot.root";
   //TFile toyPlotFile = "toPlot";
 
   //tell this flag which are obsered
-  bool obs[] = {1,0,1,0,1,0,1,0,1,0};
-  double mass[] = {220.0,220.0,125.6,125.6,125.6,125.6,125.6,125.6,125.6,125.6};
+  bool obs[] = {1,0,1,0,1,0,1,0,1,0,1,0};
+  double mass[] = {125.6,125.6,125.6,125.6,125.6,125.6,125.6,125.6,125.6,125.6,125.6,125.6};
   int maxwidth = 30.0;
   bool mev=true;
   bool printpval=false;
   bool uncBand =false;
   bool toyPlot =false;
   if(uncBand)toyPlot=false;
-  TString outString = "test";//"03_17_2DchanExp_093";
+  TString outString = "update_7and8TeV";//"03_17_2DchanExp_093";
 
   //values for 1DDgg_093, expected mu=0.93
   //double limits95[]={6.05994,7.97529,12.1601,18.8235,26.9906};
@@ -95,7 +96,10 @@ void compareScans(bool mev=true){
 
   TGraph *g[nfiles];
 
-  TLegend *leg = new TLegend(0.22,0.7,0.5,0.93);
+  double temp_x[2] = {20,40};
+  double temp_y[2] = {30,30};
+
+  TLegend *leg = new TLegend(0.22,0.7,0.6,0.93);
   //TLegend *leg = new TLegend(0.18,0.55,0.5,0.93);
   //TLegend *leg = new TLegend(0.55,0.41,0.81,0.71);
   //leg->SetX1(0.22);
@@ -110,6 +114,21 @@ void compareScans(bool mev=true){
   TLegendEntry *tentry = leg->AddEntry((TObject*)0,plotLabel.Data(),"");
   tentry->SetTextSize(0.04);
   //leg->AddEntry((TObject*)0, "","");
+
+  TGraph *gr_obs = new TGraph(2,temp_x,temp_y);
+  gr_obs->SetName(grnames2[0].Data());
+  gr_obs->SetLineWidth(2.5);
+  gr_obs->SetLineColor(kBlack);
+  gr_obs->SetTitle(grnames2[0].Data());
+  leg->AddEntry(gr_obs,grnames2[0].Data(),"l")->SetTextSize(0.03);
+
+  TGraph *gr_exp = new TGraph(2,temp_x,temp_y);
+  gr_exp->SetName(grnames2[1].Data());
+  gr_exp->SetLineWidth(2.5);
+  gr_exp->SetLineColor(kBlack);
+  gr_exp->SetTitle(grnames2[1].Data());
+  gr_exp->SetLineStyle(2);
+  leg->AddEntry(gr_exp,grnames2[1].Data(),"l")->SetTextSize(0.03);
 
   double limitObs =0;
 
@@ -139,11 +158,12 @@ void compareScans(bool mev=true){
     t1->Draw("2*deltaNLL:CMS_zz4l_GGsm", "deltaNLL > 0","PL");
     TGraph *gr0 = (TGraph*)gROOT->FindObject("Graph")->Clone();
     gr0->SetName(grnames[i].Data());
-    gr0->SetLineWidth(2.5);
+    gr0->SetLineWidth(2);
+    if(i >= nfiles-2)gr0->SetLineWidth(3);
     gr0->SetLineColor(colors[i]);
     if(!obs[i] && gglimit>5)gr0->SetLineStyle(2);
     gr0->SetTitle(grnames[i].Data());
-    leg->AddEntry(gr0);
+    if(obs[i]) leg->AddEntry(gr0);
     g[i]=(TGraph*)gr0->Clone();
     double *y = gr0->GetY();
     double *x = gr0->GetX();
@@ -176,9 +196,9 @@ void compareScans(bool mev=true){
   float lumi7TeV=5.1;
   float lumi8TeV=19.7;
 
-  TFile *fToy = TFile::Open(toyPlotname.Data());
-  TCanvas *cToy = fToy->Get("toPlot");
-  TH1F *htoy = (TH1F*)toPlot->FindObject("Toys");
+  //TFile *fToy = TFile::Open(toyPlotname.Data());
+  //TCanvas *cToy = fToy->Get("toPlot");
+  //TH1F *htoy = (TH1F*)toPlot->FindObject("Toys");
 
   TCanvas *c1=new TCanvas("can1","CANVAS-SCAN1D",800,800);
   c1->cd();
@@ -247,8 +267,8 @@ void compareScans(bool mev=true){
   pt->SetTextSize(0.03);
   //TText *text = pt->AddText(0.01,0.5,"CMS Preliminary");
   TText *text = pt->AddText(0.01,0.5,"CMS ");
-  // text = pt->AddText(0.2,0.6,Form("#sqrt{s} = 7 TeV, L = %.1f fb^{-1}  #sqrt{s} = 8 TeV, L = %.1f fb^{-1}",lumi7TeV,lumi8TeV));
-  text = pt->AddText(0.5,0.5,Form("#sqrt{s} = 8 TeV, L = %.1f fb^{-1}",lumi8TeV));
+  text = pt->AddText(0.2,0.6,Form("#sqrt{s} = 7 TeV, L = %.1f fb^{-1}  #sqrt{s} = 8 TeV, L = %.1f fb^{-1}",lumi7TeV,lumi8TeV));
+  //text = pt->AddText(0.5,0.5,Form("#sqrt{s} = 8 TeV, L = %.1f fb^{-1}",lumi8TeV));
   pt->Draw();  
 
   TPaveText *oneSig = new TPaveText(0.85,0.18,0.9,0.22,"NDC");
