@@ -1,7 +1,7 @@
 
 void compareScans(bool mev=true){
   gStyle->SetOptTitle(0);
-  const int nfiles = 4;
+  const int nfiles = 2;
   TString files[]={"cards_07_04_14_update_2D_8TeV/HCG/220_2l2nu/","cards_07_04_14_update_2D_8TeV/HCG/220_2l2nu/","cards_07_04_14_update_2D_8TeV/HCG/220/","cards_07_04_14_update_2D_8TeV/HCG/220/","cards_07_04_14_update_2D_8TeV/HCG/only2l2nu/","cards_07_04_14_update_2D_8TeV/HCG/only2l2nu/",};
   //TString files[]={"cards_03_17_Moriond_093_1DDgg/HCG/220/","cards_03_17_Moriond_093_1Dm4l/HCG/220/","cards_03_17_Moriond_093_2D/HCG/220/","cards_03_17_Moriond_093_1DDgg/HCG/220/","cards_03_17_Moriond_093_1Dm4l/HCG/220/","cards_03_17_Moriond_093_2D/HCG/220/","cards_03_17_Moriond_093_2D/HCG/220/","cards_03_17_Moriond_1_2D/HCG/220_noSyst/","cards_03_17_Moriond_1_2D/HCG/220/"}//Unblind
   //TString files[]={"cards_03_17_Moriond_093_2D/HCG/220/","cards_03_17_Moriond_093_2D/HCG/220_postFit/"};
@@ -38,7 +38,7 @@ void compareScans(bool mev=true){
   //int colors[]={kBlack,kRed+1,kBlue,kGreen+2,kYellow+2,kYellow+2,kYellow+3,kBlack,kBlue,kRed+1,kGreen+2};
   //int colors[]={kBlack,kTeal-5,kRed,kPink+5,kRed-7,kYellow-1};
   //int colors[]={kRed-7,kRed,kRed+2,kRed+4};
-  int colors[] = {kRed-4,kRed-4,kBlue-4,kBlue-4};
+  int colors[] = {kBlue-7,kBlue-7,kBlue-4,kBlue-4};
 
   //fit plots
   TString grnames[]={"Observed","Expected","Observed 4l","Expected 4l"};
@@ -68,13 +68,13 @@ void compareScans(bool mev=true){
   //tell this flag which are obsered
   bool obs[] = {1,0,1,0,1,0,1,0,1,0,1,0};
   double mass[] = {125.6,125.6,125.6,125.6,125.6,125.6,125.6,125.6,125.6,125.6,125.6,125.6};
-  int maxwidth = 20.0;
+  int maxwidth = 15.0;
   bool mev=true;
   bool printpval=false;
   bool uncBand =false;
   bool toyPlot =false;
   if(uncBand)toyPlot=false;
-  TString outString = "Combined_w4l_09_04_14";//"03_17_2DchanExp_093";
+  TString outString = "Combined_09_04_14";//"03_17_2DchanExp_093";
 
   //values for 1DDgg_093, expected mu=0.93
   //double limits95[]={6.05994,7.97529,12.1601,18.8235,26.9906};
@@ -96,7 +96,7 @@ void compareScans(bool mev=true){
 
   TGraph *g[nfiles];
 
-  TLegend *leg = new TLegend(0.27,0.7,0.75,0.93);
+  TLegend *leg = new TLegend(0.27,0.75,0.75,0.9);
   //TLegend *leg = new TLegend(0.18,0.55,0.5,0.93);
   //TLegend *leg = new TLegend(0.55,0.41,0.81,0.71);
   //leg->SetX1(0.22);
@@ -109,7 +109,7 @@ void compareScans(bool mev=true){
   leg->SetFillStyle(0);
   leg->SetTextFont(42);
   TLegendEntry *tentry = leg->AddEntry((TObject*)0,plotLabel.Data(),"");
-  tentry->SetTextSize(0.05);
+  tentry->SetTextSize(0.04);
   leg->AddEntry((TObject*)0, "","");
 
   double limitObs =0;
@@ -251,7 +251,7 @@ void compareScans(bool mev=true){
   //TText *text = pt->AddText(0.01,0.5,"CMS Preliminary");
   TText *text = pt->AddText(0.01,0.5,"CMS ");
   text->SetTextFont(60);
-  text->SetTextSize(0.05);
+  text->SetTextSize(0.04);
   text = pt->AddText(0.2,0.6,Form("#sqrt{s} = 7 TeV, L = %.1f fb^{-1}  #sqrt{s} = 8 TeV, L = %.1f fb^{-1}",lumi7TeV,lumi8TeV));
   //text = pt->AddText(0.5,0.5,Form("#sqrt{s} = 8 TeV, L = %.1f fb^{-1}",lumi8TeV));
   pt->Draw();  
