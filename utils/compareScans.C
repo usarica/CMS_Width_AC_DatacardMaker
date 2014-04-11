@@ -38,7 +38,7 @@ void compareScans(bool mev=true){
   //int colors[]={kBlack,kRed+1,kBlue,kGreen+2,kYellow+2,kYellow+2,kYellow+3,kBlack,kBlue,kRed+1,kGreen+2};
   //int colors[]={kBlack,kTeal-5,kRed,kPink+5,kRed-7,kYellow-1};
   //int colors[]={kRed-7,kRed,kRed+2,kRed+4};
-  int colors[] = {kBlue-7,kBlue-7,kBlue-4,kBlue-4};
+  int colors[] = {kBlue,kBlue,kBlue-4,kBlue-4};
 
   //fit plots
   TString grnames[]={"Observed","Expected","Observed 4l","Expected 4l"};
@@ -68,13 +68,14 @@ void compareScans(bool mev=true){
   //tell this flag which are obsered
   bool obs[] = {1,0,1,0,1,0,1,0,1,0,1,0};
   double mass[] = {125.6,125.6,125.6,125.6,125.6,125.6,125.6,125.6,125.6,125.6,125.6,125.6};
-  int maxwidth = 15.0;
-  bool mev=true;
+  int maxwidth = 12.0;
+  float upLim =11.;
+  //bool mev=true;
   bool printpval=false;
   bool uncBand =false;
   bool toyPlot =false;
   if(uncBand)toyPlot=false;
-  TString outString = "Combined_09_04_14";//"03_17_2DchanExp_093";
+  TString outString = "Combined_11_04_14";//"03_17_2DchanExp_093";
 
   //values for 1DDgg_093, expected mu=0.93
   //double limits95[]={6.05994,7.97529,12.1601,18.8235,26.9906};
@@ -96,7 +97,7 @@ void compareScans(bool mev=true){
 
   TGraph *g[nfiles];
 
-  TLegend *leg = new TLegend(0.27,0.75,0.75,0.9);
+  TLegend *leg = new TLegend(0.27,0.7,0.75,0.9);
   //TLegend *leg = new TLegend(0.18,0.55,0.5,0.93);
   //TLegend *leg = new TLegend(0.55,0.41,0.81,0.71);
   //leg->SetX1(0.22);
@@ -109,7 +110,8 @@ void compareScans(bool mev=true){
   leg->SetFillStyle(0);
   leg->SetTextFont(42);
   TLegendEntry *tentry = leg->AddEntry((TObject*)0,plotLabel.Data(),"");
-  tentry->SetTextSize(0.04);
+  tentry->SetTextSize(0.05);
+  tentry->SetTextFont(62);
   leg->AddEntry((TObject*)0, "","");
 
   double limitObs =0;
@@ -188,12 +190,12 @@ void compareScans(bool mev=true){
   g[0]->Draw("AL");
   g[0]->GetXaxis()->SetTitle("#Gamma/#Gamma_{SM}");
   if(mev)  g[0]->GetXaxis()->SetTitle("#Gamma_{H} (MeV)");
+  g[0]->GetXaxis()->SetTitleOffset(0.8);
   g[0]->GetYaxis()->SetTitle("-2 #Delta lnL");
   g[0]->GetYaxis()->SetTitleSize(0.05);
   g[0]->GetXaxis()->SetTitleSize(0.05);
   g[0]->GetXaxis()->SetLabelSize(0.04);
   g[0]->GetYaxis()->SetLabelSize(0.04);
-  float upLim =14.;
   if(gglimit<5)upLim=1.01;
   g[0]->GetYaxis()->SetRangeUser(0.,upLim);//12
   g[0]->GetXaxis()->SetRangeUser(0.,gglimit);
@@ -249,11 +251,13 @@ void compareScans(bool mev=true){
   pt->SetTextFont(42);
   pt->SetTextSize(0.03);
   //TText *text = pt->AddText(0.01,0.5,"CMS Preliminary");
-  TText *text = pt->AddText(0.01,0.5,"CMS ");
-  text->SetTextFont(60);
-  text->SetTextSize(0.04);
-  text = pt->AddText(0.2,0.6,Form("#sqrt{s} = 7 TeV, L = %.1f fb^{-1}  #sqrt{s} = 8 TeV, L = %.1f fb^{-1}",lumi7TeV,lumi8TeV));
+  TText *text = pt->AddText(0.01,0.5,"CMS");
+  text->SetTextFont(62);
+  text->SetTextSize(0.03146853);
+  text = pt->AddText(0.15,0.6,Form("#sqrt{s} = 7 TeV, L = %.1f fb^{-1}  #sqrt{s} = 8 TeV, L = %.1f fb^{-1}",lumi7TeV,lumi8TeV));
   //text = pt->AddText(0.5,0.5,Form("#sqrt{s} = 8 TeV, L = %.1f fb^{-1}",lumi8TeV));
+  text->SetTextFont(62);
+  text->SetTextSize(0.03146853);
   pt->Draw();  
 
   TPaveText *oneSig = new TPaveText(0.85,0.18,0.9,0.22,"NDC");
