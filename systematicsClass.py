@@ -56,20 +56,20 @@ class systematicsClass:
         self.theoryHighMass = 1
         
         if theInputs['muonTrigCutoff'] > 100 and theInputs['muonTrigUnc_HM'] > 0:
-            if self.mH > theInputs['muonTrigCutoff']:
-                self.sel_muontrig = theInputs['muonTrigUnc_HM']
+            #if self.mH > theInputs['muonTrigCutoff']:
+            self.sel_muontrig = theInputs['muonTrigUnc_HM']
                 
         if theInputs['muonFullCutoff'] > 100 and theInputs['muonFullUnc_HM'] > 0:
-            if self.mH > theInputs['muonFullCutoff']:
-                self.sel_muonfull = theInputs['muonFullUnc_HM']
+            #if self.mH > theInputs['muonFullCutoff']:
+            self.sel_muonfull = theInputs['muonFullUnc_HM']
  
         if theInputs['elecTrigCutoff'] > 100 and theInputs['elecTrigUnc_HM'] > 0:
-            if self.mH > theInputs['elecTrigCutoff']:
-                self.sel_eletrig = theInputs['elecTrigUnc_HM']
+            #if self.mH > theInputs['elecTrigCutoff']:
+            self.sel_eletrig = theInputs['elecTrigUnc_HM']
                 
         if theInputs['elecFullCutoff'] > 100 and theInputs['elecFullUnc_HM'] > 0:
-            if self.mH > theInputs['elecFullCutoff']:
-                self.sel_elefull = theInputs['elecFullUnc_HM']
+            #if self.mH > theInputs['elecFullCutoff']:
+            self.sel_elefull = theInputs['elecFullUnc_HM']
 
         self.qqVV_scaleSys = 1. + 0.01*math.sqrt((self.mH - 20.)/13.)
         self.qqVV_pdfSys = 1.04 #1. + 0.0035*math.sqrt(self.mH - 30.)

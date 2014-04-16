@@ -1,19 +1,21 @@
 void getQuantiles(TString str = "higgsCombine2D_.ProfileLikelihood.mH220.root")
 {
 
-  float limitObs = 6.62; //4.8
+  float limitObs =3.4;
   TFile* f = new TFile(str,"OPEN");
   TTree* limit = f->Get("limit");
   double values;
   limit->SetBranchAddress("limit",&values);
   TH1F* h = new TH1F("Toys","Toys",100,0.,50.);
   const Int_t nq = 100;
+  int nTrueE;
   for(int i = 0; i < limit->GetEntries(); i++)
     {
       limit->GetEntry(i);
       if(values > 1. && values <= 50)
 	{
 	  h->Fill(values);
+	  nTrueE++;
 	}
     }
   
@@ -21,7 +23,7 @@ void getQuantiles(TString str = "higgsCombine2D_.ProfileLikelihood.mH220.root")
   Double_t yq[nq];  // array to contain the quantiles
   for (Int_t i=0;i<nq;i++) xq[i] = Float_t(i+1)/nq;
   h->GetQuantiles(nq,yq,xq);
-  
+  cout<<"entries: "<<nTrueE<<endl;  
   //show the original histogram in the top pad
   TCanvas *c1 = new TCanvas("c1","demo quantiles",10,10,700,900);
   c1->Divide(1,2);
@@ -42,7 +44,7 @@ void getQuantiles(TString str = "higgsCombine2D_.ProfileLikelihood.mH220.root")
 
   cout<<gr->Eval(0.025)<<","<<gr->Eval(0.16)<<","<<gr->Eval(0.5)<<","<<gr->Eval(0.84)<<","<<gr->Eval(0.975) << endl;
   //  double pval=0;
-  for(double p =0; p<1;p=p+0.01){
+  for(double p =0; p<1;p=p+0.001){
     if(gr->Eval(p)>limitObs){
       cout<<"p-value "<<p<<endl;
       //pval=p;
