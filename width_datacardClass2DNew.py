@@ -769,8 +769,10 @@ class width_datacardClass:
         #kappahigh = ROOT.RooRealVar(asympowname,asympowname,totalRateUp/totalRate_ggzz)#kappahigh = ROOT.RooRealVar(asympowname,asympowname,rateSignal_Up+rateBkg_Up-rateInterf_Up)        
         kappahigh = ROOT.RooFormulaVar(asympowname,"@1/@0",ROOT.RooArgList(ggZZQCDUp_norm,ggZZNominal_norm))
         asympowname = "Asympow_ggZZ_QCD_{0:.0f}_{1:.0f}".format(self.channel,self.sqrts)
-        thetaSyst_ggZZ = AsymPow(asympowname,asympowname,kappalow,kappahigh,CMS_zz4l_APscale_syst)
-
+        if kappahigh.getVal() > kappalow.getVal() :
+            thetaSyst_ggZZ = AsymPow(asympowname,asympowname,kappalow,kappahigh,CMS_zz4l_APscale_syst)
+        else :
+            thetaSyst_ggZZ = AsymPow(asympowname,asympowname,kappahigh,kappalow,CMS_zz4l_APscale_syst)
         ## -------------------------- SHAPE Systematic 2 ---------------------------------- ##
 
         #Up Systematics pdf
@@ -871,8 +873,10 @@ class width_datacardClass:
         #kappahigh_pdf = ROOT.RooRealVar(asympowname,asympowname,totalRateUp_pdf/totalRate_ggzz)    
         kappahigh_pdf = ROOT.RooFormulaVar(asympowname,"@1/@0",ROOT.RooArgList(ggZZPDFUp_norm,ggZZNominal_norm))
         asympowname = "Asympow_ggZZ_pdf_{0:.0f}_{1:.0f}".format(self.channel,self.sqrts)
-        thetaSyst_ggZZ_pdf = AsymPow(asympowname,asympowname,kappalow_pdf,kappahigh_pdf,CMS_zz4l_pdf_gg_syst)
-
+        if kappahigh_pdf > kappalow_pdf :
+            thetaSyst_ggZZ_pdf = AsymPow(asympowname,asympowname,kappalow_pdf,kappahigh_pdf,CMS_zz4l_pdf_gg_syst)
+        else :
+            thetaSyst_ggZZ_pdf = AsymPow(asympowname,asympowname,kappahigh_pdf,kappalow_pdf,CMS_zz4l_pdf_gg_syst)
          ## -------------------------- VBF offshell SHAPES ---------------------------------- ##
         
         sigRateName = "signal_VBFrate_{0:.0f}_{1:.0f}".format(self.channel,self.sqrts)
@@ -1050,9 +1054,10 @@ class width_datacardClass:
         #kappahighVBF = ROOT.RooRealVar(asympowname,asympowname,totalRateVBFUp/totalRate_vbf)#kappahigh = ROOT.RooRealVar(asympowname,asympowname,rateSignal_Up+rateBkg_Up-rateInterf_Up)        
         kappahighVBF = ROOT.RooFormulaVar(asympowname,"@1/@0",ROOT.RooArgList(VBFUp_norm,VBFNominal_norm))#kappalow = ROOT.RooRealVar(asympowname,asympowname,rateSignal_Down+rateBkg_Down-rateInterf_Down)
         asympowname = "Asympow_VBF_{0:.0f}_{1:.0f}".format(self.channel,self.sqrts)
-        thetaSyst_VBF = AsymPow(asympowname,asympowname,kappalowVBF,kappahighVBF,CMS_zz4l_VBFscale_syst)
-
-
+        if kappahighVBF > kappalowVBF :
+            thetaSyst_VBF = AsymPow(asympowname,asympowname,kappalowVBF,kappahighVBF,CMS_zz4l_VBFscale_syst)
+        else :
+            thetaSyst_VBF = AsymPow(asympowname,asympowname,kappahighVBF,kappalowVBF,CMS_zz4l_VBFscale_syst)
         #Provo con formule Ulash
         
         ## -------------------------- OTHER BACKGROUND SHAPES ---------------------------------- ##
@@ -1152,9 +1157,12 @@ class width_datacardClass:
         asympowname = "kappalow_qqZZ_{0:.0f}_{1:.0f}".format(self.channel,self.sqrts)
         kappalow_qqzz = ROOT.RooRealVar(asympowname,asympowname,CMS_qqzzbkg_p3.getVal())
         asympowname = "kappahigh_qqZZ_{0:.0f}_{1:.0f}".format(self.channel,self.sqrts)
-        kappahigh_qqzz = ROOT.RooRealVar(asympowname,asympowname,CMS_qqzzbkg_p4.getVal())       
-        bkg_qqzz_norm = AsymPow("qqzz_norm","qqzz_norm",kappalow_qqzz,kappahigh_qqzz,qqZZ_Scale_Syst)
-
+        kappahigh_qqzz = ROOT.RooRealVar(asympowname,asympowname,CMS_qqzzbkg_p4.getVal())
+        if kappahigh_qqzz > kappalow_qqzz :
+            bkg_qqzz_norm = AsymPow("qqzz_norm","qqzz_norm",kappalow_qqzz,kappahigh_qqzz,qqZZ_Scale_Syst)
+        else :
+            bkg_qqzz_norm = AsymPow("qqzz_norm","qqzz_norm",kappahigh_qqzz,kappalow_qqzz,qqZZ_Scale_Syst)
+        
         qqZZ_EWK_Syst = w.factory("EWKcorr_VV[-7,7]")
         bkg_qqzz_EWK_syst_shape = ROOT.RooGenericPdf("bkg_qqzz_syst_shape","TMath::Max(1+@0*(@1-1+@2*@5+@3*@5*@5+@4*@5*@5*@5),0.)",ROOT.RooArgList(qqZZ_EWK_Syst,CMS_qqzzbkg_EWK_p0,CMS_qqzzbkg_EWK_p1,CMS_qqzzbkg_EWK_p2,CMS_qqzzbkg_EWK_p3,CMS_zz4l_widthMass))
         bkg_qqzz_mass = ROOT.RooProdPdf("bkg_qqzz_mass","bkg_qqzz_mass",ROOT.RooArgList(bkg_qqzz_mass_temp,bkg_qqzz_syst_shape,bkg_qqzz_EWK_syst_shape))
@@ -1162,9 +1170,12 @@ class width_datacardClass:
         asympowname = "kappalow_qqZZ_EWK_{0:.0f}_{1:.0f}".format(self.channel,self.sqrts)
         kappalow_qqzz = ROOT.RooRealVar(asympowname,asympowname,CMS_qqzzbkg_EWK_p4.getVal())
         asympowname = "kappahigh_qqZZ_EWK_{0:.0f}_{1:.0f}".format(self.channel,self.sqrts)
-        kappahigh_qqzz = ROOT.RooRealVar(asympowname,asympowname,CMS_qqzzbkg_EWK_p5.getVal())       
-        bkg_qqzz_norm = AsymPow("qqzz_norm","qqzz_norm",kappalow_qqzz,kappahigh_qqzz,qqZZ_EWK_Syst)
-
+        kappahigh_qqzz = ROOT.RooRealVar(asympowname,asympowname,CMS_qqzzbkg_EWK_p5.getVal())
+        if kappahigh_qqzz > kappalow_qqzz :
+            bkg_qqzz_norm = AsymPow("qqzz_norm","qqzz_norm",kappalow_qqzz,kappahigh_qqzz,qqZZ_EWK_Syst)
+        else :
+            bkg_qqzz_norm = AsymPow("qqzz_norm","qqzz_norm",kappahigh_qqzz,kappalow_qqzz,qqZZ_EWK_Syst)
+            
         TemplateName = "qqzz_TempDataHist_{0:.0f}_{1:.0f}".format(self.channel,self.sqrts)
         qqzz_TempDataHist = ROOT.RooDataHist(TemplateName,TemplateName,ROOT.RooArgList(CMS_zz4l_widthMass,CMS_zz4l_widthKD),Bkg_T)
         PdfName = "qqzz_TemplatePdf_{0:.0f}_{1:.0f}".format(self.channel,self.sqrts)
