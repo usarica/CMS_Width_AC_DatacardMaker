@@ -1144,7 +1144,7 @@ class width_datacardClass:
         CMS_qqzzbkg_EWK_p0=ROOT.RooRealVar("CMS_qqzzbkg_EWK_p0","CMS_qqzzbkg_EWK_p0",0.953385)
         CMS_qqzzbkg_EWK_p1=ROOT.RooRealVar("CMS_qqzzbkg_EWK_p1","CMS_qqzzbkg_EWK_p1",0.000412406)
         CMS_qqzzbkg_EWK_p2=ROOT.RooRealVar("CMS_qqzzbkg_EWK_p2","CMS_qqzzbkg_EWK_p2",-5.45148e-07)
-        CMS_qqzzbkg_EWK_p3=ROOT.RooRealVar("CMS_qqzzbkg_EWK_p3","CMS_qqzzbkg_EWK_p3",2.63944)
+        CMS_qqzzbkg_EWK_p3=ROOT.RooRealVar("CMS_qqzzbkg_EWK_p3","CMS_qqzzbkg_EWK_p3",2.63944e-10)
         CMS_qqzzbkg_EWK_p4=ROOT.RooRealVar("CMS_qqzzbkg_EWK_p4","CMS_qqzzbkg_EWK_p4",1-0.029)
         CMS_qqzzbkg_EWK_p5=ROOT.RooRealVar("CMS_qqzzbkg_EWK_p5","CMS_qqzzbkg_EWK_p5",1+0.029)
         CMS_qqzzbkg_EWK_p0.setConstant(True)
