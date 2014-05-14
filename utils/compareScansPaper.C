@@ -1,40 +1,145 @@
-
 void compareScansPaper(){
   gStyle->SetOptTitle(0);
-  const int nfiles = 6;
-  //TString files[]={"/afs/cern.ch/work/c/chmartin/public/7and8TeVwidth/HCG/220/","/afs/cern.ch/work/c/chmartin/public/7and8TeVwidth/HCG/220/","/afs/cern.ch/work/c/chmartin/public/7and8TeVwidth/HCG/only2l2nu/","/afs/cern.ch/work/c/chmartin/public/7and8TeVwidth/HCG/only2l2nu/","/afs/cern.ch/work/c/chmartin/public/7and8TeVwidth/HCG/220_2l2nu/","/afs/cern.ch/work/c/chmartin/public/7and8TeVwidth/HCG/220_2l2nu/"};
-  TString dir = "cards_Paper_V2/HCG/220/";
-  //TString files[]={"4l","4l","4l","2l2n","2l2n","2l2n","Combined","Combined","Combined"};
-  TString files[]={"4llowR","4llowR","2l2nlowR","2l2nlowR","CombinedlowR","CombinedlowR"};
-  //TString files[]={"Combined","Combined","8TeV","8TeV","2l2n","2l2n","2l2n","Combined","Combined","Combined"};
-  //TString files[]={"Combined","lowR"};
-  //int colors[] = {kRed+3,kRed+3,kRed+3,kRed-3,kRed-3,kBlue+1,kBlue+1,kGreen+2,kGreen,kGreen};
-  int colors[] = {kRed+3,kRed+3,kRed-3,kRed-3,kBlue+1,kBlue+1,kBlue+1,kGreen+2,kGreen,kGreen};
+  TString sets[7]={"1DDgg","1Dm4l","4l","2l2n","incl","All","Combined"};
+   for(int is=0;is<6;is++){
+     for(int in=2;in<4;in++){
+       compare(sets[is].Data(),in,false);
+       if(in==2 && is>1)compare(sets[is].Data(),in,true);
+       if(is>1)compare(sets[is].Data(),in,false,true);
+     }
+   }
   
-  //fit plots
-  //TString grnames[]={"4#font[12]{l} no systematics","4#font[12]{l} observed","4#font[12]{l} expected","2#font[12]{l}2#nu + 4#font[12]{l}_{on-peak} no systematics","2#font[12]{l}2#nu + 4#font[12]{l}_{on-peak} observed","2#font[12]{l}2#nu + 4#font[12]{l}_{on-peak} expected","Combined ZZ no systematics","Combined ZZ observed","Combined ZZ expected"};
-  TString grnames[]={"4#font[12]{l} observed","4#font[12]{l} expected","2#font[12]{l}2#nu + 4#font[12]{l}_{on-peak} observed","2#font[12]{l}2#nu + 4#font[12]{l}_{on-peak} expected","Combined ZZ observed","Combined ZZ expected"};
-  //TString grnames[]={"Combined ZZ observed","Combined ZZ expected","Combined ZZ observed 8 TeV","Combined ZZ expected 8TeV"};
-  //TString grnames[]={"Combined ZZ observed","Combined ZZ expected"};
- 
+//   for(int is=2;is<6;is++){
+//     for(int in=2;in<4;in++){
+//       compare(sets[is].Data(),in,false,true);
+//     }
+//   }
+//   compare("incl",2,false,false);
+//   compare("incl",3,false,false);
+//   compare("All",2,false,false);
+//   compare("All",3,false,false);
+
+//   compare("incl",2,true,false);
+//   compare("All",2,true,false);
+
+//   compare("All",2,false,false);
+//   compare("All",2,false,true);
+//   compare("All",3,false,false);
+//   compare("All",3,false,true);
+
+//   compare("2l2n",2,false,false);
+//   compare("2l2n",2,false,true);
+//   compare("2l2n",3,false,false);
+//   compare("2l2n",3,false,true);
+
+}
+
+void compare(TString set="All", int nFiles=9, bool lowR=false, bool up120=false){
+
+  //TString files[]={"/afs/cern.ch/work/c/chmartin/public/7and8TeVwidth/HCG/220/","/afs/cern.ch/work/c/chmartin/public/7and8TeVwidth/HCG/220/","/afs/cern.ch/work/c/chmartin/public/7and8TeVwidth/HCG/only2l2nu/","/afs/cern.ch/work/c/chmartin/public/7and8TeVwidth/HCG/only2l2nu/","/afs/cern.ch/work/c/chmartin/public/7and8TeVwidth/HCG/220_2l2nu/","/afs/cern.ch/work/c/chmartin/public/7and8TeVwidth/HCG/220_2l2nu/"};
+  TString dir = "cards_Paper_V3/HCG/220/";
+  TString files[]={"4l","4l","4l","2l2n","2l2n","2l2n","incl","incl","incl","Combined","Combined","Combined"};
+  int colors[] = {kRed+3,kRed+3,kRed+3,kRed-3,kRed-3,kRed-3,kBlue+1,kBlue+1,kBlue+1,kGreen+2,kGreen+2,kGreen+2};
+  //int colors[] = {kRed,kRed,kRed,kAzure+10,kAzure+10,kAzure+10,kBlack,kBlack,kBlack,kGreen+2,kGreen+2,kGreen+2};
+  TString grnames[]={"4#font[12]{l} observed","4#font[12]{l} expected","4#font[12]{l} no systematics","2#font[12]{l}2#nu + 4#font[12]{l}_{on-shell} observed","2#font[12]{l}2#nu + 4#font[12]{l}_{on-shell} expected","2#font[12]{l}2#nu + 4#font[12]{l}_{on-shell} no systematics","Combined ZZ observed","Combined ZZ expected","Combined ZZ no systematics"};
+  int obs[] = {1,0,-1,1,0,-1,1,0,-1,1,0,-1,1,0,-1,0,1,0,1,0,1,0};
+  double mass[] = {125.6,125.6,125.6,125.6,125.6,125.6,125.6,125.6,125.6,125.6,125.6,125.6};
+  int maxwidth = 16.0;
+  //int maxwidth = 30.0;
+  //int maxwidth = 2.0;
+  float upLim =10.5;
+  bool mev=true;
+  TString outString = "FitPaper_30_04_14";//"03_17_2DchanExp_093";
+  outString.Prepend(set.Data());
+
+  if(lowR){
+    for(int il=0;il<9;il++)files[il].Append("lowR");
+    mev=false;
+    outString.Append("_lowR");
+    maxwidth=2.0;
+  }
+
+  if(set=="1Dm4l"){
+    maxwidth = 30.0;
+    dir = "cards_Paper_V3_1Dm4l/HCG/220/";
+    grnames[0]="4#font[12]{l}(m_{4#font[12]{l}}) observed";
+    grnames[1]="4#font[12]{l}(m_{4#font[12]{l}}) expected";
+    grnames[2]="4#font[12]{l}(m_{4#font[12]{l}}) no systematics";
+  }
+
+  if(set=="1DDgg"){
+    maxwidth = 30.0;
+    dir = "cards_Paper_V3_1DDgg/HCG/220/";
+    grnames[0]="4#font[12]{l}(D_{gg}) observed";
+    grnames[1]="4#font[12]{l}(D_{gg}) expected";
+    grnames[2]="4#font[12]{l}(D_{gg}) no systematics";
+  }
+
+  if(set=="All")nFiles=nFiles*3;
+
+  if(set=="2l2n"){
+    for(ill=0;ill<3;ill++){
+      files[ill]=files[ill+3];
+      grnames[ill]=grnames[ill+3];
+      colors[ill]=colors[ill+3];
+    }
+  }
+
+  if(set=="incl"){
+    for(ill=0;ill<3;ill++){
+      files[ill]=files[ill+6];
+      grnames[ill]=grnames[ill+6];
+      colors[ill]=colors[ill+6];
+    }
+  }
+
+  if(set=="Combined"){
+    for(ill=0;ill<3;ill++){
+      files[ill]=files[ill+9];
+      grnames[ill]=grnames[ill+9];
+      colors[ill]=colors[ill+9];
+    }
+  }
+
+  if(nFiles==6){
+    files[2]=files[3];
+    files[4]=files[6];
+    files[5]=files[6];
+    colors[2]=colors[3];
+    colors[4]=colors[6];
+    colors[5]=colors[6];
+    obs[2]=1;
+    obs[3]=0;
+    obs[4]=1;
+    obs[5]=0;
+    grnames[2]=grnames[3];
+    grnames[3]=grnames[4];
+    grnames[4]=grnames[6];
+    grnames[5]=grnames[7];
+  }
+
+  if(nFiles==9 || nFiles == 3)outString.Append("_noSyst");
+
+  if(up120){
+    maxwidth=30;
+    outString.Append("_120");
+    upLim =20.0;
+  }
+
+  const int nfiles = nFiles;
+
   TString plotLabel = "CMS";
 
   //TString toyPlotname = "toyParallel2D_093_95/toPlot.root";
   //TFile toyPlotFile = "toPlot";
 
   //tell this flag which are obsered
-  //int obs[] = {-1,1,0,-1,1,0,-1,1,0,1,0,1,0,1,0,1,0};
-  int obs[] = {1,0,1,0,1,0,1,0,1,0,1,0,1,0};
-  double mass[] = {125.6,125.6,125.6,125.6,125.6,125.6,125.6,125.6,125.6,125.6,125.6,125.6};
-  //int maxwidth = 16.0;
-  int maxwidth = 2.0;
-  float upLim =10.5;
-  bool mev=false;
+  //int obs[] = {0,1,-1,0,1,-1,0,1,-1,0,-1,1,0,1,0,1,0,1,0,1,0};
   bool printpval=false;
   bool uncBand =false;
   bool toyPlot =false;
   if(uncBand)toyPlot=false;
-  TString outString = "test2l2nFitPaper_23_04_14_lowR";//"03_17_2DchanExp_093";
+
 
   //values for 1DDgg_093, expected mu=0.93
   //double limits95[]={6.05994,7.97529,12.1601,18.8235,26.9906};
@@ -102,23 +207,49 @@ void compareScansPaper(){
     TTree *t1=(TTree*)f1->Get("limit");
     t1->Draw("2*deltaNLL:CMS_zz4l_GGsm", "deltaNLL > 0","PL");
     TGraph *gr0 = (TGraph*)gROOT->FindObject("Graph")->Clone();
+    if(!lowR && !set.Contains("1D") && !set.Contains("2l")){
+      sprintf(boh,"%shiggsCombine%s_%slowR_nLL_scan.MultiDimFit.mH%.1f.root", dir.Data(),obsString.Data(),files[i].Data(),mass[i]);
+      TFile *f2=TFile::Open(boh);
+      TTree *t2=(TTree*)f2->Get("limit");
+      t2->Draw("2*deltaNLL:CMS_zz4l_GGsm", "deltaNLL > 0","PL");
+      TGraph *grlow = (TGraph*)gROOT->FindObject("Graph")->Clone();
+      int norig = gr0->GetN();
+      gr0->Set(gr0->GetN()+grlow->GetN());
+      double *ylow=grlow->GetY();
+      double *xlow=grlow->GetX();
+      for(int ipoint=0;ipoint<grlow->GetN();ipoint++)gr0->SetPoint(norig+ipoint,xlow[ipoint],ylow[ipoint]);
+    }
     gr0->Sort();
-    gr0->SetName(grnames[i].Data());
-    if (i> 3) gr0->SetLineWidth(4);
-    else gr0->SetLineWidth(2);
+    TString name;name.Format("%s_%d",grnames[i].Data(),i);
+    gr0->SetName(name.Data());
+    gr0->SetLineWidth(2);
+    if ((files[i]=="Combined"||files[i]=="incl") && i> 3) gr0->SetLineWidth(3);
+    //if(files[i]=="2l2n"&& nfiles>3)gr0->SetLineWidth(1);
+    //else gr0->SetLineWidth(2);
     gr0->SetLineColor(colors[i]);
     if(obs[i]==0) gr0->SetLineStyle(2);
     if(obs[i]==-1) gr0->SetLineStyle(10);
-    if(files[i]=="2l2n" && obs[i]==1){gr0->RemovePoint(95);gr0->RemovePoint(94);gr0->RemovePoint(94);}//gr0->Print();}
-    if(files[i]=="Combined" && obs[i]==1){gr0->RemovePoint(93);}//gr0->Print();}
+    //if(files[i]=="2l2n" && obs[i]==1){gr0->RemovePoint(95);gr0->RemovePoint(94);gr0->RemovePoint(94);}//gr0->Print();}
+    //if(files[i]=="Combined" && obs[i]==1){gr0->RemovePoint(93);}//gr0->Print();}
     //if(i==1) { 
     //gr0->Print();
       //gr0->RemovePoint(86);
     //}
     // else if (i == 2)gr0->SetLineStyle(2);
     // else if (i == 3)gr0->SetLineStyle(10);
+    int nPoints = gr0->GetN();
+    double *y = gr0->GetY();
+    for(int j=0;j<nPoints;j++){
+      if(y[j]<4)continue;
+      if(y[j]<=y[j-1]){
+	gr0->RemovePoint(j);
+	j--;
+	nPoints--;
+      }
+    }
     gr0->SetTitle(grnames[i].Data());
     leg->AddEntry(gr0);
+    //gr0->SetTitle(gr0->GetName());
     g[i]=(TGraph*)gr0->Clone();
     double *y = gr0->GetY();
     double *x = gr0->GetX();
@@ -157,11 +288,18 @@ void compareScansPaper(){
   //TH1F *htoy = (TH1F*)toPlot->FindObject("Toys");
 
   TCanvas *c1=new TCanvas("can1","CANVAS-SCAN1D",800,800);
+  c1->SetBottomMargin(0.13);
+  c1->Range(0,0,1,1);
+  c1->SetFillColor(0);
+  c1->SetBorderMode(0);
+  c1->SetBorderSize(2);
+  c1->SetLeftMargin(0.16);
+  c1->SetFrameBorderMode(0);
   c1->cd();
   g[0]->Draw("AL");
   g[0]->GetXaxis()->SetTitle("#Gamma/#Gamma_{SM}");
   if(mev)  g[0]->GetXaxis()->SetTitle("#Gamma_{H} (MeV)");
-  g[0]->GetXaxis()->SetTitleOffset(0.8);
+  g[0]->GetXaxis()->SetTitleOffset(1.05);
   g[0]->GetYaxis()->SetTitle("-2 #Delta lnL");
   g[0]->GetYaxis()->SetTitleSize(0.05);
   g[0]->GetXaxis()->SetTitleSize(0.05);
@@ -215,7 +353,7 @@ void compareScansPaper(){
     pval->Draw();
   }
 
-  TPaveText *cll = new TPaveText(0.74,0.37,0.98,0.47,"brNDC");
+  TPaveText *cll = new TPaveText(0.74,0.39,0.98,0.47,"brNDC");
   cll->SetBorderSize(0);
   cll->SetTextAlign(12);
   cll->SetFillStyle(0);
@@ -224,7 +362,7 @@ void compareScansPaper(){
   cll->AddText(0,0,"95% CL");
   if(gglimit>10)cll->Draw();
 
-  TPaveText *cll2 = new TPaveText(0.74,0.15,0.98,0.25,"brNDC");
+  TPaveText *cll2 = new TPaveText(0.74,0.19,0.98,0.25,"brNDC");
   cll2->SetBorderSize(0);
   cll2->SetTextAlign(12);
   cll2->SetFillStyle(0);
@@ -242,21 +380,55 @@ void compareScansPaper(){
   hzz->AddText(0,0,"H #rightarrow ZZ");
   hzz->Draw();
 
-  TPaveText *pt = new TPaveText(0.1577181,0.9062937,0.9580537,0.9747552,"brNDC");
-  pt->SetBorderSize(0);
-  pt->SetTextAlign(12);
-  pt->SetFillStyle(0);
-  pt->SetTextFont(42);
-  pt->SetTextSize(0.03);
-  //TText *text = pt->AddText(0.01,0.5,"CMS Preliminary");
-  TText *text = pt->AddText(0.01,0.6,"CMS");
-  text->SetTextFont(62);
-  text->SetTextSize(0.03946853);
-  text = pt->AddText(0.20,0.6,Form("#sqrt{s} = 7 TeV, L = %.1f fb^{-1}  #sqrt{s} = 8 TeV, L = %.1f fb^{-1}",lumi7TeV,lumi8TeV));
-  //text = pt->AddText(0.5,0.5,Form("#sqrt{s} = 8 TeV, L = %.1f fb^{-1}",lumi8TeV));
-  text->SetTextFont(62);
-  text->SetTextSize(0.03146853);
-  pt->Draw();  
+
+   pt = new TPaveText(0.15,0.8857692,0.85,0.995,"blNDC");
+   pt->SetBorderSize(0);
+   pt->SetFillStyle(0);
+   pt->SetTextAlign(12);
+   pt->SetTextFont(42);
+   pt->SetTextSize(0.04);
+   text = pt->AddText(0.02,0.45,"#font[42]{CMS}");
+   text->SetTextFont(62);
+   text->SetTextSize(0.044);
+   text = pt->AddText(0.47,0.45,"#font[42]{19.7 fb^{-1} (8 TeV) + 5.1 fb^{-1} (7 TeV)}");
+   text->SetTextFont(62);
+   text->SetTextSize(0.03146853);
+   pt->Draw();
+
+
+//    pt = new TPaveText(0.1492308,0.9076433,0.9492308,0.9761146,"brNDC");
+//    pt->SetBorderSize(0);
+//    pt->SetFillStyle(0);
+//    pt->SetTextAlign(12);
+//    pt->SetTextFont(42);
+//    //pt->SetTextSize(0.03);
+//    text = pt->AddText(0.02,0.45,"#font[42]{CMS}");
+//    text = pt->AddText(0.4,0.45,"#font[42]{L = 19.7 fb^{-1} (8 TeV) + 5.1 fb^{-1} (7 TeV)}"); 
+//    //text = pt->AddText(0.01,0.6,"CMS");
+//    //text->SetTextFont(62);
+//    //text->SetTextSize(0.03946853);
+//    //text = pt->AddText(0.2,0.6,"#sqrt{s} = 7 TeV, L = 5.1 fb^{-1}  #sqrt{s} = 8 TeV, L = 19.7 fb^{-1}");
+//    //text->SetTextFont(62);
+//    //text->SetTextSize(0.03146853);
+//    pt->Draw();
+
+
+
+//   TPaveText *pt = new TPaveText(0.1577181,0.9062937,0.9580537,0.9747552,"brNDC");
+//   pt->SetBorderSize(0);
+//   pt->SetTextAlign(12);
+//   pt->SetFillStyle(0);
+//   pt->SetTextFont(42);
+//   pt->SetTextSize(0.03);
+//   //TText *text = pt->AddText(0.01,0.5,"CMS Preliminary");
+//   TText *text = pt->AddText(0.01,0.6,"CMS");
+//   text->SetTextFont(62);
+//   text->SetTextSize(0.03946853);
+//   text = pt->AddText(0.20,0.6,Form("#sqrt{s} = 7 TeV, L = %.1f fb^{-1}  #sqrt{s} = 8 TeV, L = %.1f fb^{-1}",lumi7TeV,lumi8TeV));
+//   //text = pt->AddText(0.5,0.5,Form("#sqrt{s} = 8 TeV, L = %.1f fb^{-1}",lumi8TeV));
+//   text->SetTextFont(62);
+//   text->SetTextSize(0.03146853);
+//   pt->Draw();  
 
   TPaveText *oneSig = new TPaveText(0.85,0.18,0.9,0.22,"NDC");
   oneSig->SetFillColor(0);

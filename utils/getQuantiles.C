@@ -1,7 +1,7 @@
-void getQuantiles(TString str = "higgsCombine2D_.ProfileLikelihood.mH220.root")
+void getQuantiles(TString str = "higgsCombineToys.root")
 {
 
-  float limitObs =3.4;
+  float limitObs =32.98/4.15;
   TFile* f = new TFile(str,"OPEN");
   TTree* limit = f->Get("limit");
   double values;
@@ -57,7 +57,10 @@ void getQuantiles(TString str = "higgsCombine2D_.ProfileLikelihood.mH220.root")
   cToPlot->cd();
   h->Draw();
   h->GetXaxis()->SetRange(3.0,70.0);
-  cToPlot->SaveAs("toPlot.root");
+  cToPlot->SaveAs("toPlotComb.root");
+  cToPlot->SaveAs("toPlotComb.png");
+  cToPlot->SaveAs("toPlotComb.pdf");
+  cToPlot->SaveAs("toPlotComb.eps");
 }
 
 

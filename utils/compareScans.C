@@ -1,8 +1,9 @@
 
 void compareScans(bool mev=true){
   gStyle->SetOptTitle(0);
-  const int nfiles = 2;
-  TString files[]={"cards_07_04_14_update_2D_8TeV/HCG/220_2l2nu/","cards_07_04_14_update_2D_8TeV/HCG/220_2l2nu/","cards_07_04_14_update_2D_8TeV/HCG/220/","cards_07_04_14_update_2D_8TeV/HCG/220/","cards_07_04_14_update_2D_8TeV/HCG/only2l2nu/","cards_07_04_14_update_2D_8TeV/HCG/only2l2nu/",};
+  const int nfiles = 1;
+  //TString files[]={"cards_07_04_14_update_2D_8TeV/HCG/220_2l2nu/","cards_07_04_14_update_2D_8TeV/HCG/220_2l2nu/","cards_07_04_14_update_2D_8TeV/HCG/220/","cards_07_04_14_update_2D_8TeV/HCG/220/","cards_07_04_14_update_2D_8TeV/HCG/only2l2nu/","cards_07_04_14_update_2D_8TeV/HCG/only2l2nu/",};
+TString files[]={"cards_Paper/HCG/220/","cards_07_04_14_update_2D_8TeV/HCG/220_2l2nu/","cards_07_04_14_update_2D_8TeV/HCG/220/","cards_07_04_14_update_2D_8TeV/HCG/220/","cards_07_04_14_update_2D_8TeV/HCG/only2l2nu/","cards_07_04_14_update_2D_8TeV/HCG/only2l2nu/",};
   //TString files[]={"cards_03_17_Moriond_093_1DDgg/HCG/220/","cards_03_17_Moriond_093_1Dm4l/HCG/220/","cards_03_17_Moriond_093_2D/HCG/220/","cards_03_17_Moriond_093_1DDgg/HCG/220/","cards_03_17_Moriond_093_1Dm4l/HCG/220/","cards_03_17_Moriond_093_2D/HCG/220/","cards_03_17_Moriond_093_2D/HCG/220/","cards_03_17_Moriond_1_2D/HCG/220_noSyst/","cards_03_17_Moriond_1_2D/HCG/220/"}//Unblind
   //TString files[]={"cards_03_17_Moriond_093_2D/HCG/220/","cards_03_17_Moriond_093_2D/HCG/220_postFit/"};
   //Combined 4l-2l2n
@@ -75,7 +76,7 @@ void compareScans(bool mev=true){
   bool uncBand =false;
   bool toyPlot =false;
   if(uncBand)toyPlot=false;
-  TString outString = "Combined_11_04_14";//"03_17_2DchanExp_093";
+  TString outString = "testCombined_11_04_14";//"03_17_2DchanExp_093";
 
   //values for 1DDgg_093, expected mu=0.93
   //double limits95[]={6.05994,7.97529,12.1601,18.8235,26.9906};
@@ -138,6 +139,7 @@ void compareScans(bool mev=true){
     //printf("%d\n",i);
     sprintf(boh,"%shiggsCombine%dD_%s.MultiDimFit.mH%.1f.root", files[i].Data(),nDi,obsString.Data(),mass[i]);
     TFile *f1=TFile::Open(boh);
+    //TFile *f1=TFile::Open("cards_Paper/HCG/220/higgsCombineObs_Combined_nLL_scan.MultiDimFit.mH125.6.root");
     TTree *t1=(TTree*)f1->Get("limit");
     t1->Draw("2*deltaNLL:CMS_zz4l_GGsm", "deltaNLL > 0","PL");
     TGraph *gr0 = (TGraph*)gROOT->FindObject("Graph")->Clone();
@@ -168,8 +170,8 @@ void compareScans(bool mev=true){
     double b = y[ipol]-a*x[ipol]*fact;
     if(obs[i] && limitObs<1)limitObs=(3.84-b)/a;
     printf("%s limit@95CL %.2f\n",grnames[i].Data(),(3.84-b)/a);
-    a =  (y[ipol+1]-y[ipol])/(x[ipol+1]-x[ipol])/fact;
-    b = y[ipol]-a*x[ipol]*fact;
+    a =  (y[ipol68+1]-y[ipol68])/(x[ipol68+1]-x[ipol68])/fact;
+    b = y[ipol68]-a*x[ipol68]*fact;
     printf("%s limit@68CL %.2f\n",grnames[i].Data(),(1-b)/a);
   }
 
