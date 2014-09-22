@@ -1,0 +1,43 @@
+imax 1
+jmax 7
+kmax *
+------------
+shapes * * hzz4l_4eS_8TeV_0.input.root w:$PROCESS 
+------------
+bin a2_0 
+observation 8 
+------------
+## mass window [105.6,140.6] 
+bin a2_0 a2_0 a2_0 a2_0 a2_0 a2_0 a2_0 a2_0 
+process ggH qqH WH ZH ttH bkg2d_qqzz bkg2d_ggzz bkg2d_zjets 
+process -4 -3 -2 -1 0 1 2 3 
+rate 1.0000 1.0000 1.0000 1.0000 1.0000 2.7660 0.1883 2.2141 
+------------
+lumi_8TeV lnN 1.026 1.026 1.026 1.026 1.026 1.026 1.026 - 
+pdf_gg lnN 1.0720 - - - 0.9220 - 1.0710 - 
+pdf_qqbar lnN - 1.0270 1.0350 1.0350 - 1.0342 - - 
+pdf_hzz4l_accept lnN 1.02 1.02 1.02 1.02 1.02 - - - 
+QCDscale_ggH lnN 1.0750 - - - - - - - 
+QCDscale_qqH lnN - 1.0020 - - - - - - 
+QCDscale_VH lnN - - 1.0040 1.0155 - - - - 
+QCDscale_ttH lnN - - - - 1.0655 - - - 
+QCDscale_ggVV lnN - - - - - - 1.2435 - 
+QCDscale_VV lnN - - - - - 1.0285 - - 
+BRhiggs_hzz4l lnN 1.02 1.02 1.02 1.02 1.02 - - - 
+CMS_eff_e lnN 1.101 1.101 1.101 1.101 1.101 1.101 1.101 - 
+CMS_hzz4e_Zjets lnN - - - - - - - 0.8/1.2 
+CMS_zz4l_bkgMELA param 0  1  [-3,3]
+QCDscale_ggH2in lnN 0.968 - - - - - - - 
+QCDscale_qqH2in lnN - - - - - - - - 
+CMS_zz4l_ggH_Pt_sys param 0  1  [-3,3]
+CMS_zz4l_qqH_Pt_sys param 0  1  [-3,3]
+CMS_zz4l_ttH_Pt_sys param 0  1  [-3,3]
+CMS_zz4l_VH_Pt_sys param 0  1  [-3,3]
+CMS_zz4l_qqZZ_Pt_sys param 0  1  [-3,3]
+CMS_zz4l_ggZZ_Pt_sys param 0  1  [-3,3]
+CMS_zz4l_ZX_Pt_sys param 0  1  [-3,3]
+CMS_zz4l_mean_e_sig param 0.0 1.0 
+## CMS_zz4l_mean_e_sig = 0.003 
+CMS_zz4l_sigma_e_sig param 0.0 0.2 
+CMS_zz4l_n_sig_2_8 param 0.0 0.05 
+interf_ggH param 0 1 [-1,1] 
