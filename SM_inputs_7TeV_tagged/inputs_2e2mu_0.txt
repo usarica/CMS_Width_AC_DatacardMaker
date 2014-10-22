@@ -1,4 +1,4 @@
-############## Inputs for 2e2mu for 7 TeV  dijettag-> 0  ##############
+############## Inputs for 2e2mu for 7 TeV  ##############
 ## SM ##
 model SM
 
@@ -13,13 +13,14 @@ systematic lumiUnc 1.022
 sqrts 7
 
 ## Channels to include in cards ##
-channels ggH qqH WH ZH ttH qqZZ ggZZ zjets
+#channels ggH qqH WH ZH ttH qqZZ ggZZ zjets
+channels ggZZ VBF_offshell qqZZ zjets
 
 ## rates --- format = chan N lumi ##
 ## if lumi is blank, lumi for cards used ##
-rate qqZZ  31.7044
-rate ggZZ  2.07991
-rate zjets 1.832
+rate qqZZ  16.0066
+rate ggZZ  2.22536
+rate zjets 0.336619
 
 ## signal functions --- no spaces! ##
 usehighmassreweightedshapes
@@ -95,21 +96,20 @@ signalEff ttHg2  0
 signalEff ttHg3  1
 
 ### background functions ###
-qqZZshape a0_bkgd   110.356
-qqZZshape a1_bkgd   12.3282
-qqZZshape a2_bkgd   117.432
-qqZZshape a3_bkgd   0.0428989
-qqZZshape a4_bkgd   185.123
-qqZZshape a5_bkgd   10.3705
-qqZZshape a6_bkgd   29.4263
-qqZZshape a7_bkgd   0.0839611
-qqZZshape a8_bkgd   53.6076
-qqZZshape a9_bkgd   0.089579
-qqZZshape a10_bkgd  85.3175
-qqZZshape a11_bkgd  -13.3708
-qqZZshape a12_bkgd  38.3368
-qqZZshape a13_bkgd  0.315673
-
+qqZZshape a0_bkgd   109.668
+qqZZshape a1_bkgd   11.119
+qqZZshape a2_bkgd   118.048
+qqZZshape a3_bkgd   0.0432513
+qqZZshape a4_bkgd   185.088
+qqZZshape a5_bkgd   9.19723
+qqZZshape a6_bkgd   31.9686
+qqZZshape a7_bkgd   0.0820995
+qqZZshape a8_bkgd   51.1886
+qqZZshape a9_bkgd   0.0878471
+qqZZshape a10_bkgd  86.0879
+qqZZshape a11_bkgd  -13.6994
+qqZZshape a12_bkgd  8201.8
+qqZZshape a13_bkgd  0.374843
 
 ggZZshape a0_bkgd  141.681
 ggZZshape a1_bkgd  42.5332
@@ -185,25 +185,21 @@ systematic CMS_zz4l_gamma True
 ### for hypothesis testing ###
 doHypTest False
 #altHypLabel _ALT
+## spin rates from jhuGen
+spinYield SM 1.5317
 
-### for VBF fraction ###
-useCMS_zz4l_doVBFtest True
-useCMS_zz4l_Fisher_sys True
-useCMS_zz4l_Pt_sys True
+## 0- from N_exp
+spinYield n0minus 1.44681
 
-systematic param QCD_scale_ggH_2j_sys 0.3
-systematic param QCD_scale_qqH_2j_sys 0.1
-
-## jet tagged/untagged ratio
-jetYieldRatio 0.0232577+(0.000541605*@0)+(-1.77355e-07*@0*@0)+(-1.70136e-11*@0*@0*@0)
-
-## signal efficiency ratios ##
-signalEff tagged_ggH_ratio 0.0300657+(0.000440003*@0)+(-2.0645e-07*@0*@0)
-signalEff tagged_qqH_ratio 0.538331+(-7.30899e-05*@0)+(-1.40727e-08*@0*@0)
-signalEff tagged_ZH_ratio 0.375407+(0.000261835*@0)
-signalEff tagged_WH_ratio 0.313969+(0.000784981*@0)
-signalEff tagged_ttH_ratio 0.975471+(-9.50018e-06*@0)
-
+## others from N_norm
+spinYield n0hplus 1.63332
+spinYield n1minus 1.80727
+spinYield n1plus 1.68205
+spinYield ngg2mplus 1.70761
+spinYield nqq2mplus 1.78488
+spinYield n2hplus 1.70166
+spinYield n2hminus 1.69437
+spinYield n2bplus 1.76205
 
 
 
@@ -239,3 +235,18 @@ RelErrShape relerr_ggH_ld_sigma (0.00397118)+(-4.64669e-05*@0)+(1.89486e-07*@0*@
 RelErrShape relerr_ggH_ld_frac (-0.578563)+(0.0219587*@0)+(-9.1848e-05*@0*@0)
 RelErrShape relerr_ggH_gs_mean (0.0348369)+(-0.000245403*@0)+(7.50982e-07*@0*@0)
 RelErrShape relerr_ggH_gs_sigma (0.0243929)+(-0.000301246*@0)+(1.13415e-06*@0*@0)
+## spin rates from jhuGen
+spinYield SM 1.5317
+
+## 0- from N_exp
+spinYield n0minus 1.44681
+
+## others from N_norm
+spinYield n0hplus 1.63332
+spinYield n1minus 1.80727
+spinYield n1plus 1.68205
+spinYield ngg2mplus 1.70761
+spinYield nqq2mplus 1.78488
+spinYield n2hplus 1.70166
+spinYield n2hminus 1.69437
+spinYield n2bplus 1.76205
