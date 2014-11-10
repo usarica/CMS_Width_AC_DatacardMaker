@@ -255,7 +255,7 @@ class width_datacardClass:
         
         Bkg_T = sigTempFileU.Get("T_2D_qqZZ_UnConditional").Clone("mZZ_bkg")
         Bkg_ZX = sigTempFileU.Get("T_2D_ZX_UnConditional").Clone("Bkg_ZX_Nominal")
-        Bkg_ZX_Up = sigTempFileDown_PDF.Get("T_2D_ZX_UnConditional").Clone("Bkg_ZX_Down")
+        Bkg_ZX_Up = sigTempFileDown_PDF.Get("T_2D_ZX_UnConditional").Clone("Bkg_ZX_Up")
         Bkg_ZX_Down = sigTempFileDown_PDF.Get("T_2D_ZX_UnConditional").Clone("Bkg_ZX_Down")
 
 
