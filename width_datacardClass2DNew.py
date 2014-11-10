@@ -47,7 +47,7 @@ class width_datacardClass:
             return falseVar
 
     # main datacard and workspace function
-    def makeCardsWorkspaces(self, theLowSide, templateDir, theOutputDir, theInputs, useDjet=0):
+    def makeCardsWorkspaces(self, theLowSide, options, theOutputDir, theInputs, useDjet=0):
 
         # --------------- SETTINGS AND DECLARATIONS --------------- ##
         DEBUG = False
@@ -57,6 +57,9 @@ class width_datacardClass:
         self.inputlumi = theInputs['lumi']
         self.sqrts = theInputs['sqrts']
         self.channel = theInputs['decayChannel']
+        self.templateDir = options.templateDir
+        self.dataAppendDir = options.dataDirAppend
+        self.anomCoupl = options.anomalousCouplingIndex
         self.outputDir = theOutputDir
 
         self.ggH_chan = theInputs['ggH']
@@ -176,7 +179,7 @@ class width_datacardClass:
         if(useDjet == 0):
             # if(USELEGACY==False):
             templateSigName = "{0}/LHC_{1:.0f}TeV/{2}/HtoZZ4l_MCFM_125p6_ModifiedSmoothTemplatesForCombine__GenLevelVBF_wResolution_D_Gamma_gg_r10_Nominal.root".format(
-                templateDir, self.sqrts, self.appendNameAlt)
+                self.templateDir, self.sqrts, self.appendNameAlt)
             sigTempFileU = ROOT.TFile(templateSigName)
 
             tmpSig_T_1 = sigTempFileU.Get("T_2D_2")
@@ -188,20 +191,20 @@ class width_datacardClass:
             tmpVBF_T_4 = sigTempFileU.Get("T_2D_VBF_4")
 
             templateSigNameUp_PDF = "{0}/LHC_{1:.0f}TeV/{2}/HtoZZ4l_MCFM_125p6_ModifiedSmoothTemplatesForCombine__GenLevelVBF_wResolution_D_Gamma_gg_r10_SysUp_ggPDF.root".format(
-                templateDir, self.sqrts, self.appendNameAlt)
+                self.templateDir, self.sqrts, self.appendNameAlt)
             templateSigNameDown_PDF = "{0}/LHC_{1:.0f}TeV/{2}/HtoZZ4l_MCFM_125p6_ModifiedSmoothTemplatesForCombine__GenLevelVBF_wResolution_D_Gamma_gg_r10_SysDown_ggPDF.root".format(
-                templateDir, self.sqrts, self.appendNameAlt)
+                self.templateDir, self.sqrts, self.appendNameAlt)
             templateSigNameUp_QCD = "{0}/LHC_{1:.0f}TeV/{2}/HtoZZ4l_MCFM_125p6_ModifiedSmoothTemplatesForCombine__GenLevelVBF_wResolution_D_Gamma_gg_r10_SysUp_ggQCD.root".format(
-                templateDir, self.sqrts, self.appendNameAlt)
+                self.templateDir, self.sqrts, self.appendNameAlt)
             templateSigNameDown_QCD = "{0}/LHC_{1:.0f}TeV/{2}/HtoZZ4l_MCFM_125p6_ModifiedSmoothTemplatesForCombine__GenLevelVBF_wResolution_D_Gamma_gg_r10_SysDown_ggQCD.root".format(
-                templateDir, self.sqrts, self.appendNameAlt)
+                self.templateDir, self.sqrts, self.appendNameAlt)
             sigTempFileUp_PDF = ROOT.TFile(templateSigNameUp_PDF)
             sigTempFileDown_PDF = ROOT.TFile(templateSigNameDown_PDF)
             sigTempFileUp_QCD = ROOT.TFile(templateSigNameUp_QCD)
             sigTempFileDown_QCD = ROOT.TFile(templateSigNameDown_QCD)
         if(useDjet == 1):
             templateSigName = "{0}/LHC_{1:.0f}TeV/{2}/HtoZZ4l_MCFM_125p6_ModifiedSmoothTemplatesForCombine__GenLevelVBF_D_Gamma_gg_r10_Nominal_nonDjet.root".format(
-                templateDir, self.sqrts, self.appendNameAlt)
+                self.templateDir, self.sqrts, self.appendNameAlt)
             sigTempFileU = ROOT.TFile(templateSigName)
 
             tmpSig_T_1 = sigTempFileU.Get("T_2D_2")
@@ -213,20 +216,20 @@ class width_datacardClass:
             tmpVBF_T_4 = sigTempFileU.Get("T_2D_VBF_4")
 
             templateSigNameUp_PDF = "{0}/LHC_{1:.0f}TeV/{2}/HtoZZ4l_MCFM_125p6_ModifiedSmoothTemplatesForCombine__GenLevelVBF_D_Gamma_gg_r10_SysUp_ggPDF_nonDjet.root".format(
-                templateDir, self.sqrts, self.appendNameAlt)
+                self.templateDir, self.sqrts, self.appendNameAlt)
             templateSigNameDown_PDF = "{0}/LHC_{1:.0f}TeV/{2}/HtoZZ4l_MCFM_125p6_ModifiedSmoothTemplatesForCombine__GenLevelVBF_D_Gamma_gg_r10_SysDown_ggPDF_nonDjet.root".format(
-                templateDir, self.sqrts, self.appendNameAlt)
+                self.templateDir, self.sqrts, self.appendNameAlt)
             templateSigNameUp_QCD = "{0}/LHC_{1:.0f}TeV/{2}/HtoZZ4l_MCFM_125p6_ModifiedSmoothTemplatesForCombine__GenLevelVBF_D_Gamma_gg_r10_SysUp_ggQCD_nonDjet.root".format(
-                templateDir, self.sqrts, self.appendNameAlt)
+                self.templateDir, self.sqrts, self.appendNameAlt)
             templateSigNameDown_QCD = "{0}/LHC_{1:.0f}TeV/{2}/HtoZZ4l_MCFM_125p6_ModifiedSmoothTemplatesForCombine__GenLevelVBF_D_Gamma_gg_r10_SysDown_ggQCD_nonDjet.root".format(
-                templateDir, self.sqrts, self.appendNameAlt)
+                self.templateDir, self.sqrts, self.appendNameAlt)
             sigTempFileUp_PDF = ROOT.TFile(templateSigNameUp_PDF)
             sigTempFileDown_PDF = ROOT.TFile(templateSigNameDown_PDF)
             sigTempFileUp_QCD = ROOT.TFile(templateSigNameUp_QCD)
             sigTempFileDown_QCD = ROOT.TFile(templateSigNameDown_QCD)
         if(useDjet == 2):
             templateSigName = "{0}/LHC_{1:.0f}TeV/{2}/HtoZZ4l_MCFM_125p6_ModifiedSmoothTemplatesForCombine__GenLevelVBF_D_Gamma_gg_r10_Nominal_Djet.root".format(
-                templateDir, self.sqrts, self.appendNameAlt)
+                self.templateDir, self.sqrts, self.appendNameAlt)
             sigTempFileU = ROOT.TFile(templateSigName)
 
             tmpSig_T_1 = sigTempFileU.Get("T_2D_2")
@@ -238,13 +241,13 @@ class width_datacardClass:
             tmpVBF_T_4 = sigTempFileU.Get("T_2D_VBF_4")
 
             templateSigNameUp_PDF = "{0}/LHC_{1:.0f}TeV/{2}/HtoZZ4l_MCFM_125p6_ModifiedSmoothTemplatesForCombine__GenLevelVBF_D_Gamma_gg_r10_SysUp_ggPDF_Djet.root".format(
-                templateDir, self.sqrts, self.appendNameAlt)
+                self.templateDir, self.sqrts, self.appendNameAlt)
             templateSigNameDown_PDF = "{0}/LHC_{1:.0f}TeV/{2}/HtoZZ4l_MCFM_125p6_ModifiedSmoothTemplatesForCombine__GenLevelVBF_D_Gamma_gg_r10_SysDown_ggPDF_Djet.root".format(
-                templateDir, self.sqrts, self.appendNameAlt)
+                self.templateDir, self.sqrts, self.appendNameAlt)
             templateSigNameUp_QCD = "{0}/LHC_{1:.0f}TeV/{2}/HtoZZ4l_MCFM_125p6_ModifiedSmoothTemplatesForCombine__GenLevelVBF_D_Gamma_gg_r10_SysUp_ggQCD_Djet.root".format(
-                templateDir, self.sqrts, self.appendNameAlt)
+                self.templateDir, self.sqrts, self.appendNameAlt)
             templateSigNameDown_QCD = "{0}/LHC_{1:.0f}TeV/{2}/HtoZZ4l_MCFM_125p6_ModifiedSmoothTemplatesForCombine__GenLevelVBF_D_Gamma_gg_r10_SysDown_ggQCD_Djet.root".format(
-                templateDir, self.sqrts, self.appendNameAlt)
+                self.templateDir, self.sqrts, self.appendNameAlt)
             sigTempFileUp_PDF = ROOT.TFile(templateSigNameUp_PDF)
             sigTempFileDown_PDF = ROOT.TFile(templateSigNameDown_PDF)
             sigTempFileUp_QCD = ROOT.TFile(templateSigNameUp_QCD)
@@ -2043,6 +2046,8 @@ class width_datacardClass:
             dataFileDir = "CMSdata"
         if(USELEGACY == True):
             dataFileDir = "CMSdata_Legacy"
+        if (self.dataAppendDir != ''):
+            dataFileDir = "{0}_{1}".format(dataFileDir,self.dataAppendDir)
         dataTreeName = "data_obs"
         if(useDjet == 0):
             dataFileName = "{0}/hzz{1}_{2}.root".format(

@@ -38,6 +38,10 @@ def parseOptions():
                       default="2", help='0->1D(KD), 1->1D(m4l), 2->2D(m4l,KD)')
     parser.add_option('-j', '--Djet', type='int', dest='useDjet', default=0,
                       help='useDjet cut of 0.5 for VBF categorization (default:0)')
+    parser.add_option('-r', '--datadir', type='string', dest='dataDirAppend', default="",
+                      help='dataDirAppend: Reference CMSdata folder per measurement')
+    parser.add_option('-c', '--AnomCoupl', type='int', dest='anomalousCouplingIndex', default="0",
+                      help='anomalousCouplingIndex: 0: SM-only, 1: fLQ')
 
     # store options and arguments as global variables
     global opt, args
@@ -143,29 +147,29 @@ def creationLoop(directory):
             makeDirectory(directory + '/HCG/' + mhs)
             makeDirectory(directory + '/HCG_XSxBR/' + mhs)
             myClass.makeCardsWorkspaces(
-                mh, opt.templateDir, directory, theInputs4e)
+                mh, opt, directory, theInputs4e)
             myClass.makeCardsWorkspaces(
-                mh, opt.templateDir, directory, theInputs4mu)
+                mh, opt, directory, theInputs4mu)
             myClass.makeCardsWorkspaces(
-                mh, opt.templateDir, directory, theInputs2e2mu)
+                mh, opt, directory, theInputs2e2mu)
 
         if (opt.useDjet == 1):
             makeDirectory(directory + '_tagged/HCG/' + mhs)
             makeDirectory(directory + '_tagged/HCG_XSxBR/' + mhs)
 
             myClass.makeCardsWorkspaces(
-                mh, opt.templateDir, directory + '_tagged', theInputs4e_0, 1)
+                mh, opt, directory + '_tagged', theInputs4e_0, 1)
             myClass.makeCardsWorkspaces(
-                mh, opt.templateDir, directory + '_tagged', theInputs4mu_0, 1)
+                mh, opt, directory + '_tagged', theInputs4mu_0, 1)
             myClass.makeCardsWorkspaces(
-                mh, opt.templateDir, directory + '_tagged', theInputs2e2mu_0, 1)
+                mh, opt, directory + '_tagged', theInputs2e2mu_0, 1)
 
             myClass.makeCardsWorkspaces(
-                mh, opt.templateDir, directory + '_tagged', theInputs4e_1, 2)
+                mh, opt, directory + '_tagged', theInputs4e_1, 2)
             myClass.makeCardsWorkspaces(
-                mh, opt.templateDir, directory + '_tagged', theInputs4mu_1, 2)
+                mh, opt, directory + '_tagged', theInputs4mu_1, 2)
             myClass.makeCardsWorkspaces(
-                mh, opt.templateDir, directory + '_tagged', theInputs2e2mu_1, 2)
+                mh, opt, directory + '_tagged', theInputs2e2mu_1, 2)
 
         a += 1
 
