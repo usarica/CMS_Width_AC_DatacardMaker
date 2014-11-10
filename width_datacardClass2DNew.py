@@ -221,33 +221,129 @@ class width_datacardClass:
 
 #---------- SIGNAL TEMPLATES -------------
 
-        Sig_T_1 = sigTempFileU.Get("T_2D_2").Clone("mZZ_bkg")
-        Sig_T_2 = sigTempFileU.Get("T_2D_1").Clone("mZZ_sig")
-        Sig_T_4 = sigTempFileU.Get("T_2D_4").Clone("mZZ_inter")
-        Sig_T_1_Up_PDF = sigTempFileUp_PDF.Get("T_2D_2").Clone("T_2D_2_PDFUp")
+# Bare SM
+
+        Sig_T_2 = sigTempFileU.Get("T_2D_1")
         Sig_T_2_Up_PDF = sigTempFileUp_PDF.Get("T_2D_1").Clone("T_2D_1_PDFUp")
-        Sig_T_4_Up_PDF = sigTempFileUp_PDF.Get("T_2D_4").Clone("T_2D_4_PDFUp")
-        Sig_T_1_Up_QCD = sigTempFileUp_QCD.Get("T_2D_2").Clone("T_2D_2_QCDUp")
         Sig_T_2_Up_QCD = sigTempFileUp_QCD.Get("T_2D_1").Clone("T_2D_1_QCDUp")
-        Sig_T_4_Up_QCD = sigTempFileUp_QCD.Get("T_2D_4").Clone("T_2D_4_QCDUp")
-        Sig_T_1_Down_PDF = sigTempFileDown_PDF.Get("T_2D_2").Clone("T_2D_2_PDFDown")
         Sig_T_2_Down_PDF = sigTempFileDown_PDF.Get("T_2D_1").Clone("T_2D_1_PDFDown")
-        Sig_T_4_Down_PDF = sigTempFileDown_PDF.Get("T_2D_4").Clone("T_2D_4_PDFDown")
-        Sig_T_1_Down_QCD = sigTempFileDown_QCD.Get("T_2D_2").Clone("T_2D_2_QCDDown")
         Sig_T_2_Down_QCD = sigTempFileDown_QCD.Get("T_2D_1").Clone("T_2D_1_QCDDown")
+
+        Sig_T_1 = sigTempFileU.Get("T_2D_2")
+        Sig_T_1_Up_PDF = sigTempFileUp_PDF.Get("T_2D_2").Clone("T_2D_2_PDFUp")
+        Sig_T_1_Down_PDF = sigTempFileDown_PDF.Get("T_2D_2").Clone("T_2D_2_PDFDown")
+        Sig_T_1_Up_QCD = sigTempFileUp_QCD.Get("T_2D_2").Clone("T_2D_2_QCDUp")
+        Sig_T_1_Down_QCD = sigTempFileDown_QCD.Get("T_2D_2").Clone("T_2D_2_QCDDown")
+
+        Sig_T_4 = sigTempFileU.Get("T_2D_4")
+        Sig_T_4_Up_PDF = sigTempFileUp_PDF.Get("T_2D_4").Clone("T_2D_4_PDFUp")
+        Sig_T_4_Up_QCD = sigTempFileUp_QCD.Get("T_2D_4").Clone("T_2D_4_QCDUp")
+        Sig_T_4_Down_PDF = sigTempFileDown_PDF.Get("T_2D_4").Clone("T_2D_4_PDFDown")
         Sig_T_4_Down_QCD = sigTempFileDown_QCD.Get("T_2D_4").Clone("T_2D_4_QCDDown")
 
 
-        VBF_T_1 = sigTempFileU.Get("T_2D_VBF_2").Clone("mZZ_vbfbkg")
-        VBF_T_2 = sigTempFileU.Get("T_2D_VBF_1").Clone("mZZ_vbfsig")
-        VBF_T_4 = sigTempFileU.Get("T_2D_VBF_4").Clone("mZZ_vbfinter")
-        VBF_T_1_Up = sigTempFileUp_PDF.Get("T_2D_VBF_2").Clone("T_2D_VBF_2_PDFUp")
+
+        VBF_T_2 = sigTempFileU.Get("T_2D_VBF_1")
         VBF_T_2_Up = sigTempFileUp_PDF.Get("T_2D_VBF_1").Clone("T_2D_VBF_1_PDFUp")
-        VBF_T_4_Up = sigTempFileUp_PDF.Get("T_2D_VBF_4").Clone("T_2D_VBF_4_PDFUp")
-        VBF_T_1_Down = sigTempFileDown_PDF.Get("T_2D_VBF_2").Clone("T_2D_VBF_2_PDFDown")
         VBF_T_2_Down = sigTempFileDown_PDF.Get("T_2D_VBF_1").Clone("T_2D_VBF_1_PDFDown")
+
+        VBF_T_1 = sigTempFileU.Get("T_2D_VBF_2")
+        VBF_T_1_Up = sigTempFileUp_PDF.Get("T_2D_VBF_2").Clone("T_2D_VBF_2_PDFUp")
+        VBF_T_1_Down = sigTempFileDown_PDF.Get("T_2D_VBF_2").Clone("T_2D_VBF_2_PDFDown")
+
+        VBF_T_4 = sigTempFileU.Get("T_2D_VBF_4").Clone("mZZ_vbfinter")
+        VBF_T_4_Up = sigTempFileUp_PDF.Get("T_2D_VBF_4").Clone("T_2D_VBF_4_PDFUp")
         VBF_T_4_Down = sigTempFileDown_PDF.Get("T_2D_VBF_4").Clone("T_2D_VBF_4_PDFDown")
 
+
+
+# (mZZ/mH)**2 Terms
+
+        Sig_T_mZZ2_1_2 = sigTempFileU.Get("T_2D_1_mZZ2_1")
+        Sig_T_mZZ2_1_2_Up_PDF = sigTempFileUp_PDF.Get("T_2D_1_mZZ2_1").Clone("T_2D_1_mZZ2_1_PDFUp")
+        Sig_T_mZZ2_1_2_Up_QCD = sigTempFileUp_QCD.Get("T_2D_1_mZZ2_1").Clone("T_2D_1_mZZ2_1_QCDUp")
+        Sig_T_mZZ2_1_2_Down_PDF = sigTempFileDown_PDF.Get("T_2D_1_mZZ2_1").Clone("T_2D_1_mZZ2_1_PDFDown")
+        Sig_T_mZZ2_1_2_Down_QCD = sigTempFileDown_QCD.Get("T_2D_1_mZZ2_1").Clone("T_2D_1_mZZ2_1_QCDDown")
+
+        Sig_T_mZZ2_1_4 = sigTempFileU.Get("T_2D_4_mZZ2_1")
+        Sig_T_mZZ2_1_4_Up_PDF = sigTempFileUp_PDF.Get("T_2D_4_mZZ2_1").Clone("T_2D_4_mZZ2_1_PDFUp")
+        Sig_T_mZZ2_1_4_Up_QCD = sigTempFileUp_QCD.Get("T_2D_4_mZZ2_1").Clone("T_2D_4_mZZ2_1_QCDUp")
+        Sig_T_mZZ2_1_4_Down_PDF = sigTempFileDown_PDF.Get("T_2D_4_mZZ2_1").Clone("T_2D_4_mZZ2_1_PDFDown")
+        Sig_T_mZZ2_1_4_Down_QCD = sigTempFileDown_QCD.Get("T_2D_4_mZZ2_1").Clone("T_2D_4_mZZ2_1_QCDDown")
+
+        VBF_T_mZZ2_1_2 = sigTempFileU.Get("T_2D_VBF_1_mZZ2_1")
+        VBF_T_mZZ2_1_2_Up = sigTempFileUp_PDF.Get("T_2D_VBF_1_mZZ2_1").Clone("T_2D_VBF_1_mZZ2_1_PDFUp")
+        VBF_T_mZZ2_1_2_Down = sigTempFileDown_PDF.Get("T_2D_VBF_1_mZZ2_1").Clone("T_2D_VBF_1_mZZ2_1_PDFDown")
+
+        VBF_T_mZZ2_1_4 = sigTempFileU.Get("T_2D_VBF_4_mZZ2_1")
+        VBF_T_mZZ2_1_4_Up = sigTempFileUp_PDF.Get("T_2D_VBF_4_mZZ2_1").Clone("T_2D_VBF_4_mZZ2_1_PDFUp")
+        VBF_T_mZZ2_1_4_Down = sigTempFileDown_PDF.Get("T_2D_VBF_4_mZZ2_1").Clone("T_2D_VBF_4_mZZ2_1_PDFDown")
+
+# (mZZ/mH)**2**2 Terms
+
+        Sig_T_mZZ2_2_2 = sigTempFileU.Get("T_2D_1_mZZ2_2")
+        Sig_T_mZZ2_2_2_Up_PDF = sigTempFileUp_PDF.Get("T_2D_1_mZZ2_2").Clone("T_2D_1_mZZ2_2_PDFUp")
+        Sig_T_mZZ2_2_2_Up_QCD = sigTempFileUp_QCD.Get("T_2D_1_mZZ2_2").Clone("T_2D_1_mZZ2_2_QCDUp")
+        Sig_T_mZZ2_2_2_Down_PDF = sigTempFileDown_PDF.Get("T_2D_1_mZZ2_2").Clone("T_2D_1_mZZ2_2_PDFDown")
+        Sig_T_mZZ2_2_2_Down_QCD = sigTempFileDown_QCD.Get("T_2D_1_mZZ2_2").Clone("T_2D_1_mZZ2_2_QCDDown")
+
+        Sig_T_mZZ2_2_4 = sigTempFileU.Get("T_2D_4_mZZ2_2")
+        Sig_T_mZZ2_2_4_Up_PDF = sigTempFileUp_PDF.Get("T_2D_4_mZZ2_2").Clone("T_2D_4_mZZ2_2_PDFUp")
+        Sig_T_mZZ2_2_4_Up_QCD = sigTempFileUp_QCD.Get("T_2D_4_mZZ2_2").Clone("T_2D_4_mZZ2_2_QCDUp")
+        Sig_T_mZZ2_2_4_Down_PDF = sigTempFileDown_PDF.Get("T_2D_4_mZZ2_2").Clone("T_2D_4_mZZ2_2_PDFDown")
+        Sig_T_mZZ2_2_4_Down_QCD = sigTempFileDown_QCD.Get("T_2D_4_mZZ2_2").Clone("T_2D_4_mZZ2_2_QCDDown")
+
+        VBF_T_mZZ2_2_2 = sigTempFileU.Get("T_2D_VBF_1_mZZ2_2")
+        VBF_T_mZZ2_2_2_Up = sigTempFileUp_PDF.Get("T_2D_VBF_1_mZZ2_2").Clone("T_2D_VBF_1_mZZ2_2_PDFUp")
+        VBF_T_mZZ2_2_2_Down = sigTempFileDown_PDF.Get("T_2D_VBF_1_mZZ2_2").Clone("T_2D_VBF_1_mZZ2_2_PDFDown")
+
+        VBF_T_mZZ2_2_4 = sigTempFileU.Get("T_2D_VBF_4_mZZ2_2")
+        VBF_T_mZZ2_2_4_Up = sigTempFileUp_PDF.Get("T_2D_VBF_4_mZZ2_2").Clone("T_2D_VBF_4_mZZ2_2_PDFUp")
+        VBF_T_mZZ2_2_4_Down = sigTempFileDown_PDF.Get("T_2D_VBF_4_mZZ2_2").Clone("T_2D_VBF_4_mZZ2_2_PDFDown")
+
+# (mZZ/mH)**2**3 Terms
+
+        Sig_T_mZZ2_3_2 = sigTempFileU.Get("T_2D_1_mZZ2_3")
+        Sig_T_mZZ2_3_2_Up_PDF = sigTempFileUp_PDF.Get("T_2D_1_mZZ2_3").Clone("T_2D_1_mZZ2_3_PDFUp")
+        Sig_T_mZZ2_3_2_Up_QCD = sigTempFileUp_QCD.Get("T_2D_1_mZZ2_3").Clone("T_2D_1_mZZ2_3_QCDUp")
+        Sig_T_mZZ2_3_2_Down_PDF = sigTempFileDown_PDF.Get("T_2D_1_mZZ2_3").Clone("T_2D_1_mZZ2_3_PDFDown")
+        Sig_T_mZZ2_3_2_Down_QCD = sigTempFileDown_QCD.Get("T_2D_1_mZZ2_3").Clone("T_2D_1_mZZ2_3_QCDDown")
+
+        Sig_T_mZZ2_3_4 = sigTempFileU.Get("T_2D_4_mZZ2_3")
+        Sig_T_mZZ2_3_4_Up_PDF = sigTempFileUp_PDF.Get("T_2D_4_mZZ2_3").Clone("T_2D_4_mZZ2_3_PDFUp")
+        Sig_T_mZZ2_3_4_Up_QCD = sigTempFileUp_QCD.Get("T_2D_4_mZZ2_3").Clone("T_2D_4_mZZ2_3_QCDUp")
+        Sig_T_mZZ2_3_4_Down_PDF = sigTempFileDown_PDF.Get("T_2D_4_mZZ2_3").Clone("T_2D_4_mZZ2_3_PDFDown")
+        Sig_T_mZZ2_3_4_Down_QCD = sigTempFileDown_QCD.Get("T_2D_4_mZZ2_3").Clone("T_2D_4_mZZ2_3_QCDDown")
+
+        VBF_T_mZZ2_3_2 = sigTempFileU.Get("T_2D_VBF_1_mZZ2_3")
+        VBF_T_mZZ2_3_2_Up = sigTempFileUp_PDF.Get("T_2D_VBF_1_mZZ2_3").Clone("T_2D_VBF_1_mZZ2_3_PDFUp")
+        VBF_T_mZZ2_3_2_Down = sigTempFileDown_PDF.Get("T_2D_VBF_1_mZZ2_3").Clone("T_2D_VBF_1_mZZ2_3_PDFDown")
+
+        VBF_T_mZZ2_3_4 = sigTempFileU.Get("T_2D_VBF_4_mZZ2_3")
+        VBF_T_mZZ2_3_4_Up = sigTempFileUp_PDF.Get("T_2D_VBF_4_mZZ2_3").Clone("T_2D_VBF_4_mZZ2_3_PDFUp")
+        VBF_T_mZZ2_3_4_Down = sigTempFileDown_PDF.Get("T_2D_VBF_4_mZZ2_3").Clone("T_2D_VBF_4_mZZ2_3_PDFDown")
+
+# (mZZ/mH)**2**4 Terms
+
+        Sig_T_mZZ2_4_2 = sigTempFileU.Get("T_2D_1_mZZ2_4")
+        Sig_T_mZZ2_4_2_Up_PDF = sigTempFileUp_PDF.Get("T_2D_1_mZZ2_4").Clone("T_2D_1_mZZ2_4_PDFUp")
+        Sig_T_mZZ2_4_2_Up_QCD = sigTempFileUp_QCD.Get("T_2D_1_mZZ2_4").Clone("T_2D_1_mZZ2_4_QCDUp")
+        Sig_T_mZZ2_4_2_Down_PDF = sigTempFileDown_PDF.Get("T_2D_1_mZZ2_4").Clone("T_2D_1_mZZ2_4_PDFDown")
+        Sig_T_mZZ2_4_2_Down_QCD = sigTempFileDown_QCD.Get("T_2D_1_mZZ2_4").Clone("T_2D_1_mZZ2_4_QCDDown")
+
+        Sig_T_mZZ2_4_4 = sigTempFileU.Get("T_2D_4_mZZ2_4")
+        Sig_T_mZZ2_4_4_Up_PDF = sigTempFileUp_PDF.Get("T_2D_4_mZZ2_4").Clone("T_2D_4_mZZ2_4_PDFUp")
+        Sig_T_mZZ2_4_4_Up_QCD = sigTempFileUp_QCD.Get("T_2D_4_mZZ2_4").Clone("T_2D_4_mZZ2_4_QCDUp")
+        Sig_T_mZZ2_4_4_Down_PDF = sigTempFileDown_PDF.Get("T_2D_4_mZZ2_4").Clone("T_2D_4_mZZ2_4_PDFDown")
+        Sig_T_mZZ2_4_4_Down_QCD = sigTempFileDown_QCD.Get("T_2D_4_mZZ2_4").Clone("T_2D_4_mZZ2_4_QCDDown")
+
+        VBF_T_mZZ2_4_2 = sigTempFileU.Get("T_2D_VBF_1_mZZ2_4")
+        VBF_T_mZZ2_4_2_Up = sigTempFileUp_PDF.Get("T_2D_VBF_1_mZZ2_4").Clone("T_2D_VBF_1_mZZ2_4_PDFUp")
+        VBF_T_mZZ2_4_2_Down = sigTempFileDown_PDF.Get("T_2D_VBF_1_mZZ2_4").Clone("T_2D_VBF_1_mZZ2_4_PDFDown")
+
+        VBF_T_mZZ2_4_4 = sigTempFileU.Get("T_2D_VBF_4_mZZ2_4")
+        VBF_T_mZZ2_4_4_Up = sigTempFileUp_PDF.Get("T_2D_VBF_4_mZZ2_4").Clone("T_2D_VBF_4_mZZ2_4_PDFUp")
+        VBF_T_mZZ2_4_4_Down = sigTempFileDown_PDF.Get("T_2D_VBF_4_mZZ2_4").Clone("T_2D_VBF_4_mZZ2_4_PDFDown")
 
 
 
@@ -255,7 +351,7 @@ class width_datacardClass:
         
         Bkg_T = sigTempFileU.Get("T_2D_qqZZ_UnConditional").Clone("mZZ_bkg")
         Bkg_ZX = sigTempFileU.Get("T_2D_ZX_UnConditional").Clone("Bkg_ZX_Nominal")
-        Bkg_ZX_Up = sigTempFileDown_PDF.Get("T_2D_ZX_UnConditional").Clone("Bkg_ZX_Down")
+        Bkg_ZX_Up = sigTempFileDown_PDF.Get("T_2D_ZX_UnConditional").Clone("Bkg_ZX_Up")
         Bkg_ZX_Down = sigTempFileDown_PDF.Get("T_2D_ZX_UnConditional").Clone("Bkg_ZX_Down")
 
 
