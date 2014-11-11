@@ -1247,8 +1247,7 @@ class width_datacardClass:
             ggZZ_funcficients.add(sigRatesNormList[al])
         for al in range(0,len(interfRatesNormList)) :
             ggZZ_funcficients.add(interfRatesNormList[al])
-        for al in range(0,len(bkgRatesNorm)) :
-            ggZZ_funcficients.add(bkgRatesNorm[al])
+        ggZZ_funcficients.add(bkgRatesNorm)
 
         ggZZ_Nominal_histfuncs = ROOT.RooArgList()
         ggZZ_QCDUp_histfuncs = ROOT.RooArgList()
@@ -1603,8 +1602,7 @@ class width_datacardClass:
             VBF_funcficients.add(VBFsigRatesNormList[al])
         for al in range(0,len(VBFinterfRatesNormList)) :
             VBF_funcficients.add(VBFinterfRatesNormList[al])
-        for al in range(0,len(VBFbkgRatesNorm)) :
-            VBF_funcficients.add(VBFbkgRatesNorm[al])
+        VBF_funcficients.add(VBFbkgRatesNorm)
 
 
         VBF_Nominal_histfuncs = ROOT.RooArgList()
