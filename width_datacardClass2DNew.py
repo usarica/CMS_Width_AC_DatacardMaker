@@ -287,12 +287,6 @@ class width_datacardClass:
         Sig_T_mZZ2_2_2_Down_PDF = sigTempFileDown_PDF.Get("T_2D_1_mZZ2_2").Clone("T_2D_1_mZZ2_2_PDFDown")
         Sig_T_mZZ2_2_2_Down_QCD = sigTempFileDown_QCD.Get("T_2D_1_mZZ2_2").Clone("T_2D_1_mZZ2_2_QCDDown")
 
-        Sig_T_mZZ2_2_4 = sigTempFileU.Get("T_2D_4_mZZ2_2")
-        Sig_T_mZZ2_2_4_Up_PDF = sigTempFileUp_PDF.Get("T_2D_4_mZZ2_2").Clone("T_2D_4_mZZ2_2_PDFUp")
-        Sig_T_mZZ2_2_4_Up_QCD = sigTempFileUp_QCD.Get("T_2D_4_mZZ2_2").Clone("T_2D_4_mZZ2_2_QCDUp")
-        Sig_T_mZZ2_2_4_Down_PDF = sigTempFileDown_PDF.Get("T_2D_4_mZZ2_2").Clone("T_2D_4_mZZ2_2_PDFDown")
-        Sig_T_mZZ2_2_4_Down_QCD = sigTempFileDown_QCD.Get("T_2D_4_mZZ2_2").Clone("T_2D_4_mZZ2_2_QCDDown")
-
         VBF_T_mZZ2_2_2 = sigTempFileU.Get("T_2D_VBF_1_mZZ2_2")
         VBF_T_mZZ2_2_2_Up = sigTempFileUp_PDF.Get("T_2D_VBF_1_mZZ2_2").Clone("T_2D_VBF_1_mZZ2_2_PDFUp")
         VBF_T_mZZ2_2_2_Down = sigTempFileDown_PDF.Get("T_2D_VBF_1_mZZ2_2").Clone("T_2D_VBF_1_mZZ2_2_PDFDown")
@@ -303,47 +297,18 @@ class width_datacardClass:
 
 # (mZZ/mH)**2**3 Terms
 
-        Sig_T_mZZ2_3_2 = sigTempFileU.Get("T_2D_1_mZZ2_3")
-        Sig_T_mZZ2_3_2_Up_PDF = sigTempFileUp_PDF.Get("T_2D_1_mZZ2_3").Clone("T_2D_1_mZZ2_3_PDFUp")
-        Sig_T_mZZ2_3_2_Up_QCD = sigTempFileUp_QCD.Get("T_2D_1_mZZ2_3").Clone("T_2D_1_mZZ2_3_QCDUp")
-        Sig_T_mZZ2_3_2_Down_PDF = sigTempFileDown_PDF.Get("T_2D_1_mZZ2_3").Clone("T_2D_1_mZZ2_3_PDFDown")
-        Sig_T_mZZ2_3_2_Down_QCD = sigTempFileDown_QCD.Get("T_2D_1_mZZ2_3").Clone("T_2D_1_mZZ2_3_QCDDown")
-
-        Sig_T_mZZ2_3_4 = sigTempFileU.Get("T_2D_4_mZZ2_3")
-        Sig_T_mZZ2_3_4_Up_PDF = sigTempFileUp_PDF.Get("T_2D_4_mZZ2_3").Clone("T_2D_4_mZZ2_3_PDFUp")
-        Sig_T_mZZ2_3_4_Up_QCD = sigTempFileUp_QCD.Get("T_2D_4_mZZ2_3").Clone("T_2D_4_mZZ2_3_QCDUp")
-        Sig_T_mZZ2_3_4_Down_PDF = sigTempFileDown_PDF.Get("T_2D_4_mZZ2_3").Clone("T_2D_4_mZZ2_3_PDFDown")
-        Sig_T_mZZ2_3_4_Down_QCD = sigTempFileDown_QCD.Get("T_2D_4_mZZ2_3").Clone("T_2D_4_mZZ2_3_QCDDown")
 
         VBF_T_mZZ2_3_2 = sigTempFileU.Get("T_2D_VBF_1_mZZ2_3")
         VBF_T_mZZ2_3_2_Up = sigTempFileUp_PDF.Get("T_2D_VBF_1_mZZ2_3").Clone("T_2D_VBF_1_mZZ2_3_PDFUp")
         VBF_T_mZZ2_3_2_Down = sigTempFileDown_PDF.Get("T_2D_VBF_1_mZZ2_3").Clone("T_2D_VBF_1_mZZ2_3_PDFDown")
 
-        VBF_T_mZZ2_3_4 = sigTempFileU.Get("T_2D_VBF_4_mZZ2_3")
-        VBF_T_mZZ2_3_4_Up = sigTempFileUp_PDF.Get("T_2D_VBF_4_mZZ2_3").Clone("T_2D_VBF_4_mZZ2_3_PDFUp")
-        VBF_T_mZZ2_3_4_Down = sigTempFileDown_PDF.Get("T_2D_VBF_4_mZZ2_3").Clone("T_2D_VBF_4_mZZ2_3_PDFDown")
 
 # (mZZ/mH)**2**4 Terms
 
-        Sig_T_mZZ2_4_2 = sigTempFileU.Get("T_2D_1_mZZ2_4")
-        Sig_T_mZZ2_4_2_Up_PDF = sigTempFileUp_PDF.Get("T_2D_1_mZZ2_4").Clone("T_2D_1_mZZ2_4_PDFUp")
-        Sig_T_mZZ2_4_2_Up_QCD = sigTempFileUp_QCD.Get("T_2D_1_mZZ2_4").Clone("T_2D_1_mZZ2_4_QCDUp")
-        Sig_T_mZZ2_4_2_Down_PDF = sigTempFileDown_PDF.Get("T_2D_1_mZZ2_4").Clone("T_2D_1_mZZ2_4_PDFDown")
-        Sig_T_mZZ2_4_2_Down_QCD = sigTempFileDown_QCD.Get("T_2D_1_mZZ2_4").Clone("T_2D_1_mZZ2_4_QCDDown")
-
-        Sig_T_mZZ2_4_4 = sigTempFileU.Get("T_2D_4_mZZ2_4")
-        Sig_T_mZZ2_4_4_Up_PDF = sigTempFileUp_PDF.Get("T_2D_4_mZZ2_4").Clone("T_2D_4_mZZ2_4_PDFUp")
-        Sig_T_mZZ2_4_4_Up_QCD = sigTempFileUp_QCD.Get("T_2D_4_mZZ2_4").Clone("T_2D_4_mZZ2_4_QCDUp")
-        Sig_T_mZZ2_4_4_Down_PDF = sigTempFileDown_PDF.Get("T_2D_4_mZZ2_4").Clone("T_2D_4_mZZ2_4_PDFDown")
-        Sig_T_mZZ2_4_4_Down_QCD = sigTempFileDown_QCD.Get("T_2D_4_mZZ2_4").Clone("T_2D_4_mZZ2_4_QCDDown")
 
         VBF_T_mZZ2_4_2 = sigTempFileU.Get("T_2D_VBF_1_mZZ2_4")
         VBF_T_mZZ2_4_2_Up = sigTempFileUp_PDF.Get("T_2D_VBF_1_mZZ2_4").Clone("T_2D_VBF_1_mZZ2_4_PDFUp")
         VBF_T_mZZ2_4_2_Down = sigTempFileDown_PDF.Get("T_2D_VBF_1_mZZ2_4").Clone("T_2D_VBF_1_mZZ2_4_PDFDown")
-
-        VBF_T_mZZ2_4_4 = sigTempFileU.Get("T_2D_VBF_4_mZZ2_4")
-        VBF_T_mZZ2_4_4_Up = sigTempFileUp_PDF.Get("T_2D_VBF_4_mZZ2_4").Clone("T_2D_VBF_4_mZZ2_4_PDFUp")
-        VBF_T_mZZ2_4_4_Down = sigTempFileDown_PDF.Get("T_2D_VBF_4_mZZ2_4").Clone("T_2D_VBF_4_mZZ2_4_PDFDown")
 
 
 
@@ -365,7 +330,7 @@ class width_datacardClass:
         totalRateUp_pdf = Sig_T_1_Up_PDF.Integral("width") + Sig_T_2_Up_PDF.Integral("width") + Sig_T_4_Up_PDF.Integral("width")
         totalRate_ggzz = Sig_T_1.Integral("width") + Sig_T_2.Integral("width") + Sig_T_4.Integral("width")
 
-        # Why are these lines here?
+        # Why are these lines here? -- How would I know?
         totalRate_ggzz = totalRate_ggzz  # * 2.3
         totalRateDown = totalRateDown  # *2.3
         totalRateUp = totalRateUp  # *2.3
@@ -375,6 +340,7 @@ class width_datacardClass:
         rate_signal_ggzz_Shape = Sig_T_2.Integral("width") * self.lumi  # *2.3
         rate_bkg_ggzz_Shape = Sig_T_1.Integral("width") * self.lumi  # *2.3
         rate_interf_ggzz_Shape = Sig_T_4.Integral("width") * self.lumi  # *2.3
+
 
         ggZZVarNormQCDUp_Name = "ggZZVarQCDUpNorm_{0:.0f}_{1:.0f}_{2:.0f}".format(self.channel, self.sqrts, useDjet)
         sigRateQCDUpName = "signal_ggZZQCDUprate_{0:.0f}_{1:.0f}_{2:.0f}".format(self.channel, self.sqrts, useDjet)
@@ -466,11 +432,11 @@ class width_datacardClass:
             ROOT.RooArgList(sigRates_Nominal, interfRates_Nominal, bkgRates_Nominal, x, mu, kbkg, muF)
             )
 
-        # Assume BKG and INTERF are from templates
-        # totalRateVBFDown = VBF_T_1_Down.Integral(
-        #    "width") + VBF_T_2_Down.Integral("width") + VBF_T_4_Down.Integral("width")
-        # totalRateVBFUp = VBF_T_1_Up.Integral("width") + VBF_T_2_Up.Integral(
-        #    "width") + VBF_T_4_Up.Integral("width")
+
+
+
+
+
 
         # Again, set names, bounds, and values for rates of VBF
         totalRate_vbf = VBF_T_1.Integral("width") + VBF_T_2.Integral("width") + VBF_T_4.Integral("width")
@@ -532,6 +498,14 @@ class width_datacardClass:
             VBFVarNormNominal_Name, "(@0*@3*@5*@4+@1*sqrt(@3*@5*@4)+@2)",
             ROOT.RooArgList(VBFsigRates_Nominal, VBFinterfRates_Nominal, VBFbkgRates_Nominal, x, mu, muV)
             )
+
+
+
+
+
+
+
+
 
         # rates per lumi for scaling
         bkgRate_qqzz = theInputs['qqZZ_rate'] / theInputs['qqZZ_lumi']  # *1.8
