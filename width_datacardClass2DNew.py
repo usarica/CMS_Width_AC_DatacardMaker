@@ -1273,6 +1273,13 @@ class width_datacardClass:
             ggZZ_PDFUp_histfuncs.add(bkg_ggZZ_HistFuncPDFUpList[al])
             ggZZ_PDFDown_histfuncs.add(bkg_ggZZ_HistFuncPDFDownList[al])
 
+        print "ggZZ_Nominal_histfuncs"
+        ggZZ_Nominal_histfuncs.Print("v")
+
+        print "ggZZ_funcficients"
+        ggZZ_funcficients.Print("v")
+
+
         ggZZpdfName = "ggZZ_RooWidth_Nominal_{0:.0f}_{1:.0f}_{2:.0f}".format(self.channel, self.sqrts, useDjet)
         ggZZpdf_Nominal = ROOT.RooRealSumPdf(
             ggZZpdfName, ggZZpdfName,
