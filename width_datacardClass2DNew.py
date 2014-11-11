@@ -942,7 +942,7 @@ class width_datacardClass:
 
 
         bkgRateNameNorm = "bkgNorm_ggZZrate"
-        bkgRatesNorm = ROOT.RooFormulaVar(bkgRateNameNorm, "@2", ROOT.RooArgList(kbkg))
+        bkgRatesNorm = ROOT.RooFormulaVar(bkgRateNameNorm, "@0", ROOT.RooArgList(kbkg))
 
         sigRateNameWidthNorm = "signalWidthNorm_ggZZrate"
         interfRateNameWidthNorm = "interfWidthNorm_ggZZrate"
@@ -1220,7 +1220,7 @@ class width_datacardClass:
                 interf_ggZZ_HistFuncPDFDownList.append(TempHistFunc)
 
 
-        if self.anomCoupl == 1:
+        if self.anomCoupl == 0:
             sigRatesNormList.append(sigRatesWidthNorm)
             interfRatesNormList.append(interfRatesWidthNorm)
         elif self.anomCoupl == 1:
@@ -1571,7 +1571,7 @@ class width_datacardClass:
                 interf_VBF_HistFuncDownList.append(TempHistFunc)
 
 
-        if self.anomCoupl == 1:
+        if self.anomCoupl == 0:
             VBFsigRatesNormList.append(VBFsigRatesWidthNorm)
             VBFinterfRatesNormList.append(VBFinterfRatesWidthNorm)
         elif self.anomCoupl == 1:
