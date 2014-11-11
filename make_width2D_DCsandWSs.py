@@ -39,7 +39,7 @@ def parseOptions():
     parser.add_option('-j', '--Djet', type='int', dest='useDjet', default=0,
                       help='useDjet cut of 0.5 for VBF categorization (default:0)')
     parser.add_option('-l', '--uselegacy', type='int', dest='useLegacy', default="0",
-                      help='useLegacy: Option to read templates from the legacy (2014 paper) template files')
+                      help='useLegacy: Option to read templates from the legacy (2014 paper) template files 1=Legacy')
     parser.add_option('-r', '--datadir', type='string', dest='dataDirAppend', default="",
                       help='dataDirAppend: Reference CMSdata folder per measurement')
     parser.add_option('-c', '--AnomCoupl', type='int', dest='anomalousCouplingIndex', default="0",
