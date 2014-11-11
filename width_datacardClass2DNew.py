@@ -185,7 +185,7 @@ class width_datacardClass:
         if(self.anomCoupl == 1):
             templateSigNameMain = "{0}{1}".format(templateSigNameMain,"fLQAdded")
         templateSigNameMain = "{0}{1}".format(templateSigNameMain,"__GenLevelVBF")
-        if(USELEGACY):
+        if(USELEGACY == 1):
             templateSigNameMain = "{0}{1}".format(templateSigNameMain,"_wResolution")
         templateSigNameMain = "{0}{1}".format(templateSigNameMain,"_D_Gamma_gg_r10")
         templateSigNameMain = "{0}/LHC_{1:.0f}TeV/{2}/{3}".format(self.templateDir, self.sqrts, self.appendNameAlt,templateSigNameMain)
@@ -2313,9 +2313,9 @@ class width_datacardClass:
 
         # --------------------------- DATASET --------------------------- ##
 
-        if(USELEGACY == False):
+        if(USELEGACY == 0):
             dataFileDir = "CMSdata"
-        if(USELEGACY == True):
+        if(USELEGACY == 1):
             dataFileDir = "CMSdata_Legacy"
         if (self.dataAppendDir != ''):
             dataFileDir = "{0}_{1}".format(dataFileDir,self.dataAppendDir)
