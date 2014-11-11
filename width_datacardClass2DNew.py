@@ -874,57 +874,71 @@ class width_datacardClass:
         one.setConstant(True)
 
         # -------------------------- gg2ZZ SHAPES ---------------------------------- ##
+        ggZZ_HistFuncs = ROOT.RooArgList()
+
+        bkg_ggZZ_RawHistList=[Sig_T_1]
+        bkg_ggZZ_DataHistList=[]
+        bkg_ggZZ_HistFuncList=[]
+
+        bkg_ggZZ_RawHistPDFUpList=[Sig_T_1_Up_PDF]
+        bkg_ggZZ_DataHistPDFUpList=[]
+        bkg_ggZZ_HistFuncPDFUpList=[]
+
+        bkg_ggZZ_RawHistPDFDownList=[Sig_T_1_Down_PDF]
+        bkg_ggZZ_DataHistPDFDownList=[]
+        bkg_ggZZ_HistFuncPDFDownList=[]
+
+        bkg_ggZZ_RawHistQCDUpList=[Sig_T_1_Up_QCD]
+        bkg_ggZZ_DataHistQCDUpList=[]
+        bkg_ggZZ_HistFuncQCDUpList=[]
+
+        bkg_ggZZ_RawHistQCDDownList=[Sig_T_1_Down_QCD]
+        bkg_ggZZ_DataHistQCDDownList=[]
+        bkg_ggZZ_HistFuncQCDDownList=[]
+
 
         signal_ggZZ_RawHistList=[Sig_T_2,Sig_T_mZZ2_1_2,Sig_T_mZZ2_2_2]
         signal_ggZZ_DataHistList=[]
         signal_ggZZ_HistFuncList=[]
-        signal_ggZZ_HistFuncs_Nominal = ROOT.RooArgList()
 
         signal_ggZZ_RawHistPDFUpList=[Sig_T_2_Up_PDF,Sig_T_mZZ2_1_2_Up_PDF,Sig_T_mZZ2_2_2_Up_PDF]
         signal_ggZZ_DataHistPDFUpList=[]
         signal_ggZZ_HistFuncPDFUpList=[]
-        signal_ggZZ_HistFuncs_PDFUp = ROOT.RooArgList()
 
         signal_ggZZ_RawHistPDFDownList=[Sig_T_2_Down_PDF,Sig_T_mZZ2_1_2_Down_PDF,Sig_T_mZZ2_2_2_Down_PDF]
         signal_ggZZ_DataHistPDFDownList=[]
         signal_ggZZ_HistFuncPDFDownList=[]
-        signal_ggZZ_HistFuncs_PDFDown = ROOT.RooArgList()
 
         signal_ggZZ_RawHistQCDUpList=[Sig_T_2_Up_QCD,Sig_T_mZZ2_1_2_Up_QCD,Sig_T_mZZ2_2_2_Up_QCD]
         signal_ggZZ_DataHistQCDUpList=[]
         signal_ggZZ_HistFuncQCDUpList=[]
-        signal_ggZZ_HistFuncs_QCDUp = ROOT.RooArgList()
 
         signal_ggZZ_RawHistQCDDownList=[Sig_T_2_Down_QCD,Sig_T_mZZ2_1_2_Down_QCD,Sig_T_mZZ2_2_2_Down_QCD]
         signal_ggZZ_DataHistQCDDownList=[]
         signal_ggZZ_HistFuncQCDDownList=[]
-        signal_ggZZ_HistFuncs_QCDDown = ROOT.RooArgList()
 
 
         interf_ggZZ_RawHistList=[Sig_T_4,Sig_T_mZZ2_1_4]
         interf_ggZZ_DataHistList=[]
         interf_ggZZ_HistFuncList=[]
-        interf_ggZZ_HistFuncs_Nominal = ROOT.RooArgList()
 
         interf_ggZZ_RawHistPDFUpList=[Sig_T_4_Up_PDF,Sig_T_mZZ2_1_4_Up_PDF]
         interf_ggZZ_DataHistPDFUpList=[]
         interf_ggZZ_HistFuncPDFUpList=[]
-        interf_ggZZ_HistFuncs_PDFUp = ROOT.RooArgList()
 
         interf_ggZZ_RawHistPDFDownList=[Sig_T_4_Down_PDF,Sig_T_mZZ2_1_4_Down_PDF]
         interf_ggZZ_DataHistPDFDownList=[]
         interf_ggZZ_HistFuncPDFDownList=[]
-        interf_ggZZ_HistFuncs_PDFDown = ROOT.RooArgList()
 
         interf_ggZZ_RawHistQCDUpList=[Sig_T_4_Up_QCD,Sig_T_mZZ2_1_4_Up_QCD]
         interf_ggZZ_DataHistQCDUpList=[]
         interf_ggZZ_HistFuncQCDUpList=[]
-        interf_ggZZ_HistFuncs_QCDUp = ROOT.RooArgList()
 
         interf_ggZZ_RawHistQCDDownList=[Sig_T_4_Down_QCD,Sig_T_mZZ2_1_4_Down_QCD]
         interf_ggZZ_DataHistQCDDownList=[]
         interf_ggZZ_HistFuncQCDDownList=[]
-        interf_ggZZ_HistFuncs_QCDDown = ROOT.RooArgList()
+
+
 
 
         sigRateNameWidthNorm = "signalWidthNorm_ggZZrate".format(self.channel, self.sqrts, useDjet)
@@ -937,22 +951,100 @@ class width_datacardClass:
         bkgRatesNorm = ROOT.RooFormulaVar(bkgRateNameNorm, "@2", ROOT.RooArgList(kbkg))
 
 
+# ggZZ Bkg histfunc construction
         TemplateName = "ggZZbkg_TempDataHist_{0:.0f}_{1:.0f}_{2:.0f}".format(self.channel, self.sqrts, useDjet)
         PdfName = "ggZZbkg_TemplatePdf_{0:.0f}_{1:.0f}_{2:.0f}".format(self.channel, self.sqrts, useDjet)
         if self.dimensions > 1:
-            ggZZbkg_TempDataHist = ROOT.RooDataHist(TemplateName, TemplateName, ROOT.RooArgList(CMS_zz4l_widthMass, CMS_zz4l_widthKD), Sig_T_1)
-            ggZZbkg_TemplatePdf = ROOT.RooHistFunc(PdfName, PdfName, ROOT.RooArgSet(CMS_zz4l_widthMass, CMS_zz4l_widthKD), ggZZbkg_TempDataHist)
+            TempDataHist = ROOT.RooDataHist(TemplateName, TemplateName, ROOT.RooArgList(CMS_zz4l_widthMass, CMS_zz4l_widthKD), bkg_ggZZ_RawHistList[0])
+            bkg_ggZZ_DataHistList.append(TempDataHist)
+            TempHistFunc = ROOT.RooHistFunc(PdfName, PdfName, ROOT.RooArgSet(CMS_zz4l_widthMass, CMS_zz4l_widthKD), TempDataHist)
+            bkg_ggZZ_HistFuncList.append(TempHistFunc)
         elif self.dimensions == 1:
-            ggZZbkg_TempDataHist = ROOT.RooDataHist(TemplateName, TemplateName, ROOT.RooArgList(CMS_zz4l_widthMass), Sig_T_1.ProjectionX())
-            ggZZbkg_TemplatePdf = ROOT.RooHistFunc(PdfName, PdfName, ROOT.RooArgSet(CMS_zz4l_widthMass), ggZZbkg_TempDataHist)
+            TempDataHist = ROOT.RooDataHist(TemplateName, TemplateName, ROOT.RooArgList(CMS_zz4l_widthMass), bkg_ggZZ_RawHistList[0].ProjectionX())
+            bkg_ggZZ_DataHistList.append(TempDataHist)
+            TempHistFunc = ROOT.RooHistFunc(PdfName, PdfName, ROOT.RooArgSet(CMS_zz4l_widthMass), TempDataHist)
+            bkg_ggZZ_HistFuncList.append(TempHistFunc)
         elif self.dimensions == 0:
-            ggZZbkg_TempDataHist = ROOT.RooDataHist(TemplateName, TemplateName, ROOT.RooArgList(CMS_zz4l_widthKD), Sig_T_1.ProjectionY())
-            ggZZbkg_TemplatePdf = ROOT.RooHistFunc(PdfName, PdfName, ROOT.RooArgSet(CMS_zz4l_widthKD), ggZZbkg_TempDataHist)
+            TempDataHist = ROOT.RooDataHist(TemplateName, TemplateName, ROOT.RooArgList(CMS_zz4l_widthKD), bkg_ggZZ_RawHistList[0].ProjectionY())
+            bkg_ggZZ_DataHistList.append(TempDataHist)
+            TempHistFunc = ROOT.RooHistFunc(PdfName, PdfName, ROOT.RooArgSet(CMS_zz4l_widthKD), TempDataHist)
+            bkg_ggZZ_HistFuncList.append(TempHistFunc)
+        TemplateName = "ggZZbkg_TempDataHist_Down_{0:.0f}_{1:.0f}_{2:.0f}".format(self.channel, self.sqrts, useDjet)
+        PdfName = "ggZZbkg_TemplatePdf_Down_{0:.0f}_{1:.0f}_{2:.0f}".format(self.channel, self.sqrts, useDjet)
+        if self.dimensions > 1:
+            TempDataHist = ROOT.RooDataHist(TemplateName, TemplateName, ROOT.RooArgQCDDownList(CMS_zz4l_widthMass, CMS_zz4l_widthKD), bkg_ggZZ_RawHistQCDDownList[0])
+            bkg_ggZZ_DataHistQCDDownList.append(TempDataHist)
+            TempHistFunc = ROOT.RooHistFunc(PdfName, PdfName, ROOT.RooArgSet(CMS_zz4l_widthMass, CMS_zz4l_widthKD), TempDataHist)
+            bkg_ggZZ_HistFuncQCDDownList.append(TempHistFunc)
+        elif self.dimensions == 1:
+            TempDataHist = ROOT.RooDataHist(TemplateName, TemplateName, ROOT.RooArgQCDDownList(CMS_zz4l_widthMass), bkg_ggZZ_RawHistQCDDownList[0].ProjectionX())
+            bkg_ggZZ_DataHistQCDDownList.append(TempDataHist)
+            TempHistFunc = ROOT.RooHistFunc(PdfName, PdfName, ROOT.RooArgSet(CMS_zz4l_widthMass), TempDataHist)
+            bkg_ggZZ_HistFuncQCDDownList.append(TempHistFunc)
+        elif self.dimensions == 0:
+            TempDataHist = ROOT.RooDataHist(TemplateName, TemplateName, ROOT.RooArgQCDDownList(CMS_zz4l_widthKD), bkg_ggZZ_RawHistQCDDownList[0].ProjectionY())
+            bkg_ggZZ_DataHistQCDDownList.append(TempDataHist)
+            TempHistFunc = ROOT.RooHistFunc(PdfName, PdfName, ROOT.RooArgSet(CMS_zz4l_widthKD), TempDataHist)
+            bkg_ggZZ_HistFuncQCDDownList.append(TempHistFunc)
+        TemplateName = "ggZZbkg_TempDataHist_Up_{0:.0f}_{1:.0f}_{2:.0f}".format(self.channel, self.sqrts, useDjet)
+        PdfName = "ggZZbkg_TemplatePdf_Up_{0:.0f}_{1:.0f}_{2:.0f}".format(self.channel, self.sqrts, useDjet)
+        if self.dimensions > 1:
+            TempDataHist = ROOT.RooDataHist(TemplateName, TemplateName, ROOT.RooArgQCDUpList(CMS_zz4l_widthMass, CMS_zz4l_widthKD), bkg_ggZZ_RawHistQCDUpList[0])
+            bkg_ggZZ_DataHistQCDUpList.append(TempDataHist)
+            TempHistFunc = ROOT.RooHistFunc(PdfName, PdfName, ROOT.RooArgSet(CMS_zz4l_widthMass, CMS_zz4l_widthKD), TempDataHist)
+            bkg_ggZZ_HistFuncQCDUpList.append(TempHistFunc)
+        elif self.dimensions == 1:
+            TempDataHist = ROOT.RooDataHist(TemplateName, TemplateName, ROOT.RooArgQCDUpList(CMS_zz4l_widthMass), bkg_ggZZ_RawHistQCDUpList[0].ProjectionX())
+            bkg_ggZZ_DataHistQCDUpList.append(TempDataHist)
+            TempHistFunc = ROOT.RooHistFunc(PdfName, PdfName, ROOT.RooArgSet(CMS_zz4l_widthMass), TempDataHist)
+            bkg_ggZZ_HistFuncQCDUpList.append(TempHistFunc)
+        elif self.dimensions == 0:
+            TempDataHist = ROOT.RooDataHist(TemplateName, TemplateName, ROOT.RooArgQCDUpList(CMS_zz4l_widthKD), bkg_ggZZ_RawHistQCDUpList[0].ProjectionY())
+            bkg_ggZZ_DataHistQCDUpList.append(TempDataHist)
+            TempHistFunc = ROOT.RooHistFunc(PdfName, PdfName, ROOT.RooArgSet(CMS_zz4l_widthKD), TempDataHist)
+            bkg_ggZZ_HistFuncQCDUpList.append(TempHistFunc)
+        TemplateName = "ggZZbkg_TempDataHist_Down_pdf_{0:.0f}_{1:.0f}_{2:.0f}".format(self.channel, self.sqrts, useDjet)
+        PdfName = "ggZZbkg_TemplatePdf_Down_pdf_{0:.0f}_{1:.0f}_{2:.0f}".format(self.channel, self.sqrts, useDjet)
+        if self.dimensions > 1:
+            TempDataHist = ROOT.RooDataHist(TemplateName, TemplateName, ROOT.RooArgPDFDownList(CMS_zz4l_widthMass, CMS_zz4l_widthKD), bkg_ggZZ_RawHistPDFDownList[0])
+            bkg_ggZZ_DataHistPDFDownList.append(TempDataHist)
+            TempHistFunc = ROOT.RooHistFunc(PdfName, PdfName, ROOT.RooArgSet(CMS_zz4l_widthMass, CMS_zz4l_widthKD), TempDataHist)
+            bkg_ggZZ_HistFuncPDFDownList.append(TempHistFunc)
+        elif self.dimensions == 1:
+            TempDataHist = ROOT.RooDataHist(TemplateName, TemplateName, ROOT.RooArgPDFDownList(CMS_zz4l_widthMass), bkg_ggZZ_RawHistPDFDownList[0].ProjectionX())
+            bkg_ggZZ_DataHistPDFDownList.append(TempDataHist)
+            TempHistFunc = ROOT.RooHistFunc(PdfName, PdfName, ROOT.RooArgSet(CMS_zz4l_widthMass), TempDataHist)
+            bkg_ggZZ_HistFuncPDFDownList.append(TempHistFunc)
+        elif self.dimensions == 0:
+            TempDataHist = ROOT.RooDataHist(TemplateName, TemplateName, ROOT.RooArgPDFDownList(CMS_zz4l_widthKD), bkg_ggZZ_RawHistPDFDownList[0].ProjectionY())
+            bkg_ggZZ_DataHistPDFDownList.append(TempDataHist)
+            TempHistFunc = ROOT.RooHistFunc(PdfName, PdfName, ROOT.RooArgSet(CMS_zz4l_widthKD), TempDataHist)
+            bkg_ggZZ_HistFuncPDFDownList.append(TempHistFunc)
+        TemplateName = "ggZZbkg_TempDataHist_Up_pdf_{0:.0f}_{1:.0f}_{2:.0f}".format(self.channel, self.sqrts, useDjet)
+        PdfName = "ggZZbkg_TemplatePdf_Up_pdf_{0:.0f}_{1:.0f}_{2:.0f}".format(self.channel, self.sqrts, useDjet)
+        if self.dimensions > 1:
+            TempDataHist = ROOT.RooDataHist(TemplateName, TemplateName, ROOT.RooArgPDFUpList(CMS_zz4l_widthMass, CMS_zz4l_widthKD), bkg_ggZZ_RawHistPDFUpList[0])
+            bkg_ggZZ_DataHistPDFUpList.append(TempDataHist)
+            TempHistFunc = ROOT.RooHistFunc(PdfName, PdfName, ROOT.RooArgSet(CMS_zz4l_widthMass, CMS_zz4l_widthKD), TempDataHist)
+            bkg_ggZZ_HistFuncPDFUpList.append(TempHistFunc)
+        elif self.dimensions == 1:
+            TempDataHist = ROOT.RooDataHist(TemplateName, TemplateName, ROOT.RooArgPDFUpList(CMS_zz4l_widthMass), bkg_ggZZ_RawHistPDFUpList[0].ProjectionX())
+            bkg_ggZZ_DataHistPDFUpList.append(TempDataHist)
+            TempHistFunc = ROOT.RooHistFunc(PdfName, PdfName, ROOT.RooArgSet(CMS_zz4l_widthMass), TempDataHist)
+            bkg_ggZZ_HistFuncPDFUpList.append(TempHistFunc)
+        elif self.dimensions == 0:
+            TempDataHist = ROOT.RooDataHist(TemplateName, TemplateName, ROOT.RooArgPDFUpList(CMS_zz4l_widthKD), bkg_ggZZ_RawHistPDFUpList[0].ProjectionY())
+            bkg_ggZZ_DataHistPDFUpList.append(TempDataHist)
+            TempHistFunc = ROOT.RooHistFunc(PdfName, PdfName, ROOT.RooArgSet(CMS_zz4l_widthKD), TempDataHist)
+            bkg_ggZZ_HistFuncPDFUpList.append(TempHistFunc)
+
 
 
         anomalousLoops = 1
+        anomalousLoops_interf = 1
         if self.anomCoupl == 1:
             anomalousLoops = 3 # For ggZZ
+            anomalousLoops_interf = 2
 
         for al in range(0,anomalousLoops) :
             TemplateName = "ggZZsignal_TempDataHist_AC{3:.0f}_{0:.0f}_{1:.0f}_{2:.0f}".format(self.channel, self.sqrts, useDjet, al)
@@ -972,7 +1064,6 @@ class width_datacardClass:
                 signal_ggZZ_DataHistList.append(TempDataHist)
                 TempHistFunc = ROOT.RooHistFunc(PdfName, PdfName, ROOT.RooArgSet(CMS_zz4l_widthKD), TempDataHist)
                 signal_ggZZ_HistFuncList.append(TempHistFunc)
-
             TemplateName = "ggZZsignal_TempDataHist_Up_AC{3:.0f}_{0:.0f}_{1:.0f}_{2:.0f}".format(self.channel, self.sqrts, useDjet, al)
             PdfName = "ggZZsignal_TempHistFunc_Up_AC{3:.0f}_{0:.0f}_{1:.0f}_{2:.0f}".format(self.channel, self.sqrts, useDjet, al)
             if self.dimensions > 1:
@@ -990,7 +1081,6 @@ class width_datacardClass:
                 signal_ggZZ_DataHistQCDUpList.append(TempDataHist)
                 TempHistFunc = ROOT.RooHistFunc(PdfName, PdfName, ROOT.RooArgSet(CMS_zz4l_widthKD), TempDataHist)
                 signal_ggZZ_HistFuncQCDUpList.append(TempHistFunc)
-
             TemplateName = "ggZZsignal_TempDataHist_Down_AC{3:.0f}_{0:.0f}_{1:.0f}_{2:.0f}".format(self.channel, self.sqrts, useDjet, al)
             PdfName = "ggZZsignal_TempHistFunc_Down_AC{3:.0f}_{0:.0f}_{1:.0f}_{2:.0f}".format(self.channel, self.sqrts, useDjet, al)
             if self.dimensions > 1:
@@ -1008,7 +1098,6 @@ class width_datacardClass:
                 signal_ggZZ_DataHistQCDDownList.append(TempDataHist)
                 TempHistFunc = ROOT.RooHistFunc(PdfName, PdfName, ROOT.RooArgSet(CMS_zz4l_widthKD), TempDataHist)
                 signal_ggZZ_HistFuncQCDDownList.append(TempHistFunc)
-
             TemplateName = "ggZZsignal_TempDataHist_Up_pdf_AC{3:.0f}_{0:.0f}_{1:.0f}_{2:.0f}".format(self.channel, self.sqrts, useDjet, al)
             PdfName = "ggZZsignal_TempHistFunc_Up_pdf_AC{3:.0f}_{0:.0f}_{1:.0f}_{2:.0f}".format(self.channel, self.sqrts, useDjet, al)
             if self.dimensions > 1:
@@ -1026,7 +1115,6 @@ class width_datacardClass:
                 signal_ggZZ_DataHistPDFUpList.append(TempDataHist)
                 TempHistFunc = ROOT.RooHistFunc(PdfName, PdfName, ROOT.RooArgSet(CMS_zz4l_widthKD), TempDataHist)
                 signal_ggZZ_HistFuncPDFUpList.append(TempHistFunc)
-
             TemplateName = "ggZZsignal_TempDataHist_Down_pdf_AC{3:.0f}_{0:.0f}_{1:.0f}_{2:.0f}".format(self.channel, self.sqrts, useDjet, al)
             PdfName = "ggZZsignal_TempHistFunc_Down_pdf_AC{3:.0f}_{0:.0f}_{1:.0f}_{2:.0f}".format(self.channel, self.sqrts, useDjet, al)
             if self.dimensions > 1:
@@ -1045,30 +1133,93 @@ class width_datacardClass:
                 TempHistFunc = ROOT.RooHistFunc(PdfName, PdfName, ROOT.RooArgSet(CMS_zz4l_widthKD), TempDataHist)
                 signal_ggZZ_HistFuncPDFDownList.append(TempHistFunc)
 
-
-
-
-# LEFT HERE
-
-        TemplateName = "ggZZinterf_TempDataHist_{0:.0f}_{1:.0f}_{2:.0f}".format(
-            self.channel, self.sqrts, useDjet)
-        PdfName = "ggZZinterf_TemplatePdf_{0:.0f}_{1:.0f}_{2:.0f}".format(
-            self.channel, self.sqrts, useDjet)
-        if self.dimensions > 1:
-            ggZZinterf_TempDataHist = ROOT.RooDataHist(
-                TemplateName, TemplateName, ROOT.RooArgList(CMS_zz4l_widthMass, CMS_zz4l_widthKD), Sig_T_4)
-            ggZZinterf_TemplatePdf = ROOT.RooHistFunc(PdfName, PdfName, ROOT.RooArgSet(
-                CMS_zz4l_widthMass, CMS_zz4l_widthKD), ggZZinterf_TempDataHist)
-        elif self.dimensions == 1:
-            ggZZinterf_TempDataHist = ROOT.RooDataHist(
-                TemplateName, TemplateName, ROOT.RooArgList(CMS_zz4l_widthMass), Sig_T_4.ProjectionX())
-            ggZZinterf_TemplatePdf = ROOT.RooHistFunc(
-                PdfName, PdfName, ROOT.RooArgSet(CMS_zz4l_widthMass), ggZZinterf_TempDataHist)
-        elif self.dimensions == 0:
-            ggZZinterf_TempDataHist = ROOT.RooDataHist(
-                TemplateName, TemplateName, ROOT.RooArgList(CMS_zz4l_widthKD), Sig_T_4.ProjectionY())
-            ggZZinterf_TemplatePdf = ROOT.RooHistFunc(
-                PdfName, PdfName, ROOT.RooArgSet(CMS_zz4l_widthKD), ggZZinterf_TempDataHist)
+        for al in range(0,anomalousLoops_interf) :
+            TemplateName = "ggZZinterf_TempDataHist_AC{3:.0f}_{0:.0f}_{1:.0f}_{2:.0f}".format(self.channel, self.sqrts, useDjet, al)
+            PdfName = "ggZZinterf_TempHistFunc_AC{3:.0f}_{0:.0f}_{1:.0f}_{2:.0f}".format(self.channel, self.sqrts, useDjet, al)
+            if self.dimensions > 1:
+                TempDataHist = ROOT.RooDataHist(TemplateName, TemplateName, ROOT.RooArgList(CMS_zz4l_widthMass, CMS_zz4l_widthKD), interf_ggZZ_RawHistList[al])
+                interf_ggZZ_DataHistList.append(TempDataHist)
+                TempHistFunc = ROOT.RooHistFunc(PdfName, PdfName, ROOT.RooArgSet(CMS_zz4l_widthMass, CMS_zz4l_widthKD), TempDataHist)
+                interf_ggZZ_HistFuncList.append(TempHistFunc)
+            elif self.dimensions == 1:
+                TempDataHist = ROOT.RooDataHist(TemplateName, TemplateName, ROOT.RooArgList(CMS_zz4l_widthMass), interf_ggZZ_RawHistList[al].ProjectionX())
+                interf_ggZZ_DataHistList.append(TempDataHist)
+                TempHistFunc = ROOT.RooHistFunc(PdfName, PdfName, ROOT.RooArgSet(CMS_zz4l_widthMass), TempDataHist)
+                interf_ggZZ_HistFuncList.append(TempHistFunc)
+            elif self.dimensions == 0:
+                TempDataHist = ROOT.RooDataHist(TemplateName, TemplateName, ROOT.RooArgList(CMS_zz4l_widthKD), interf_ggZZ_RawHistList[al].ProjectionY())
+                interf_ggZZ_DataHistList.append(TempDataHist)
+                TempHistFunc = ROOT.RooHistFunc(PdfName, PdfName, ROOT.RooArgSet(CMS_zz4l_widthKD), TempDataHist)
+                interf_ggZZ_HistFuncList.append(TempHistFunc)
+            TemplateName = "ggZZinterf_TempDataHist_Up_AC{3:.0f}_{0:.0f}_{1:.0f}_{2:.0f}".format(self.channel, self.sqrts, useDjet, al)
+            PdfName = "ggZZinterf_TempHistFunc_Up_AC{3:.0f}_{0:.0f}_{1:.0f}_{2:.0f}".format(self.channel, self.sqrts, useDjet, al)
+            if self.dimensions > 1:
+                TempDataHist = ROOT.RooDataHist(TemplateName, TemplateName, ROOT.RooArgList(CMS_zz4l_widthMass, CMS_zz4l_widthKD), interf_ggZZ_RawHistQCDUpList[al])
+                interf_ggZZ_DataHistQCDUpList.append(TempDataHist)
+                TempHistFunc = ROOT.RooHistFunc(PdfName, PdfName, ROOT.RooArgSet(CMS_zz4l_widthMass, CMS_zz4l_widthKD), TempDataHist)
+                interf_ggZZ_HistFuncQCDUpList.append(TempHistFunc)
+            elif self.dimensions == 1:
+                TempDataHist = ROOT.RooDataHist(TemplateName, TemplateName, ROOT.RooArgList(CMS_zz4l_widthMass), interf_ggZZ_RawHistQCDUpList[al].ProjectionX())
+                interf_ggZZ_DataHistQCDUpList.append(TempDataHist)
+                TempHistFunc = ROOT.RooHistFunc(PdfName, PdfName, ROOT.RooArgSet(CMS_zz4l_widthMass), TempDataHist)
+                interf_ggZZ_HistFuncQCDUpList.append(TempHistFunc)
+            elif self.dimensions == 0:
+                TempDataHist = ROOT.RooDataHist(TemplateName, TemplateName, ROOT.RooArgList(CMS_zz4l_widthKD), interf_ggZZ_RawHistQCDUpList[al].ProjectionY())
+                interf_ggZZ_DataHistQCDUpList.append(TempDataHist)
+                TempHistFunc = ROOT.RooHistFunc(PdfName, PdfName, ROOT.RooArgSet(CMS_zz4l_widthKD), TempDataHist)
+                interf_ggZZ_HistFuncQCDUpList.append(TempHistFunc)
+            TemplateName = "ggZZinterf_TempDataHist_Down_AC{3:.0f}_{0:.0f}_{1:.0f}_{2:.0f}".format(self.channel, self.sqrts, useDjet, al)
+            PdfName = "ggZZinterf_TempHistFunc_Down_AC{3:.0f}_{0:.0f}_{1:.0f}_{2:.0f}".format(self.channel, self.sqrts, useDjet, al)
+            if self.dimensions > 1:
+                TempDataHist = ROOT.RooDataHist(TemplateName, TemplateName, ROOT.RooArgList(CMS_zz4l_widthMass, CMS_zz4l_widthKD), interf_ggZZ_RawHistQCDDownList[al])
+                interf_ggZZ_DataHistQCDDownList.append(TempDataHist)
+                TempHistFunc = ROOT.RooHistFunc(PdfName, PdfName, ROOT.RooArgSet(CMS_zz4l_widthMass, CMS_zz4l_widthKD), TempDataHist)
+                interf_ggZZ_HistFuncQCDDownList.append(TempHistFunc)
+            elif self.dimensions == 1:
+                TempDataHist = ROOT.RooDataHist(TemplateName, TemplateName, ROOT.RooArgList(CMS_zz4l_widthMass), interf_ggZZ_RawHistQCDDownList[al].ProjectionX())
+                interf_ggZZ_DataHistQCDDownList.append(TempDataHist)
+                TempHistFunc = ROOT.RooHistFunc(PdfName, PdfName, ROOT.RooArgSet(CMS_zz4l_widthMass), TempDataHist)
+                interf_ggZZ_HistFuncQCDDownList.append(TempHistFunc)
+            elif self.dimensions == 0:
+                TempDataHist = ROOT.RooDataHist(TemplateName, TemplateName, ROOT.RooArgList(CMS_zz4l_widthKD), interf_ggZZ_RawHistQCDDownList[al].ProjectionY())
+                interf_ggZZ_DataHistQCDDownList.append(TempDataHist)
+                TempHistFunc = ROOT.RooHistFunc(PdfName, PdfName, ROOT.RooArgSet(CMS_zz4l_widthKD), TempDataHist)
+                interf_ggZZ_HistFuncQCDDownList.append(TempHistFunc)
+            TemplateName = "ggZZinterf_TempDataHist_Up_pdf_AC{3:.0f}_{0:.0f}_{1:.0f}_{2:.0f}".format(self.channel, self.sqrts, useDjet, al)
+            PdfName = "ggZZinterf_TempHistFunc_Up_pdf_AC{3:.0f}_{0:.0f}_{1:.0f}_{2:.0f}".format(self.channel, self.sqrts, useDjet, al)
+            if self.dimensions > 1:
+                TempDataHist = ROOT.RooDataHist(TemplateName, TemplateName, ROOT.RooArgList(CMS_zz4l_widthMass, CMS_zz4l_widthKD), interf_ggZZ_RawHistPDFUpList[al])
+                interf_ggZZ_DataHistPDFUpList.append(TempDataHist)
+                TempHistFunc = ROOT.RooHistFunc(PdfName, PdfName, ROOT.RooArgSet(CMS_zz4l_widthMass, CMS_zz4l_widthKD), TempDataHist)
+                interf_ggZZ_HistFuncPDFUpList.append(TempHistFunc)
+            elif self.dimensions == 1:
+                TempDataHist = ROOT.RooDataHist(TemplateName, TemplateName, ROOT.RooArgList(CMS_zz4l_widthMass), interf_ggZZ_RawHistPDFUpList[al].ProjectionX())
+                interf_ggZZ_DataHistPDFUpList.append(TempDataHist)
+                TempHistFunc = ROOT.RooHistFunc(PdfName, PdfName, ROOT.RooArgSet(CMS_zz4l_widthMass), TempDataHist)
+                interf_ggZZ_HistFuncPDFUpList.append(TempHistFunc)
+            elif self.dimensions == 0:
+                TempDataHist = ROOT.RooDataHist(TemplateName, TemplateName, ROOT.RooArgList(CMS_zz4l_widthKD), interf_ggZZ_RawHistPDFUpList[al].ProjectionY())
+                interf_ggZZ_DataHistPDFUpList.append(TempDataHist)
+                TempHistFunc = ROOT.RooHistFunc(PdfName, PdfName, ROOT.RooArgSet(CMS_zz4l_widthKD), TempDataHist)
+                interf_ggZZ_HistFuncPDFUpList.append(TempHistFunc)
+            TemplateName = "ggZZinterf_TempDataHist_Down_pdf_AC{3:.0f}_{0:.0f}_{1:.0f}_{2:.0f}".format(self.channel, self.sqrts, useDjet, al)
+            PdfName = "ggZZinterf_TempHistFunc_Down_pdf_AC{3:.0f}_{0:.0f}_{1:.0f}_{2:.0f}".format(self.channel, self.sqrts, useDjet, al)
+            if self.dimensions > 1:
+                TempDataHist = ROOT.RooDataHist(TemplateName, TemplateName, ROOT.RooArgList(CMS_zz4l_widthMass, CMS_zz4l_widthKD), interf_ggZZ_RawHistPDFDownList[al])
+                interf_ggZZ_DataHistPDFDownList.append(TempDataHist)
+                TempHistFunc = ROOT.RooHistFunc(PdfName, PdfName, ROOT.RooArgSet(CMS_zz4l_widthMass, CMS_zz4l_widthKD), TempDataHist)
+                interf_ggZZ_HistFuncPDFDownList.append(TempHistFunc)
+            elif self.dimensions == 1:
+                TempDataHist = ROOT.RooDataHist(TemplateName, TemplateName, ROOT.RooArgList(CMS_zz4l_widthMass), interf_ggZZ_RawHistPDFDownList[al].ProjectionX())
+                interf_ggZZ_DataHistPDFDownList.append(TempDataHist)
+                TempHistFunc = ROOT.RooHistFunc(PdfName, PdfName, ROOT.RooArgSet(CMS_zz4l_widthMass), TempDataHist)
+                interf_ggZZ_HistFuncPDFDownList.append(TempHistFunc)
+            elif self.dimensions == 0:
+                TempDataHist = ROOT.RooDataHist(TemplateName, TemplateName, ROOT.RooArgList(CMS_zz4l_widthKD), interf_ggZZ_RawHistPDFDownList[al].ProjectionY())
+                interf_ggZZ_DataHistPDFDownList.append(TempDataHist)
+                TempHistFunc = ROOT.RooHistFunc(PdfName, PdfName, ROOT.RooArgSet(CMS_zz4l_widthKD), TempDataHist)
+                interf_ggZZ_HistFuncPDFDownList.append(TempHistFunc)
+            
 
         ggZZpdfName = "ggZZ_RooWidth_Nominal_{0:.0f}_{1:.0f}_{2:.0f}".format(
             self.channel, self.sqrts, useDjet)
