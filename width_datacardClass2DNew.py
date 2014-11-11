@@ -1273,11 +1273,11 @@ class width_datacardClass:
             ggZZ_PDFUp_histfuncs.add(bkg_ggZZ_HistFuncPDFUpList[al])
             ggZZ_PDFDown_histfuncs.add(bkg_ggZZ_HistFuncPDFDownList[al])
 
-        print "ggZZ_Nominal_histfuncs"
-        ggZZ_Nominal_histfuncs.Print("v")
+#        print "ggZZ_Nominal_histfuncs"
+#        ggZZ_Nominal_histfuncs.Print("v")
 
-        print "ggZZ_funcficients"
-        ggZZ_funcficients.Print("v")
+#        print "ggZZ_funcficients"
+#        ggZZ_funcficients.Print("v")
 
 
         ggZZpdfName = "ggZZ_RooWidth_Nominal_{0:.0f}_{1:.0f}_{2:.0f}".format(self.channel, self.sqrts, useDjet)
@@ -1425,34 +1425,34 @@ class width_datacardClass:
         TemplateName = "VBFbkg_TempDataHist_Down_{0:.0f}_{1:.0f}_{2:.0f}".format(self.channel, self.sqrts, useDjet)
         PdfName = "VBFbkg_TempHistFunc_Down_{0:.0f}_{1:.0f}_{2:.0f}".format(self.channel, self.sqrts, useDjet)
         if self.dimensions > 1:
-            TempDataHist = ROOT.RooDataHist(TemplateName, TemplateName, ROOT.RooArgDownList(CMS_zz4l_widthMass, CMS_zz4l_widthKD), bkg_VBF_RawHistDownList[0])
+            TempDataHist = ROOT.RooDataHist(TemplateName, TemplateName, ROOT.RooArgList(CMS_zz4l_widthMass, CMS_zz4l_widthKD), bkg_VBF_RawHistDownList[0])
             bkg_VBF_DataHistDownList.append(TempDataHist)
             TempHistFunc = ROOT.RooHistFunc(PdfName, PdfName, ROOT.RooArgSet(CMS_zz4l_widthMass, CMS_zz4l_widthKD), TempDataHist)
             bkg_VBF_HistFuncDownList.append(TempHistFunc)
         elif self.dimensions == 1:
-            TempDataHist = ROOT.RooDataHist(TemplateName, TemplateName, ROOT.RooArgDownList(CMS_zz4l_widthMass), bkg_VBF_RawHistDownList[0].ProjectionX())
+            TempDataHist = ROOT.RooDataHist(TemplateName, TemplateName, ROOT.RooArgList(CMS_zz4l_widthMass), bkg_VBF_RawHistDownList[0].ProjectionX())
             bkg_VBF_DataHistDownList.append(TempDataHist)
             TempHistFunc = ROOT.RooHistFunc(PdfName, PdfName, ROOT.RooArgSet(CMS_zz4l_widthMass), TempDataHist)
             bkg_VBF_HistFuncDownList.append(TempHistFunc)
         elif self.dimensions == 0:
-            TempDataHist = ROOT.RooDataHist(TemplateName, TemplateName, ROOT.RooArgDownList(CMS_zz4l_widthKD), bkg_VBF_RawHistDownList[0].ProjectionY())
+            TempDataHist = ROOT.RooDataHist(TemplateName, TemplateName, ROOT.RooArgList(CMS_zz4l_widthKD), bkg_VBF_RawHistDownList[0].ProjectionY())
             bkg_VBF_DataHistDownList.append(TempDataHist)
             TempHistFunc = ROOT.RooHistFunc(PdfName, PdfName, ROOT.RooArgSet(CMS_zz4l_widthKD), TempDataHist)
             bkg_VBF_HistFuncDownList.append(TempHistFunc)
         TemplateName = "VBFbkg_TempDataHist_Up_{0:.0f}_{1:.0f}_{2:.0f}".format(self.channel, self.sqrts, useDjet)
         PdfName = "VBFbkg_TempHistFunc_Up_{0:.0f}_{1:.0f}_{2:.0f}".format(self.channel, self.sqrts, useDjet)
         if self.dimensions > 1:
-            TempDataHist = ROOT.RooDataHist(TemplateName, TemplateName, ROOT.RooArgUpList(CMS_zz4l_widthMass, CMS_zz4l_widthKD), bkg_VBF_RawHistUpList[0])
+            TempDataHist = ROOT.RooDataHist(TemplateName, TemplateName, ROOT.RooArgList(CMS_zz4l_widthMass, CMS_zz4l_widthKD), bkg_VBF_RawHistUpList[0])
             bkg_VBF_DataHistUpList.append(TempDataHist)
             TempHistFunc = ROOT.RooHistFunc(PdfName, PdfName, ROOT.RooArgSet(CMS_zz4l_widthMass, CMS_zz4l_widthKD), TempDataHist)
             bkg_VBF_HistFuncUpList.append(TempHistFunc)
         elif self.dimensions == 1:
-            TempDataHist = ROOT.RooDataHist(TemplateName, TemplateName, ROOT.RooArgUpList(CMS_zz4l_widthMass), bkg_VBF_RawHistUpList[0].ProjectionX())
+            TempDataHist = ROOT.RooDataHist(TemplateName, TemplateName, ROOT.RooArgList(CMS_zz4l_widthMass), bkg_VBF_RawHistUpList[0].ProjectionX())
             bkg_VBF_DataHistUpList.append(TempDataHist)
             TempHistFunc = ROOT.RooHistFunc(PdfName, PdfName, ROOT.RooArgSet(CMS_zz4l_widthMass), TempDataHist)
             bkg_VBF_HistFuncUpList.append(TempHistFunc)
         elif self.dimensions == 0:
-            TempDataHist = ROOT.RooDataHist(TemplateName, TemplateName, ROOT.RooArgUpList(CMS_zz4l_widthKD), bkg_VBF_RawHistUpList[0].ProjectionY())
+            TempDataHist = ROOT.RooDataHist(TemplateName, TemplateName, ROOT.RooArgList(CMS_zz4l_widthKD), bkg_VBF_RawHistUpList[0].ProjectionY())
             bkg_VBF_DataHistUpList.append(TempDataHist)
             TempHistFunc = ROOT.RooHistFunc(PdfName, PdfName, ROOT.RooArgSet(CMS_zz4l_widthKD), TempDataHist)
             bkg_VBF_HistFuncUpList.append(TempHistFunc)
