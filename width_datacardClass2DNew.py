@@ -1709,9 +1709,9 @@ class width_datacardClass:
         CMS_qqzzbkg_p2 = ROOT.RooRealVar(
             "CMS_qqzzbkg_p2", "CMS_qqzzbkg_p2", 2.39404e-07)
         CMS_qqzzbkg_p3 = ROOT.RooRealVar(
-            "CMS_qqzzbkg_p3", "CMS_qqzzbkg_p3", 1 - 0.034)
+            "CMS_qqzzbkg_p3", "CMS_qqzzbkg_p3", 1. - 0.034)
         CMS_qqzzbkg_p4 = ROOT.RooRealVar(
-            "CMS_qqzzbkg_p4", "CMS_qqzzbkg_p4", 1 + 0.027)
+            "CMS_qqzzbkg_p4", "CMS_qqzzbkg_p4", 1. + 0.027)
         CMS_qqzzbkg_p0.setConstant(True)
         CMS_qqzzbkg_p1.setConstant(True)
         CMS_qqzzbkg_p2.setConstant(True)
@@ -1728,9 +1728,9 @@ class width_datacardClass:
         CMS_qqzzbkg_EWK_p3 = ROOT.RooRealVar(
             "CMS_qqzzbkg_EWK_p3", "CMS_qqzzbkg_EWK_p3", 2.63944e-10)
         CMS_qqzzbkg_EWK_p4 = ROOT.RooRealVar(
-            "CMS_qqzzbkg_EWK_p4", "CMS_qqzzbkg_EWK_p4", 1 - 0.029)
+            "CMS_qqzzbkg_EWK_p4", "CMS_qqzzbkg_EWK_p4", 1. - 0.029)
         CMS_qqzzbkg_EWK_p5 = ROOT.RooRealVar(
-            "CMS_qqzzbkg_EWK_p5", "CMS_qqzzbkg_EWK_p5", 1 + 0.029)
+            "CMS_qqzzbkg_EWK_p5", "CMS_qqzzbkg_EWK_p5", 1. + 0.029)
         CMS_qqzzbkg_EWK_p0.setConstant(True)
         CMS_qqzzbkg_EWK_p1.setConstant(True)
         CMS_qqzzbkg_EWK_p2.setConstant(True)
@@ -1747,7 +1747,7 @@ class width_datacardClass:
             if(self.sqrts == 7):
                 name = "qqzz_djetcut_p0_{0:.0f}_{1:.0f}".format(self.sqrts, useDjet)
                 qqzz_djetcut_p0 = ROOT.RooRealVar(
-                    name, "qqzz_djetcut_p0", 1 - 5.83513e-03)
+                    name, "qqzz_djetcut_p0", 1. - 5.83513e-03)
                 name = "qqzz_djetcut_p1_{0:.0f}_{1:.0f}".format(self.sqrts, useDjet)
                 qqzz_djetcut_p1 = ROOT.RooRealVar(
                     name, "qqzz_djetcut_p1", -6.88113e-06)
@@ -1760,7 +1760,7 @@ class width_datacardClass:
             if(self.sqrts == 8):
                 name = "qqzz_djetcut_p0_{0:.0f}_{1:.0f}".format(self.sqrts, useDjet)
                 qqzz_djetcut_p0 = ROOT.RooRealVar(
-                    name, "qqzz_djetcut_p0", 1 - 6.54811e-03)
+                    name, "qqzz_djetcut_p0", 1. - 6.54811e-03)
                 name = "qqzz_djetcut_p1_{0:.0f}_{1:.0f}".format(self.sqrts, useDjet)
                 qqzz_djetcut_p1 = ROOT.RooRealVar(
                     name, "qqzz_djetcut_p1", -5.86652e-06)
@@ -1936,11 +1936,11 @@ class width_datacardClass:
                 if(self.sqrts == 7):
                     name = "bkg_zjets_mass_Djet_ratio_{0:.0f}_{1:.0f}_{2:.0f}".format(self.sqrts, self.channel, useDjet)
                     bkg_zjets_mass_Djet_ratio = ROOT.RooRealVar(
-                        name, "bkg_zjets_mass_Djet_ratio", 1 - 9.94527e-03)
+                        name, "bkg_zjets_mass_Djet_ratio", 1. - 9.94527e-03)
                 if(self.sqrts == 8):
                     name = "bkg_zjets_mass_Djet_ratio_{0:.0f}_{1:.0f}_{2:.0f}".format(self.sqrts, self.channel, useDjet)
                     bkg_zjets_mass_Djet_ratio = ROOT.RooRealVar(
-                        name, "bkg_zjets_mass_Djet_ratio", 1 - 1.00038e-02)
+                        name, "bkg_zjets_mass_Djet_ratio", 1. - 1.00038e-02)
             if(useDjet == 2):
                 # code for analytic form of Djet > 0.5 cut
                 if(self.sqrts == 7):
@@ -2030,11 +2030,11 @@ class width_datacardClass:
                 if(self.sqrts == 7):
                     name = "bkg_zjets_mass_Djet_ratio_{0:.0f}_{1:.0f}_{2:.0f}".format(self.sqrts, self.channel, useDjet)
                     bkg_zjets_mass_Djet_ratio = ROOT.RooRealVar(
-                        name, "bkg_zjets_mass_Djet_ratio", 1 - 9.94527e-03)
+                        name, "bkg_zjets_mass_Djet_ratio", 1. - 9.94527e-03)
                 if(self.sqrts == 8):
                     name = "bkg_zjets_mass_Djet_ratio_{0:.0f}_{1:.0f}_{2:.0f}".format(self.sqrts, self.channel, useDjet)
                     bkg_zjets_mass_Djet_ratio = ROOT.RooRealVar(
-                        name, "bkg_zjets_mass_Djet_ratio", 1 - 1.00038e-02)
+                        name, "bkg_zjets_mass_Djet_ratio", 1. - 1.00038e-02)
             if(useDjet == 2):
                 # code for analytic form of Djet > 0.5 cut
                 if(self.sqrts == 7):
@@ -2133,11 +2133,11 @@ class width_datacardClass:
                 if(self.sqrts == 7):
                     name = "bkg_zjets_mass_Djet_ratio_{0:.0f}_{1:.0f}_{2:.0f}".format(self.sqrts, self.channel, useDjet)
                     bkg_zjets_mass_Djet_ratio = ROOT.RooRealVar(
-                        name, "bkg_zjets_mass_Djet_ratio", 1 - 9.94527e-03)
+                        name, "bkg_zjets_mass_Djet_ratio", 1. - 9.94527e-03)
                 if(self.sqrts == 8):
                     name = "bkg_zjets_mass_Djet_ratio_{0:.0f}_{1:.0f}_{2:.0f}".format(self.sqrts, self.channel, useDjet)
                     bkg_zjets_mass_Djet_ratio = ROOT.RooRealVar(
-                        name, "bkg_zjets_mass_Djet_ratio", 1 - 1.00038e-02)
+                        name, "bkg_zjets_mass_Djet_ratio", 1. - 1.00038e-02)
             if(useDjet == 2):
                 # code for analytic form of Djet > 0.5 cut
                 if(self.sqrts == 7):
@@ -2254,8 +2254,7 @@ class width_datacardClass:
             MorphList_ZX.add(zjet_HistPdfUp)
             MorphList_ZX.add(zjet_HistPdfDown)
 
-            bkg_zjets = ROOT.VerticalInterpPdf(
-                "bkg_zjets", "bkg_zjets", MorphList_ZX, morphVarListZX)
+            bkg_zjets = ROOT.VerticalInterpPdf("bkg_zjets", "bkg_zjets", MorphList_ZX, morphVarListZX)
 
         # ----------------------- RANGES ----------------------- ##
 
@@ -2375,6 +2374,14 @@ class width_datacardClass:
         w.importClassCode(RooFormulaVar.Class(), True)
 
         getattr(w, 'import')(data_obs_red, ROOT.RooFit.Rename("data_obs"))
+
+        # Import dependencies explicitly first since text2workspace gives irrelevant error messages
+        getattr(w, 'import')(self.LUMI, ROOT.RooFit.RecycleConflictNodes())
+        getattr(w, 'import')(x, ROOT.RooFit.RecycleConflictNodes())
+        getattr(w, 'import')(kbkg, ROOT.RooFit.RecycleConflictNodes())
+        getattr(w, 'import')(mu, ROOT.RooFit.RecycleConflictNodes())
+        getattr(w, 'import')(muV, ROOT.RooFit.RecycleConflictNodes())
+        getattr(w, 'import')(muF, ROOT.RooFit.RecycleConflictNodes())
 
         ggZZpdf.SetNameTitle("ggzz", "ggzz")
         getattr(w, 'import')(ggZZpdf, ROOT.RooFit.RecycleConflictNodes())
