@@ -2331,61 +2331,84 @@ class width_datacardClass:
 
         ## ----------------------- PLOTS FOR SANITY CHECKS -------------------------- ##
 
-        print "Starting to plot signal for sanity checks"
-        print "Plot 1: ggZZ Norm vs GGsm"
-        canvasname = "c_{3}_vs_{4}_{1}TeV_{0}_djet{2}".format(self.appendName, self.sqrts, useDjet,ggZZpdf_norm.GetName(),x.GetName())
-        ctest = ROOT.TCanvas( canvasname, canvasname, 750, 700 )
-        ctest.cd()
-        histo = ggZZpdf_norm.createHistogram("htemp",x)
-        histo.Draw()
-        canvasfullName = "{0}/figs/{1}.root".format(self.outputDir, canvasname)
-        ctest.SaveAs(canvasfullName)
-        ctest.Close()
-        print "Plot 2: ggZZ Norm vs fai1"
-        canvasname = "c_{3}_vs_{4}_{1}TeV_{0}_djet{2}".format(self.appendName, self.sqrts, useDjet,ggZZpdf_norm.GetName(),fai1.GetName())
-        ctest = ROOT.TCanvas( canvasname, canvasname, 750, 700 )
-        ctest.cd()
-        histo = ggZZpdf_norm.createHistogram("htemp",fai1)
-        histo.Draw()
-        canvasfullName = "{0}/figs/{1}.root".format(self.outputDir, canvasname)
-        ctest.SaveAs(canvasfullName)
-        ctest.Close()
-        print "Plot 3: VBF Norm vs GGsm"
-        canvasname = "c_{3}_vs_{4}_{1}TeV_{0}_djet{2}".format(self.appendName, self.sqrts, useDjet,VBFpdf_norm.GetName(),x.GetName())
-        ctest = ROOT.TCanvas( canvasname, canvasname, 750, 700 )
-        ctest.cd()
-        histo = VBFpdf_norm.createHistogram("htemp",x)
-        histo.Draw()
-        canvasfullName = "{0}/figs/{1}.root".format(self.outputDir, canvasname)
-        ctest.SaveAs(canvasfullName)
-        ctest.Close()
-        print "Plot 4: VBF Norm vs fai1"
-        canvasname = "c_{3}_vs_{4}_{1}TeV_{0}_djet{2}".format(self.appendName, self.sqrts, useDjet,VBFpdf_norm.GetName(),fai1.GetName())
-        ctest = ROOT.TCanvas( canvasname, canvasname, 750, 700 )
-        ctest.cd()
-        histo = VBFpdf_norm.createHistogram("htemp",fai1)
-        histo.Draw()
-        canvasfullName = "{0}/figs/{1}.root".format(self.outputDir, canvasname)
-        ctest.SaveAs(canvasfullName)
-        ctest.Close()
-        print "Plot 5: qqZZ Norm vs EWK"
-        canvasname = "c_{3}_vs_{4}_{1}TeV_{0}_djet{2}".format(self.appendName, self.sqrts, useDjet,bkg_qqzz_norm.GetName(),qqZZ_EWK_Syst.GetName())
-        ctest = ROOT.TCanvas( canvasname, canvasname, 750, 700 )
-        ctest.cd()
-        histo = bkg_qqzz_norm.createHistogram("htemp",qqZZ_EWK_Syst)
-        histo.Draw()
-        canvasfullName = "{0}/figs/{1}.root".format(self.outputDir, canvasname)
-        ctest.SaveAs(canvasfullName)
-        ctest.Close()
-        print "Plot 5: qqZZ Norm vs QCD"
-        canvasname = "c_{3}_vs_{4}_{1}TeV_{0}_djet{2}".format(self.appendName, self.sqrts, useDjet,bkg_qqzz_norm.GetName(),qqZZ_Scale_Syst.GetName())
-        ctest = ROOT.TCanvas( canvasname, canvasname, 750, 700 )
-        ctest.cd()
-        histo = bkg_qqzz_norm.createHistogram("htemp",qqZZ_Scale_Syst)
-        histo.Draw()
-        canvasfullName = "{0}/figs/{1}.root".format(self.outputDir, canvasname)
-        ctest.SaveAs(canvasfullName)
-        ctest.Close()
+        if DEBUG:
+            print "Starting to plot signal for sanity checks"
+            print "Plot: ggZZ Norm vs GGsm"
+            canvasname = "c_{3}_vs_{4}_{1}TeV_{0}_djet{2}".format(self.appendName, self.sqrts, useDjet,ggZZpdf_norm.GetName(),x.GetName())
+            ctest = ROOT.TCanvas( canvasname, canvasname, 750, 700 )
+            ctest.cd()
+            histo = ggZZpdf_norm.createHistogram("htemp",x)
+            histo.Draw()
+            canvasfullName = "{0}/figs/{1}.root".format(self.outputDir, canvasname)
+            ctest.SaveAs(canvasfullName)
+            ctest.Close()
+            print "Plot: ggZZ Norm vs fai1"
+            canvasname = "c_{3}_vs_{4}_{1}TeV_{0}_djet{2}".format(self.appendName, self.sqrts, useDjet,ggZZpdf_norm.GetName(),fai1.GetName())
+            ctest = ROOT.TCanvas( canvasname, canvasname, 750, 700 )
+            ctest.cd()
+            histo = ggZZpdf_norm.createHistogram("htemp",fai1)
+            histo.Draw()
+            canvasfullName = "{0}/figs/{1}.root".format(self.outputDir, canvasname)
+            ctest.SaveAs(canvasfullName)
+            ctest.Close()
+            print "Plot: VBF Norm vs GGsm"
+            canvasname = "c_{3}_vs_{4}_{1}TeV_{0}_djet{2}".format(self.appendName, self.sqrts, useDjet,VBFpdf_norm.GetName(),x.GetName())
+            ctest = ROOT.TCanvas( canvasname, canvasname, 750, 700 )
+            ctest.cd()
+            histo = VBFpdf_norm.createHistogram("htemp",x)
+            histo.Draw()
+            canvasfullName = "{0}/figs/{1}.root".format(self.outputDir, canvasname)
+            ctest.SaveAs(canvasfullName)
+            ctest.Close()
+            print "Plot: VBF Norm vs fai1"
+            canvasname = "c_{3}_vs_{4}_{1}TeV_{0}_djet{2}".format(self.appendName, self.sqrts, useDjet,VBFpdf_norm.GetName(),fai1.GetName())
+            ctest = ROOT.TCanvas( canvasname, canvasname, 750, 700 )
+            ctest.cd()
+            histo = VBFpdf_norm.createHistogram("htemp",fai1)
+            histo.Draw()
+            canvasfullName = "{0}/figs/{1}.root".format(self.outputDir, canvasname)
+            ctest.SaveAs(canvasfullName)
+            ctest.Close()
+
+            print "Plot: ggZZ PDF on mZZ vs KD"
+            canvasname = "c_{3}_vs_{4}_{1}TeV_{0}_djet{2}".format(self.appendName, self.sqrts, useDjet,ggZZpdf.GetName(),CMS_zz4l_widthMass.GetName(),CMS_zz4l_widthKD.GetName())
+            ctest = ROOT.TCanvas( canvasname, canvasname, 750, 700 )
+            ctest.cd()
+            histo = ggZZpdf.createHistogram("htemp",CMS_zz4l_widthMass,ROOT.RooFit.YVar(CMS_zz4l_widthKD),ROOT.RooFit.ZVar(x))
+            for binx in range(1,histo.GetNbinsX()+1) :
+                for biny in range(1,histo.GetNbinsY()+1) :
+                    for binz in range(1,histo.GetNbinsZ()+1) :
+                        bincontent = histo.GetBinContent(binx,biny,binz)
+                        if bincontent <= 0: print "Bin content {0:.5f} at mass bin = {1} KD bin = {2} GGsm val = {3} is not positive.".format(bincontent,binx,biny,histo.GetZaxis().GetBinCenter(binz))
+            defaultx = x.getVal()
+            x.setVal(30)
+            histo = ggZZpdf.createHistogram("htemp",CMS_zz4l_widthMass,ROOT.RooFit.YVar(CMS_zz4l_widthKD))
+            histo.Draw("colz")
+            canvasfullName = "{0}/figs/{1}.root".format(self.outputDir, canvasname)
+            ctest.SaveAs(canvasfullName)
+            ctest.Close()
+            x.setVal(defaultx)
+
+
+            print "Plot: qqZZ Norm vs EWK"
+            canvasname = "c_{3}_vs_{4}_{1}TeV_{0}_djet{2}".format(self.appendName, self.sqrts, useDjet,bkg_qqzz_norm.GetName(),qqZZ_EWK_Syst.GetName())
+            ctest = ROOT.TCanvas( canvasname, canvasname, 750, 700 )
+            ctest.cd()
+            histo = bkg_qqzz_norm.createHistogram("htemp",qqZZ_EWK_Syst)
+            histo.Draw()
+            canvasfullName = "{0}/figs/{1}.root".format(self.outputDir, canvasname)
+            ctest.SaveAs(canvasfullName)
+            ctest.Close()
+            print "Plot: qqZZ Norm vs QCD"
+            canvasname = "c_{3}_vs_{4}_{1}TeV_{0}_djet{2}".format(self.appendName, self.sqrts, useDjet,bkg_qqzz_norm.GetName(),qqZZ_Scale_Syst.GetName())
+            ctest = ROOT.TCanvas( canvasname, canvasname, 750, 700 )
+            ctest.cd()
+            histo = bkg_qqzz_norm.createHistogram("htemp",qqZZ_Scale_Syst)
+            histo.Draw()
+            canvasfullName = "{0}/figs/{1}.root".format(self.outputDir, canvasname)
+            ctest.SaveAs(canvasfullName)
+            ctest.Close()
+
 
 
         # --------------------------- DATASET --------------------------- ##
