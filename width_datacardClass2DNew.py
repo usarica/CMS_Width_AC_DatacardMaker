@@ -1249,6 +1249,9 @@ class width_datacardClass:
             ggZZ_PDFDown_histfuncs,ggZZ_funcficients
         )
 
+        print "ggZZ Nominal PDF:"
+        ggZZpdf_Nominal.Print("v")
+
 
 # Shape systematics variables for ggZZ
 
@@ -1264,6 +1267,10 @@ class width_datacardClass:
         MorphList_ggZZ.add(ggZZpdf_Up_pdf)
         MorphList_ggZZ.add(ggZZpdf_Down_pdf)
         ggZZpdf = ROOT.VerticalInterpPdf("ggzz", "ggzz", MorphList_ggZZ, morphVarListggZZ) # THIS IS THE ggZZ PDF!!!
+
+        print "ggZZ Vertical interpolator PDF:"
+        ggZZpdf.Print("v")
+
 
         asympowname = "kappalow_ggZZ_QCD_{0:.0f}_{1:.0f}_{2:.0f}".format(self.channel, self.sqrts, useDjet)
         kappalow = ROOT.RooFormulaVar(
@@ -1587,6 +1594,9 @@ class width_datacardClass:
             VBF_Down_histfuncs,VBF_funcficients
         )
 
+        print "VBF Nominal PDF:"
+        VBFpdf_Nominal.Print("v")
+
         CMS_zz4l_VBFscale_syst = ROOT.RooRealVar("CMS_zz4l_VBFscale_syst", "CMS_zz4l_VBFscale_syst", 0.0, -1, 1)
         morphVarListVBF = ROOT.RooArgList()
         morphVarListVBF.add(CMS_zz4l_VBFscale_syst)
@@ -1596,6 +1606,10 @@ class width_datacardClass:
         MorphList_VBF.add(VBFpdf_Down)
 
         VBFpdf = ROOT.VerticalInterpPdf("VBFpdf", "VBFpdf", MorphList_VBF, morphVarListVBF) # THIS IS THE VBF PDF!!!
+
+        print "VBF Vertical interpolator PDF:"
+        VBFpdf.Print("v")
+
 
         asympowname = "kappalow_VBF_{0:.0f}_{1:.0f}_{2:.0f}".format(self.channel, self.sqrts, useDjet)
         kappalowVBF = ROOT.RooFormulaVar(asympowname, "@0/@1", ROOT.RooArgList(VBFDown_norm, VBFNominal_norm))
