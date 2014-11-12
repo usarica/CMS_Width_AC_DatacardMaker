@@ -76,7 +76,7 @@ def makeDirectory(subDirName):
             sys.exit()
     else:
         print 'Directory ' + subDirName + ' already exists. Exiting...'
-        sys.exit()
+#        sys.exit()
 
 
 # define function for processing of os command
