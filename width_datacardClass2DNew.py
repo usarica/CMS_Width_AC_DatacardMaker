@@ -2145,13 +2145,18 @@ class width_datacardClass:
                 name, "sigma landau Zjet 2p2f", val_sigmaL_2P2F)
             name = "nlZjet_2p2f_{0:.0f}_{1:.0f}".format(
                 self.channel, self.sqrts, useDjet)
-            nlZjet_2p2f = ROOT.RooRealVar(
-                name, "norm landau Zjet 2p2f", val_normL_2P2F / summa)
-            print "mean 2p2f 2mu2e: ", mlZjet_2p2f.getVal()
-            print "sigma 2p2f 2mu2e: ", slZjet_2p2f.getVal()
-            print "norm 2p2f 2mu2e: ", nlZjet_2p2f.getVal()
-            bkg_zjets_2p2f = ROOT.RooLandau(
-                "bkg_zjetsTmp_2p2f", "bkg_zjetsTmp_2p2f", CMS_zz4l_widthMass, mlZjet_2p2f, slZjet_2p2f)
+
+            nlZjet_2p2f = ROOT.RooRealVar(name,"norm landau Zjet 2p2f",val_normL_2P2F/summa)
+            name = "p0Zjet_2p2f_{0:.0f}_{1:.0f}".format(self.channel,self.sqrts)
+            p0Zjet_2p2f = ROOT.RooRealVar(name,"p0 Zjet 2p2f",val_pol0_2P2F)
+            name = "p1Zjet_2p2f_{0:.0f}_{1:.0f}".format(self.channel,self.sqrts)
+            p1Zjet_2p2f = ROOT.RooRealVar(name,"p1 Zjet 2p2f",val_pol1_2P2F)
+            print "mean 2p2f 2mu2e: ",mlZjet_2p2f.getVal()
+            print "sigma 2p2f 2mu2e: ",slZjet_2p2f.getVal()
+            print "norm 2p2f 2mu2e: ",nlZjet_2p2f.getVal()
+            print "pol0 2p2f 2mu2e: ",p0Zjet_2p2f.getVal()
+            print "pol1 2p2f 2mu2e: ",p1Zjet_2p2f.getVal()
+            bkg_zjets_2p2f = ROOT.RooGenericPdf("bkg_zjetsTmp_2p2f","bkg_zjetsTmp_2p2f","(TMath::Landau(@0,@1,@2))*(1.+ TMath::Exp(@3+@4*@0))",RooArgList(CMS_zz4l_widthMass,mlZjet_2p2f,slZjet_2p2f,p0Zjet_2p2f,p1Zjet_2p2f))
 
             name = "mlZjet_2p2f_2_{0:.0f}_{1:.0f}_{2:.0f}".format(
                 self.channel, self.sqrts, useDjet)
