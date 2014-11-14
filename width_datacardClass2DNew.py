@@ -1655,17 +1655,17 @@ class width_datacardClass:
             VBF_Down_histfuncs.add(bkg_VBF_HistFuncDownList[al])
 
         VBFpdfName = "VBF_RooWidth_Nominal_{0:.0f}_{1:.0f}_{2:.0f}".format(self.channel, self.sqrts, useDjet)
-        VBFpdf_Nominal = ROOT.RooRealSumPdf(
+        VBFpdf_Nominal = ROOT.RooRealFlooredSumPdf(
             VBFpdfName, VBFpdfName,
             VBF_Nominal_histfuncs,VBF_funcficients
         )
         VBFpdfName = "VBF_RooWidth_Up_{0:.0f}_{1:.0f}_{2:.0f}".format(self.channel, self.sqrts, useDjet)
-        VBFpdf_Up = ROOT.RooRealSumPdf(
+        VBFpdf_Up = ROOT.RooRealFlooredSumPdf(
             VBFpdfName, VBFpdfName,
             VBF_Up_histfuncs,VBF_funcficients
         )
         VBFpdfName = "VBF_RooWidth_Down_{0:.0f}_{1:.0f}_{2:.0f}".format(self.channel, self.sqrts, useDjet)
-        VBFpdf_Down = ROOT.RooRealSumPdf(
+        VBFpdf_Down = ROOT.RooRealFlooredSumPdf(
             VBFpdfName, VBFpdfName,
             VBF_Down_histfuncs,VBF_funcficients
         )
