@@ -1224,33 +1224,87 @@ class width_datacardClass:
 #        print "ggZZ_funcficients"
 #        ggZZ_funcficients.Print("v")
 
+        mixedList_ggZZ_Nominal = ROOT.RooArgList()
+        mixedList_ggZZ_QCDUp = ROOT.RooArgList()
+        mixedList_ggZZ_QCDDown = ROOT.RooArgList()
+        mixedList_ggZZ_PDFUp = ROOT.RooArgList()
+        mixedList_ggZZ_PDFDown = ROOT.RooArgList()
+        totalsize = anomalousLoops + anomalousLoops_interf + 1
+        genericpdf_ggZZ_formula = "TMath::Max( "
+        for al in range(0,totalsize):
+            mixedList_ggZZ_Nominal.add(ggZZ_Nominal_histfuncs[al])
+            mixedList_ggZZ_Nominal.add(ggZZ_funcficients[al])
+            mixedList_ggZZ_QCDUp.add(ggZZ_QCDUp_histfuncs[al])
+            mixedList_ggZZ_QCDUp.add(ggZZ_funcficients[al])
+            mixedList_ggZZ_QCDDown.add(ggZZ_QCDDown_histfuncs[al])
+            mixedList_ggZZ_QCDDown.add(ggZZ_funcficients[al])
+            mixedList_ggZZ_PDFUp.add(ggZZ_PDFUp_histfuncs[al])
+            mixedList_ggZZ_PDFUp.add(ggZZ_funcficients[al])
+            mixedList_ggZZ_PDFDown.add(ggZZ_PDFDown_histfuncs[al])
+            mixedList_ggZZ_PDFDown.add(ggZZ_funcficients[al])
+            indexA = 2*al
+            indexB = 2*al+1
+            addstring = "@{0}*@{1}".format(indexA,indexB)
+            if al != (totalsize-1): addstring += "+"
+            genericpdf_ggZZ_formula += addstring
+        genericpdf_ggZZ_formula += " , 0.0000000001 )"
+        print "ggZZ formula string: ",genericpdf_ggZZ_formula
 
         ggZZpdfName = "ggZZ_RooWidth_Nominal_{0:.0f}_{1:.0f}_{2:.0f}".format(self.channel, self.sqrts, useDjet)
-        ggZZpdf_Nominal = ROOT.RooRealSumPdf(
+        ggZZpdf2_Nominal = ROOT.RooRealSumPdf(
             ggZZpdfName, ggZZpdfName,
             ggZZ_Nominal_histfuncs,ggZZ_funcficients
         )
         ggZZpdfName = "ggZZ_RooWidth_Up_{0:.0f}_{1:.0f}_{2:.0f}".format(self.channel, self.sqrts, useDjet)
-        ggZZpdf_Up = ROOT.RooRealSumPdf(
+        ggZZpdf2_Up = ROOT.RooRealSumPdf(
             ggZZpdfName, ggZZpdfName,
             ggZZ_QCDUp_histfuncs,ggZZ_funcficients
         )
         ggZZpdfName = "ggZZ_RooWidth_Down_{0:.0f}_{1:.0f}_{2:.0f}".format(self.channel, self.sqrts, useDjet)
-        ggZZpdf_Down = ROOT.RooRealSumPdf(
+        ggZZpdf2_Down = ROOT.RooRealSumPdf(
             ggZZpdfName, ggZZpdfName,
             ggZZ_QCDDown_histfuncs,ggZZ_funcficients
         )
-        ggZZpdfName = "ggZZ_RooWidth_Up_pdf_{0:.0f}_{1:.0f}_{2:.0f}".format(self.channel, self.sqrts, useDjet)
-        ggZZpdf_Up_pdf = ROOT.RooRealSumPdf(
+        ggZZpdfName = "ggZZ_RooWidth_Up_pdf2_{0:.0f}_{1:.0f}_{2:.0f}".format(self.channel, self.sqrts, useDjet)
+        ggZZpdf2_Up_pdf = ROOT.RooRealSumPdf(
             ggZZpdfName, ggZZpdfName,
             ggZZ_PDFUp_histfuncs,ggZZ_funcficients
         )
-        ggZZpdfName = "ggZZ_RooWidth_Down_pdf_{0:.0f}_{1:.0f}_{2:.0f}".format(self.channel, self.sqrts, useDjet)
-        ggZZpdf_Down_pdf = ROOT.RooRealSumPdf(
+        ggZZpdfName = "ggZZ_RooWidth_Down_pdf2_{0:.0f}_{1:.0f}_{2:.0f}".format(self.channel, self.sqrts, useDjet)
+        ggZZpdf2_Down_pdf = ROOT.RooRealSumPdf(
             ggZZpdfName, ggZZpdfName,
             ggZZ_PDFDown_histfuncs,ggZZ_funcficients
         )
 
+
+        ggZZpdfName = "ggZZ_RooWidth_Nominal_{0:.0f}_{1:.0f}_{2:.0f}".format(self.channel, self.sqrts, useDjet)
+        ggZZpdf_Nominal = ROOT.RooRealFlooredSumPdf(
+            ggZZpdfName, ggZZpdfName,
+            ggZZ_Nominal_histfuncs,ggZZ_funcficients
+        )
+        ggZZpdfName = "ggZZ_RooWidth_Up_{0:.0f}_{1:.0f}_{2:.0f}".format(self.channel, self.sqrts, useDjet)
+        ggZZpdf_Up = ROOT.RooRealFlooredSumPdf(
+            ggZZpdfName, ggZZpdfName,
+            ggZZ_QCDUp_histfuncs,ggZZ_funcficients
+        )
+        ggZZpdfName = "ggZZ_RooWidth_Down_{0:.0f}_{1:.0f}_{2:.0f}".format(self.channel, self.sqrts, useDjet)
+        ggZZpdf_Down = ROOT.RooRealFlooredSumPdf(
+            ggZZpdfName, ggZZpdfName,
+            ggZZ_QCDDown_histfuncs,ggZZ_funcficients
+        )
+        ggZZpdfName = "ggZZ_RooWidth_Up_pdf_{0:.0f}_{1:.0f}_{2:.0f}".format(self.channel, self.sqrts, useDjet)
+        ggZZpdf_Up_pdf = ROOT.RooRealFlooredSumPdf(
+            ggZZpdfName, ggZZpdfName,
+            ggZZ_PDFUp_histfuncs,ggZZ_funcficients
+        )
+        ggZZpdfName = "ggZZ_RooWidth_Down_pdf_{0:.0f}_{1:.0f}_{2:.0f}".format(self.channel, self.sqrts, useDjet)
+        ggZZpdf_Down_pdf = ROOT.RooRealFlooredSumPdf(
+            ggZZpdfName, ggZZpdfName,
+            ggZZ_PDFDown_histfuncs,ggZZ_funcficients
+        )
+
+#        print "Original value: ",ggZZpdf2_Nominal.getVal()
+#        print "New value: ",ggZZpdf_Nominal.getVal()
 
 # Shape systematics variables for ggZZ
 
@@ -1281,6 +1335,7 @@ class width_datacardClass:
             print "ggZZNominal_norm (calculated): {0:.12f}".format(sigRates_Nominal_AnomCoupl.getVal()+interfRates_Nominal_AnomCoupl.getVal()+bkgRates_Nominal.getVal())
             print "ggZZpdf_Nominal (calculated): {0:.12f}".format(ggzzsignalInt+ggzzinterfInt+ggzzbkgInt)
             print "ggZZpdf_Nominal PDF (direct): ",ggZZpdf_Nominal.getNorm(ROOT.RooArgSet(CMS_zz4l_widthMass,CMS_zz4l_widthKD))
+            print "ggZZpdf_Nominal RooRealSum PDF (direct): ",ggZZpdf2_Nominal.getNorm(ROOT.RooArgSet(CMS_zz4l_widthMass,CMS_zz4l_widthKD))
             print "ggZZ Vertical interpolator PDF: ",ggZZpdf.getNorm(ROOT.RooArgSet(CMS_zz4l_widthMass,CMS_zz4l_widthKD))
             ggZZpdf.Print("v")
             ggZZpdf_Nominal.Print("v")
@@ -2523,6 +2578,7 @@ class width_datacardClass:
 
         w.importClassCode(RooqqZZPdf_v2.Class(), True)
         w.importClassCode(RooFormulaVar.Class(), True)
+        w.importClassCode(RooRealFlooredSumPdf.Class(),True)
 
         getattr(w, 'import')(data_obs_red, ROOT.RooFit.Rename("data_obs"))
 
