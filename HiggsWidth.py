@@ -40,16 +40,16 @@ class Higgswidth(PhysicsModel):
             
     def setPhysicsOptions(self,physOptions):
         for po in physOptions:
-            if po == "GGsmfixed":
+            if 'GGsmfixed' in po:
                 print "Will fix CMS_zz4l_GGsm to 1 and float muV, muF"
                 self.GGsmfixed = True
-            if po == "RVRFfixed":
+            if 'RVRFfixed' in po:
                 print "Will fix muV, muF to 1 and float mu"
                 self.RVRFfixed = True
-            if po == "GGsmRVRFfixed":
+            if 'GGsmRVRFfixed' in po:
                 print "Will fix muV, muF, CMS_zz4l_GGsm to 1 and float mu"
                 self.GGsmRVRFfixed = True
-            if po == "is2l2nu":
+            if 'is2l2nu' in po:
                 print "Will consider cards in 2l2nu style (separated S, B, S+B+I)"
                 self.is2l2nu = True
             if 'ACfai1' in po:

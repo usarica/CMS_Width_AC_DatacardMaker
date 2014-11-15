@@ -1171,14 +1171,14 @@ class width_datacardClass:
         elif self.anomCoupl == 1:
             sigRateNameACNorm = "signalNorm_AC_0_ggZZrate"
             sigRatesACNorm = ROOT.RooFormulaVar(sigRateNameACNorm, "(1.-abs(@0))*@1", ROOT.RooArgList(fai1,sigRatesWidthNorm))
-            interfRateNameACNorm = "interfNorm_AC_0_ggZZrate".format(self.channel, self.sqrts, useDjet)
+            interfRateNameACNorm = "interfNorm_AC_0_ggZZrate"
             interfRatesACNorm = ROOT.RooFormulaVar(interfRateNameACNorm, "sqrt(1-abs(@0))*@1", ROOT.RooArgList(fai1,interfRatesWidthNorm))
             sigRatesNormList.append(sigRatesACNorm)
             interfRatesNormList.append(interfRatesACNorm)
 
             sigRateNameACNorm = "signalNorm_AC_1_ggZZrate"
             sigRatesACNorm = ROOT.RooFormulaVar(sigRateNameACNorm, "sign(@0)*sqrt(abs(@0)*(1-abs(@0)))*@1", ROOT.RooArgList(fai1,sigRatesWidthNorm))
-            interfRateNameACNorm = "interfNorm_AC_1_ggZZrate".format(self.channel, self.sqrts, useDjet)
+            interfRateNameACNorm = "interfNorm_AC_1_ggZZrate"
             interfRatesACNorm = ROOT.RooFormulaVar(interfRateNameACNorm, "sign(@0)*sqrt(abs(@0))*@1", ROOT.RooArgList(fai1,interfRatesWidthNorm))
             sigRatesNormList.append(sigRatesACNorm)
             interfRatesNormList.append(interfRatesACNorm)
@@ -1250,17 +1250,17 @@ class width_datacardClass:
         genericpdf_ggZZ_formula += " , 0.0000000001 )"
         print "ggZZ formula string: ",genericpdf_ggZZ_formula
 
-        ggZZpdfName = "ggZZ_RooWidth_Nominal_{0:.0f}_{1:.0f}_{2:.0f}".format(self.channel, self.sqrts, useDjet)
+        ggZZpdfName = "ggZZ_RooWidth_Nominal2_{0:.0f}_{1:.0f}_{2:.0f}".format(self.channel, self.sqrts, useDjet)
         ggZZpdf2_Nominal = ROOT.RooRealSumPdf(
             ggZZpdfName, ggZZpdfName,
             ggZZ_Nominal_histfuncs,ggZZ_funcficients
         )
-        ggZZpdfName = "ggZZ_RooWidth_Up_{0:.0f}_{1:.0f}_{2:.0f}".format(self.channel, self.sqrts, useDjet)
+        ggZZpdfName = "ggZZ_RooWidth_Up2_{0:.0f}_{1:.0f}_{2:.0f}".format(self.channel, self.sqrts, useDjet)
         ggZZpdf2_Up = ROOT.RooRealSumPdf(
             ggZZpdfName, ggZZpdfName,
             ggZZ_QCDUp_histfuncs,ggZZ_funcficients
         )
-        ggZZpdfName = "ggZZ_RooWidth_Down_{0:.0f}_{1:.0f}_{2:.0f}".format(self.channel, self.sqrts, useDjet)
+        ggZZpdfName = "ggZZ_RooWidth_Down2_{0:.0f}_{1:.0f}_{2:.0f}".format(self.channel, self.sqrts, useDjet)
         ggZZpdf2_Down = ROOT.RooRealSumPdf(
             ggZZpdfName, ggZZpdfName,
             ggZZ_QCDDown_histfuncs,ggZZ_funcficients
@@ -1603,21 +1603,21 @@ class width_datacardClass:
         elif self.anomCoupl == 1:
             VBFsigRateNameACNorm = "signalNorm_AC_0_VBFrate"
             VBFsigRatesACNorm = ROOT.RooFormulaVar(VBFsigRateNameACNorm, "pow((1.-abs(@0)),2)*@1", ROOT.RooArgList(fai1,VBFsigRatesWidthNorm))
-            VBFinterfRateNameACNorm = "interfNorm_AC_0_VBFrate".format(self.channel, self.sqrts, useDjet)
+            VBFinterfRateNameACNorm = "interfNorm_AC_0_VBFrate"
             VBFinterfRatesACNorm = ROOT.RooFormulaVar(VBFinterfRateNameACNorm, "(1-abs(@0))*@1", ROOT.RooArgList(fai1,VBFinterfRatesWidthNorm))
             VBFsigRatesNormList.append(VBFsigRatesACNorm)
             VBFinterfRatesNormList.append(VBFinterfRatesACNorm)
 
             VBFsigRateNameACNorm = "signalNorm_AC_1_VBFrate"
             VBFsigRatesACNorm = ROOT.RooFormulaVar(VBFsigRateNameACNorm, "sign(@0)*sqrt(abs(@0)*pow(sqrt(1-abs(@0)),3))*@1", ROOT.RooArgList(fai1,VBFsigRatesWidthNorm))
-            VBFinterfRateNameACNorm = "interfNorm_AC_1_VBFrate".format(self.channel, self.sqrts, useDjet)
+            VBFinterfRateNameACNorm = "interfNorm_AC_1_VBFrate"
             VBFinterfRatesACNorm = ROOT.RooFormulaVar(VBFinterfRateNameACNorm, "sign(@0)*sqrt(abs(@0)*(1-abs(@0)))*@1", ROOT.RooArgList(fai1,VBFinterfRatesWidthNorm))
             VBFsigRatesNormList.append(VBFsigRatesACNorm)
             VBFinterfRatesNormList.append(VBFinterfRatesACNorm)
 
             VBFsigRateNameACNorm = "signalNorm_AC_2_VBFrate"
             VBFsigRatesACNorm = ROOT.RooFormulaVar(VBFsigRateNameACNorm, "abs(@0)*(1-abs(@0))*@1", ROOT.RooArgList(fai1,VBFsigRatesWidthNorm))
-            VBFinterfRateNameACNorm = "interfNorm_AC_2_VBFrate".format(self.channel, self.sqrts, useDjet)
+            VBFinterfRateNameACNorm = "interfNorm_AC_2_VBFrate"
             VBFinterfRatesACNorm = ROOT.RooFormulaVar(VBFinterfRateNameACNorm, "abs(@0)*@1", ROOT.RooArgList(fai1,VBFinterfRatesWidthNorm))
             VBFsigRatesNormList.append(VBFsigRatesACNorm)
             VBFinterfRatesNormList.append(VBFinterfRatesACNorm)
@@ -1858,7 +1858,7 @@ class width_datacardClass:
         CMS_qqzzbkg_EWK_p5.setConstant(True)
 
         bkg_qqzz_mass_temp = ROOT.RooqqZZPdf_v2(
-            "bkg_qqzz_mass_temp", "bkg_qqzz_mass_temp", CMS_zz4l_widthMass, CMS_qqzzbkg_a0, CMS_qqzzbkg_a1, CMS_qqzzbkg_a2, CMS_qqzzbkg_a3,
+            "bkg_qqzz_mass_temp_{0:.0f}_{1:.0f}_{2:.0f}".format(self.channel, self.sqrts, useDjet), "bkg_qqzz_mass_temp", CMS_zz4l_widthMass, CMS_qqzzbkg_a0, CMS_qqzzbkg_a1, CMS_qqzzbkg_a2, CMS_qqzzbkg_a3,
             CMS_qqzzbkg_a4, CMS_qqzzbkg_a5, CMS_qqzzbkg_a6, CMS_qqzzbkg_a7, CMS_qqzzbkg_a8, CMS_qqzzbkg_a9, CMS_qqzzbkg_a10, CMS_qqzzbkg_a11, CMS_qqzzbkg_a12, CMS_qqzzbkg_a13)
 
         if(useDjet == 1):
@@ -1957,19 +1957,19 @@ class width_datacardClass:
             asympowname, asympowname, kappalow_EWK_qqzz, kappahigh_EWK_qqzz, qqZZ_EWK_Syst)
 
         bkg_qqzz_norm = ROOT.RooFormulaVar(
-            "qqzz_norm", "@0*@1", ROOT.RooArgList(thetaSyst_qqZZ_QCD, thetaSyst_qqZZ_EWK))
+            "bkg_qqzz_norm", "@0*@1", ROOT.RooArgList(thetaSyst_qqZZ_QCD, thetaSyst_qqZZ_EWK))
         qqzzarglist = ROOT.RooArgList(
             qqZZ_EWK_Syst, CMS_qqzzbkg_EWK_p0, CMS_qqzzbkg_EWK_p1, CMS_qqzzbkg_EWK_p2,
             CMS_qqzzbkg_EWK_p3, CMS_zz4l_widthMass, qqZZ_Scale_Syst, CMS_qqzzbkg_p0, CMS_qqzzbkg_p1)
         qqzzarglist.add(CMS_qqzzbkg_p2)
         bkg_qqzz_mass_shape = ROOT.RooGenericPdf(
-            "bkg_qqzz_mass_shape", "bkg_qqzz_mass_shape", "TMath::Max((1+@0*(@1-1+@2*@5+@3*@5*@5+@4*@5*@5*@5))*(1+@6*(@7-1+@8*@5+@9*@5*@5)),0)", qqzzarglist)
+            "bkg_qqzz_mass_shape_{0:.0f}_{1:.0f}_{2:.0f}".format(self.channel, self.sqrts, useDjet), "bkg_qqzz_mass_shape", "TMath::Max((1+@0*(@1-1+@2*@5+@3*@5*@5+@4*@5*@5*@5))*(1+@6*(@7-1+@8*@5+@9*@5*@5)),0)", qqzzarglist)
         if(useDjet == 0):
             bkg_qqzz_mass = ROOT.RooProdPdf(
-                "bkg_qqzz_mass", "bkg_qqzz_mass", ROOT.RooArgList(bkg_qqzz_mass_temp, bkg_qqzz_mass_shape))
+                "bkg_qqzz_mass_{0:.0f}_{1:.0f}_{2:.0f}".format(self.channel, self.sqrts, useDjet), "bkg_qqzz_mass", ROOT.RooArgList(bkg_qqzz_mass_temp, bkg_qqzz_mass_shape))
         if(useDjet == 1 or useDjet == 2):
             bkg_qqzz_mass = ROOT.RooProdPdf(
-                "bkg_qqzz_mass", "bkg_qqzz_mass", ROOT.RooArgList(bkg_qqzz_mass_temp, bkg_qqzz_mass_shape, bkg_qqzz_mass_Djet_shape))
+                "bkg_qqzz_mass_{0:.0f}_{1:.0f}_{2:.0f}".format(self.channel, self.sqrts, useDjet), "bkg_qqzz_mass", ROOT.RooArgList(bkg_qqzz_mass_temp, bkg_qqzz_mass_shape, bkg_qqzz_mass_Djet_shape))
 
         TemplateName = "qqzz_TempDataHist_{0:.0f}_{1:.0f}_{2:.0f}".format(
             self.channel, self.sqrts, useDjet)
@@ -2047,7 +2047,7 @@ class width_datacardClass:
             print "sigma 4mu: ", slZjet.getVal()
 
             bkg_zjets_mass = ROOT.RooLandau(
-                "bkg_zjetsTmp", "bkg_zjetsTmp", CMS_zz4l_widthMass, mlZjet, slZjet)
+                "bkg_zjetsTmp_{0:.0f}_{1:.0f}_{2:.0f}".format(self.channel, self.sqrts, useDjet), "bkg_zjetsTmp", CMS_zz4l_widthMass, mlZjet, slZjet)
 
             bkg_zjets_mass_Djet_shape = ROOT.RooGenericPdf()
             if(useDjet == 1):
@@ -2073,23 +2073,23 @@ class width_datacardClass:
             if(useDjet == 1 or useDjet == 2):
                 bkg_zjets_mass_Djet_ratio.setConstant(True)
                 bkg_zjets_mass_Djet_shape = ROOT.RooGenericPdf(
-                    "bkg_zjets_mass_Djet_shape", "@0", ROOT.RooArgList(bkg_zjets_mass_Djet_ratio))
+                    "bkg_zjets_mass_Djet_shape_{0:.0f}_{1:.0f}_{2:.0f}".format(self.channel, self.sqrts, useDjet), "@0", ROOT.RooArgList(bkg_zjets_mass_Djet_ratio))
 
             if(useDjet == 0):
-                bkg_zjets_Nominal = ROOT.RooProdPdf("bkg_zjets_Nominal", "bkg_zjets_Nominal", ROOT.RooArgSet(
+                bkg_zjets_Nominal = ROOT.RooProdPdf("bkg_zjets_Nominal_{0:.0f}_{1:.0f}_{2:.0f}".format(self.channel, self.sqrts, useDjet), "bkg_zjets_Nominal", ROOT.RooArgSet(
                     bkg_zjets_mass), ROOT.RooFit.Conditional(ROOT.RooArgSet(zjet_TemplatePdfNominal), ROOT.RooArgSet(CMS_zz4l_widthKD)))
-                bkg_zjets_Up = ROOT.RooProdPdf("bkg_zjets_Up", "bkg_zjets_Up", ROOT.RooArgSet(
+                bkg_zjets_Up = ROOT.RooProdPdf("bkg_zjets_Up_{0:.0f}_{1:.0f}_{2:.0f}".format(self.channel, self.sqrts, useDjet), "bkg_zjets_Up", ROOT.RooArgSet(
                     bkg_zjets_mass), ROOT.RooFit.Conditional(ROOT.RooArgSet(zjet_TemplatePdfUp), ROOT.RooArgSet(CMS_zz4l_widthKD)))
-                bkg_zjets_Down = ROOT.RooProdPdf("bkg_zjets_Down", "bkg_zjets_Down", ROOT.RooArgSet(
+                bkg_zjets_Down = ROOT.RooProdPdf("bkg_zjets_Down_{0:.0f}_{1:.0f}_{2:.0f}".format(self.channel, self.sqrts, useDjet), "bkg_zjets_Down", ROOT.RooArgSet(
                     bkg_zjets_mass), ROOT.RooFit.Conditional(ROOT.RooArgSet(zjet_TemplatePdfDown), ROOT.RooArgSet(CMS_zz4l_widthKD)))
             if(useDjet == 1 or useDjet == 2):
-                bkg_zjets_mass_Djet = ROOT.RooProdPdf("bkg_zjets_mass_Djet", "bkg_zjets_mass_Djet", ROOT.RooArgList(
+                bkg_zjets_mass_Djet = ROOT.RooProdPdf("bkg_zjets_mass_Djet_{0:.0f}_{1:.0f}_{2:.0f}".format(self.channel, self.sqrts, useDjet), "bkg_zjets_mass_Djet", ROOT.RooArgList(
                     bkg_zjets_mass, bkg_zjets_mass_Djet_shape))
-                bkg_zjets_Nominal = ROOT.RooProdPdf("bkg_zjets_Nominal", "bkg_zjets_Nominal", ROOT.RooArgSet(
+                bkg_zjets_Nominal = ROOT.RooProdPdf("bkg_zjets_Nominal_{0:.0f}_{1:.0f}_{2:.0f}".format(self.channel, self.sqrts, useDjet), "bkg_zjets_Nominal", ROOT.RooArgSet(
                     bkg_zjets_mass_Djet), ROOT.RooFit.Conditional(ROOT.RooArgSet(zjet_TemplatePdfNominal), ROOT.RooArgSet(CMS_zz4l_widthKD)))
-                bkg_zjets_Up = ROOT.RooProdPdf("bkg_zjets_Up", "bkg_zjets_Up", ROOT.RooArgSet(
+                bkg_zjets_Up = ROOT.RooProdPdf("bkg_zjets_Up_{0:.0f}_{1:.0f}_{2:.0f}".format(self.channel, self.sqrts, useDjet), "bkg_zjets_Up", ROOT.RooArgSet(
                     bkg_zjets_mass_Djet), ROOT.RooFit.Conditional(ROOT.RooArgSet(zjet_TemplatePdfUp), ROOT.RooArgSet(CMS_zz4l_widthKD)))
-                bkg_zjets_Down = ROOT.RooProdPdf("bkg_zjets_Down", "bkg_zjets_Down", ROOT.RooArgSet(
+                bkg_zjets_Down = ROOT.RooProdPdf("bkg_zjets_Down_{0:.0f}_{1:.0f}_{2:.0f}".format(self.channel, self.sqrts, useDjet), "bkg_zjets_Down", ROOT.RooArgSet(
                     bkg_zjets_mass_Djet), ROOT.RooFit.Conditional(ROOT.RooArgSet(zjet_TemplatePdfDown), ROOT.RooArgSet(CMS_zz4l_widthKD)))
 
         elif (self.channel == self.ID_4e):
@@ -2119,7 +2119,7 @@ class width_datacardClass:
             print "norm 2p2f 4e: ", nlZjet_2p2f.getVal()
             print "pol0 2p2f 4e: ", p0Zjet_2p2f.getVal()
             print "pol1 2p2f 4e: ", p1Zjet_2p2f.getVal()
-            bkg_zjets_2p2f = ROOT.RooGenericPdf("bkg_zjetsTmp_2p2f", "bkg_zjetsTmp_2p2f", "(TMath::Landau(@0,@1,@2))*(1.+ TMath::Exp(@3+@4*@0))", RooArgList(
+            bkg_zjets_2p2f = ROOT.RooGenericPdf("bkg_zjetsTmp_2p2f_{0:.0f}_{1:.0f}_{2:.0f}".format(self.channel, self.sqrts, useDjet), "bkg_zjetsTmp_2p2f", "(TMath::Landau(@0,@1,@2))*(1.+ TMath::Exp(@3+@4*@0))", RooArgList(
                 CMS_zz4l_widthMass, mlZjet_2p2f, slZjet_2p2f, p0Zjet_2p2f, p1Zjet_2p2f))
 
             name = "mlZjet_3p1f_{0:.0f}_{1:.0f}_{2:.0f}".format(
@@ -2139,9 +2139,9 @@ class width_datacardClass:
             print "norm 3p1f 4e: ", nlZjet_3p1f.getVal()
 
             bkg_zjets_3p1f = ROOT.RooLandau(
-                "bkg_zjetsTmp_3p1f", "bkg_zjetsTmp_3p1f", CMS_zz4l_widthMass, mlZjet_3p1f, slZjet_3p1f)
+                "bkg_zjetsTmp_3p1f_{0:.0f}_{1:.0f}_{2:.0f}".format(self.channel, self.sqrts, useDjet), "bkg_zjetsTmp_3p1f", CMS_zz4l_widthMass, mlZjet_3p1f, slZjet_3p1f)
 
-            bkg_zjets_mass = ROOT.RooAddPdf("bkg_zjetsTmp", "bkg_zjetsTmp", ROOT.RooArgList(
+            bkg_zjets_mass = ROOT.RooAddPdf("bkg_zjetsTmp_{0:.0f}_{1:.0f}_{2:.0f}".format(self.channel, self.sqrts, useDjet), "bkg_zjetsTmp", ROOT.RooArgList(
                 bkg_zjets_2p2f, bkg_zjets_3p1f), ROOT.RooArgList(nlZjet_2p2f, nlZjet_3p1f))
 
             if(useDjet == 1):
@@ -2167,23 +2167,23 @@ class width_datacardClass:
             if(useDjet == 1 or useDjet == 2):
                 bkg_zjets_mass_Djet_ratio.setConstant(True)
                 bkg_zjets_mass_Djet_shape = ROOT.RooGenericPdf(
-                    "bkg_zjets_mass_Djet_shape", "@0", ROOT.RooArgList(bkg_zjets_mass_Djet_ratio))
+                    "bkg_zjets_mass_Djet_shape_{0:.0f}_{1:.0f}_{2:.0f}".format(self.channel, self.sqrts, useDjet), "@0", ROOT.RooArgList(bkg_zjets_mass_Djet_ratio))
 
             if(useDjet == 0):
-                bkg_zjets_Nominal = ROOT.RooProdPdf("bkg_zjets_Nominal", "bkg_zjets_Nominal", ROOT.RooArgSet(
+                bkg_zjets_Nominal = ROOT.RooProdPdf("bkg_zjets_Nominal_{0:.0f}_{1:.0f}_{2:.0f}".format(self.channel, self.sqrts, useDjet), "bkg_zjets_Nominal", ROOT.RooArgSet(
                     bkg_zjets_mass), ROOT.RooFit.Conditional(ROOT.RooArgSet(zjet_TemplatePdfNominal), ROOT.RooArgSet(CMS_zz4l_widthKD)))
-                bkg_zjets_Up = ROOT.RooProdPdf("bkg_zjets_Up", "bkg_zjets_Up", ROOT.RooArgSet(
+                bkg_zjets_Up = ROOT.RooProdPdf("bkg_zjets_Up_{0:.0f}_{1:.0f}_{2:.0f}".format(self.channel, self.sqrts, useDjet), "bkg_zjets_Up", ROOT.RooArgSet(
                     bkg_zjets_mass), ROOT.RooFit.Conditional(ROOT.RooArgSet(zjet_TemplatePdfUp), ROOT.RooArgSet(CMS_zz4l_widthKD)))
-                bkg_zjets_Down = ROOT.RooProdPdf("bkg_zjets_Down", "bkg_zjets_Down", ROOT.RooArgSet(
+                bkg_zjets_Down = ROOT.RooProdPdf("bkg_zjets_Down_{0:.0f}_{1:.0f}_{2:.0f}".format(self.channel, self.sqrts, useDjet), "bkg_zjets_Down", ROOT.RooArgSet(
                     bkg_zjets_mass), ROOT.RooFit.Conditional(ROOT.RooArgSet(zjet_TemplatePdfDown), ROOT.RooArgSet(CMS_zz4l_widthKD)))
             if(useDjet == 1 or useDjet == 2):
-                bkg_zjets_mass_Djet = ROOT.RooProdPdf("bkg_zjets_mass_Djet", "bkg_zjets_mass_Djet", ROOT.RooArgList(
+                bkg_zjets_mass_Djet = ROOT.RooProdPdf("bkg_zjets_mass_Djet_{0:.0f}_{1:.0f}_{2:.0f}".format(self.channel, self.sqrts, useDjet), "bkg_zjets_mass_Djet", ROOT.RooArgList(
                     bkg_zjets_mass, bkg_zjets_mass_Djet_shape))
-                bkg_zjets_Nominal = ROOT.RooProdPdf("bkg_zjets_Nominal", "bkg_zjets_Nominal", ROOT.RooArgSet(
+                bkg_zjets_Nominal = ROOT.RooProdPdf("bkg_zjets_Nominal_{0:.0f}_{1:.0f}_{2:.0f}".format(self.channel, self.sqrts, useDjet), "bkg_zjets_Nominal", ROOT.RooArgSet(
                     bkg_zjets_mass_Djet), ROOT.RooFit.Conditional(ROOT.RooArgSet(zjet_TemplatePdfNominal), ROOT.RooArgSet(CMS_zz4l_widthKD)))
-                bkg_zjets_Up = ROOT.RooProdPdf("bkg_zjets_Up", "bkg_zjets_Up", ROOT.RooArgSet(
+                bkg_zjets_Up = ROOT.RooProdPdf("bkg_zjets_Up_{0:.0f}_{1:.0f}_{2:.0f}".format(self.channel, self.sqrts, useDjet), "bkg_zjets_Up", ROOT.RooArgSet(
                     bkg_zjets_mass_Djet), ROOT.RooFit.Conditional(ROOT.RooArgSet(zjet_TemplatePdfUp), ROOT.RooArgSet(CMS_zz4l_widthKD)))
-                bkg_zjets_Down = ROOT.RooProdPdf("bkg_zjets_Down", "bkg_zjets_Down", ROOT.RooArgSet(
+                bkg_zjets_Down = ROOT.RooProdPdf("bkg_zjets_Down_{0:.0f}_{1:.0f}_{2:.0f}".format(self.channel, self.sqrts, useDjet), "bkg_zjets_Down", ROOT.RooArgSet(
                     bkg_zjets_mass_Djet), ROOT.RooFit.Conditional(ROOT.RooArgSet(zjet_TemplatePdfDown), ROOT.RooArgSet(CMS_zz4l_widthKD)))
 
         elif (self.channel == self.ID_2e2mu):
@@ -2229,7 +2229,7 @@ class width_datacardClass:
             print "sigma 2p2f 2e2mu: ", slZjet_2p2f_2.getVal()
             print "norm 2p2f 2e2mu: ", nlZjet_2p2f_2.getVal()
             bkg_zjets_2p2f_2 = ROOT.RooLandau(
-                "bkg_zjetsTmp_2p2f_2", "bkg_zjetsTmp_2p2f_2", CMS_zz4l_widthMass, mlZjet_2p2f_2, slZjet_2p2f_2)
+                "bkg_zjetsTmp_2p2f_2_{0:.0f}_{1:.0f}_{2:.0f}".format(self.channel, self.sqrts, useDjet), "bkg_zjetsTmp_2p2f_2", CMS_zz4l_widthMass, mlZjet_2p2f_2, slZjet_2p2f_2)
 
             name = "mlZjet_3p1f_{0:.0f}_{1:.0f}_{2:.0f}".format(
                 self.channel, self.sqrts, useDjet)
@@ -2247,9 +2247,9 @@ class width_datacardClass:
             print "sigma 3p1f 2mu2e: ", slZjet_3p1f.getVal()
             print "norm 3p1f 2mu2e: ", nlZjet_3p1f.getVal()
             bkg_zjets_3p1f = ROOT.RooLandau(
-                "bkg_zjetsTmp_3p1f", "bkg_zjetsTmp_3p1f", CMS_zz4l_widthMass, mlZjet_3p1f, slZjet_3p1f)
+                "bkg_zjetsTmp_3p1f_{0:.0f}_{1:.0f}_{2:.0f}".format(self.channel, self.sqrts, useDjet), "bkg_zjetsTmp_3p1f", CMS_zz4l_widthMass, mlZjet_3p1f, slZjet_3p1f)
 
-            bkg_zjets_mass = ROOT.RooAddPdf("bkg_zjetsTmp", "bkg_zjetsTmp", ROOT.RooArgList(
+            bkg_zjets_mass = ROOT.RooAddPdf("bkg_zjetsTmp_{0:.0f}_{1:.0f}_{2:.0f}".format(self.channel, self.sqrts, useDjet), "bkg_zjetsTmp", ROOT.RooArgList(
                 bkg_zjets_2p2f, bkg_zjets_3p1f, bkg_zjets_2p2f_2), ROOT.RooArgList(nlZjet_2p2f, nlZjet_3p1f, nlZjet_2p2f_2))
 
             if(useDjet == 1):
@@ -2275,23 +2275,23 @@ class width_datacardClass:
             if(useDjet == 1 or useDjet == 2):
                 bkg_zjets_mass_Djet_ratio.setConstant(True)
                 bkg_zjets_mass_Djet_shape = ROOT.RooGenericPdf(
-                    "bkg_zjets_mass_Djet_shape", "@0", ROOT.RooArgList(bkg_zjets_mass_Djet_ratio))
+                    "bkg_zjets_mass_Djet_shape_{0:.0f}_{1:.0f}_{2:.0f}".format(self.channel, self.sqrts, useDjet), "@0", ROOT.RooArgList(bkg_zjets_mass_Djet_ratio))
 
             if(useDjet == 0):
-                bkg_zjets_Nominal = ROOT.RooProdPdf("bkg_zjets_Nominal", "bkg_zjets_Nominal", ROOT.RooArgSet(
+                bkg_zjets_Nominal = ROOT.RooProdPdf("bkg_zjets_Nominal_{0:.0f}_{1:.0f}_{2:.0f}".format(self.channel, self.sqrts, useDjet), "bkg_zjets_Nominal", ROOT.RooArgSet(
                     bkg_zjets_mass), ROOT.RooFit.Conditional(ROOT.RooArgSet(zjet_TemplatePdfNominal), ROOT.RooArgSet(CMS_zz4l_widthKD)))
-                bkg_zjets_Up = ROOT.RooProdPdf("bkg_zjets_Up", "bkg_zjets_Up", ROOT.RooArgSet(
+                bkg_zjets_Up = ROOT.RooProdPdf("bkg_zjets_Up_{0:.0f}_{1:.0f}_{2:.0f}".format(self.channel, self.sqrts, useDjet), "bkg_zjets_Up", ROOT.RooArgSet(
                     bkg_zjets_mass), ROOT.RooFit.Conditional(ROOT.RooArgSet(zjet_TemplatePdfUp), ROOT.RooArgSet(CMS_zz4l_widthKD)))
-                bkg_zjets_Down = ROOT.RooProdPdf("bkg_zjets_Down", "bkg_zjets_Down", ROOT.RooArgSet(
+                bkg_zjets_Down = ROOT.RooProdPdf("bkg_zjets_Down_{0:.0f}_{1:.0f}_{2:.0f}".format(self.channel, self.sqrts, useDjet), "bkg_zjets_Down", ROOT.RooArgSet(
                     bkg_zjets_mass), ROOT.RooFit.Conditional(ROOT.RooArgSet(zjet_TemplatePdfDown), ROOT.RooArgSet(CMS_zz4l_widthKD)))
             if(useDjet == 1 or useDjet == 2):
-                bkg_zjets_mass_Djet = ROOT.RooProdPdf("bkg_zjets_mass_Djet", "bkg_zjets_mass_Djet", ROOT.RooArgList(
+                bkg_zjets_mass_Djet = ROOT.RooProdPdf("bkg_zjets_mass_Djet_{0:.0f}_{1:.0f}_{2:.0f}".format(self.channel, self.sqrts, useDjet), "bkg_zjets_mass_Djet", ROOT.RooArgList(
                     bkg_zjets_mass, bkg_zjets_mass_Djet_shape))
-                bkg_zjets_Nominal = ROOT.RooProdPdf("bkg_zjets_Nominal", "bkg_zjets_Nominal", ROOT.RooArgSet(
+                bkg_zjets_Nominal = ROOT.RooProdPdf("bkg_zjets_Nominal_{0:.0f}_{1:.0f}_{2:.0f}".format(self.channel, self.sqrts, useDjet), "bkg_zjets_Nominal", ROOT.RooArgSet(
                     bkg_zjets_mass_Djet), ROOT.RooFit.Conditional(ROOT.RooArgSet(zjet_TemplatePdfNominal), ROOT.RooArgSet(CMS_zz4l_widthKD)))
-                bkg_zjets_Up = ROOT.RooProdPdf("bkg_zjets_Up", "bkg_zjets_Up", ROOT.RooArgSet(
+                bkg_zjets_Up = ROOT.RooProdPdf("bkg_zjets_Up_{0:.0f}_{1:.0f}_{2:.0f}".format(self.channel, self.sqrts, useDjet), "bkg_zjets_Up", ROOT.RooArgSet(
                     bkg_zjets_mass_Djet), ROOT.RooFit.Conditional(ROOT.RooArgSet(zjet_TemplatePdfUp), ROOT.RooArgSet(CMS_zz4l_widthKD)))
-                bkg_zjets_Down = ROOT.RooProdPdf("bkg_zjets_Down", "bkg_zjets_Down", ROOT.RooArgSet(
+                bkg_zjets_Down = ROOT.RooProdPdf("bkg_zjets_Down_{0:.0f}_{1:.0f}_{2:.0f}".format(self.channel, self.sqrts, useDjet), "bkg_zjets_Down", ROOT.RooArgSet(
                     bkg_zjets_mass_Djet), ROOT.RooFit.Conditional(ROOT.RooArgSet(zjet_TemplatePdfDown), ROOT.RooArgSet(CMS_zz4l_widthKD)))
 
 
