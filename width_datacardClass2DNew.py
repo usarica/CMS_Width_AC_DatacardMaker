@@ -183,8 +183,8 @@ class width_datacardClass:
 
         templateSigNameMain = "HtoZZ4l_MCFM_125p6_ModifiedSmoothTemplatesForCombine_"
         if(self.anomCoupl == 1):
-            templateSigNameMain = "{0}{1}".format(templateSigNameMain,"fLQAdded_")
-        templateSigNameMain = "{0}{1}".format(templateSigNameMain,"_GenLevelVBF")
+            templateSigNameMain = "{0}{1}".format(templateSigNameMain,"fLQAdded")
+        templateSigNameMain = "{0}{1}".format(templateSigNameMain,"__GenLevelVBF")
         if(USELEGACY == 1):
             templateSigNameMain = "{0}{1}".format(templateSigNameMain,"_wResolution")
         templateSigNameMain = "{0}{1}".format(templateSigNameMain,"_D_Gamma_gg_r10")
@@ -1319,7 +1319,7 @@ class width_datacardClass:
         MorphList_ggZZ.add(ggZZpdf_Down)
         MorphList_ggZZ.add(ggZZpdf_Up_pdf)
         MorphList_ggZZ.add(ggZZpdf_Down_pdf)
-        ggZZpdf = ROOT.VerticalInterpPdf("ggzz", "ggzz", MorphList_ggZZ, morphVarListggZZ) # THIS IS THE ggZZ PDF!!!
+        ggZZpdf = ROOT.VerticalInterpPdf("ggzz", "ggzz", MorphList_ggZZ, morphVarListggZZ,1.0) # THIS IS THE ggZZ PDF!!!
 
         if DEBUG:
             ggzzsignalInt = signal_ggZZ_HistFuncList[0].analyticalIntegral(1000)
@@ -1365,6 +1365,13 @@ class width_datacardClass:
             asympowname, "@0/@1", ROOT.RooArgList(ggZZPDFUp_norm, ggZZNominal_norm)
         )
 
+        MorphNormList_ggZZ = ROOT.RooArgList()
+        MorphNormList_ggZZ.add(ggZZNominal_norm)
+        MorphNormList_ggZZ.add(ggZZQCDUp_norm)
+        MorphNormList_ggZZ.add(ggZZQCDDown_norm)
+        MorphNormList_ggZZ.add(ggZZPDFUp_norm)
+        MorphNormList_ggZZ.add(ggZZPDFDown_norm)
+
         asympowname = "Asympow_ggZZ_QCD_{0:.0f}_{1:.0f}_{2:.0f}".format(self.channel, self.sqrts, useDjet)
         thetaSyst_ggZZ = AsymPow(
             asympowname, asympowname, kappalow, kappahigh, CMS_zz4l_APscale_syst
@@ -1373,6 +1380,8 @@ class width_datacardClass:
         thetaSyst_ggZZ_pdf = AsymPow(
             asympowname, asympowname, kappalow_pdf, kappahigh_pdf, CMS_zz4l_pdf_gg_syst
         )
+        asympowname = "Asymquad_ggZZ_QCDPDF_{0:.0f}_{1:.0f}_{2:.0f}".format(self.channel, self.sqrts, useDjet)
+        thetaSyst_ggZZ_norm = ROOT.AsymQuad(asympowname, asympowname, MorphNormList_ggZZ, morphVarListggZZ, 1.0) # THIS IS THE ggZZ PDF!!!
 
 
 
@@ -1679,7 +1688,7 @@ class width_datacardClass:
         MorphList_VBF.add(VBFpdf_Up)
         MorphList_VBF.add(VBFpdf_Down)
 
-        VBFpdf = ROOT.VerticalInterpPdf("VBFpdf", "VBFpdf", MorphList_VBF, morphVarListVBF) # THIS IS THE VBF PDF!!!
+        VBFpdf = ROOT.VerticalInterpPdf("VBFpdf", "VBFpdf", MorphList_VBF, morphVarListVBF,1.0) # THIS IS THE VBF PDF!!!
 
         if DEBUG:
             vbfsignalInt = signal_VBF_HistFuncList[0].analyticalIntegral(1000)
@@ -1706,6 +1715,10 @@ class width_datacardClass:
             VBFinterfRates_Nominal_AnomCoupl.Print("v")
             VBFbkgRates_Nominal.Print("v")
 
+        MorphNormList_VBF = ROOT.RooArgList()
+        MorphNormList_VBF.add(VBFNominal_norm)
+        MorphNormList_VBF.add(VBFUp_norm)
+        MorphNormList_VBF.add(VBFDown_norm)
 
         asympowname = "kappalow_VBF_{0:.0f}_{1:.0f}_{2:.0f}".format(self.channel, self.sqrts, useDjet)
         kappalowVBF = ROOT.RooFormulaVar(asympowname, "@0/@1", ROOT.RooArgList(VBFDown_norm, VBFNominal_norm))
@@ -1713,15 +1726,19 @@ class width_datacardClass:
         kappahighVBF = ROOT.RooFormulaVar(asympowname, "@0/@1", ROOT.RooArgList(VBFUp_norm, VBFNominal_norm))
         asympowname = "Asympow_VBF_{0:.0f}_{1:.0f}_{2:.0f}".format(self.channel, self.sqrts, useDjet)
         thetaSyst_VBF = AsymPow(asympowname, asympowname, kappalowVBF, kappahighVBF, CMS_zz4l_VBFscale_syst)
+        asympowname = "Asymquad_VBF_{0:.0f}_{1:.0f}_{2:.0f}".format(self.channel, self.sqrts, useDjet)
+        thetaSyst_VBF_norm = ROOT.AsymQuad(asympowname, asympowname, MorphNormList_VBF, morphVarListVBF, 1.0) # THIS IS THE ggZZ PDF!!!
 
 
 #------------------ SIGNAL PDF NORM VARIABLES -------------------------
 
         ggZZpdfNormName = "ggZZ_RooWidth_{0:.0f}_{1:.0f}_{2:.0f}_norm".format(self.channel, self.sqrts, useDjet)
-        ggZZpdf_norm = ROOT.RooFormulaVar(ggZZpdfNormName, "@0*@1*@2*@3", ROOT.RooArgList(ggZZNominal_norm, self.LUMI, thetaSyst_ggZZ, thetaSyst_ggZZ_pdf))
+#        ggZZpdf_norm = ROOT.RooFormulaVar(ggZZpdfNormName, "@0*@1*@2*@3", ROOT.RooArgList(ggZZNominal_norm, self.LUMI, thetaSyst_ggZZ, thetaSyst_ggZZ_pdf))
+        ggZZpdf_norm = ROOT.RooFormulaVar(ggZZpdfNormName, "TMath::Max(@0*@1,0.0000000001)", ROOT.RooArgList(thetaSyst_ggZZ_norm, self.LUMI))
         ggZZpdf_norm.SetNameTitle("ggzz_norm", "ggzz_norm")
         VBFpdfNormName = "VBF_RooWidth_{0:.0f}_{1:.0f}_{2:.0f}_norm".format(self.channel, self.sqrts, useDjet)
-        VBFpdf_norm = ROOT.RooFormulaVar(VBFpdfNormName, "@0*@1*@2", ROOT.RooArgList(VBFNominal_norm, self.LUMI, thetaSyst_VBF))
+#        VBFpdf_norm = ROOT.RooFormulaVar(VBFpdfNormName, "@0*@1*@2", ROOT.RooArgList(VBFNominal_norm, self.LUMI, thetaSyst_VBF))
+        VBFpdf_norm = ROOT.RooFormulaVar(VBFpdfNormName, "TMath::Max(@0*@1,0.0000000001)", ROOT.RooArgList(thetaSyst_VBF_norm, self.LUMI))
         VBFpdf_norm.SetNameTitle("vbf_offshell_norm", "vbf_offshell_norm")
 
 
@@ -2443,7 +2460,7 @@ class width_datacardClass:
             ctest.Close()
 
             print "Plot: ggZZ PDF on mZZ vs KD"
-            canvasname = "c_{3}_vs_{4}_{1:.0f}TeV_{0}_djet{2}".format(self.appendName, self.sqrts, useDjet,ggZZpdf.GetName(),CMS_zz4l_widthMass.GetName(),CMS_zz4l_widthKD.GetName())
+            canvasname = "c_{3}_vs_{4}_{5}_{1:.0f}TeV_{0}_djet{2}".format(self.appendName, self.sqrts, useDjet, ggZZpdf.GetName(),CMS_zz4l_widthMass.GetName(),CMS_zz4l_widthKD.GetName())
             ctest = ROOT.TCanvas( canvasname, canvasname, 750, 700 )
             ctest.cd()
             histo = ggZZpdf.createHistogram("htemp",CMS_zz4l_widthMass,ROOT.RooFit.YVar(CMS_zz4l_widthKD),ROOT.RooFit.ZVar(x))
@@ -2490,17 +2507,90 @@ class width_datacardClass:
             ctest.cd()
             histo = ggZZpdf_norm.createHistogram("htemp",CMS_zz4l_APscale_syst)
             histo.SetLineWidth(2)
-            histo.Draw()
             histo2 = histo.Clone("mytemp")
             histo2.SetLineColor(kRed)
+            histo2.SetLineStyle(7)
+            histo3 = histo.Clone("mytemp")
+            histo3.SetLineColor(kBlue)
+            histo3.SetLineStyle(2)
             for bin in range(1,histo2.GetNbinsX()+1):
                 CMS_zz4l_APscale_syst.setVal(histo2.GetBinCenter(bin))
-                histo2.SetBinContent(bin,ggZZpdf.getVal(ROOT.RooArgSet(CMS_zz4l_widthMass,CMS_zz4l_widthKD)))
+                histo2.SetBinContent(bin,ggZZpdf.getNorm(ROOT.RooArgSet(CMS_zz4l_widthMass,CMS_zz4l_widthKD)))
+                ceff = CMS_zz4l_APscale_syst.getVal()
+                ceff2 = ceff*ceff
+                termnull = integral_Sig_T_1+integral_Sig_T_2+integral_Sig_T_4
+                termup = integral_Sig_T_1_Up_QCD+integral_Sig_T_2_Up_QCD+integral_Sig_T_4_Up_QCD
+                termdn = integral_Sig_T_1_Down_QCD+integral_Sig_T_2_Down_QCD+integral_Sig_T_4_Down_QCD
+                val = termnull+ceff2*((termdn+termup)/2.-termnull)+ceff*(termup-termdn)/2.
+                histo3.SetBinContent(bin,val)
+            # BLACK AND RED SHOULD BE ON TOP OF EACH OTHER, ALWAYS!!!
             CMS_zz4l_APscale_syst.setVal(0)
+            histo.Scale(histo3.GetBinContent(histo3.GetXaxis().FindBin(0))/histo.GetBinContent(histo.GetXaxis().FindBin(0)))
+            histo.Draw()
             histo2.Draw("same")
-            histo2.Scale(histo.Integral()/histo2.Integral())
-#            canvasfullName = "{0}/figs/{1}.root".format(self.outputDir, canvasname)
-#            ctest.SaveAs(canvasfullName)
+            histo3.Draw("same")
+            testhandle.WriteTObject(ctest)
+            ctest.Close()
+
+            print "Plot: ggZZ Norm vs CMS_zz4l_pdf_gg_syst"
+            canvasname = "c_{3}_vs_{4}_{1:.0f}TeV_{0}_djet{2}".format(self.appendName, self.sqrts, useDjet,ggZZpdf_norm.GetName(),CMS_zz4l_pdf_gg_syst.GetName())
+            ctest = ROOT.TCanvas( canvasname, canvasname, 750, 700 )
+            ctest.cd()
+            histo = ggZZpdf_norm.createHistogram("htemp",CMS_zz4l_pdf_gg_syst)
+            histo.SetLineWidth(2)
+            histo2 = histo.Clone("mytemp")
+            histo2.SetLineColor(kRed)
+            histo2.SetLineStyle(7)
+            histo3 = histo.Clone("mytemp")
+            histo3.SetLineColor(kBlue)
+            histo3.SetLineStyle(2)
+            for bin in range(1,histo2.GetNbinsX()+1):
+                CMS_zz4l_pdf_gg_syst.setVal(histo2.GetBinCenter(bin))
+                histo2.SetBinContent(bin,ggZZpdf.getNorm(ROOT.RooArgSet(CMS_zz4l_widthMass,CMS_zz4l_widthKD)))
+                ceff = CMS_zz4l_pdf_gg_syst.getVal()
+                ceff2 = ceff*ceff
+                termnull = integral_Sig_T_1+integral_Sig_T_2+integral_Sig_T_4
+                termup = integral_Sig_T_1_Up_PDF+integral_Sig_T_2_Up_PDF+integral_Sig_T_4_Up_PDF
+                termdn = integral_Sig_T_1_Down_PDF+integral_Sig_T_2_Down_PDF+integral_Sig_T_4_Down_PDF
+                val = termnull+ceff2*((termdn+termup)/2.-termnull)+ceff*(termup-termdn)/2.
+                histo3.SetBinContent(bin,val)
+            # BLACK AND RED SHOULD BE ON TOP OF EACH OTHER, ALWAYS!!!
+            CMS_zz4l_pdf_gg_syst.setVal(0)
+            histo.Scale(histo3.GetBinContent(histo3.GetXaxis().FindBin(0))/histo.GetBinContent(histo.GetXaxis().FindBin(0)))
+            histo.Draw()
+            histo2.Draw("same")
+            histo3.Draw("same")
+            testhandle.WriteTObject(ctest)
+            ctest.Close()
+
+            print "Plot: VBF Norm vs CMS_zz4l_VBFscale_syst"
+            canvasname = "c_{3}_vs_{4}_{1:.0f}TeV_{0}_djet{2}".format(self.appendName, self.sqrts, useDjet,VBFpdf_norm.GetName(),CMS_zz4l_VBFscale_syst.GetName())
+            ctest = ROOT.TCanvas( canvasname, canvasname, 750, 700 )
+            ctest.cd()
+            histo = VBFpdf_norm.createHistogram("htemp",CMS_zz4l_VBFscale_syst)
+            histo.SetLineWidth(2)
+            histo2 = histo.Clone("mytemp")
+            histo2.SetLineColor(kRed)
+            histo2.SetLineStyle(7)
+            histo3 = histo.Clone("mytemp")
+            histo3.SetLineColor(kBlue)
+            histo3.SetLineStyle(2)
+            for bin in range(1,histo2.GetNbinsX()+1):
+                CMS_zz4l_VBFscale_syst.setVal(histo2.GetBinCenter(bin))
+                histo2.SetBinContent(bin,VBFpdf.getNorm(ROOT.RooArgSet(CMS_zz4l_widthMass,CMS_zz4l_widthKD)))
+                ceff = CMS_zz4l_VBFscale_syst.getVal()
+                ceff2 = ceff*ceff
+                termnull = integral_VBF_T_1+integral_VBF_T_2+integral_VBF_T_4
+                termup = integral_VBF_T_1_Up+integral_VBF_T_2_Up+integral_VBF_T_4_Up
+                termdn = integral_VBF_T_1_Down+integral_VBF_T_2_Down+integral_VBF_T_4_Down
+                val = termnull+ceff2*((termdn+termup)/2.-termnull)+ceff*(termup-termdn)/2.
+                histo3.SetBinContent(bin,val)
+            # BLACK AND RED SHOULD BE ON TOP OF EACH OTHER, ALWAYS!!!
+            CMS_zz4l_VBFscale_syst.setVal(0)
+            histo.Scale(histo3.GetBinContent(histo3.GetXaxis().FindBin(0))/histo.GetBinContent(histo.GetXaxis().FindBin(0)))
+            histo.Draw()
+            histo2.Draw("same")
+            histo3.Draw("same")
             testhandle.WriteTObject(ctest)
             ctest.Close()
 
@@ -2647,6 +2737,91 @@ class width_datacardClass:
             ctest.Close()
             x.setVal(1)
 
+            print "Plot: VBF pdf proj (Up)"
+            canvasname = "c_{3}_vs_{4}_{1:.0f}TeV_{0}_djet{2}".format(self.appendName, self.sqrts, useDjet,VBFpdf_Up.GetName(),CMS_zz4l_widthMass.GetName())
+            ctest = ROOT.TCanvas( canvasname, canvasname, 750, 700 )
+            ctest.cd()
+            x.setVal(10)
+            histo = VBFpdf_Up.createProjection(ROOT.RooArgSet(CMS_zz4l_widthKD)).createHistogram("htemp",CMS_zz4l_widthMass)
+            histo.SetLineWidth(2)
+            histo.SetLineStyle(7)
+            histo.Draw()
+            histo2 = VBF_T_1_Up.Clone("mytemp1")
+            histo2.Add(VBF_T_2_Up.Clone("mytemp2"),10)
+            histo2.Add(VBF_T_4_Up.Clone("mytemp3"),sqrt(10))
+            histo2 = histo2.ProjectionX()
+            histo2.SetLineColor(kRed)
+            histo2.SetMarkerColor(kRed)
+            histo2.Draw("same")
+            histo2.Scale(histo.Integral()/histo2.Integral())
+            CMS_zz4l_VBFscale_syst.setVal(1)
+            histo3 = VBFpdf.createProjection(ROOT.RooArgSet(CMS_zz4l_widthKD)).createHistogram("htempfull",CMS_zz4l_widthMass)
+            histo3.SetLineWidth(2)
+            histo3.SetLineStyle(2)
+            histo3.SetLineColor(kBlue)
+            histo3.Scale(histo.Integral()/histo3.Integral())
+            histo3.Draw("same")
+            testhandle.WriteTObject(ctest)
+            ctest.Close()
+            CMS_zz4l_VBFscale_syst.setVal(0)
+            x.setVal(1)
+
+            print "Plot: VBF pdf proj (Down)"
+            canvasname = "c_{3}_vs_{4}_{1:.0f}TeV_{0}_djet{2}".format(self.appendName, self.sqrts, useDjet,VBFpdf_Down.GetName(),CMS_zz4l_widthMass.GetName())
+            ctest = ROOT.TCanvas( canvasname, canvasname, 750, 700 )
+            ctest.cd()
+            x.setVal(10)
+            histo = VBFpdf_Down.createProjection(ROOT.RooArgSet(CMS_zz4l_widthKD)).createHistogram("htemp",CMS_zz4l_widthMass)
+            histo.SetLineWidth(2)
+            histo.SetLineStyle(7)
+            histo.Draw()
+            histo2 = VBF_T_1_Down.Clone("mytemp1")
+            histo2.Add(VBF_T_2_Down.Clone("mytemp2"),10)
+            histo2.Add(VBF_T_4_Down.Clone("mytemp3"),sqrt(10))
+            histo2 = histo2.ProjectionX()
+            histo2.SetLineColor(kRed)
+            histo2.SetMarkerColor(kRed)
+            histo2.Draw("same")
+            histo2.Scale(histo.Integral()/histo2.Integral())
+            CMS_zz4l_VBFscale_syst.setVal(-1)
+            histo3 = VBFpdf.createProjection(ROOT.RooArgSet(CMS_zz4l_widthKD)).createHistogram("htempfull",CMS_zz4l_widthMass)
+            histo3.SetLineWidth(2)
+            histo3.SetLineStyle(2)
+            histo3.SetLineColor(kBlue)
+#            histo3.Scale(histo.Integral()/histo3.Integral())
+            histo3.Draw("same")
+            testhandle.WriteTObject(ctest)
+            ctest.Close()
+            CMS_zz4l_VBFscale_syst.setVal(0)
+            x.setVal(1)
+
+            print "Plot: VBF pdf proj (Nominal)"
+            canvasname = "c_{3}_vs_{4}_{1:.0f}TeV_{0}_djet{2}".format(self.appendName, self.sqrts, useDjet,VBFpdf_Nominal.GetName(),CMS_zz4l_widthMass.GetName())
+            ctest = ROOT.TCanvas( canvasname, canvasname, 750, 700 )
+            ctest.cd()
+            x.setVal(10)
+            histo = VBFpdf_Nominal.createProjection(ROOT.RooArgSet(CMS_zz4l_widthKD)).createHistogram("htemp",CMS_zz4l_widthMass)
+            histo.SetLineWidth(2)
+            histo.SetLineStyle(7)
+            histo.Draw()
+            histo2 = VBF_T_1.Clone("mytemp1")
+            histo2.Add(VBF_T_2.Clone("mytemp2"),10)
+            histo2.Add(VBF_T_4.Clone("mytemp3"),sqrt(10))
+            histo2 = histo2.ProjectionX()
+            histo2.SetLineColor(kRed)
+            histo2.SetMarkerColor(kRed)
+            histo2.Draw("same")
+            histo2.Scale(histo.Integral()/histo2.Integral())
+            histo3 = VBFpdf.createProjection(ROOT.RooArgSet(CMS_zz4l_widthKD)).createHistogram("htempfull",CMS_zz4l_widthMass)
+            histo3.SetLineWidth(2)
+            histo3.SetLineStyle(2)
+            histo3.SetLineColor(kBlue)
+            histo3.Scale(histo.Integral()/histo3.Integral())
+            histo3.Draw("same")
+            testhandle.WriteTObject(ctest)
+            ctest.Close()
+            x.setVal(1)
+
 
             testhandle.Close()
 
@@ -2756,10 +2931,12 @@ class width_datacardClass:
         if(DEBUG):
             print name_Shape, "  ", name_ShapeWS2
 
+        w.importClassCode(AsymPow.Class(),True)
+        w.importClassCode(AsymQuad.Class(),True)
         w.importClassCode(RooqqZZPdf_v2.Class(), True)
         w.importClassCode(RooFormulaVar.Class(), True)
         w.importClassCode(RooRealFlooredSumPdf.Class(),True)
-        w.importClassCode(FastVerticalInterpHistPdf2D.Class(),True)
+        w.importClassCode(VerticalInterpPdf.Class(),True)
 
         getattr(w, 'import')(data_obs_red, ROOT.RooFit.Rename("data_obs"))
 
