@@ -62,6 +62,10 @@ class inputReader:
         self.zjets_lumi = -999.9
         self.ttbar_lumi = -999.9
         self.zbb_lumi = -999.9
+        self.djetscale_ggzz = 0.0
+        self.djetscale_vbf_offshell = 0.0
+        self.djetscale_bkg_qqzz = 0.0
+        self.djetscale_bkg_zjets = 0.0
         # signal shapes
         self.useHighMassReweightedShapes = True
         self.n_CB_shape = -999.9
@@ -343,6 +347,17 @@ class inputReader:
                 if f[1].lower().startswith("zbb"):
                     self.zbb_rate = float(f[2])
                     if len(f) == 4: self.zbb_lumi = float(f[3])
+
+            if f[0].lower().startswith("unc"):
+                if f[1].lower().startswith("ggzz"):
+                    self.djetscale_ggzz = float(f[2])
+                if f[1].lower().startswith("vbf_offshell"):
+                    self.djetscale_vbf_offshell = float(f[2])
+                if f[1].lower().startswith("bkg_qqzz"):
+                    self.djetscale_qqzz = float(f[2])
+                if f[1].lower().startswith("bkg_zjets"):
+                    self.djetscale_zjets = float(f[2])
+
 
             if f[0].lower().startswith("usehighmassreweightedshapes"):
                 self.useHighMassReweightedShapes = True
@@ -894,6 +909,10 @@ class inputReader:
         dict['zjets_rate'] = self.zjets_rate
         dict['ttbar_rate'] = self.ttbar_rate
         dict['zbb_rate'] = self.zbb_rate
+        dict['djetscale_ggzz'] = self.djetscale_ggzz
+        dict['djetscale_vbf_offshell'] = self.djetscale_vbf_offshell
+        dict['djetscale_bkg_qqzz'] = self.djetscale_bkg_qqzz 
+        dict['djetscale_bkg_zjets'] = self.djetscale_bkg_zjets 
 
         dict['qqZZ_lumi'] = float(self.qqZZ_lumi)
         dict['ggZZ_lumi'] = float(self.ggZZ_lumi) 

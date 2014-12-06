@@ -74,6 +74,7 @@ class width_datacardClass:
         self.ggZZ_interf_chan = theInputs['ggZZ_interf']
         self.VBF_offshell_chan = theInputs['VBF_offshell']
         self.zjets_chan = theInputs['zjets']
+        self.zjets_chan = theInputs['zjets']
         self.templRange = 220
 
         # ---------------- SET PLOTTING STYLE ---------------- ##
@@ -1365,12 +1366,31 @@ class width_datacardClass:
             asympowname, "@0/@1", ROOT.RooArgList(ggZZPDFUp_norm, ggZZNominal_norm)
         )
 
+        ggzz_djetsyst_norm_nominal_name = "ggzz_djetsyst_norm_nominal_{0:.0f}_{1:.0f}_{2:.0f}".format(self.channel, self.sqrts, useDjet)
+        ggzz_djetsyst_norm_nominal = RooRealVar(ggzz_djetsyst_norm_nominal_name, ggzz_djetsyst_norm_nominal_name, 1.)
+        ggzz_djetsyst_norm_up_name = "ggzz_djetsyst_norm_up_{0:.0f}_{1:.0f}_{2:.0f}".format(self.channel, self.sqrts, useDjet)
+        ggzz_djetsyst_norm_up = RooRealVar(ggzz_djetsyst_norm_up_name, ggzz_djetsyst_norm_up_name, theInputs['djetscale_ggzz'])
+        ggzz_djetsyst_norm_dn_name = "ggzz_djetsyst_norm_dn_{0:.0f}_{1:.0f}_{2:.0f}".format(self.channel, self.sqrts, useDjet)
+        ggzz_djetsyst_norm_dn = RooRealVar(ggzz_djetsyst_norm_dn_name, ggzz_djetsyst_norm_dn_name, -theInputs['djetscale_ggzz'])
+
         MorphNormList_ggZZ = ROOT.RooArgList()
         MorphNormList_ggZZ.add(ggZZNominal_norm)
         MorphNormList_ggZZ.add(ggZZQCDUp_norm)
         MorphNormList_ggZZ.add(ggZZQCDDown_norm)
         MorphNormList_ggZZ.add(ggZZPDFUp_norm)
-        MorphNormList_ggZZ.add(ggZZPDFDown_norm)
+        MorphNormList_ggZZ.add(ggZZPDFDown_norm)     
+
+        MorphNormList_ggZZ_Djet = ROOT.RooArgList()
+        MorphNormList_ggZZ_Djet.add(ggzz_djetsyst_norm_nominal)   
+        MorphNormList_ggZZ_Djet.add(ggzz_djetsyst_norm_up)
+        MorphNormList_ggZZ_Djet.add(ggzz_djetsyst_norm_dn)
+
+        CMS_zz4l_ggzzdjet_syst = w.factory("Djetscale_ggZZ[-3,3]")
+        morphVarListggZZ_djet = ROOT.RooArgList()
+        morphVarListggZZ_djet.add(CMS_zz4l_ggzzdjet_syst)
+
+        asympowname = "Asymquad_ggZZ_djet_{0:.0f}_{1:.0f}_{2:.0f}".format(self.channel, self.sqrts, useDjet)
+        thetaSyst_djet_ggZZ_norm = ROOT.AsymQuad(asympowname, asympowname, MorphNormList_ggZZ_Djet, morphVarListggZZ_djet, 1.0)
 
         asympowname = "Asympow_ggZZ_QCD_{0:.0f}_{1:.0f}_{2:.0f}".format(self.channel, self.sqrts, useDjet)
         thetaSyst_ggZZ = AsymPow(
@@ -1681,6 +1701,7 @@ class width_datacardClass:
 
 
         CMS_zz4l_VBFscale_syst = ROOT.RooRealVar("CMS_zz4l_VBFscale_syst", "CMS_zz4l_VBFscale_syst", 0.0, -1, 1)
+        CMS_zz4l_VBFscale_syst.setConstant(True) #NOTE THIS IS KILLING THIS SYSTEMATIC
         morphVarListVBF = ROOT.RooArgList()
         morphVarListVBF.add(CMS_zz4l_VBFscale_syst)
         MorphList_VBF = ROOT.RooArgList()
@@ -1715,10 +1736,29 @@ class width_datacardClass:
             VBFinterfRates_Nominal_AnomCoupl.Print("v")
             VBFbkgRates_Nominal.Print("v")
 
+        VBF_djetsyst_norm_nominal_name = "VBF_djetsyst_norm_nominal_{0:.0f}_{1:.0f}_{2:.0f}".format(self.channel, self.sqrts, useDjet)
+        VBF_djetsyst_norm_nominal = RooRealVar(VBF_djetsyst_norm_nominal_name, VBF_djetsyst_norm_nominal_name, 1.)
+        VBF_djetsyst_norm_up_name = "VBF_djetsyst_norm_up_{0:.0f}_{1:.0f}_{2:.0f}".format(self.channel, self.sqrts, useDjet)
+        VBF_djetsyst_norm_up = RooRealVar(VBF_djetsyst_norm_up_name, VBF_djetsyst_norm_up_name, theInputs['djetscale_vbf_offshell'])
+        VBF_djetsyst_norm_dn_name = "VBF_djetsyst_norm_dn_{0:.0f}_{1:.0f}_{2:.0f}".format(self.channel, self.sqrts, useDjet)
+        VBF_djetsyst_norm_dn = RooRealVar(VBF_djetsyst_norm_dn_name, VBF_djetsyst_norm_dn_name, -theInputs['djetscale_vbf_offshell'])
+
         MorphNormList_VBF = ROOT.RooArgList()
         MorphNormList_VBF.add(VBFNominal_norm)
         MorphNormList_VBF.add(VBFUp_norm)
         MorphNormList_VBF.add(VBFDown_norm)
+
+        MorphNormList_VBF_Djet = ROOT.RooArgList()
+        MorphNormList_VBF_Djet.add(VBF_djetsyst_norm_nominal)   
+        MorphNormList_VBF_Djet.add(VBF_djetsyst_norm_up)
+        MorphNormList_VBF_Djet.add(VBF_djetsyst_norm_dn)
+
+        CMS_zz4l_vbfdjet_syst = w.factory("Djetscale_vbf_offshell[-3,3]")
+        morphVarListVBF_djet = ROOT.RooArgList()
+        morphVarListVBF_djet.add(CMS_zz4l_vbfdjet_syst)
+
+        asympowname = "Asymquad_VBF_djet_{0:.0f}_{1:.0f}_{2:.0f}".format(self.channel, self.sqrts, useDjet)
+        thetaSyst_djet_VBF_norm = ROOT.AsymQuad(asympowname, asympowname, MorphNormList_VBF_Djet, morphVarListVBF_djet, 1.0)
 
         asympowname = "kappalow_VBF_{0:.0f}_{1:.0f}_{2:.0f}".format(self.channel, self.sqrts, useDjet)
         kappalowVBF = ROOT.RooFormulaVar(asympowname, "@0/@1", ROOT.RooArgList(VBFDown_norm, VBFNominal_norm))
@@ -1734,11 +1774,11 @@ class width_datacardClass:
 
         ggZZpdfNormName = "ggZZ_RooWidth_{0:.0f}_{1:.0f}_{2:.0f}_norm".format(self.channel, self.sqrts, useDjet)
 #        ggZZpdf_norm = ROOT.RooFormulaVar(ggZZpdfNormName, "@0*@1*@2*@3", ROOT.RooArgList(ggZZNominal_norm, self.LUMI, thetaSyst_ggZZ, thetaSyst_ggZZ_pdf))
-        ggZZpdf_norm = ROOT.RooFormulaVar(ggZZpdfNormName, "TMath::Max(@0*@1,0.0000000001)", ROOT.RooArgList(thetaSyst_ggZZ_norm, self.LUMI))
+        ggZZpdf_norm = ROOT.RooFormulaVar(ggZZpdfNormName, "TMath::Max(@0*@1*@2,0.0000000001)", ROOT.RooArgList(thetaSyst_ggZZ_norm, thetaSyst_djet_ggZZ_norm, self.LUMI))
         ggZZpdf_norm.SetNameTitle("ggzz_norm", "ggzz_norm")
         VBFpdfNormName = "VBF_RooWidth_{0:.0f}_{1:.0f}_{2:.0f}_norm".format(self.channel, self.sqrts, useDjet)
 #        VBFpdf_norm = ROOT.RooFormulaVar(VBFpdfNormName, "@0*@1*@2", ROOT.RooArgList(VBFNominal_norm, self.LUMI, thetaSyst_VBF))
-        VBFpdf_norm = ROOT.RooFormulaVar(VBFpdfNormName, "TMath::Max(@0*@1,0.0000000001)", ROOT.RooArgList(thetaSyst_VBF_norm, self.LUMI))
+        VBFpdf_norm = ROOT.RooFormulaVar(VBFpdfNormName, "TMath::Max(@0*@1*@2,0.0000000001)", ROOT.RooArgList(thetaSyst_VBF_norm, thetaSyst_djet_VBF_norm, self.LUMI))
         VBFpdf_norm.SetNameTitle("vbf_offshell_norm", "vbf_offshell_norm")
 
 
@@ -1901,8 +1941,27 @@ class width_datacardClass:
                 djetcutarglist
             )
 
+        qqZZ_djetsyst_norm_nominal_name = "qqZZ_djetsyst_norm_nominal_{0:.0f}_{1:.0f}_{2:.0f}".format(self.channel, self.sqrts, useDjet)
+        qqZZ_djetsyst_norm_nominal = RooRealVar(qqZZ_djetsyst_norm_nominal_name, qqZZ_djetsyst_norm_nominal_name, 1.)
+        qqZZ_djetsyst_norm_up_name = "qqZZ_djetsyst_norm_up_{0:.0f}_{1:.0f}_{2:.0f}".format(self.channel, self.sqrts, useDjet)
+        qqZZ_djetsyst_norm_up = RooRealVar(qqZZ_djetsyst_norm_up_name, qqZZ_djetsyst_norm_up_name, theInputs['djetscale_bkg_qqzz'])
+        qqZZ_djetsyst_norm_dn_name = "qqZZ_djetsyst_norm_dn_{0:.0f}_{1:.0f}_{2:.0f}".format(self.channel, self.sqrts, useDjet)
+        qqZZ_djetsyst_norm_dn = RooRealVar(qqZZ_djetsyst_norm_dn_name, qqZZ_djetsyst_norm_dn_name, -theInputs['djetscale_bkg_qqzz'])
+
+        MorphNormList_qqZZ_Djet = ROOT.RooArgList()
+        MorphNormList_qqZZ_Djet.add(qqZZ_djetsyst_norm_nominal)   
+        MorphNormList_qqZZ_Djet.add(qqZZ_djetsyst_norm_up)
+        MorphNormList_qqZZ_Djet.add(qqZZ_djetsyst_norm_dn)
+
         qqZZ_Scale_Syst = w.factory("QCDscale_VV[-7,7]")
         qqZZ_EWK_Syst = w.factory("EWKcorr_VV[-7,7]")
+
+        CMS_zz4l_qqzzdjet_syst = w.factory("Djetscale_qqZZ[-3,3]")
+        morphVarListqqZZ_djet = ROOT.RooArgList()
+        morphVarListqqZZ_djet.add(CMS_zz4l_qqzzdjet_syst)
+
+        asympowname = "Asymquad_qqZZ_djet_{0:.0f}_{1:.0f}_{2:.0f}".format(self.channel, self.sqrts, useDjet)
+        thetaSyst_djet_qqZZ_norm = ROOT.AsymQuad(asympowname, asympowname, MorphNormList_qqZZ_Djet, morphVarListqqZZ_djet, 1.0)
 
         asympowname = "kappalow_qqZZ_QCD_{0:.0f}_{1:.0f}_{2:.0f}".format(self.channel, self.sqrts, useDjet)
         kappalow_QCD_qqzz = ROOT.RooRealVar(asympowname, asympowname, CMS_qqzzbkg_p3.getVal())
@@ -1918,7 +1977,7 @@ class width_datacardClass:
         asympowname = "Asympow_qqZZ_EWK_{0:.0f}_{1:.0f}_{2:.0f}".format(self.channel, self.sqrts, useDjet)
         thetaSyst_qqZZ_EWK = AsymPow(asympowname, asympowname, kappalow_EWK_qqzz, kappahigh_EWK_qqzz, qqZZ_EWK_Syst)
 
-        bkg_qqzz_norm = ROOT.RooFormulaVar("bkg_qqzz_norm", "@0*@1", ROOT.RooArgList(thetaSyst_qqZZ_QCD, thetaSyst_qqZZ_EWK))
+        bkg_qqzz_norm = ROOT.RooFormulaVar("bkg_qqzz_norm", "@0*@1*@2", ROOT.RooArgList(thetaSyst_qqZZ_QCD, thetaSyst_qqZZ_EWK,thetaSyst_djet_qqZZ_norm))
         qqzzarglist = ROOT.RooArgList(
             qqZZ_EWK_Syst,
             CMS_qqzzbkg_EWK_p0,
@@ -2398,6 +2457,29 @@ class width_datacardClass:
             MorphList_ZX.add(zjet_HistPdfDown)
 
             bkg_zjets = ROOT.VerticalInterpPdf("bkg_zjets", "bkg_zjets", MorphList_ZX, morphVarListZX)
+
+
+        zjets_djetsyst_norm_nominal_name = "zjets_djetsyst_norm_nominal_{0:.0f}_{1:.0f}_{2:.0f}".format(self.channel, self.sqrts, useDjet)
+        zjets_djetsyst_norm_nominal = RooRealVar(zjets_djetsyst_norm_nominal_name, zjets_djetsyst_norm_nominal_name, 1.)
+        zjets_djetsyst_norm_up_name = "zjets_djetsyst_norm_up_{0:.0f}_{1:.0f}_{2:.0f}".format(self.channel, self.sqrts, useDjet)
+        zjets_djetsyst_norm_up = RooRealVar(zjets_djetsyst_norm_up_name, zjets_djetsyst_norm_up_name, theInputs['djetscale_bkg_zjets'])
+        zjets_djetsyst_norm_dn_name = "zjets_djetsyst_norm_dn_{0:.0f}_{1:.0f}_{2:.0f}".format(self.channel, self.sqrts, useDjet)
+        zjets_djetsyst_norm_dn = RooRealVar(zjets_djetsyst_norm_dn_name, zjets_djetsyst_norm_dn_name, -theInputs['djetscale_bkg_zjets'])
+
+        MorphNormList_zjets_Djet = ROOT.RooArgList()
+        MorphNormList_zjets_Djet.add(zjets_djetsyst_norm_nominal)   
+        MorphNormList_zjets_Djet.add(zjets_djetsyst_norm_up)
+        MorphNormList_zjets_Djet.add(zjets_djetsyst_norm_dn)
+
+        CMS_zz4l_zjetsdjet_syst = w.factory("Djetscale_zjets[-3,3]")
+        morphVarListzjets_djet = ROOT.RooArgList()
+        morphVarListzjets_djet.add(CMS_zz4l_zjetsdjet_syst)
+
+        asympowname = "Asymquad_zjets_djet_{0:.0f}_{1:.0f}_{2:.0f}".format(self.channel, self.sqrts, useDjet)
+        thetaSyst_djet_zjets_norm = ROOT.AsymQuad(asympowname, asympowname, MorphNormList_zjets_Djet, morphVarListzjets_djet, 1.0)
+
+        bkg_zjets_norm = ROOT.RooFormulaVar("bkg_zjets_norm", "@0", ROOT.RooArgList(thetaSyst_djet_zjets_norm))
+
 
         # ----------------------- RANGES ----------------------- ##
 
@@ -2964,6 +3046,8 @@ class width_datacardClass:
         getattr(w, 'import')(bkg_qqzz_norm, ROOT.RooFit.RecycleConflictNodes())
         bkg_zjets.SetNameTitle("bkg_zjets", "bkg_zjets")
         getattr(w, 'import')(bkg_zjets, ROOT.RooFit.RecycleConflictNodes())
+        bkg_zjets_norm.SetNameTitle("bkg_zjets_norm", "bkg_zjets_norm")
+        getattr(w, 'import')(bkg_zjets_norm, ROOT.RooFit.RecycleConflictNodes())
 
         w.writeToFile(name_ShapeWS)
 
