@@ -831,10 +831,11 @@ class systematicsClass:
         theFile.write("QCDscale_VV param 0.0 1 [-3,3]\n")
         theFile.write("EWKcorr_VV param 0.0 1 [-3,3]\n")
 
-        theFile.write("Djetscale_ggzz param 0.0 1 [-3,3]\n")
-        theFile.write("Djetscale_vbf_offshell param 0.0 1 [-3,3]\n")
-        theFile.write("Djetscale_bkg_qqzz param 0.0 1 [-3,3]\n")
-        theFile.write("Djetscale_bkg_zjets param 0.0 1 [-1,1]\n")
+        if self.useDjet != 0:
+            theFile.write("Djetscale_ggzz param 0.0 1 [-3,3]\n")
+            theFile.write("Djetscale_vbf_offshell param 0.0 1 [-3,3]\n")
+            theFile.write("Djetscale_bkg_qqzz param 0.0 1 [-3,3]\n")
+            theFile.write("Djetscale_bkg_zjets param 0.0 1 [-1,1]\n")
 
         #theFile.write("R param 0.93  0.0 \n")
         #theFile.write("CMS_widthH_kbkg param 1.0  0.0 \n")

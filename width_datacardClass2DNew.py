@@ -74,7 +74,6 @@ class width_datacardClass:
         self.ggZZ_interf_chan = theInputs['ggZZ_interf']
         self.VBF_offshell_chan = theInputs['VBF_offshell']
         self.zjets_chan = theInputs['zjets']
-        self.zjets_chan = theInputs['zjets']
         self.templRange = 220
 
         # ---------------- SET PLOTTING STYLE ---------------- ##
@@ -119,8 +118,9 @@ class width_datacardClass:
 
         # ------------------------- SYSTEMATICS CLASSES ----------------------------- ##
         systematics = systematicsClass(self.mH, False, self.isFSR, theInputs)
-        systematics_forXSxBR = systematicsClass(
-            self.mH, True, self.isFSR, theInputs)
+        systematics_forXSxBR = systematicsClass(self.mH, True, self.isFSR, theInputs)
+        systematics.useDjet = useDjet
+        systematics_forXSxBR.useDjet = useDjet
 
         # -------------------------- SIGNAL SHAPE ----------------------------------- ##
 
@@ -173,14 +173,101 @@ class width_datacardClass:
         CMS_zz4l_widthKD = ROOT.RooRealVar(D2name, D2name, 0, 1)
         CMS_zz4l_widthKD.setBins(30)
 
+        one = ROOT.RooRealVar("one", "one", 1.0)
+        one.setConstant(True)
+
         self.LUMI = ROOT.RooRealVar("LUMI_{0:.0f}".format(
             self.sqrts), "LUMI_{0:.0f}".format(self.sqrts), self.lumi)
         self.LUMI.setConstant(True)
 
-        print '2D signal shapes for Width'
+
+#----------------- Djet systematics ----------------------#
+
+        CMS_zz4l_ggzz_djet_syst = w.factory("Djetscale_ggZZ[-3,3]")
+        CMS_zz4l_vbf_djet_syst = w.factory("Djetscale_vbf_offshell[-3,3]")
+        CMS_zz4l_qqzz_djet_syst = w.factory("Djetscale_qqZZ[-3,3]")
+        CMS_zz4l_zjets_djet_syst = w.factory("Djetscale_zjets[-1,1]") # Djet>0.5 uncertainty is 99% for Z+X
+        if useDjet == 0:
+            CMS_zz4l_ggzz_djet_syst.setConstant(True)
+            CMS_zz4l_vbf_djet_syst.setConstant(True)
+            CMS_zz4l_qqzz_djet_syst.setConstant(True)
+            CMS_zz4l_zjets_djet_syst.setConstant(True)
+
+        morphVarListggZZ_djet = ROOT.RooArgList()
+        morphVarListVBF_djet = ROOT.RooArgList()
+        morphVarListqqZZ_djet = ROOT.RooArgList()
+        morphVarListzjets_djet = ROOT.RooArgList()
+
+        MorphNormList_ggZZ_Djet = ROOT.RooArgList()
+        MorphNormList_VBF_Djet = ROOT.RooArgList()
+        MorphNormList_qqZZ_Djet = ROOT.RooArgList()
+        MorphNormList_zjets_Djet = ROOT.RooArgList()
+
+        morphVarListggZZ_djet.add(CMS_zz4l_ggzz_djet_syst)
+        ggzz_djetsyst_norm_nominal_name = "ggzz_djetsyst_norm_nominal_{0:.0f}_{1:.0f}_{2:.0f}".format(self.channel, self.sqrts, useDjet)
+        ggzz_djetsyst_norm_nominal = RooRealVar(ggzz_djetsyst_norm_nominal_name, ggzz_djetsyst_norm_nominal_name, 1)
+        ggzz_djetsyst_norm_up_name = "ggzz_djetsyst_norm_up_{0:.0f}_{1:.0f}_{2:.0f}".format(self.channel, self.sqrts, useDjet)
+        ggzz_djetsyst_norm_up = RooRealVar(ggzz_djetsyst_norm_up_name, ggzz_djetsyst_norm_up_name, 1.+theInputs['djetscale_ggzz'])
+        ggzz_djetsyst_norm_dn_name = "ggzz_djetsyst_norm_dn_{0:.0f}_{1:.0f}_{2:.0f}".format(self.channel, self.sqrts, useDjet)
+        ggzz_djetsyst_norm_dn = RooRealVar(ggzz_djetsyst_norm_dn_name, ggzz_djetsyst_norm_dn_name, 1.-theInputs['djetscale_ggzz'])
+        MorphNormList_ggZZ_Djet.add(ggzz_djetsyst_norm_nominal)
+        MorphNormList_ggZZ_Djet.add(ggzz_djetsyst_norm_up)
+        MorphNormList_ggZZ_Djet.add(ggzz_djetsyst_norm_dn)
+        asympowname = "Asymquad_ggZZ_djet_{0:.0f}_{1:.0f}_{2:.0f}".format(self.channel, self.sqrts, useDjet)
+        thetaSyst_djet_ggZZ_norm = ROOT.AsymQuad(asympowname, asympowname, MorphNormList_ggZZ_Djet, morphVarListggZZ_djet, 1.0)
+
+        morphVarListVBF_djet.add(CMS_zz4l_vbf_djet_syst)
+        VBF_djetsyst_norm_nominal_name = "VBF_djetsyst_norm_nominal_{0:.0f}_{1:.0f}_{2:.0f}".format(self.channel, self.sqrts, useDjet)
+        VBF_djetsyst_norm_nominal = RooRealVar(VBF_djetsyst_norm_nominal_name, VBF_djetsyst_norm_nominal_name, 1)
+        VBF_djetsyst_norm_up_name = "VBF_djetsyst_norm_up_{0:.0f}_{1:.0f}_{2:.0f}".format(self.channel, self.sqrts, useDjet)
+        VBF_djetsyst_norm_up = RooRealVar(VBF_djetsyst_norm_up_name, VBF_djetsyst_norm_up_name, 1.+theInputs['djetscale_vbf_offshell'])
+        VBF_djetsyst_norm_dn_name = "VBF_djetsyst_norm_dn_{0:.0f}_{1:.0f}_{2:.0f}".format(self.channel, self.sqrts, useDjet)
+        VBF_djetsyst_norm_dn = RooRealVar(VBF_djetsyst_norm_dn_name, VBF_djetsyst_norm_dn_name, 1.-theInputs['djetscale_vbf_offshell'])
+        MorphNormList_VBF_Djet.add(VBF_djetsyst_norm_nominal)
+        MorphNormList_VBF_Djet.add(VBF_djetsyst_norm_up)
+        MorphNormList_VBF_Djet.add(VBF_djetsyst_norm_dn)
+        asympowname = "Asymquad_VBF_djet_{0:.0f}_{1:.0f}_{2:.0f}".format(self.channel, self.sqrts, useDjet)
+        thetaSyst_djet_VBF_norm = ROOT.AsymQuad(asympowname, asympowname, MorphNormList_VBF_Djet, morphVarListVBF_djet, 1.0)
+
+        morphVarListqqZZ_djet.add(CMS_zz4l_qqzz_djet_syst)
+        qqZZ_djetsyst_norm_nominal_name = "qqZZ_djetsyst_norm_nominal_{0:.0f}_{1:.0f}_{2:.0f}".format(self.channel, self.sqrts, useDjet)
+        qqZZ_djetsyst_norm_nominal = RooRealVar(qqZZ_djetsyst_norm_nominal_name, qqZZ_djetsyst_norm_nominal_name, 1)
+        qqZZ_djetsyst_norm_up_name = "qqZZ_djetsyst_norm_up_{0:.0f}_{1:.0f}_{2:.0f}".format(self.channel, self.sqrts, useDjet)
+        qqZZ_djetsyst_norm_up = RooRealVar(qqZZ_djetsyst_norm_up_name, qqZZ_djetsyst_norm_up_name, 1.+theInputs['djetscale_bkg_qqzz'])
+        qqZZ_djetsyst_norm_dn_name = "qqZZ_djetsyst_norm_dn_{0:.0f}_{1:.0f}_{2:.0f}".format(self.channel, self.sqrts, useDjet)
+        qqZZ_djetsyst_norm_dn = RooRealVar(qqZZ_djetsyst_norm_dn_name, qqZZ_djetsyst_norm_dn_name, 1.-theInputs['djetscale_bkg_qqzz'])
+        MorphNormList_qqZZ_Djet.add(qqZZ_djetsyst_norm_nominal)
+        MorphNormList_qqZZ_Djet.add(qqZZ_djetsyst_norm_up)
+        MorphNormList_qqZZ_Djet.add(qqZZ_djetsyst_norm_dn)
+        asympowname = "Asymquad_qqZZ_djet_{0:.0f}_{1:.0f}_{2:.0f}".format(self.channel, self.sqrts, useDjet)
+        thetaSyst_djet_qqZZ_norm = ROOT.AsymQuad(asympowname, asympowname, MorphNormList_qqZZ_Djet, morphVarListqqZZ_djet, 1.0)
+
+        morphVarListzjets_djet.add(CMS_zz4l_zjets_djet_syst)
+        zjets_djetsyst_norm_nominal_name = "zjets_djetsyst_norm_nominal_{0:.0f}_{1:.0f}_{2:.0f}".format(self.channel, self.sqrts, useDjet)
+        zjets_djetsyst_norm_nominal = RooRealVar(zjets_djetsyst_norm_nominal_name, zjets_djetsyst_norm_nominal_name, 1)
+        zjets_djetsyst_norm_up_name = "zjets_djetsyst_norm_up_{0:.0f}_{1:.0f}_{2:.0f}".format(self.channel, self.sqrts, useDjet)
+        zjets_djetsyst_norm_up = RooRealVar(zjets_djetsyst_norm_up_name, zjets_djetsyst_norm_up_name, 1.+theInputs['djetscale_bkg_zjets'])
+        zjets_djetsyst_norm_dn_name = "zjets_djetsyst_norm_dn_{0:.0f}_{1:.0f}_{2:.0f}".format(self.channel, self.sqrts, useDjet)
+        zjets_djetsyst_norm_dn = RooRealVar(zjets_djetsyst_norm_dn_name, zjets_djetsyst_norm_dn_name, 1.-theInputs['djetscale_bkg_zjets'])
+        MorphNormList_zjets_Djet.add(zjets_djetsyst_norm_nominal)
+        MorphNormList_zjets_Djet.add(zjets_djetsyst_norm_up)
+        MorphNormList_zjets_Djet.add(zjets_djetsyst_norm_dn)
+        asympowname = "Asymquad_zjets_djet_{0:.0f}_{1:.0f}_{2:.0f}".format(self.channel, self.sqrts, useDjet)
+        thetaSyst_djet_zjets_norm = ROOT.AsymQuad(asympowname, asympowname, MorphNormList_zjets_Djet, morphVarListzjets_djet, 1.0)
+
+
+        if useDjet==0:
+            CMS_zz4l_ggzz_djet_syst.setConstant(True)
+            CMS_zz4l_vbf_djet_syst.setConstant(True)
+            CMS_zz4l_qqzz_djet_syst.setConstant(True)
+            CMS_zz4l_zjets_djet_syst.setConstant(True)
+
+#--------------------- End Djet systematics ---------------------------#
+
 
         # Add if-then for Djet cut here
         #-------
+        print '2D signal shapes for Width'
 
         templateSigNameMain = "HtoZZ4l_MCFM_125p6_ModifiedSmoothTemplatesForCombine_"
         if(self.anomCoupl == 1):
@@ -196,6 +283,13 @@ class width_datacardClass:
         templateSigNameMainDown_PDF = "{0}_SysDown_ggPDF".format(templateSigNameMain)
         templateSigNameMainUp_QCD = "{0}_SysUp_ggQCD".format(templateSigNameMain)
         templateSigNameMainDown_QCD = "{0}_SysDown_ggQCD".format(templateSigNameMain)
+
+        templateSigNameMain_Nominal_OppositeDjet = templateSigNameMain_Nominal
+        templateSigNameMainUp_PDF_OppositeDjet = templateSigNameMainUp_PDF
+        templateSigNameMainDown_PDF_OppositeDjet = templateSigNameMainDown_PDF
+        templateSigNameMainUp_QCD_OppositeDjet = templateSigNameMainUp_QCD
+        templateSigNameMainDown_QCD_OppositeDjet = templateSigNameMainDown_QCD
+
 
 
         if(useDjet == 0):
@@ -217,11 +311,36 @@ class width_datacardClass:
             templateSigNameMainUp_QCD = "{0}{1}".format(templateSigNameMainUp_QCD,"_Djet.root")
             templateSigNameMainDown_QCD = "{0}{1}".format(templateSigNameMainDown_QCD,"_Djet.root")
 
+        if useDjet == 0:
+            templateSigNameMain_Nominal_OppositeDjet = "{0}{1}".format(templateSigNameMain_Nominal_OppositeDjet,"_Djet.root")
+            templateSigNameMainUp_PDF_OppositeDjet = "{0}{1}".format(templateSigNameMainUp_PDF_OppositeDjet,"_Djet.root")
+            templateSigNameMainDown_PDF_OppositeDjet = "{0}{1}".format(templateSigNameMainDown_PDF_OppositeDjet,"_Djet.root")
+            templateSigNameMainUp_QCD_OppositeDjet = "{0}{1}".format(templateSigNameMainUp_QCD_OppositeDjet,"_Djet.root")
+            templateSigNameMainDown_QCD_OppositeDjet = "{0}{1}".format(templateSigNameMainDown_QCD_OppositeDjet,"_Djet.root")
+        if useDjet == 1:
+            templateSigNameMain_Nominal_OppositeDjet = "{0}{1}".format(templateSigNameMain_Nominal_OppositeDjet,"_nonDjet.root")
+            templateSigNameMainUp_PDF_OppositeDjet = "{0}{1}".format(templateSigNameMainUp_PDF_OppositeDjet,"_nonDjet.root")
+            templateSigNameMainDown_PDF_OppositeDjet = "{0}{1}".format(templateSigNameMainDown_PDF_OppositeDjet,"_nonDjet.root")
+            templateSigNameMainUp_QCD_OppositeDjet = "{0}{1}".format(templateSigNameMainUp_QCD_OppositeDjet,"_nonDjet.root")
+            templateSigNameMainDown_QCD_OppositeDjet = "{0}{1}".format(templateSigNameMainDown_QCD_OppositeDjet,"_nonDjet.root")
+        if useDjet == 2:
+            templateSigNameMain_Nominal_OppositeDjet = "{0}{1}".format(templateSigNameMain_Nominal_OppositeDjet,"_Djet.root")
+            templateSigNameMainUp_PDF_OppositeDjet = "{0}{1}".format(templateSigNameMainUp_PDF_OppositeDjet,"_Djet.root")
+            templateSigNameMainDown_PDF_OppositeDjet = "{0}{1}".format(templateSigNameMainDown_PDF_OppositeDjet,"_Djet.root")
+            templateSigNameMainUp_QCD_OppositeDjet = "{0}{1}".format(templateSigNameMainUp_QCD_OppositeDjet,"_Djet.root")
+            templateSigNameMainDown_QCD_OppositeDjet = "{0}{1}".format(templateSigNameMainDown_QCD_OppositeDjet,"_Djet.root")
+
         sigTempFileU = ROOT.TFile(templateSigNameMain_Nominal)
         sigTempFileUp_PDF = ROOT.TFile(templateSigNameMainUp_PDF)
         sigTempFileDown_PDF = ROOT.TFile(templateSigNameMainDown_PDF)
         sigTempFileUp_QCD = ROOT.TFile(templateSigNameMainUp_QCD)
         sigTempFileDown_QCD = ROOT.TFile(templateSigNameMainDown_QCD)
+
+        sigTempFileU_OppositeDjet = ROOT.TFile(templateSigNameMain_Nominal_OppositeDjet)
+        sigTempFileUp_PDF_OppositeDjet = ROOT.TFile(templateSigNameMainUp_PDF_OppositeDjet)
+        sigTempFileDown_PDF_OppositeDjet = ROOT.TFile(templateSigNameMainDown_PDF_OppositeDjet)
+        sigTempFileUp_QCD_OppositeDjet = ROOT.TFile(templateSigNameMainUp_QCD_OppositeDjet)
+        sigTempFileDown_QCD_OppositeDjet = ROOT.TFile(templateSigNameMainDown_QCD_OppositeDjet)
 
 
 #---------- SIGNAL TEMPLATES -------------
@@ -246,6 +365,51 @@ class width_datacardClass:
         Sig_T_4_Down_PDF = sigTempFileDown_PDF.Get("T_2D_4").Clone("T_2D_4_PDFDown")
         Sig_T_4_Down_QCD = sigTempFileDown_QCD.Get("T_2D_4").Clone("T_2D_4_QCDDown")
 
+        VBF_T_2 = sigTempFileU.Get("T_2D_VBF_1").Clone("T_2D_VBF_1_Nominal")
+        VBF_T_2_Up = sigTempFileUp_PDF.Get("T_2D_VBF_1").Clone("T_2D_VBF_1_PDFUp")
+        VBF_T_2_Down = sigTempFileDown_PDF.Get("T_2D_VBF_1").Clone("T_2D_VBF_1_PDFDown")
+
+        VBF_T_1 = sigTempFileU.Get("T_2D_VBF_2").Clone("T_2D_VBF_2_Nominal")
+        VBF_T_1_Up = sigTempFileUp_PDF.Get("T_2D_VBF_2").Clone("T_2D_VBF_2_PDFUp")
+        VBF_T_1_Down = sigTempFileDown_PDF.Get("T_2D_VBF_2").Clone("T_2D_VBF_2_PDFDown")
+
+        VBF_T_4 = sigTempFileU.Get("T_2D_VBF_4").Clone("T_2D_VBF_4_Nominal")
+        VBF_T_4_Up = sigTempFileUp_PDF.Get("T_2D_VBF_4").Clone("T_2D_VBF_4_PDFUp")
+        VBF_T_4_Down = sigTempFileDown_PDF.Get("T_2D_VBF_4").Clone("T_2D_VBF_4_PDFDown")
+
+
+
+        Sig_T_2_OppositeDjet = sigTempFileU_OppositeDjet.Get("T_2D_1").Clone("T_2D_1_Nominal_OppositeDjet")
+        Sig_T_2_Up_PDF_OppositeDjet = sigTempFileUp_PDF_OppositeDjet.Get("T_2D_1").Clone("T_2D_1_PDFUp_OppositeDjet")
+        Sig_T_2_Up_QCD_OppositeDjet = sigTempFileUp_QCD_OppositeDjet.Get("T_2D_1").Clone("T_2D_1_QCDUp_OppositeDjet")
+        Sig_T_2_Down_PDF_OppositeDjet = sigTempFileDown_PDF_OppositeDjet.Get("T_2D_1").Clone("T_2D_1_PDFDown_OppositeDjet")
+        Sig_T_2_Down_QCD_OppositeDjet = sigTempFileDown_QCD_OppositeDjet.Get("T_2D_1").Clone("T_2D_1_QCDDown_OppositeDjet")
+
+        Sig_T_1_OppositeDjet = sigTempFileU_OppositeDjet.Get("T_2D_2").Clone("T_2D_2_Nominal_OppositeDjet")
+        Sig_T_1_Up_PDF_OppositeDjet = sigTempFileUp_PDF_OppositeDjet.Get("T_2D_2").Clone("T_2D_2_PDFUp_OppositeDjet")
+        Sig_T_1_Down_PDF_OppositeDjet = sigTempFileDown_PDF_OppositeDjet.Get("T_2D_2").Clone("T_2D_2_PDFDown_OppositeDjet")
+        Sig_T_1_Up_QCD_OppositeDjet = sigTempFileUp_QCD_OppositeDjet.Get("T_2D_2").Clone("T_2D_2_QCDUp_OppositeDjet")
+        Sig_T_1_Down_QCD_OppositeDjet = sigTempFileDown_QCD_OppositeDjet.Get("T_2D_2").Clone("T_2D_2_QCDDown_OppositeDjet")
+
+        Sig_T_4_OppositeDjet = sigTempFileU_OppositeDjet.Get("T_2D_4").Clone("T_2D_4_Nominal_OppositeDjet")
+        Sig_T_4_Up_PDF_OppositeDjet = sigTempFileUp_PDF_OppositeDjet.Get("T_2D_4").Clone("T_2D_4_PDFUp_OppositeDjet")
+        Sig_T_4_Up_QCD_OppositeDjet = sigTempFileUp_QCD_OppositeDjet.Get("T_2D_4").Clone("T_2D_4_QCDUp_OppositeDjet")
+        Sig_T_4_Down_PDF_OppositeDjet = sigTempFileDown_PDF_OppositeDjet.Get("T_2D_4").Clone("T_2D_4_PDFDown_OppositeDjet")
+        Sig_T_4_Down_QCD_OppositeDjet = sigTempFileDown_QCD_OppositeDjet.Get("T_2D_4").Clone("T_2D_4_QCDDown_OppositeDjet")
+
+        VBF_T_2_OppositeDjet = sigTempFileU_OppositeDjet.Get("T_2D_VBF_1").Clone("T_2D_VBF_1_Nominal_OppositeDjet")
+        VBF_T_2_Up_OppositeDjet = sigTempFileUp_PDF_OppositeDjet.Get("T_2D_VBF_1").Clone("T_2D_VBF_1_PDFUp_OppositeDjet")
+        VBF_T_2_Down_OppositeDjet = sigTempFileDown_PDF_OppositeDjet.Get("T_2D_VBF_1").Clone("T_2D_VBF_1_PDFDown_OppositeDjet")
+
+        VBF_T_1_OppositeDjet = sigTempFileU_OppositeDjet.Get("T_2D_VBF_2").Clone("T_2D_VBF_2_Nominal_OppositeDjet")
+        VBF_T_1_Up_OppositeDjet = sigTempFileUp_PDF_OppositeDjet.Get("T_2D_VBF_2").Clone("T_2D_VBF_2_PDFUp_OppositeDjet")
+        VBF_T_1_Down_OppositeDjet = sigTempFileDown_PDF_OppositeDjet.Get("T_2D_VBF_2").Clone("T_2D_VBF_2_PDFDown_OppositeDjet")
+
+        VBF_T_4_OppositeDjet = sigTempFileU_OppositeDjet.Get("T_2D_VBF_4").Clone("T_2D_VBF_4_Nominal_OppositeDjet")
+        VBF_T_4_Up_OppositeDjet = sigTempFileUp_PDF_OppositeDjet.Get("T_2D_VBF_4").Clone("T_2D_VBF_4_PDFUp_OppositeDjet")
+        VBF_T_4_Down_OppositeDjet = sigTempFileDown_PDF_OppositeDjet.Get("T_2D_VBF_4").Clone("T_2D_VBF_4_PDFDown_OppositeDjet")
+
+
 
         integral_Sig_T_1 = Sig_T_1.Integral("width")
         integral_Sig_T_1_Up_PDF = Sig_T_1_Up_PDF.Integral("width")
@@ -263,21 +427,6 @@ class width_datacardClass:
         integral_Sig_T_4_Up_QCD = Sig_T_4_Up_QCD.Integral("width")
         integral_Sig_T_4_Down_QCD = Sig_T_4_Down_QCD.Integral("width")
 
-
-
-        VBF_T_2 = sigTempFileU.Get("T_2D_VBF_1").Clone("T_2D_VBF_1_Nominal")
-        VBF_T_2_Up = sigTempFileUp_PDF.Get("T_2D_VBF_1").Clone("T_2D_VBF_1_PDFUp")
-        VBF_T_2_Down = sigTempFileDown_PDF.Get("T_2D_VBF_1").Clone("T_2D_VBF_1_PDFDown")
-
-        VBF_T_1 = sigTempFileU.Get("T_2D_VBF_2").Clone("T_2D_VBF_2_Nominal")
-        VBF_T_1_Up = sigTempFileUp_PDF.Get("T_2D_VBF_2").Clone("T_2D_VBF_2_PDFUp")
-        VBF_T_1_Down = sigTempFileDown_PDF.Get("T_2D_VBF_2").Clone("T_2D_VBF_2_PDFDown")
-
-        VBF_T_4 = sigTempFileU.Get("T_2D_VBF_4").Clone("T_2D_VBF_4_Nominal")
-        VBF_T_4_Up = sigTempFileUp_PDF.Get("T_2D_VBF_4").Clone("T_2D_VBF_4_PDFUp")
-        VBF_T_4_Down = sigTempFileDown_PDF.Get("T_2D_VBF_4").Clone("T_2D_VBF_4_PDFDown")
-
-
         integral_VBF_T_1 = VBF_T_1.Integral("width")
         integral_VBF_T_1_Up = VBF_T_1_Up.Integral("width")
         integral_VBF_T_1_Down = VBF_T_1_Down.Integral("width")
@@ -287,6 +436,34 @@ class width_datacardClass:
         integral_VBF_T_4 = VBF_T_4.Integral("width")
         integral_VBF_T_4_Up = VBF_T_4_Up.Integral("width")
         integral_VBF_T_4_Down = VBF_T_4_Down.Integral("width")
+
+
+        integral_Sig_T_1_OppositeDjet = Sig_T_1_OppositeDjet.Integral("width")
+        integral_Sig_T_1_Up_PDF_OppositeDjet = Sig_T_1_Up_PDF_OppositeDjet.Integral("width")
+        integral_Sig_T_1_Down_PDF_OppositeDjet = Sig_T_1_Down_PDF_OppositeDjet.Integral("width")
+        integral_Sig_T_1_Up_QCD_OppositeDjet = Sig_T_1_Up_QCD_OppositeDjet.Integral("width")
+        integral_Sig_T_1_Down_QCD_OppositeDjet = Sig_T_1_Down_QCD_OppositeDjet.Integral("width")
+        integral_Sig_T_2_OppositeDjet = Sig_T_2_OppositeDjet.Integral("width")
+        integral_Sig_T_2_Up_PDF_OppositeDjet = Sig_T_2_Up_PDF_OppositeDjet.Integral("width")
+        integral_Sig_T_2_Down_PDF_OppositeDjet = Sig_T_2_Down_PDF_OppositeDjet.Integral("width")
+        integral_Sig_T_2_Up_QCD_OppositeDjet = Sig_T_2_Up_QCD_OppositeDjet.Integral("width")
+        integral_Sig_T_2_Down_QCD_OppositeDjet = Sig_T_2_Down_QCD_OppositeDjet.Integral("width")
+        integral_Sig_T_4_OppositeDjet = Sig_T_4_OppositeDjet.Integral("width")
+        integral_Sig_T_4_Up_PDF_OppositeDjet = Sig_T_4_Up_PDF_OppositeDjet.Integral("width")
+        integral_Sig_T_4_Down_PDF_OppositeDjet = Sig_T_4_Down_PDF_OppositeDjet.Integral("width")
+        integral_Sig_T_4_Up_QCD_OppositeDjet = Sig_T_4_Up_QCD_OppositeDjet.Integral("width")
+        integral_Sig_T_4_Down_QCD_OppositeDjet = Sig_T_4_Down_QCD_OppositeDjet.Integral("width")
+
+        integral_VBF_T_1_OppositeDjet = VBF_T_1_OppositeDjet.Integral("width")
+        integral_VBF_T_1_Up_OppositeDjet = VBF_T_1_Up_OppositeDjet.Integral("width")
+        integral_VBF_T_1_Down_OppositeDjet = VBF_T_1_Down_OppositeDjet.Integral("width")
+        integral_VBF_T_2_OppositeDjet = VBF_T_2_OppositeDjet.Integral("width")
+        integral_VBF_T_2_Up_OppositeDjet = VBF_T_2_Up_OppositeDjet.Integral("width")
+        integral_VBF_T_2_Down_OppositeDjet = VBF_T_2_Down_OppositeDjet.Integral("width")
+        integral_VBF_T_4_OppositeDjet = VBF_T_4_OppositeDjet.Integral("width")
+        integral_VBF_T_4_Up_OppositeDjet = VBF_T_4_Up_OppositeDjet.Integral("width")
+        integral_VBF_T_4_Down_OppositeDjet = VBF_T_4_Down_OppositeDjet.Integral("width")
+
 
 
 # (mZZ/mH)**2 Terms
@@ -303,6 +480,36 @@ class width_datacardClass:
         Sig_T_mZZ2_1_4_Down_PDF = sigTempFileDown_PDF.Get("T_2D_4_mZZ2_1").Clone("T_2D_4_mZZ2_1_PDFDown")
         Sig_T_mZZ2_1_4_Down_QCD = sigTempFileDown_QCD.Get("T_2D_4_mZZ2_1").Clone("T_2D_4_mZZ2_1_QCDDown")
 
+        VBF_T_mZZ2_1_2 = sigTempFileU.Get("T_2D_VBF_1_mZZ2_1").Clone("T_2D_VBF_1_mZZ2_1_Nominal")
+        VBF_T_mZZ2_1_2_Up = sigTempFileUp_PDF.Get("T_2D_VBF_1_mZZ2_1").Clone("T_2D_VBF_1_mZZ2_1_PDFUp")
+        VBF_T_mZZ2_1_2_Down = sigTempFileDown_PDF.Get("T_2D_VBF_1_mZZ2_1").Clone("T_2D_VBF_1_mZZ2_1_PDFDown")
+
+        VBF_T_mZZ2_1_4 = sigTempFileU.Get("T_2D_VBF_4_mZZ2_1").Clone("T_2D_VBF_4_mZZ2_1_Nominal")
+        VBF_T_mZZ2_1_4_Up = sigTempFileUp_PDF.Get("T_2D_VBF_4_mZZ2_1").Clone("T_2D_VBF_4_mZZ2_1_PDFUp")
+        VBF_T_mZZ2_1_4_Down = sigTempFileDown_PDF.Get("T_2D_VBF_4_mZZ2_1").Clone("T_2D_VBF_4_mZZ2_1_PDFDown")
+
+
+        Sig_T_mZZ2_1_2_OppositeDjet = sigTempFileU_OppositeDjet.Get("T_2D_1_mZZ2_1").Clone("T_2D_1_mZZ2_1_Nominal_OppositeDjet")
+        Sig_T_mZZ2_1_2_Up_PDF_OppositeDjet = sigTempFileUp_PDF_OppositeDjet.Get("T_2D_1_mZZ2_1").Clone("T_2D_1_mZZ2_1_PDFUp_OppositeDjet")
+        Sig_T_mZZ2_1_2_Up_QCD_OppositeDjet = sigTempFileUp_QCD_OppositeDjet.Get("T_2D_1_mZZ2_1").Clone("T_2D_1_mZZ2_1_QCDUp_OppositeDjet")
+        Sig_T_mZZ2_1_2_Down_PDF_OppositeDjet = sigTempFileDown_PDF_OppositeDjet.Get("T_2D_1_mZZ2_1").Clone("T_2D_1_mZZ2_1_PDFDown_OppositeDjet")
+        Sig_T_mZZ2_1_2_Down_QCD_OppositeDjet = sigTempFileDown_QCD_OppositeDjet.Get("T_2D_1_mZZ2_1").Clone("T_2D_1_mZZ2_1_QCDDown_OppositeDjet")
+
+        Sig_T_mZZ2_1_4_OppositeDjet = sigTempFileU_OppositeDjet.Get("T_2D_4_mZZ2_1").Clone("T_2D_4_mZZ2_1_Nominal_OppositeDjet")
+        Sig_T_mZZ2_1_4_Up_PDF_OppositeDjet = sigTempFileUp_PDF_OppositeDjet.Get("T_2D_4_mZZ2_1").Clone("T_2D_4_mZZ2_1_PDFUp_OppositeDjet")
+        Sig_T_mZZ2_1_4_Up_QCD_OppositeDjet = sigTempFileUp_QCD_OppositeDjet.Get("T_2D_4_mZZ2_1").Clone("T_2D_4_mZZ2_1_QCDUp_OppositeDjet")
+        Sig_T_mZZ2_1_4_Down_PDF_OppositeDjet = sigTempFileDown_PDF_OppositeDjet.Get("T_2D_4_mZZ2_1").Clone("T_2D_4_mZZ2_1_PDFDown_OppositeDjet")
+        Sig_T_mZZ2_1_4_Down_QCD_OppositeDjet = sigTempFileDown_QCD_OppositeDjet.Get("T_2D_4_mZZ2_1").Clone("T_2D_4_mZZ2_1_QCDDown_OppositeDjet")
+
+        VBF_T_mZZ2_1_2_OppositeDjet = sigTempFileU_OppositeDjet.Get("T_2D_VBF_1_mZZ2_1").Clone("T_2D_VBF_1_mZZ2_1_Nominal_OppositeDjet")
+        VBF_T_mZZ2_1_2_Up_OppositeDjet = sigTempFileUp_PDF_OppositeDjet.Get("T_2D_VBF_1_mZZ2_1").Clone("T_2D_VBF_1_mZZ2_1_PDFUp_OppositeDjet")
+        VBF_T_mZZ2_1_2_Down_OppositeDjet = sigTempFileDown_PDF_OppositeDjet.Get("T_2D_VBF_1_mZZ2_1").Clone("T_2D_VBF_1_mZZ2_1_PDFDown_OppositeDjet")
+
+        VBF_T_mZZ2_1_4_OppositeDjet = sigTempFileU_OppositeDjet.Get("T_2D_VBF_4_mZZ2_1").Clone("T_2D_VBF_4_mZZ2_1_Nominal_OppositeDjet")
+        VBF_T_mZZ2_1_4_Up_OppositeDjet = sigTempFileUp_PDF_OppositeDjet.Get("T_2D_VBF_4_mZZ2_1").Clone("T_2D_VBF_4_mZZ2_1_PDFUp_OppositeDjet")
+        VBF_T_mZZ2_1_4_Down_OppositeDjet = sigTempFileDown_PDF_OppositeDjet.Get("T_2D_VBF_4_mZZ2_1").Clone("T_2D_VBF_4_mZZ2_1_PDFDown_OppositeDjet")
+
+
         integral_Sig_T_mZZ2_1_2 = Sig_T_mZZ2_1_2.Integral("width")
         integral_Sig_T_mZZ2_1_2_Up_PDF = Sig_T_mZZ2_1_2_Up_PDF.Integral("width")
         integral_Sig_T_mZZ2_1_2_Down_PDF = Sig_T_mZZ2_1_2_Down_PDF.Integral("width")
@@ -315,16 +522,6 @@ class width_datacardClass:
         integral_Sig_T_mZZ2_1_4_Up_QCD = Sig_T_mZZ2_1_4_Up_QCD.Integral("width")
         integral_Sig_T_mZZ2_1_4_Down_QCD = Sig_T_mZZ2_1_4_Down_QCD.Integral("width")
 
-
-
-        VBF_T_mZZ2_1_2 = sigTempFileU.Get("T_2D_VBF_1_mZZ2_1").Clone("T_2D_VBF_1_mZZ2_1_Nominal")
-        VBF_T_mZZ2_1_2_Up = sigTempFileUp_PDF.Get("T_2D_VBF_1_mZZ2_1").Clone("T_2D_VBF_1_mZZ2_1_PDFUp")
-        VBF_T_mZZ2_1_2_Down = sigTempFileDown_PDF.Get("T_2D_VBF_1_mZZ2_1").Clone("T_2D_VBF_1_mZZ2_1_PDFDown")
-
-        VBF_T_mZZ2_1_4 = sigTempFileU.Get("T_2D_VBF_4_mZZ2_1").Clone("T_2D_VBF_4_mZZ2_1_Nominal")
-        VBF_T_mZZ2_1_4_Up = sigTempFileUp_PDF.Get("T_2D_VBF_4_mZZ2_1").Clone("T_2D_VBF_4_mZZ2_1_PDFUp")
-        VBF_T_mZZ2_1_4_Down = sigTempFileDown_PDF.Get("T_2D_VBF_4_mZZ2_1").Clone("T_2D_VBF_4_mZZ2_1_PDFDown")
-
         integral_VBF_T_mZZ2_1_2 = VBF_T_mZZ2_1_2.Integral("width")
         integral_VBF_T_mZZ2_1_2_Up = VBF_T_mZZ2_1_2_Up.Integral("width")
         integral_VBF_T_mZZ2_1_2_Down = VBF_T_mZZ2_1_2_Down.Integral("width")
@@ -332,6 +529,27 @@ class width_datacardClass:
         integral_VBF_T_mZZ2_1_4 = VBF_T_mZZ2_1_4.Integral("width")
         integral_VBF_T_mZZ2_1_4_Up = VBF_T_mZZ2_1_4_Up.Integral("width")
         integral_VBF_T_mZZ2_1_4_Down = VBF_T_mZZ2_1_4_Down.Integral("width")
+
+
+        integral_Sig_T_mZZ2_1_2_OppositeDjet = Sig_T_mZZ2_1_2_OppositeDjet.Integral("width")
+        integral_Sig_T_mZZ2_1_2_Up_PDF_OppositeDjet = Sig_T_mZZ2_1_2_Up_PDF_OppositeDjet.Integral("width")
+        integral_Sig_T_mZZ2_1_2_Down_PDF_OppositeDjet = Sig_T_mZZ2_1_2_Down_PDF_OppositeDjet.Integral("width")
+        integral_Sig_T_mZZ2_1_2_Up_QCD_OppositeDjet = Sig_T_mZZ2_1_2_Up_QCD_OppositeDjet.Integral("width")
+        integral_Sig_T_mZZ2_1_2_Down_QCD_OppositeDjet = Sig_T_mZZ2_1_2_Down_QCD_OppositeDjet.Integral("width")
+
+        integral_Sig_T_mZZ2_1_4_OppositeDjet = Sig_T_mZZ2_1_4_OppositeDjet.Integral("width")
+        integral_Sig_T_mZZ2_1_4_Up_PDF_OppositeDjet = Sig_T_mZZ2_1_4_Up_PDF_OppositeDjet.Integral("width")
+        integral_Sig_T_mZZ2_1_4_Down_PDF_OppositeDjet = Sig_T_mZZ2_1_4_Down_PDF_OppositeDjet.Integral("width")
+        integral_Sig_T_mZZ2_1_4_Up_QCD_OppositeDjet = Sig_T_mZZ2_1_4_Up_QCD_OppositeDjet.Integral("width")
+        integral_Sig_T_mZZ2_1_4_Down_QCD_OppositeDjet = Sig_T_mZZ2_1_4_Down_QCD_OppositeDjet.Integral("width")
+
+        integral_VBF_T_mZZ2_1_2_OppositeDjet = VBF_T_mZZ2_1_2_OppositeDjet.Integral("width")
+        integral_VBF_T_mZZ2_1_2_Up_OppositeDjet = VBF_T_mZZ2_1_2_Up_OppositeDjet.Integral("width")
+        integral_VBF_T_mZZ2_1_2_Down_OppositeDjet = VBF_T_mZZ2_1_2_Down_OppositeDjet.Integral("width")
+
+        integral_VBF_T_mZZ2_1_4_OppositeDjet = VBF_T_mZZ2_1_4_OppositeDjet.Integral("width")
+        integral_VBF_T_mZZ2_1_4_Up_OppositeDjet = VBF_T_mZZ2_1_4_Up_OppositeDjet.Integral("width")
+        integral_VBF_T_mZZ2_1_4_Down_OppositeDjet = VBF_T_mZZ2_1_4_Down_OppositeDjet.Integral("width")
 
 
 # (mZZ/mH)**2**2 Terms
@@ -342,21 +560,36 @@ class width_datacardClass:
         Sig_T_mZZ2_2_2_Down_PDF = sigTempFileDown_PDF.Get("T_2D_1_mZZ2_2").Clone("T_2D_1_mZZ2_2_PDFDown")
         Sig_T_mZZ2_2_2_Down_QCD = sigTempFileDown_QCD.Get("T_2D_1_mZZ2_2").Clone("T_2D_1_mZZ2_2_QCDDown")
 
+        VBF_T_mZZ2_2_2 = sigTempFileU.Get("T_2D_VBF_1_mZZ2_2").Clone("T_2D_VBF_1_mZZ2_2_Nominal")
+        VBF_T_mZZ2_2_2_Up = sigTempFileUp_PDF.Get("T_2D_VBF_1_mZZ2_2").Clone("T_2D_VBF_1_mZZ2_2_PDFUp")
+        VBF_T_mZZ2_2_2_Down = sigTempFileDown_PDF.Get("T_2D_VBF_1_mZZ2_2").Clone("T_2D_VBF_1_mZZ2_2_PDFDown")
+
+        VBF_T_mZZ2_2_4 = sigTempFileU.Get("T_2D_VBF_4_mZZ2_2").Clone("T_2D_VBF_4_mZZ2_2_Nominal")
+        VBF_T_mZZ2_2_4_Up = sigTempFileUp_PDF.Get("T_2D_VBF_4_mZZ2_2").Clone("T_2D_VBF_4_mZZ2_2_PDFUp")
+        VBF_T_mZZ2_2_4_Down = sigTempFileDown_PDF.Get("T_2D_VBF_4_mZZ2_2").Clone("T_2D_VBF_4_mZZ2_2_PDFDown")
+
+
+        Sig_T_mZZ2_2_2_OppositeDjet = sigTempFileU_OppositeDjet.Get("T_2D_1_mZZ2_2").Clone("T_2D_1_mZZ2_2_Nominal_OppositeDjet")
+        Sig_T_mZZ2_2_2_Up_PDF_OppositeDjet = sigTempFileUp_PDF_OppositeDjet.Get("T_2D_1_mZZ2_2").Clone("T_2D_1_mZZ2_2_PDFUp_OppositeDjet")
+        Sig_T_mZZ2_2_2_Up_QCD_OppositeDjet = sigTempFileUp_QCD_OppositeDjet.Get("T_2D_1_mZZ2_2").Clone("T_2D_1_mZZ2_2_QCDUp_OppositeDjet")
+        Sig_T_mZZ2_2_2_Down_PDF_OppositeDjet = sigTempFileDown_PDF_OppositeDjet.Get("T_2D_1_mZZ2_2").Clone("T_2D_1_mZZ2_2_PDFDown_OppositeDjet")
+        Sig_T_mZZ2_2_2_Down_QCD_OppositeDjet = sigTempFileDown_QCD_OppositeDjet.Get("T_2D_1_mZZ2_2").Clone("T_2D_1_mZZ2_2_QCDDown_OppositeDjet")
+
+        VBF_T_mZZ2_2_2_OppositeDjet = sigTempFileU_OppositeDjet.Get("T_2D_VBF_1_mZZ2_2").Clone("T_2D_VBF_1_mZZ2_2_Nominal_OppositeDjet")
+        VBF_T_mZZ2_2_2_Up_OppositeDjet = sigTempFileUp_PDF_OppositeDjet.Get("T_2D_VBF_1_mZZ2_2").Clone("T_2D_VBF_1_mZZ2_2_PDFUp_OppositeDjet")
+        VBF_T_mZZ2_2_2_Down_OppositeDjet = sigTempFileDown_PDF_OppositeDjet.Get("T_2D_VBF_1_mZZ2_2").Clone("T_2D_VBF_1_mZZ2_2_PDFDown_OppositeDjet")
+
+        VBF_T_mZZ2_2_4_OppositeDjet = sigTempFileU_OppositeDjet.Get("T_2D_VBF_4_mZZ2_2").Clone("T_2D_VBF_4_mZZ2_2_Nominal_OppositeDjet")
+        VBF_T_mZZ2_2_4_Up_OppositeDjet = sigTempFileUp_PDF_OppositeDjet.Get("T_2D_VBF_4_mZZ2_2").Clone("T_2D_VBF_4_mZZ2_2_PDFUp_OppositeDjet")
+        VBF_T_mZZ2_2_4_Down_OppositeDjet = sigTempFileDown_PDF_OppositeDjet.Get("T_2D_VBF_4_mZZ2_2").Clone("T_2D_VBF_4_mZZ2_2_PDFDown_OppositeDjet")
+
+
+
         integral_Sig_T_mZZ2_2_2 = Sig_T_mZZ2_2_2.Integral("width")
         integral_Sig_T_mZZ2_2_2_Up_PDF = Sig_T_mZZ2_2_2_Up_PDF.Integral("width")
         integral_Sig_T_mZZ2_2_2_Down_PDF = Sig_T_mZZ2_2_2_Down_PDF.Integral("width")
         integral_Sig_T_mZZ2_2_2_Up_QCD = Sig_T_mZZ2_2_2_Up_QCD.Integral("width")
         integral_Sig_T_mZZ2_2_2_Down_QCD = Sig_T_mZZ2_2_2_Down_QCD.Integral("width")
-
-
-
-        VBF_T_mZZ2_2_2 = sigTempFileU.Get("T_2D_VBF_1_mZZ2_2").Clone("T_2D_VBF_1_mZZ2_2_Nominal")
-        VBF_T_mZZ2_2_2_Up = sigTempFileUp_PDF.Get("T_2D_VBF_1_mZZ2_2").Clone("T_2D_VBF_1_mZZ2_2_PDFUp")
-        VBF_T_mZZ2_2_2_Down = sigTempFileDown_PDF.Get("T_2D_VBF_1_mZZ2_2").Clone("T_2D_VBF_1_mZZ2_2_PDFDown")
-
-        VBF_T_mZZ2_2_4 = sigTempFileU.Get("T_2D_VBF_4_mZZ2_2")
-        VBF_T_mZZ2_2_4_Up = sigTempFileUp_PDF.Get("T_2D_VBF_4_mZZ2_2").Clone("T_2D_VBF_4_mZZ2_2_PDFUp")
-        VBF_T_mZZ2_2_4_Down = sigTempFileDown_PDF.Get("T_2D_VBF_4_mZZ2_2").Clone("T_2D_VBF_4_mZZ2_2_PDFDown")
 
         integral_VBF_T_mZZ2_2_2 = VBF_T_mZZ2_2_2.Integral("width")
         integral_VBF_T_mZZ2_2_2_Up = VBF_T_mZZ2_2_2_Up.Integral("width")
@@ -367,6 +600,21 @@ class width_datacardClass:
         integral_VBF_T_mZZ2_2_4_Down = VBF_T_mZZ2_2_4_Down.Integral("width")
 
 
+        integral_Sig_T_mZZ2_2_2_OppositeDjet = Sig_T_mZZ2_2_2_OppositeDjet.Integral("width")
+        integral_Sig_T_mZZ2_2_2_Up_PDF_OppositeDjet = Sig_T_mZZ2_2_2_Up_PDF_OppositeDjet.Integral("width")
+        integral_Sig_T_mZZ2_2_2_Down_PDF_OppositeDjet = Sig_T_mZZ2_2_2_Down_PDF_OppositeDjet.Integral("width")
+        integral_Sig_T_mZZ2_2_2_Up_QCD_OppositeDjet = Sig_T_mZZ2_2_2_Up_QCD_OppositeDjet.Integral("width")
+        integral_Sig_T_mZZ2_2_2_Down_QCD_OppositeDjet = Sig_T_mZZ2_2_2_Down_QCD_OppositeDjet.Integral("width")
+
+        integral_VBF_T_mZZ2_2_2_OppositeDjet = VBF_T_mZZ2_2_2_OppositeDjet.Integral("width")
+        integral_VBF_T_mZZ2_2_2_Up_OppositeDjet = VBF_T_mZZ2_2_2_Up_OppositeDjet.Integral("width")
+        integral_VBF_T_mZZ2_2_2_Down_OppositeDjet = VBF_T_mZZ2_2_2_Down_OppositeDjet.Integral("width")
+
+        integral_VBF_T_mZZ2_2_4_OppositeDjet = VBF_T_mZZ2_2_4_OppositeDjet.Integral("width")
+        integral_VBF_T_mZZ2_2_4_Up_OppositeDjet = VBF_T_mZZ2_2_4_Up_OppositeDjet.Integral("width")
+        integral_VBF_T_mZZ2_2_4_Down_OppositeDjet = VBF_T_mZZ2_2_4_Down_OppositeDjet.Integral("width")
+
+
 # (mZZ/mH)**2**3 Terms
 
 
@@ -374,10 +622,18 @@ class width_datacardClass:
         VBF_T_mZZ2_3_2_Up = sigTempFileUp_PDF.Get("T_2D_VBF_1_mZZ2_3").Clone("T_2D_VBF_1_mZZ2_3_PDFUp")
         VBF_T_mZZ2_3_2_Down = sigTempFileDown_PDF.Get("T_2D_VBF_1_mZZ2_3").Clone("T_2D_VBF_1_mZZ2_3_PDFDown")
 
+        VBF_T_mZZ2_3_2_OppositeDjet = sigTempFileU_OppositeDjet.Get("T_2D_VBF_1_mZZ2_3").Clone("T_2D_VBF_1_mZZ2_3_Nominal_OppositeDjet")
+        VBF_T_mZZ2_3_2_Up_OppositeDjet = sigTempFileUp_PDF_OppositeDjet.Get("T_2D_VBF_1_mZZ2_3").Clone("T_2D_VBF_1_mZZ2_3_PDFUp_OppositeDjet")
+        VBF_T_mZZ2_3_2_Down_OppositeDjet = sigTempFileDown_PDF_OppositeDjet.Get("T_2D_VBF_1_mZZ2_3").Clone("T_2D_VBF_1_mZZ2_3_PDFDown_OppositeDjet")
+
+
         integral_VBF_T_mZZ2_3_2 = VBF_T_mZZ2_3_2.Integral("width")
         integral_VBF_T_mZZ2_3_2_Up = VBF_T_mZZ2_3_2_Up.Integral("width")
         integral_VBF_T_mZZ2_3_2_Down = VBF_T_mZZ2_3_2_Down.Integral("width")
 
+        integral_VBF_T_mZZ2_3_2_OppositeDjet = VBF_T_mZZ2_3_2_OppositeDjet.Integral("width")
+        integral_VBF_T_mZZ2_3_2_Up_OppositeDjet = VBF_T_mZZ2_3_2_Up_OppositeDjet.Integral("width")
+        integral_VBF_T_mZZ2_3_2_Down_OppositeDjet = VBF_T_mZZ2_3_2_Down_OppositeDjet.Integral("width")
 
 
 # (mZZ/mH)**2**4 Terms
@@ -387,10 +643,18 @@ class width_datacardClass:
         VBF_T_mZZ2_4_2_Up = sigTempFileUp_PDF.Get("T_2D_VBF_1_mZZ2_4").Clone("T_2D_VBF_1_mZZ2_4_PDFUp")
         VBF_T_mZZ2_4_2_Down = sigTempFileDown_PDF.Get("T_2D_VBF_1_mZZ2_4").Clone("T_2D_VBF_1_mZZ2_4_PDFDown")
 
+        VBF_T_mZZ2_4_2_OppositeDjet = sigTempFileU_OppositeDjet.Get("T_2D_VBF_1_mZZ2_4").Clone("T_2D_VBF_1_mZZ2_4_Nominal_OppositeDjet")
+        VBF_T_mZZ2_4_2_Up_OppositeDjet = sigTempFileUp_PDF_OppositeDjet.Get("T_2D_VBF_1_mZZ2_4").Clone("T_2D_VBF_1_mZZ2_4_PDFUp_OppositeDjet")
+        VBF_T_mZZ2_4_2_Down_OppositeDjet = sigTempFileDown_PDF_OppositeDjet.Get("T_2D_VBF_1_mZZ2_4").Clone("T_2D_VBF_1_mZZ2_4_PDFDown_OppositeDjet")
+
+
         integral_VBF_T_mZZ2_4_2 = VBF_T_mZZ2_4_2.Integral("width")
         integral_VBF_T_mZZ2_4_2_Up = VBF_T_mZZ2_4_2_Up.Integral("width")
         integral_VBF_T_mZZ2_4_2_Down = VBF_T_mZZ2_4_2_Down.Integral("width")
 
+        integral_VBF_T_mZZ2_4_2_OppositeDjet = VBF_T_mZZ2_4_2_OppositeDjet.Integral("width")
+        integral_VBF_T_mZZ2_4_2_Up_OppositeDjet = VBF_T_mZZ2_4_2_Up_OppositeDjet.Integral("width")
+        integral_VBF_T_mZZ2_4_2_Down_OppositeDjet = VBF_T_mZZ2_4_2_Down_OppositeDjet.Integral("width")
 
 
 #-------- BACKGROUND TEMPLATES ------------------
@@ -408,7 +672,8 @@ class width_datacardClass:
         rate_bkg_ggzz_Shape = integral_Sig_T_1 * self.lumi  # *2.3
         rate_interf_ggzz_Shape = integral_Sig_T_4 * self.lumi  # *2.3
 
-
+#----------- OWN-CATEGORY DJET ----------#
+        
         sigRateQCDUpName = "signal_ggZZQCDUprate_{0:.0f}_{1:.0f}_{2:.0f}".format(self.channel, self.sqrts, useDjet)
         bkgRateQCDUpName = "bkg_ggZZQCDUprate_{0:.0f}_{1:.0f}_{2:.0f}".format(self.channel, self.sqrts, useDjet)
         interfRateQCDUpName = "interf_ggZZQCDUprate_{0:.0f}_{1:.0f}_{2:.0f}".format(self.channel, self.sqrts, useDjet)
@@ -521,6 +786,123 @@ class width_datacardClass:
         sigRates_Nominal_mZZ2_2.setConstant(True)
 
 
+#------------ OPPOSITE DJET CATEGORY --------------#
+        
+
+        sigRateQCDUpName_OppositeDjet = "signal_ggZZQCDUp_OppositeDjet_rate_{0:.0f}_{1:.0f}_{2:.0f}".format(self.channel, self.sqrts, useDjet)
+        bkgRateQCDUpName_OppositeDjet = "bkg_ggZZQCDUp_OppositeDjet_rate_{0:.0f}_{1:.0f}_{2:.0f}".format(self.channel, self.sqrts, useDjet)
+        interfRateQCDUpName_OppositeDjet = "interf_ggZZQCDUp_OppositeDjet_rate_{0:.0f}_{1:.0f}_{2:.0f}".format(self.channel, self.sqrts, useDjet)
+        sigRates_QCDUp_OppositeDjet = ROOT.RooRealVar(sigRateQCDUpName_OppositeDjet, sigRateQCDUpName_OppositeDjet, integral_Sig_T_2_Up_QCD_OppositeDjet)
+        bkgRates_QCDUp_OppositeDjet = ROOT.RooRealVar(bkgRateQCDUpName_OppositeDjet, bkgRateQCDUpName_OppositeDjet, integral_Sig_T_1_Up_QCD_OppositeDjet)
+        interfRates_QCDUp_OppositeDjet = ROOT.RooRealVar(interfRateQCDUpName_OppositeDjet, interfRateQCDUpName_OppositeDjet, integral_Sig_T_4_Up_QCD_OppositeDjet)
+        sigRates_QCDUp_OppositeDjet.setConstant(True)
+        bkgRates_QCDUp_OppositeDjet.setConstant(True)
+        interfRates_QCDUp_OppositeDjet.setConstant(True)
+
+        sigRateQCDDownName_OppositeDjet = "signal_ggZZQCDDown_OppositeDjet_rate_{0:.0f}_{1:.0f}_{2:.0f}".format(self.channel, self.sqrts, useDjet)
+        bkgRateQCDDownName_OppositeDjet = "bkg_ggZZQCDDown_OppositeDjet_rate_{0:.0f}_{1:.0f}_{2:.0f}".format(self.channel, self.sqrts, useDjet)
+        interfRateQCDDownName_OppositeDjet = "interf_ggZZQCDDown_OppositeDjet_rate_{0:.0f}_{1:.0f}_{2:.0f}".format(self.channel, self.sqrts, useDjet)
+        sigRates_QCDDown_OppositeDjet = ROOT.RooRealVar(sigRateQCDDownName_OppositeDjet, sigRateQCDDownName_OppositeDjet, integral_Sig_T_2_Down_QCD_OppositeDjet)
+        bkgRates_QCDDown_OppositeDjet = ROOT.RooRealVar(bkgRateQCDDownName_OppositeDjet, bkgRateQCDDownName_OppositeDjet, integral_Sig_T_1_Down_QCD_OppositeDjet)
+        interfRates_QCDDown_OppositeDjet = ROOT.RooRealVar(interfRateQCDDownName_OppositeDjet, interfRateQCDDownName_OppositeDjet, integral_Sig_T_4_Down_QCD_OppositeDjet)
+        sigRates_QCDDown_OppositeDjet.setConstant(True)
+        bkgRates_QCDDown_OppositeDjet.setConstant(True)
+        interfRates_QCDDown_OppositeDjet.setConstant(True)
+
+        sigRatePDFUpName_OppositeDjet = "signal_ggZZPDFUp_OppositeDjet_rate_{0:.0f}_{1:.0f}_{2:.0f}".format(self.channel, self.sqrts, useDjet)
+        bkgRatePDFUpName_OppositeDjet = "bkg_ggZZPDFUp_OppositeDjet_rate_{0:.0f}_{1:.0f}_{2:.0f}".format(self.channel, self.sqrts, useDjet)
+        interfRatePDFUpName_OppositeDjet = "interf_ggZZPDFUp_OppositeDjet_rate_{0:.0f}_{1:.0f}_{2:.0f}".format(self.channel, self.sqrts, useDjet)
+        sigRates_PDFUp_OppositeDjet = ROOT.RooRealVar(sigRatePDFUpName_OppositeDjet, sigRatePDFUpName_OppositeDjet, integral_Sig_T_2_Up_PDF_OppositeDjet)
+        bkgRates_PDFUp_OppositeDjet = ROOT.RooRealVar(bkgRatePDFUpName_OppositeDjet, bkgRatePDFUpName_OppositeDjet, integral_Sig_T_1_Up_PDF_OppositeDjet)
+        interfRates_PDFUp_OppositeDjet = ROOT.RooRealVar(interfRatePDFUpName_OppositeDjet, interfRatePDFUpName_OppositeDjet, integral_Sig_T_4_Up_PDF_OppositeDjet)
+        sigRates_PDFUp_OppositeDjet.setConstant(True)
+        bkgRates_PDFUp_OppositeDjet.setConstant(True)
+        interfRates_PDFUp_OppositeDjet.setConstant(True)
+
+        sigRatePDFDownName_OppositeDjet = "signal_ggZZPDFDown_OppositeDjet_rate_{0:.0f}_{1:.0f}_{2:.0f}".format(self.channel, self.sqrts, useDjet)
+        bkgRatePDFDownName_OppositeDjet = "bkg_ggZZPDFDown_OppositeDjet_rate_{0:.0f}_{1:.0f}_{2:.0f}".format(self.channel, self.sqrts, useDjet)
+        interfRatePDFDownName_OppositeDjet = "interf_ggZZPDFDown_OppositeDjet_rate_{0:.0f}_{1:.0f}_{2:.0f}".format(self.channel, self.sqrts, useDjet)
+        sigRates_PDFDown_OppositeDjet = ROOT.RooRealVar(sigRatePDFDownName_OppositeDjet, sigRatePDFDownName_OppositeDjet, integral_Sig_T_2_Down_PDF_OppositeDjet)
+        bkgRates_PDFDown_OppositeDjet = ROOT.RooRealVar(bkgRatePDFDownName_OppositeDjet, bkgRatePDFDownName_OppositeDjet, integral_Sig_T_1_Down_PDF_OppositeDjet)
+        interfRates_PDFDown_OppositeDjet = ROOT.RooRealVar(interfRatePDFDownName_OppositeDjet, interfRatePDFDownName_OppositeDjet, integral_Sig_T_4_Down_PDF_OppositeDjet)
+        sigRates_PDFDown_OppositeDjet.setConstant(True)
+        bkgRates_PDFDown_OppositeDjet.setConstant(True)
+        interfRates_PDFDown_OppositeDjet.setConstant(True)
+
+        sigRateNominalName_OppositeDjet = "signal_ggZZNominal_OppositeDjet_rate_{0:.0f}_{1:.0f}_{2:.0f}".format(self.channel, self.sqrts, useDjet)
+        bkgRateNominalName_OppositeDjet = "bkg_ggZZNominal_OppositeDjet_rate_{0:.0f}_{1:.0f}_{2:.0f}".format(self.channel, self.sqrts, useDjet)
+        interfRateNominalName_OppositeDjet = "interf_ggZZNominal_OppositeDjet_rate_{0:.0f}_{1:.0f}_{2:.0f}".format(self.channel, self.sqrts, useDjet)
+        sigRates_Nominal_OppositeDjet = ROOT.RooRealVar(sigRateNominalName_OppositeDjet, sigRateNominalName_OppositeDjet, integral_Sig_T_2_OppositeDjet)
+        bkgRates_Nominal_OppositeDjet = ROOT.RooRealVar(bkgRateNominalName_OppositeDjet, bkgRateNominalName_OppositeDjet, integral_Sig_T_1_OppositeDjet)
+        interfRates_Nominal_OppositeDjet = ROOT.RooRealVar(interfRateNominalName_OppositeDjet, interfRateNominalName_OppositeDjet, integral_Sig_T_4_OppositeDjet)
+        sigRates_Nominal_OppositeDjet.setConstant(True)
+        bkgRates_Nominal_OppositeDjet.setConstant(True)
+        interfRates_Nominal_OppositeDjet.setConstant(True)
+
+
+# ggH mZZ/mH**2
+
+        sigRateQCDUp_mZZ2_1_Name_OppositeDjet = "signal_ggZZQCDUp_OppositeDjet_rate_mZZ2_1_{0:.0f}_{1:.0f}_{2:.0f}".format(self.channel, self.sqrts, useDjet)
+        interfRateQCDUp_mZZ2_1_Name_OppositeDjet = "interf_ggZZQCDUp_OppositeDjet_rate_mZZ2_1_{0:.0f}_{1:.0f}_{2:.0f}".format(self.channel, self.sqrts, useDjet)
+        sigRates_QCDUp_mZZ2_1_OppositeDjet = ROOT.RooRealVar(sigRateQCDUp_mZZ2_1_Name_OppositeDjet, sigRateQCDUp_mZZ2_1_Name_OppositeDjet, integral_Sig_T_mZZ2_1_2_Up_QCD_OppositeDjet)
+        interfRates_QCDUp_mZZ2_1_OppositeDjet = ROOT.RooRealVar(interfRateQCDUp_mZZ2_1_Name_OppositeDjet, interfRateQCDUp_mZZ2_1_Name_OppositeDjet, integral_Sig_T_mZZ2_1_4_Up_QCD_OppositeDjet)
+        sigRates_QCDUp_mZZ2_1_OppositeDjet.setConstant(True)
+        interfRates_QCDUp_mZZ2_1_OppositeDjet.setConstant(True)
+
+        sigRateQCDDown_mZZ2_1_Name_OppositeDjet = "signal_ggZZQCDDown_OppositeDjet_rate_mZZ2_1_{0:.0f}_{1:.0f}_{2:.0f}".format(self.channel, self.sqrts, useDjet)
+        interfRateQCDDown_mZZ2_1_Name_OppositeDjet = "interf_ggZZQCDDown_OppositeDjet_rate_mZZ2_1_{0:.0f}_{1:.0f}_{2:.0f}".format(self.channel, self.sqrts, useDjet)
+        sigRates_QCDDown_mZZ2_1_OppositeDjet = ROOT.RooRealVar(sigRateQCDDown_mZZ2_1_Name_OppositeDjet, sigRateQCDDown_mZZ2_1_Name_OppositeDjet, integral_Sig_T_mZZ2_1_2_Down_QCD_OppositeDjet)
+        interfRates_QCDDown_mZZ2_1_OppositeDjet = ROOT.RooRealVar(interfRateQCDDown_mZZ2_1_Name_OppositeDjet, interfRateQCDDown_mZZ2_1_Name_OppositeDjet, integral_Sig_T_mZZ2_1_4_Down_QCD_OppositeDjet)
+        sigRates_QCDDown_mZZ2_1_OppositeDjet.setConstant(True)
+        interfRates_QCDDown_mZZ2_1_OppositeDjet.setConstant(True)
+
+        sigRatePDFUp_mZZ2_1_Name_OppositeDjet = "signal_ggZZPDFUp_OppositeDjet_rate_mZZ2_1_{0:.0f}_{1:.0f}_{2:.0f}".format(self.channel, self.sqrts, useDjet)
+        interfRatePDFUp_mZZ2_1_Name_OppositeDjet = "interf_ggZZPDFUp_OppositeDjet_rate_mZZ2_1_{0:.0f}_{1:.0f}_{2:.0f}".format(self.channel, self.sqrts, useDjet)
+        sigRates_PDFUp_mZZ2_1_OppositeDjet = ROOT.RooRealVar(sigRatePDFUp_mZZ2_1_Name_OppositeDjet, sigRatePDFUp_mZZ2_1_Name_OppositeDjet, integral_Sig_T_mZZ2_1_2_Up_PDF_OppositeDjet)
+        interfRates_PDFUp_mZZ2_1_OppositeDjet = ROOT.RooRealVar(interfRatePDFUp_mZZ2_1_Name_OppositeDjet, interfRatePDFUp_mZZ2_1_Name_OppositeDjet, integral_Sig_T_mZZ2_1_4_Up_PDF_OppositeDjet)
+        sigRates_PDFUp_mZZ2_1_OppositeDjet.setConstant(True)
+        interfRates_PDFUp_mZZ2_1_OppositeDjet.setConstant(True)
+
+        sigRatePDFDown_mZZ2_1_Name_OppositeDjet = "signal_ggZZPDFDown_OppositeDjet_rate_mZZ2_1_{0:.0f}_{1:.0f}_{2:.0f}".format(self.channel, self.sqrts, useDjet)
+        interfRatePDFDown_mZZ2_1_Name_OppositeDjet = "interf_ggZZPDFDown_OppositeDjet_rate_mZZ2_1_{0:.0f}_{1:.0f}_{2:.0f}".format(self.channel, self.sqrts, useDjet)
+        sigRates_PDFDown_mZZ2_1_OppositeDjet = ROOT.RooRealVar(sigRatePDFDown_mZZ2_1_Name_OppositeDjet, sigRatePDFDown_mZZ2_1_Name_OppositeDjet, integral_Sig_T_mZZ2_1_2_Down_PDF_OppositeDjet)
+        interfRates_PDFDown_mZZ2_1_OppositeDjet = ROOT.RooRealVar(interfRatePDFDown_mZZ2_1_Name_OppositeDjet, interfRatePDFDown_mZZ2_1_Name_OppositeDjet, integral_Sig_T_mZZ2_1_4_Down_PDF_OppositeDjet)
+        sigRates_PDFDown_mZZ2_1_OppositeDjet.setConstant(True)
+        interfRates_PDFDown_mZZ2_1_OppositeDjet.setConstant(True)
+
+        sigRateNominal_mZZ2_1_Name_OppositeDjet = "signal_ggZZNominal_OppositeDjet_rate_mZZ2_1_{0:.0f}_{1:.0f}_{2:.0f}".format(self.channel, self.sqrts, useDjet)
+        interfRateNominal_mZZ2_1_Name_OppositeDjet = "interf_ggZZNominal_OppositeDjet_rate_mZZ2_1_{0:.0f}_{1:.0f}_{2:.0f}".format(self.channel, self.sqrts, useDjet)
+        sigRates_Nominal_mZZ2_1_OppositeDjet = ROOT.RooRealVar(sigRateNominal_mZZ2_1_Name_OppositeDjet, sigRateNominal_mZZ2_1_Name_OppositeDjet, integral_Sig_T_mZZ2_1_2_OppositeDjet)
+        interfRates_Nominal_mZZ2_1_OppositeDjet = ROOT.RooRealVar(interfRateNominal_mZZ2_1_Name_OppositeDjet, interfRateNominal_mZZ2_1_Name_OppositeDjet, integral_Sig_T_mZZ2_1_4_OppositeDjet)
+        sigRates_Nominal_mZZ2_1_OppositeDjet.setConstant(True)
+        interfRates_Nominal_mZZ2_1_OppositeDjet.setConstant(True)
+
+
+# ggH mZZ/mH**2**2
+
+        sigRateQCDUp_mZZ2_2_Name_OppositeDjet = "signal_ggZZQCDUp_OppositeDjet_rate_mZZ2_2_{0:.0f}_{1:.0f}_{2:.0f}".format(self.channel, self.sqrts, useDjet)
+        sigRates_QCDUp_mZZ2_2_OppositeDjet = ROOT.RooRealVar(sigRateQCDUp_mZZ2_2_Name_OppositeDjet, sigRateQCDUp_mZZ2_2_Name_OppositeDjet, integral_Sig_T_mZZ2_2_2_Up_QCD_OppositeDjet)
+        sigRates_QCDUp_mZZ2_2_OppositeDjet.setConstant(True)
+
+        sigRateQCDDown_mZZ2_2_Name_OppositeDjet = "signal_ggZZQCDDown_OppositeDjet_rate_mZZ2_2_{0:.0f}_{1:.0f}_{2:.0f}".format(self.channel, self.sqrts, useDjet)
+        sigRates_QCDDown_mZZ2_2_OppositeDjet = ROOT.RooRealVar(sigRateQCDDown_mZZ2_2_Name_OppositeDjet, sigRateQCDDown_mZZ2_2_Name_OppositeDjet, integral_Sig_T_mZZ2_2_2_Down_QCD_OppositeDjet)
+        sigRates_QCDDown_mZZ2_2_OppositeDjet.setConstant(True)
+
+        sigRatePDFUp_mZZ2_2_Name_OppositeDjet = "signal_ggZZPDFUp_OppositeDjet_rate_mZZ2_2_{0:.0f}_{1:.0f}_{2:.0f}".format(self.channel, self.sqrts, useDjet)
+        sigRates_PDFUp_mZZ2_2_OppositeDjet = ROOT.RooRealVar(sigRatePDFUp_mZZ2_2_Name_OppositeDjet, sigRatePDFUp_mZZ2_2_Name_OppositeDjet, integral_Sig_T_mZZ2_2_2_Up_PDF_OppositeDjet)
+        sigRates_PDFUp_mZZ2_2_OppositeDjet.setConstant(True)
+
+        sigRatePDFDown_mZZ2_2_Name_OppositeDjet = "signal_ggZZPDFDown_OppositeDjet_rate_mZZ2_2_{0:.0f}_{1:.0f}_{2:.0f}".format(self.channel, self.sqrts, useDjet)
+        sigRates_PDFDown_mZZ2_2_OppositeDjet = ROOT.RooRealVar(sigRatePDFDown_mZZ2_2_Name_OppositeDjet, sigRatePDFDown_mZZ2_2_Name_OppositeDjet, integral_Sig_T_mZZ2_2_2_Down_PDF_OppositeDjet)
+        sigRates_PDFDown_mZZ2_2_OppositeDjet.setConstant(True)
+
+        sigRateNominal_mZZ2_2_Name_OppositeDjet = "signal_ggZZNominal_OppositeDjet_rate_mZZ2_2_{0:.0f}_{1:.0f}_{2:.0f}".format(self.channel, self.sqrts, useDjet)
+        sigRates_Nominal_mZZ2_2_OppositeDjet = ROOT.RooRealVar(sigRateNominal_mZZ2_2_Name_OppositeDjet, sigRateNominal_mZZ2_2_Name_OppositeDjet, integral_Sig_T_mZZ2_2_2_OppositeDjet)
+        sigRates_Nominal_mZZ2_2_OppositeDjet.setConstant(True)
+
+#---------------------------------------------------#        
+
+
 # ggH anomalous coupling rate parameterizations
 
         sigRates_Nominal_AnomCoupl_Name = "signal_ggZZNominalrate_AnomCoupl_{0:.0f}_{1:.0f}_{2:.0f}".format(self.channel, self.sqrts, useDjet)
@@ -587,31 +969,359 @@ class width_datacardClass:
             "( sqrt(1-abs(@2))*@0 + sign(@2)*sqrt(abs(@2))*@1 )",
             ROOT.RooArgList(interfRates_PDFDown, interfRates_PDFDown_mZZ2_1, fai1)
             )
+        
+
+
+        sigRates_Nominal_AnomCoupl_Name_OppositeDjet = "signal_ggZZNominalrate_AnomCoupl_OppositeDjet_{0:.0f}_{1:.0f}_{2:.0f}".format(self.channel, self.sqrts, useDjet)
+        sigRates_Nominal_AnomCoupl_OppositeDjet = ROOT.RooFormulaVar(
+            sigRates_Nominal_AnomCoupl_Name_OppositeDjet,
+            "( (1-abs(@3))*@0 + sign(@3)*sqrt(abs(@3)*(1-abs(@3)))*@1 + abs(@3)*@2 )",
+            ROOT.RooArgList(sigRates_Nominal_OppositeDjet, sigRates_Nominal_mZZ2_1_OppositeDjet, sigRates_Nominal_mZZ2_2_OppositeDjet, fai1)
+            )
+        interfRates_Nominal_AnomCoupl_Name_OppositeDjet = "interf_ggZZNominalrate_AnomCoupl_OppositeDjet_{0:.0f}_{1:.0f}_{2:.0f}".format(self.channel, self.sqrts, useDjet)
+        interfRates_Nominal_AnomCoupl_OppositeDjet = ROOT.RooFormulaVar(
+            interfRates_Nominal_AnomCoupl_Name_OppositeDjet,
+            "( sqrt(1-abs(@2))*@0 + sign(@2)*sqrt(abs(@2))*@1 )",
+            ROOT.RooArgList(interfRates_Nominal_OppositeDjet, interfRates_Nominal_mZZ2_1_OppositeDjet, fai1)
+            )
+
+        sigRates_QCDUp_AnomCoupl_Name_OppositeDjet = "signal_ggZZQCDUprate_AnomCoupl_OppositeDjet_{0:.0f}_{1:.0f}_{2:.0f}".format(self.channel, self.sqrts, useDjet)
+        sigRates_QCDUp_AnomCoupl_OppositeDjet = ROOT.RooFormulaVar(
+            sigRates_QCDUp_AnomCoupl_Name_OppositeDjet,
+            "( (1-abs(@3))*@0 + sign(@3)*sqrt(abs(@3)*(1-abs(@3)))*@1 + abs(@3)*@2 )",
+            ROOT.RooArgList(sigRates_QCDUp_OppositeDjet, sigRates_QCDUp_mZZ2_1_OppositeDjet, sigRates_QCDUp_mZZ2_2_OppositeDjet, fai1)
+            )
+        interfRates_QCDUp_AnomCoupl_Name_OppositeDjet = "interf_ggZZQCDUprate_AnomCoupl_OppositeDjet_{0:.0f}_{1:.0f}_{2:.0f}".format(self.channel, self.sqrts, useDjet)
+        interfRates_QCDUp_AnomCoupl_OppositeDjet = ROOT.RooFormulaVar(
+            interfRates_QCDUp_AnomCoupl_Name_OppositeDjet,
+            "( sqrt(1-abs(@2))*@0 + sign(@2)*sqrt(abs(@2))*@1 )",
+            ROOT.RooArgList(interfRates_QCDUp_OppositeDjet, interfRates_QCDUp_mZZ2_1_OppositeDjet, fai1)
+            )
+
+        sigRates_QCDDown_AnomCoupl_Name_OppositeDjet = "signal_ggZZQCDDownrate_AnomCoupl_OppositeDjet_{0:.0f}_{1:.0f}_{2:.0f}".format(self.channel, self.sqrts, useDjet)
+        sigRates_QCDDown_AnomCoupl_OppositeDjet = ROOT.RooFormulaVar(
+            sigRates_QCDDown_AnomCoupl_Name_OppositeDjet,
+            "( (1-abs(@3))*@0 + sign(@3)*sqrt(abs(@3)*(1-abs(@3)))*@1 + abs(@3)*@2 )",
+            ROOT.RooArgList(sigRates_QCDDown_OppositeDjet, sigRates_QCDDown_mZZ2_1_OppositeDjet, sigRates_QCDDown_mZZ2_2_OppositeDjet, fai1)
+            )
+        interfRates_QCDDown_AnomCoupl_Name_OppositeDjet = "interf_ggZZQCDDownrate_AnomCoupl_OppositeDjet_{0:.0f}_{1:.0f}_{2:.0f}".format(self.channel, self.sqrts, useDjet)
+        interfRates_QCDDown_AnomCoupl_OppositeDjet = ROOT.RooFormulaVar(
+            interfRates_QCDDown_AnomCoupl_Name_OppositeDjet,
+            "( sqrt(1-abs(@2))*@0 + sign(@2)*sqrt(abs(@2))*@1 )",
+            ROOT.RooArgList(interfRates_QCDDown_OppositeDjet, interfRates_QCDDown_mZZ2_1_OppositeDjet, fai1)
+            )
+
+        sigRates_PDFUp_AnomCoupl_Name_OppositeDjet = "signal_ggZZPDFUprate_AnomCoupl_OppositeDjet_{0:.0f}_{1:.0f}_{2:.0f}".format(self.channel, self.sqrts, useDjet)
+        sigRates_PDFUp_AnomCoupl_OppositeDjet = ROOT.RooFormulaVar(
+            sigRates_PDFUp_AnomCoupl_Name_OppositeDjet,
+            "( (1-abs(@3))*@0 + sign(@3)*sqrt(abs(@3)*(1-abs(@3)))*@1 + abs(@3)*@2 )",
+            ROOT.RooArgList(sigRates_PDFUp_OppositeDjet, sigRates_PDFUp_mZZ2_1_OppositeDjet, sigRates_PDFUp_mZZ2_2_OppositeDjet, fai1)
+            )
+        interfRates_PDFUp_AnomCoupl_Name_OppositeDjet = "interf_ggZZPDFUprate_AnomCoupl_OppositeDjet_{0:.0f}_{1:.0f}_{2:.0f}".format(self.channel, self.sqrts, useDjet)
+        interfRates_PDFUp_AnomCoupl_OppositeDjet = ROOT.RooFormulaVar(
+            interfRates_PDFUp_AnomCoupl_Name_OppositeDjet,
+            "( sqrt(1-abs(@2))*@0 + sign(@2)*sqrt(abs(@2))*@1 )",
+            ROOT.RooArgList(interfRates_PDFUp_OppositeDjet, interfRates_PDFUp_mZZ2_1_OppositeDjet, fai1)
+            )
+
+        sigRates_PDFDown_AnomCoupl_Name_OppositeDjet = "signal_ggZZPDFDownrate_AnomCoupl_OppositeDjet_{0:.0f}_{1:.0f}_{2:.0f}".format(self.channel, self.sqrts, useDjet)
+        sigRates_PDFDown_AnomCoupl_OppositeDjet = ROOT.RooFormulaVar(
+            sigRates_PDFDown_AnomCoupl_Name_OppositeDjet,
+            "( (1-abs(@3))*@0 + sign(@3)*sqrt(abs(@3)*(1-abs(@3)))*@1 + abs(@3)*@2 )",
+            ROOT.RooArgList(sigRates_PDFDown_OppositeDjet, sigRates_PDFDown_mZZ2_1_OppositeDjet, sigRates_PDFDown_mZZ2_2_OppositeDjet, fai1)
+            )
+        interfRates_PDFDown_AnomCoupl_Name_OppositeDjet = "interf_ggZZPDFDownrate_AnomCoupl_OppositeDjet_{0:.0f}_{1:.0f}_{2:.0f}".format(self.channel, self.sqrts, useDjet)
+        interfRates_PDFDown_AnomCoupl_OppositeDjet = ROOT.RooFormulaVar(
+            interfRates_PDFDown_AnomCoupl_Name_OppositeDjet,
+            "( sqrt(1-abs(@2))*@0 + sign(@2)*sqrt(abs(@2))*@1 )",
+            ROOT.RooArgList(interfRates_PDFDown_OppositeDjet, interfRates_PDFDown_mZZ2_1_OppositeDjet, fai1)
+            )
+
+
+#------- Combined ggZZ Djet ----------------#
+
+        sigRates_Nominal_AnomCoupl_CombinedJet_Name = "signal_ggZZNominal_CombinedJet_rate_AnomCoupl_{0:.0f}_{1:.0f}_{2:.0f}".format(self.channel, self.sqrts, useDjet)
+        interfRates_Nominal_AnomCoupl_CombinedJet_Name = "interf_ggZZNominal_CombinedJet_rate_AnomCoupl_{0:.0f}_{1:.0f}_{2:.0f}".format(self.channel, self.sqrts, useDjet)
+        bkgRateNominalName_CombinedDjet = "bkg_ggZZNominal_CombinedDjet_rate_{0:.0f}_{1:.0f}_{2:.0f}".format(self.channel, self.sqrts, useDjet)
+        sigRates_Nominal_AnomCoupl_CombinedJet = ROOT.RooFormulaVar(
+            sigRates_Nominal_AnomCoupl_CombinedJet_Name,
+            "( @0 )",
+            ROOT.RooArgList(sigRates_Nominal_AnomCoupl)
+            )
+        interfRates_Nominal_AnomCoupl_CombinedJet = ROOT.RooFormulaVar(
+            interfRates_Nominal_AnomCoupl_CombinedJet_Name,
+            "( @0 )",
+            ROOT.RooArgList(interfRates_Nominal_AnomCoupl)
+            )
+        bkgRates_Nominal_CombinedJet = ROOT.RooFormulaVar(
+            bkgRateNominalName_CombinedDjet,
+            "( @0 )",
+            ROOT.RooArgList(bkgRates_Nominal)
+            )
+        if useDjet == 1:
+            sigRates_Nominal_AnomCoupl_CombinedJet = ROOT.RooFormulaVar(
+                sigRates_Nominal_AnomCoupl_CombinedJet_Name,
+                "( @0 + ( TMath::Max(@2,0) -1)*@1 )",
+                ROOT.RooArgList(sigRates_Nominal_AnomCoupl, sigRates_Nominal_AnomCoupl_OppositeDjet, thetaSyst_djet_ggZZ_norm)
+                )
+            interfRates_Nominal_AnomCoupl_CombinedJet = ROOT.RooFormulaVar(
+                interfRates_Nominal_AnomCoupl_CombinedJet_Name,
+                "( @0 + ( TMath::Max(@2,0) -1)*@1 )",
+                ROOT.RooArgList(interfRates_Nominal_AnomCoupl, interfRates_Nominal_AnomCoupl_OppositeDjet, thetaSyst_djet_ggZZ_norm)
+                )
+            bkgRates_Nominal_CombinedJet = ROOT.RooFormulaVar(
+                bkgRateNominalName_CombinedDjet,
+                "( @0 + ( TMath::Max(@2,0) -1)*@1 )",
+                ROOT.RooArgList(bkgRates_Nominal, bkgRates_Nominal_OppositeDjet, thetaSyst_djet_ggZZ_norm)
+                )
+        if useDjet == 2:
+            sigRates_Nominal_AnomCoupl_CombinedJet = ROOT.RooFormulaVar(
+                sigRates_Nominal_AnomCoupl_CombinedJet_Name,
+                "( @0*TMath::Max(@1,0) )",
+                ROOT.RooArgList(sigRates_Nominal_AnomCoupl, thetaSyst_djet_ggZZ_norm)
+                )
+            interfRates_Nominal_AnomCoupl_CombinedJet = ROOT.RooFormulaVar(
+                interfRates_Nominal_AnomCoupl_CombinedJet_Name,
+                "( @0*TMath::Max(@1,0) )",
+                ROOT.RooArgList(interfRates_Nominal_AnomCoupl, thetaSyst_djet_ggZZ_norm)
+                )
+            bkgRates_Nominal_CombinedJet = ROOT.RooFormulaVar(
+                bkgRateNominalName_CombinedDjet,
+                "( @0*TMath::Max(@1,0) )",
+                ROOT.RooArgList(bkgRates_Nominal, thetaSyst_djet_ggZZ_norm)
+                )
+
+        sigRates_QCDUp_AnomCoupl_CombinedJet_Name = "signal_ggZZQCDUp_CombinedJet_rate_AnomCoupl_{0:.0f}_{1:.0f}_{2:.0f}".format(self.channel, self.sqrts, useDjet)
+        interfRates_QCDUp_AnomCoupl_CombinedJet_Name = "interf_ggZZQCDUp_CombinedJet_rate_AnomCoupl_{0:.0f}_{1:.0f}_{2:.0f}".format(self.channel, self.sqrts, useDjet)
+        bkgRateQCDUpName_CombinedDjet = "bkg_ggZZQCDUp_CombinedDjet_rate_{0:.0f}_{1:.0f}_{2:.0f}".format(self.channel, self.sqrts, useDjet)
+        sigRates_QCDUp_AnomCoupl_CombinedJet = ROOT.RooFormulaVar(
+            sigRates_QCDUp_AnomCoupl_CombinedJet_Name,
+            "( @0 )",
+            ROOT.RooArgList(sigRates_QCDUp_AnomCoupl)
+            )
+        interfRates_QCDUp_AnomCoupl_CombinedJet = ROOT.RooFormulaVar(
+            interfRates_QCDUp_AnomCoupl_CombinedJet_Name,
+            "( @0 )",
+            ROOT.RooArgList(interfRates_QCDUp_AnomCoupl)
+            )
+        bkgRates_QCDUp_CombinedJet = ROOT.RooFormulaVar(
+            bkgRateQCDUpName_CombinedDjet,
+            "( @0 )",
+            ROOT.RooArgList(bkgRates_QCDUp)
+            )
+        if useDjet == 1:
+            sigRates_QCDUp_AnomCoupl_CombinedJet = ROOT.RooFormulaVar(
+                sigRates_QCDUp_AnomCoupl_CombinedJet_Name,
+                "( @0 + ( TMath::Max(@2,0) -1)*@1 )",
+                ROOT.RooArgList(sigRates_QCDUp_AnomCoupl, sigRates_QCDUp_AnomCoupl_OppositeDjet, thetaSyst_djet_ggZZ_norm)
+                )
+            interfRates_QCDUp_AnomCoupl_CombinedJet = ROOT.RooFormulaVar(
+                interfRates_QCDUp_AnomCoupl_CombinedJet_Name,
+                "( @0 + ( TMath::Max(@2,0) -1)*@1 )",
+                ROOT.RooArgList(interfRates_QCDUp_AnomCoupl, interfRates_QCDUp_AnomCoupl_OppositeDjet, thetaSyst_djet_ggZZ_norm)
+                )
+            bkgRates_QCDUp_CombinedJet = ROOT.RooFormulaVar(
+                bkgRateQCDUpName_CombinedDjet,
+                "( @0 + ( TMath::Max(@2,0) -1)*@1 )",
+                ROOT.RooArgList(bkgRates_QCDUp, bkgRates_QCDUp_OppositeDjet, thetaSyst_djet_ggZZ_norm)
+                )
+        if useDjet == 2:
+            sigRates_QCDUp_AnomCoupl_CombinedJet = ROOT.RooFormulaVar(
+                sigRates_QCDUp_AnomCoupl_CombinedJet_Name,
+                "( @0*TMath::Max(@1,0) )",
+                ROOT.RooArgList(sigRates_QCDUp_AnomCoupl, thetaSyst_djet_ggZZ_norm)
+                )
+            interfRates_QCDUp_AnomCoupl_CombinedJet = ROOT.RooFormulaVar(
+                interfRates_QCDUp_AnomCoupl_CombinedJet_Name,
+                "( @0*TMath::Max(@1,0) )",
+                ROOT.RooArgList(interfRates_QCDUp_AnomCoupl, thetaSyst_djet_ggZZ_norm)
+                )
+            bkgRates_QCDUp_CombinedJet = ROOT.RooFormulaVar(
+                bkgRateQCDUpName_CombinedDjet,
+                "( @0*TMath::Max(@1,0) )",
+                ROOT.RooArgList(bkgRates_QCDUp, thetaSyst_djet_ggZZ_norm)
+                )
+
+        sigRates_QCDDown_AnomCoupl_CombinedJet_Name = "signal_ggZZQCDDown_CombinedJet_rate_AnomCoupl_{0:.0f}_{1:.0f}_{2:.0f}".format(self.channel, self.sqrts, useDjet)
+        interfRates_QCDDown_AnomCoupl_CombinedJet_Name = "interf_ggZZQCDDown_CombinedJet_rate_AnomCoupl_{0:.0f}_{1:.0f}_{2:.0f}".format(self.channel, self.sqrts, useDjet)
+        bkgRateQCDDownName_CombinedDjet = "bkg_ggZZQCDDown_CombinedDjet_rate_{0:.0f}_{1:.0f}_{2:.0f}".format(self.channel, self.sqrts, useDjet)
+        sigRates_QCDDown_AnomCoupl_CombinedJet = ROOT.RooFormulaVar(
+            sigRates_QCDDown_AnomCoupl_CombinedJet_Name,
+            "( @0 )",
+            ROOT.RooArgList(sigRates_QCDDown_AnomCoupl)
+            )
+        interfRates_QCDDown_AnomCoupl_CombinedJet = ROOT.RooFormulaVar(
+            interfRates_QCDDown_AnomCoupl_CombinedJet_Name,
+            "( @0 )",
+            ROOT.RooArgList(interfRates_QCDDown_AnomCoupl)
+            )
+        bkgRates_QCDDown_CombinedJet = ROOT.RooFormulaVar(
+            bkgRateQCDDownName_CombinedDjet,
+            "( @0 )",
+            ROOT.RooArgList(bkgRates_QCDDown)
+            )
+        if useDjet == 1:
+            sigRates_QCDDown_AnomCoupl_CombinedJet = ROOT.RooFormulaVar(
+                sigRates_QCDDown_AnomCoupl_CombinedJet_Name,
+                "( @0 + ( TMath::Max(@2,0) -1)*@1 )",
+                ROOT.RooArgList(sigRates_QCDDown_AnomCoupl, sigRates_QCDDown_AnomCoupl_OppositeDjet, thetaSyst_djet_ggZZ_norm)
+                )
+            interfRates_QCDDown_AnomCoupl_CombinedJet = ROOT.RooFormulaVar(
+                interfRates_QCDDown_AnomCoupl_CombinedJet_Name,
+                "( @0 + ( TMath::Max(@2,0) -1)*@1 )",
+                ROOT.RooArgList(interfRates_QCDDown_AnomCoupl, interfRates_QCDDown_AnomCoupl_OppositeDjet, thetaSyst_djet_ggZZ_norm)
+                )
+            bkgRates_QCDDown_CombinedJet = ROOT.RooFormulaVar(
+                bkgRateQCDDownName_CombinedDjet,
+                "( @0 + ( TMath::Max(@2,0) -1)*@1 )",
+                ROOT.RooArgList(bkgRates_QCDDown, bkgRates_QCDDown_OppositeDjet, thetaSyst_djet_ggZZ_norm)
+                )
+        if useDjet == 2:
+            sigRates_QCDDown_AnomCoupl_CombinedJet = ROOT.RooFormulaVar(
+                sigRates_QCDDown_AnomCoupl_CombinedJet_Name,
+                "( @0*TMath::Max(@1,0) )",
+                ROOT.RooArgList(sigRates_QCDDown_AnomCoupl, thetaSyst_djet_ggZZ_norm)
+                )
+            interfRates_QCDDown_AnomCoupl_CombinedJet = ROOT.RooFormulaVar(
+                interfRates_QCDDown_AnomCoupl_CombinedJet_Name,
+                "( @0*TMath::Max(@1,0) )",
+                ROOT.RooArgList(interfRates_QCDDown_AnomCoupl, thetaSyst_djet_ggZZ_norm)
+                )
+            bkgRates_QCDDown_CombinedJet = ROOT.RooFormulaVar(
+                bkgRateQCDDownName_CombinedDjet,
+                "( @0*TMath::Max(@1,0) )",
+                ROOT.RooArgList(bkgRates_QCDDown, thetaSyst_djet_ggZZ_norm)
+                )
+
+
+        sigRates_PDFUp_AnomCoupl_CombinedJet_Name = "signal_ggZZPDFUp_CombinedJet_rate_AnomCoupl_{0:.0f}_{1:.0f}_{2:.0f}".format(self.channel, self.sqrts, useDjet)
+        interfRates_PDFUp_AnomCoupl_CombinedJet_Name = "interf_ggZZPDFUp_CombinedJet_rate_AnomCoupl_{0:.0f}_{1:.0f}_{2:.0f}".format(self.channel, self.sqrts, useDjet)
+        bkgRatePDFUpName_CombinedDjet = "bkg_ggZZPDFUp_CombinedDjet_rate_{0:.0f}_{1:.0f}_{2:.0f}".format(self.channel, self.sqrts, useDjet)
+        sigRates_PDFUp_AnomCoupl_CombinedJet = ROOT.RooFormulaVar(
+            sigRates_PDFUp_AnomCoupl_CombinedJet_Name,
+            "( @0 )",
+            ROOT.RooArgList(sigRates_PDFUp_AnomCoupl)
+            )
+        interfRates_PDFUp_AnomCoupl_CombinedJet = ROOT.RooFormulaVar(
+            interfRates_PDFUp_AnomCoupl_CombinedJet_Name,
+            "( @0 )",
+            ROOT.RooArgList(interfRates_PDFUp_AnomCoupl)
+            )
+        bkgRates_PDFUp_CombinedJet = ROOT.RooFormulaVar(
+            bkgRatePDFUpName_CombinedDjet,
+            "( @0 )",
+            ROOT.RooArgList(bkgRates_PDFUp)
+            )
+        if useDjet == 1:
+            sigRates_PDFUp_AnomCoupl_CombinedJet = ROOT.RooFormulaVar(
+                sigRates_PDFUp_AnomCoupl_CombinedJet_Name,
+                "( @0 + ( TMath::Max(@2,0) -1)*@1 )",
+                ROOT.RooArgList(sigRates_PDFUp_AnomCoupl, sigRates_PDFUp_AnomCoupl_OppositeDjet, thetaSyst_djet_ggZZ_norm)
+                )
+            interfRates_PDFUp_AnomCoupl_CombinedJet = ROOT.RooFormulaVar(
+                interfRates_PDFUp_AnomCoupl_CombinedJet_Name,
+                "( @0 + ( TMath::Max(@2,0) -1)*@1 )",
+                ROOT.RooArgList(interfRates_PDFUp_AnomCoupl, interfRates_PDFUp_AnomCoupl_OppositeDjet, thetaSyst_djet_ggZZ_norm)
+                )
+            bkgRates_PDFUp_CombinedJet = ROOT.RooFormulaVar(
+                bkgRatePDFUpName_CombinedDjet,
+                "( @0 + ( TMath::Max(@2,0) -1)*@1 )",
+                ROOT.RooArgList(bkgRates_PDFUp, bkgRates_PDFUp_OppositeDjet, thetaSyst_djet_ggZZ_norm)
+                )
+        if useDjet == 2:
+            sigRates_PDFUp_AnomCoupl_CombinedJet = ROOT.RooFormulaVar(
+                sigRates_PDFUp_AnomCoupl_CombinedJet_Name,
+                "( @0*TMath::Max(@1,0) )",
+                ROOT.RooArgList(sigRates_PDFUp_AnomCoupl, thetaSyst_djet_ggZZ_norm)
+                )
+            interfRates_PDFUp_AnomCoupl_CombinedJet = ROOT.RooFormulaVar(
+                interfRates_PDFUp_AnomCoupl_CombinedJet_Name,
+                "( @0*TMath::Max(@1,0) )",
+                ROOT.RooArgList(interfRates_PDFUp_AnomCoupl, thetaSyst_djet_ggZZ_norm)
+                )
+            bkgRates_PDFUp_CombinedJet = ROOT.RooFormulaVar(
+                bkgRatePDFUpName_CombinedDjet,
+                "( @0*TMath::Max(@1,0) )",
+                ROOT.RooArgList(bkgRates_PDFUp, thetaSyst_djet_ggZZ_norm)
+                )
+
+        sigRates_PDFDown_AnomCoupl_CombinedJet_Name = "signal_ggZZPDFDown_CombinedJet_rate_AnomCoupl_{0:.0f}_{1:.0f}_{2:.0f}".format(self.channel, self.sqrts, useDjet)
+        interfRates_PDFDown_AnomCoupl_CombinedJet_Name = "interf_ggZZPDFDown_CombinedJet_rate_AnomCoupl_{0:.0f}_{1:.0f}_{2:.0f}".format(self.channel, self.sqrts, useDjet)
+        bkgRatePDFDownName_CombinedDjet = "bkg_ggZZPDFDown_CombinedDjet_rate_{0:.0f}_{1:.0f}_{2:.0f}".format(self.channel, self.sqrts, useDjet)
+        sigRates_PDFDown_AnomCoupl_CombinedJet = ROOT.RooFormulaVar(
+            sigRates_PDFDown_AnomCoupl_CombinedJet_Name,
+            "( @0 )",
+            ROOT.RooArgList(sigRates_PDFDown_AnomCoupl)
+            )
+        interfRates_PDFDown_AnomCoupl_CombinedJet = ROOT.RooFormulaVar(
+            interfRates_PDFDown_AnomCoupl_CombinedJet_Name,
+            "( @0 )",
+            ROOT.RooArgList(interfRates_PDFDown_AnomCoupl)
+            )
+        bkgRates_PDFDown_CombinedJet = ROOT.RooFormulaVar(
+            bkgRatePDFDownName_CombinedDjet,
+            "( @0 )",
+            ROOT.RooArgList(bkgRates_PDFDown)
+            )
+        if useDjet == 1:
+            sigRates_PDFDown_AnomCoupl_CombinedJet = ROOT.RooFormulaVar(
+                sigRates_PDFDown_AnomCoupl_CombinedJet_Name,
+                "( @0 + ( TMath::Max(@2,0) -1)*@1 )",
+                ROOT.RooArgList(sigRates_PDFDown_AnomCoupl, sigRates_PDFDown_AnomCoupl_OppositeDjet, thetaSyst_djet_ggZZ_norm)
+                )
+            interfRates_PDFDown_AnomCoupl_CombinedJet = ROOT.RooFormulaVar(
+                interfRates_PDFDown_AnomCoupl_CombinedJet_Name,
+                "( @0 + ( TMath::Max(@2,0) -1)*@1 )",
+                ROOT.RooArgList(interfRates_PDFDown_AnomCoupl, interfRates_PDFDown_AnomCoupl_OppositeDjet, thetaSyst_djet_ggZZ_norm)
+                )
+            bkgRates_PDFDown_CombinedJet = ROOT.RooFormulaVar(
+                bkgRatePDFDownName_CombinedDjet,
+                "( @0 + ( TMath::Max(@2,0) -1)*@1 )",
+                ROOT.RooArgList(bkgRates_PDFDown, bkgRates_PDFDown_OppositeDjet, thetaSyst_djet_ggZZ_norm)
+                )
+        if useDjet == 2:
+            sigRates_PDFDown_AnomCoupl_CombinedJet = ROOT.RooFormulaVar(
+                sigRates_PDFDown_AnomCoupl_CombinedJet_Name,
+                "( @0*TMath::Max(@1,0) )",
+                ROOT.RooArgList(sigRates_PDFDown_AnomCoupl, thetaSyst_djet_ggZZ_norm)
+                )
+            interfRates_PDFDown_AnomCoupl_CombinedJet = ROOT.RooFormulaVar(
+                interfRates_PDFDown_AnomCoupl_CombinedJet_Name,
+                "( @0*TMath::Max(@1,0) )",
+                ROOT.RooArgList(interfRates_PDFDown_AnomCoupl, thetaSyst_djet_ggZZ_norm)
+                )
+            bkgRates_PDFDown_CombinedJet = ROOT.RooFormulaVar(
+                bkgRatePDFDownName_CombinedDjet,
+                "( @0*TMath::Max(@1,0) )",
+                ROOT.RooArgList(bkgRates_PDFDown, thetaSyst_djet_ggZZ_norm)
+                )
+
+        
 
         ggZZVarNorm_Name = "ggZZVarNominalNorm_{0:.0f}_{1:.0f}_{2:.0f}".format(self.channel, self.sqrts, useDjet)
         ggZZNominal_norm = ROOT.RooFormulaVar(
-            ggZZVarNorm_Name, "(@0*@3*@6*@4+@1*sqrt(@3*@6*@4)*sign(@5)*sqrt(abs(@5))+@2*@5)",
-            ROOT.RooArgList(sigRates_Nominal_AnomCoupl, interfRates_Nominal_AnomCoupl, bkgRates_Nominal, x, mu, kbkg, muF)
+            ggZZVarNorm_Name, "(@0*@3*@6*@4+@1*sqrt(@3*@6*@4)*sign(@5)*sqrt(abs(@5))+@2*abs(@5))",
+            ROOT.RooArgList(sigRates_Nominal_AnomCoupl_CombinedJet, interfRates_Nominal_AnomCoupl_CombinedJet, bkgRates_Nominal_CombinedJet, x, mu, kbkg, muF)
             )
         ggZZVarNormQCDUp_Name = "ggZZVarQCDUpNorm_{0:.0f}_{1:.0f}_{2:.0f}".format(self.channel, self.sqrts, useDjet)
         ggZZQCDUp_norm = ROOT.RooFormulaVar(
-            ggZZVarNormQCDUp_Name, "(@0*@3*@6*@4+@1*sqrt(@3*@6*@4)*sign(@5)*sqrt(abs(@5))+@2*@5)",
-            ROOT.RooArgList(sigRates_QCDUp_AnomCoupl, interfRates_QCDUp_AnomCoupl, bkgRates_QCDUp, x, mu, kbkg, muF)
+            ggZZVarNormQCDUp_Name, "(@0*@3*@6*@4+@1*sqrt(@3*@6*@4)*sign(@5)*sqrt(abs(@5))+@2*abs(@5))",
+            ROOT.RooArgList(sigRates_QCDUp_AnomCoupl_CombinedJet, interfRates_QCDUp_AnomCoupl_CombinedJet, bkgRates_QCDUp_CombinedJet, x, mu, kbkg, muF)
             )
         ggZZVarNormQCDDown_Name = "ggZZVarQCDDownNorm_{0:.0f}_{1:.0f}_{2:.0f}".format(self.channel, self.sqrts, useDjet)
         ggZZQCDDown_norm = ROOT.RooFormulaVar(
-            ggZZVarNormQCDDown_Name, "(@0*@3*@6*@4+@1*sqrt(@3*@6*@4)*sign(@5)*sqrt(abs(@5))+@2*@5)",
-            ROOT.RooArgList(sigRates_QCDDown_AnomCoupl, interfRates_QCDDown_AnomCoupl, bkgRates_QCDDown, x, mu, kbkg, muF)
+            ggZZVarNormQCDDown_Name, "(@0*@3*@6*@4+@1*sqrt(@3*@6*@4)*sign(@5)*sqrt(abs(@5))+@2*abs(@5))",
+            ROOT.RooArgList(sigRates_QCDDown_AnomCoupl_CombinedJet, interfRates_QCDDown_AnomCoupl_CombinedJet, bkgRates_QCDDown_CombinedJet, x, mu, kbkg, muF)
             )
         ggZZVarNormPDFUp_Name = "ggZZVarPDFUpNorm_{0:.0f}_{1:.0f}_{2:.0f}".format(self.channel, self.sqrts, useDjet)
         ggZZPDFUp_norm = ROOT.RooFormulaVar(
-            ggZZVarNormPDFUp_Name, "(@0*@3*@6*@4+@1*sqrt(@3*@6*@4)*sign(@5)*sqrt(abs(@5))+@2*@5)",
-            ROOT.RooArgList(sigRates_PDFUp_AnomCoupl, interfRates_PDFUp_AnomCoupl, bkgRates_PDFUp, x, mu, kbkg, muF)
+            ggZZVarNormPDFUp_Name, "(@0*@3*@6*@4+@1*sqrt(@3*@6*@4)*sign(@5)*sqrt(abs(@5))+@2*abs(@5))",
+            ROOT.RooArgList(sigRates_PDFUp_AnomCoupl_CombinedJet, interfRates_PDFUp_AnomCoupl_CombinedJet, bkgRates_PDFUp_CombinedJet, x, mu, kbkg, muF)
             )
         ggZZVarNormPDFDown_Name = "ggZZVarPDFDownNorm_{0:.0f}_{1:.0f}_{2:.0f}".format(self.channel, self.sqrts, useDjet)
         ggZZPDFDown_norm = ROOT.RooFormulaVar(
-            ggZZVarNormPDFDown_Name, "(@0*@3*@6*@4+@1*sqrt(@3*@6*@4)*sign(@5)*sqrt(abs(@5))+@2*@5)",
-            ROOT.RooArgList(sigRates_PDFDown_AnomCoupl, interfRates_PDFDown_AnomCoupl, bkgRates_PDFDown, x, mu, kbkg, muF)
+            ggZZVarNormPDFDown_Name, "(@0*@3*@6*@4+@1*sqrt(@3*@6*@4)*sign(@5)*sqrt(abs(@5))+@2*abs(@5))",
+            ROOT.RooArgList(sigRates_PDFDown_AnomCoupl_CombinedJet, interfRates_PDFDown_AnomCoupl_CombinedJet, bkgRates_PDFDown_CombinedJet, x, mu, kbkg, muF)
             )
 
 
@@ -644,7 +1354,6 @@ class width_datacardClass:
         VBFbkgRates_Down.setConstant(True)
         VBFinterfRates_Down.setConstant(True)
 
-        VBFVarNormNominal_Name = "VBFVarNominalNorm_{0:.0f}_{1:.0f}_{2:.0f}".format(self.channel, self.sqrts, useDjet)
         VBFsigRateNominalName = "signal_VBFNominalrate_{0:.0f}_{1:.0f}_{2:.0f}".format(self.channel, self.sqrts, useDjet)
         VBFbkgRateNominalName = "bkg_VBFNominalrate_{0:.0f}_{1:.0f}_{2:.0f}".format(self.channel, self.sqrts, useDjet)
         VBFinterfRateNominalName = "interf_VBFNominalrate_{0:.0f}_{1:.0f}_{2:.0f}".format(self.channel, self.sqrts, useDjet)
@@ -730,6 +1439,115 @@ class width_datacardClass:
         VBFsigRates_mZZ2_4_Nominal = ROOT.RooRealVar(VBFsigRateNominal_mZZ2_4_Name, VBFsigRateNominal_mZZ2_4_Name, integral_VBF_T_mZZ2_4_2)
         VBFsigRates_mZZ2_4_Nominal.setConstant(True)
 
+
+#------------- VBF Opposite Djet --------------#
+        
+        VBFsigRateUpName_OppositeDjet = "signal_VBFUp_OppositeDjet_rate_{0:.0f}_{1:.0f}_{2:.0f}".format(self.channel, self.sqrts, useDjet)
+        VBFbkgRateUpName_OppositeDjet = "bkg_VBFUp_OppositeDjet_rate_{0:.0f}_{1:.0f}_{2:.0f}".format(self.channel, self.sqrts, useDjet)
+        VBFinterfRateUpName_OppositeDjet = "interf_VBFUp_OppositeDjet_rate_{0:.0f}_{1:.0f}_{2:.0f}".format(self.channel, self.sqrts, useDjet)
+        VBFsigRates_Up_OppositeDjet = ROOT.RooRealVar(VBFsigRateUpName_OppositeDjet, VBFsigRateUpName_OppositeDjet, integral_VBF_T_2_Up_OppositeDjet)
+        VBFbkgRates_Up_OppositeDjet = ROOT.RooRealVar(VBFbkgRateUpName_OppositeDjet, VBFbkgRateUpName_OppositeDjet, integral_VBF_T_1_Up_OppositeDjet)
+        VBFinterfRates_Up_OppositeDjet = ROOT.RooRealVar(VBFinterfRateUpName_OppositeDjet, VBFinterfRateUpName_OppositeDjet, integral_VBF_T_4_Up_OppositeDjet)
+        VBFsigRates_Up_OppositeDjet.setConstant(True)
+        VBFbkgRates_Up_OppositeDjet.setConstant(True)
+        VBFinterfRates_Up_OppositeDjet.setConstant(True)
+
+        VBFsigRateDownName_OppositeDjet = "signal_VBFDown_OppositeDjet_rate_{0:.0f}_{1:.0f}_{2:.0f}".format(self.channel, self.sqrts, useDjet)
+        VBFbkgRateDownName_OppositeDjet = "bkg_VBFDown_OppositeDjet_rate_{0:.0f}_{1:.0f}_{2:.0f}".format(self.channel, self.sqrts, useDjet)
+        VBFinterfRateDownName_OppositeDjet = "interf_VBFDown_OppositeDjet_rate_{0:.0f}_{1:.0f}_{2:.0f}".format(self.channel, self.sqrts, useDjet)
+        VBFsigRates_Down_OppositeDjet = ROOT.RooRealVar(VBFsigRateDownName_OppositeDjet, VBFsigRateDownName_OppositeDjet, integral_VBF_T_2_Down_OppositeDjet)
+        VBFbkgRates_Down_OppositeDjet = ROOT.RooRealVar(VBFbkgRateDownName_OppositeDjet, VBFbkgRateDownName_OppositeDjet, integral_VBF_T_1_Down_OppositeDjet)
+        VBFinterfRates_Down_OppositeDjet = ROOT.RooRealVar(VBFinterfRateDownName_OppositeDjet, VBFinterfRateDownName_OppositeDjet, integral_VBF_T_4_Down_OppositeDjet)
+        VBFsigRates_Down_OppositeDjet.setConstant(True)
+        VBFbkgRates_Down_OppositeDjet.setConstant(True)
+        VBFinterfRates_Down_OppositeDjet.setConstant(True)
+
+        VBFsigRateNominalName_OppositeDjet = "signal_VBFNominal_OppositeDjet_rate_{0:.0f}_{1:.0f}_{2:.0f}".format(self.channel, self.sqrts, useDjet)
+        VBFbkgRateNominalName_OppositeDjet = "bkg_VBFNominal_OppositeDjet_rate_{0:.0f}_{1:.0f}_{2:.0f}".format(self.channel, self.sqrts, useDjet)
+        VBFinterfRateNominalName_OppositeDjet = "interf_VBFNominal_OppositeDjet_rate_{0:.0f}_{1:.0f}_{2:.0f}".format(self.channel, self.sqrts, useDjet)
+        VBFsigRates_Nominal_OppositeDjet = ROOT.RooRealVar(VBFsigRateNominalName_OppositeDjet, VBFsigRateNominalName_OppositeDjet, integral_VBF_T_2_OppositeDjet)
+        VBFbkgRates_Nominal_OppositeDjet = ROOT.RooRealVar(VBFbkgRateNominalName_OppositeDjet, VBFbkgRateNominalName_OppositeDjet, integral_VBF_T_1_OppositeDjet)
+        VBFinterfRates_Nominal_OppositeDjet = ROOT.RooRealVar(VBFinterfRateNominalName_OppositeDjet, VBFinterfRateNominalName_OppositeDjet, integral_VBF_T_4_OppositeDjet)
+        VBFsigRates_Nominal_OppositeDjet.setConstant(True)
+        VBFbkgRates_Nominal_OppositeDjet.setConstant(True)
+        VBFinterfRates_Nominal_OppositeDjet.setConstant(True)
+
+
+# VBF mZZ/mH**2
+
+        VBFsigRateUp_mZZ2_1_Name_OppositeDjet = "signal_VBFUp_OppositeDjet_rate_mZZ2_1_{0:.0f}_{1:.0f}_{2:.0f}".format(self.channel, self.sqrts, useDjet)
+        VBFinterfRateUp_mZZ2_1_Name_OppositeDjet = "interf_VBFUp_OppositeDjet_rate_mZZ2_1_{0:.0f}_{1:.0f}_{2:.0f}".format(self.channel, self.sqrts, useDjet)
+        VBFsigRates_mZZ2_1_Up_OppositeDjet = ROOT.RooRealVar(VBFsigRateUp_mZZ2_1_Name_OppositeDjet, VBFsigRateUp_mZZ2_1_Name_OppositeDjet, integral_VBF_T_mZZ2_1_2_Up_OppositeDjet)
+        VBFinterfRates_mZZ2_1_Up_OppositeDjet = ROOT.RooRealVar(VBFinterfRateUp_mZZ2_1_Name_OppositeDjet, VBFinterfRateUp_mZZ2_1_Name_OppositeDjet, integral_VBF_T_mZZ2_1_4_Up_OppositeDjet)
+        VBFsigRates_mZZ2_1_Up_OppositeDjet.setConstant(True)
+        VBFinterfRates_mZZ2_1_Up_OppositeDjet.setConstant(True)
+
+        VBFsigRateDown_mZZ2_1_Name_OppositeDjet = "signal_VBFDown_OppositeDjet_rate_mZZ2_1_{0:.0f}_{1:.0f}_{2:.0f}".format(self.channel, self.sqrts, useDjet)
+        VBFinterfRateDown_mZZ2_1_Name_OppositeDjet = "interf_VBFDown_OppositeDjet_rate_mZZ2_1_{0:.0f}_{1:.0f}_{2:.0f}".format(self.channel, self.sqrts, useDjet)
+        VBFsigRates_mZZ2_1_Down_OppositeDjet = ROOT.RooRealVar(VBFsigRateDown_mZZ2_1_Name_OppositeDjet, VBFsigRateDown_mZZ2_1_Name_OppositeDjet, integral_VBF_T_mZZ2_1_2_Down_OppositeDjet)
+        VBFinterfRates_mZZ2_1_Down_OppositeDjet = ROOT.RooRealVar(VBFinterfRateDown_mZZ2_1_Name_OppositeDjet, VBFinterfRateDown_mZZ2_1_Name_OppositeDjet, integral_VBF_T_mZZ2_1_4_Down_OppositeDjet)
+        VBFsigRates_mZZ2_1_Down_OppositeDjet.setConstant(True)
+        VBFinterfRates_mZZ2_1_Down_OppositeDjet.setConstant(True)
+
+        VBFsigRateNominal_mZZ2_1_Name_OppositeDjet = "signal_VBFNominal_OppositeDjet_rate_mZZ2_1_{0:.0f}_{1:.0f}_{2:.0f}".format(self.channel, self.sqrts, useDjet)
+        VBFinterfRateNominal_mZZ2_1_Name_OppositeDjet = "interf_VBFNominal_OppositeDjet_rate_mZZ2_1_{0:.0f}_{1:.0f}_{2:.0f}".format(self.channel, self.sqrts, useDjet)
+        VBFsigRates_mZZ2_1_Nominal_OppositeDjet = ROOT.RooRealVar(VBFsigRateNominal_mZZ2_1_Name_OppositeDjet, VBFsigRateNominal_mZZ2_1_Name_OppositeDjet, integral_VBF_T_mZZ2_1_2_OppositeDjet)
+        VBFinterfRates_mZZ2_1_Nominal_OppositeDjet = ROOT.RooRealVar(VBFinterfRateNominal_mZZ2_1_Name_OppositeDjet, VBFinterfRateNominal_mZZ2_1_Name_OppositeDjet, integral_VBF_T_mZZ2_1_4_OppositeDjet)
+        VBFsigRates_mZZ2_1_Nominal_OppositeDjet.setConstant(True)
+        VBFinterfRates_mZZ2_1_Nominal_OppositeDjet.setConstant(True)
+
+# VBF mZZ/mH**2**2
+
+        VBFsigRateUp_mZZ2_2_Name_OppositeDjet = "signal_VBFUp_OppositeDjet_rate_mZZ2_2_{0:.0f}_{1:.0f}_{2:.0f}".format(self.channel, self.sqrts, useDjet)
+        VBFinterfRateUp_mZZ2_2_Name_OppositeDjet = "interf_VBFUp_OppositeDjet_rate_mZZ2_2_{0:.0f}_{1:.0f}_{2:.0f}".format(self.channel, self.sqrts, useDjet)
+        VBFsigRates_mZZ2_2_Up_OppositeDjet = ROOT.RooRealVar(VBFsigRateUp_mZZ2_2_Name_OppositeDjet, VBFsigRateUp_mZZ2_2_Name_OppositeDjet, integral_VBF_T_mZZ2_2_2_Up_OppositeDjet)
+        VBFinterfRates_mZZ2_2_Up_OppositeDjet = ROOT.RooRealVar(VBFinterfRateUp_mZZ2_2_Name_OppositeDjet, VBFinterfRateUp_mZZ2_2_Name_OppositeDjet, integral_VBF_T_mZZ2_2_4_Up_OppositeDjet)
+        VBFsigRates_mZZ2_2_Up_OppositeDjet.setConstant(True)
+        VBFinterfRates_mZZ2_2_Up_OppositeDjet.setConstant(True)
+
+        VBFsigRateDown_mZZ2_2_Name_OppositeDjet = "signal_VBFDown_OppositeDjet_rate_mZZ2_2_{0:.0f}_{1:.0f}_{2:.0f}".format(self.channel, self.sqrts, useDjet)
+        VBFinterfRateDown_mZZ2_2_Name_OppositeDjet = "interf_VBFDown_OppositeDjet_rate_mZZ2_2_{0:.0f}_{1:.0f}_{2:.0f}".format(self.channel, self.sqrts, useDjet)
+        VBFsigRates_mZZ2_2_Down_OppositeDjet = ROOT.RooRealVar(VBFsigRateDown_mZZ2_2_Name_OppositeDjet, VBFsigRateDown_mZZ2_2_Name_OppositeDjet, integral_VBF_T_mZZ2_2_2_Down_OppositeDjet)
+        VBFinterfRates_mZZ2_2_Down_OppositeDjet = ROOT.RooRealVar(VBFinterfRateDown_mZZ2_2_Name_OppositeDjet, VBFinterfRateDown_mZZ2_2_Name_OppositeDjet, integral_VBF_T_mZZ2_2_4_Down_OppositeDjet)
+        VBFsigRates_mZZ2_2_Down_OppositeDjet.setConstant(True)
+        VBFinterfRates_mZZ2_2_Down_OppositeDjet.setConstant(True)
+
+        VBFsigRateNominal_mZZ2_2_Name_OppositeDjet = "signal_VBFNominal_OppositeDjet_rate_mZZ2_2_{0:.0f}_{1:.0f}_{2:.0f}".format(self.channel, self.sqrts, useDjet)
+        VBFinterfRateNominal_mZZ2_2_Name_OppositeDjet = "interf_VBFNominal_OppositeDjet_rate_mZZ2_2_{0:.0f}_{1:.0f}_{2:.0f}".format(self.channel, self.sqrts, useDjet)
+        VBFsigRates_mZZ2_2_Nominal_OppositeDjet = ROOT.RooRealVar(VBFsigRateNominal_mZZ2_2_Name_OppositeDjet, VBFsigRateNominal_mZZ2_2_Name_OppositeDjet, integral_VBF_T_mZZ2_2_2_OppositeDjet)
+        VBFinterfRates_mZZ2_2_Nominal_OppositeDjet = ROOT.RooRealVar(VBFinterfRateNominal_mZZ2_2_Name_OppositeDjet, VBFinterfRateNominal_mZZ2_2_Name_OppositeDjet, integral_VBF_T_mZZ2_2_4_OppositeDjet)
+        VBFsigRates_mZZ2_2_Nominal_OppositeDjet.setConstant(True)
+        VBFinterfRates_mZZ2_2_Nominal_OppositeDjet.setConstant(True)
+
+# VBF mZZ/mH**2**3
+
+        VBFsigRateUp_mZZ2_3_Name_OppositeDjet = "signal_VBFUp_OppositeDjet_rate_mZZ2_3_{0:.0f}_{1:.0f}_{2:.0f}".format(self.channel, self.sqrts, useDjet)
+        VBFsigRates_mZZ2_3_Up_OppositeDjet = ROOT.RooRealVar(VBFsigRateUp_mZZ2_3_Name_OppositeDjet, VBFsigRateUp_mZZ2_3_Name_OppositeDjet, integral_VBF_T_mZZ2_3_2_Up_OppositeDjet)
+        VBFsigRates_mZZ2_3_Up_OppositeDjet.setConstant(True)
+
+        VBFsigRateDown_mZZ2_3_Name_OppositeDjet = "signal_VBFDown_OppositeDjet_rate_mZZ2_3_{0:.0f}_{1:.0f}_{2:.0f}".format(self.channel, self.sqrts, useDjet)
+        VBFsigRates_mZZ2_3_Down_OppositeDjet = ROOT.RooRealVar(VBFsigRateDown_mZZ2_3_Name_OppositeDjet, VBFsigRateDown_mZZ2_3_Name_OppositeDjet, integral_VBF_T_mZZ2_3_2_Down_OppositeDjet)
+        VBFsigRates_mZZ2_3_Down_OppositeDjet.setConstant(True)
+
+        VBFsigRateNominal_mZZ2_3_Name_OppositeDjet = "signal_VBFNominal_OppositeDjet_rate_mZZ2_3_{0:.0f}_{1:.0f}_{2:.0f}".format(self.channel, self.sqrts, useDjet)
+        VBFsigRates_mZZ2_3_Nominal_OppositeDjet = ROOT.RooRealVar(VBFsigRateNominal_mZZ2_3_Name_OppositeDjet, VBFsigRateNominal_mZZ2_3_Name_OppositeDjet, integral_VBF_T_mZZ2_3_2_OppositeDjet)
+        VBFsigRates_mZZ2_3_Nominal_OppositeDjet.setConstant(True)
+
+# VBF mZZ/mH**2**4
+
+        VBFsigRateUp_mZZ2_4_Name_OppositeDjet = "signal_VBFUp_OppositeDjet_rate_mZZ2_4_{0:.0f}_{1:.0f}_{2:.0f}".format(self.channel, self.sqrts, useDjet)
+        VBFsigRates_mZZ2_4_Up_OppositeDjet = ROOT.RooRealVar(VBFsigRateUp_mZZ2_4_Name_OppositeDjet, VBFsigRateUp_mZZ2_4_Name_OppositeDjet, integral_VBF_T_mZZ2_4_2_Up_OppositeDjet)
+        VBFsigRates_mZZ2_4_Up_OppositeDjet.setConstant(True)
+
+        VBFsigRateDown_mZZ2_4_Name_OppositeDjet = "signal_VBFDown_OppositeDjet_rate_mZZ2_4_{0:.0f}_{1:.0f}_{2:.0f}".format(self.channel, self.sqrts, useDjet)
+        VBFsigRates_mZZ2_4_Down_OppositeDjet = ROOT.RooRealVar(VBFsigRateDown_mZZ2_4_Name_OppositeDjet, VBFsigRateDown_mZZ2_4_Name_OppositeDjet, integral_VBF_T_mZZ2_4_2_Down_OppositeDjet)
+        VBFsigRates_mZZ2_4_Down_OppositeDjet.setConstant(True)
+
+        VBFsigRateNominal_mZZ2_4_Name_OppositeDjet = "signal_VBFNominal_OppositeDjet_rate_mZZ2_4_{0:.0f}_{1:.0f}_{2:.0f}".format(self.channel, self.sqrts, useDjet)
+        VBFsigRates_mZZ2_4_Nominal_OppositeDjet = ROOT.RooRealVar(VBFsigRateNominal_mZZ2_4_Name_OppositeDjet, VBFsigRateNominal_mZZ2_4_Name_OppositeDjet, integral_VBF_T_mZZ2_4_2_OppositeDjet)
+        VBFsigRates_mZZ2_4_Nominal_OppositeDjet.setConstant(True)
+        
+
 # VBF anomalous coupling rate parameterizations
 
         VBFsigRates_Nominal_AnomCoupl_Name = "signal_VBFNominalrate_AnomCoupl_{0:.0f}_{1:.0f}_{2:.0f}".format(self.channel, self.sqrts, useDjet)
@@ -744,13 +1562,6 @@ class width_datacardClass:
             "( (1-abs(@3))*@0 + sign(@3)*sqrt(abs(@3)*(1-abs(@3)))*@1 + abs(@3)*@2 )",
             ROOT.RooArgList(VBFinterfRates_Nominal,VBFinterfRates_mZZ2_1_Nominal,VBFinterfRates_mZZ2_2_Nominal, fai1)
             )
-        VBFVarNormNominal_Name = "VBFVarNominalNorm_{0:.0f}_{1:.0f}_{2:.0f}".format(self.channel, self.sqrts, useDjet)
-        VBFNominal_norm = ROOT.RooFormulaVar(
-            VBFVarNormNominal_Name, "(@0*@3*@5*@4+@1*sqrt(@3*@5*@4)+@2)",
-            ROOT.RooArgList(VBFsigRates_Nominal_AnomCoupl, VBFinterfRates_Nominal_AnomCoupl, VBFbkgRates_Nominal, x, mu, muV)
-            )
-
-
 
         VBFsigRates_Up_AnomCoupl_Name = "signal_VBFUprate_AnomCoupl_{0:.0f}_{1:.0f}_{2:.0f}".format(self.channel, self.sqrts, useDjet)
         VBFsigRates_Up_AnomCoupl = ROOT.RooFormulaVar(
@@ -763,11 +1574,6 @@ class width_datacardClass:
             VBFinterfRates_Up_AnomCoupl_Name,
             "( (1-abs(@3))*@0 + sign(@3)*sqrt(abs(@3)*(1-abs(@3)))*@1 + abs(@3)*@2 )",
             ROOT.RooArgList(VBFinterfRates_Up,VBFinterfRates_mZZ2_1_Up,VBFinterfRates_mZZ2_2_Up, fai1)
-            )
-        VBFVarNormUp_Name = "VBFVarUpNorm_{0:.0f}_{1:.0f}_{2:.0f}".format(self.channel, self.sqrts, useDjet)
-        VBFUp_norm = ROOT.RooFormulaVar(
-            VBFVarNormUp_Name, "(@0*@3*@5*@4+@1*sqrt(@3*@5*@4)+@2)",
-            ROOT.RooArgList(VBFsigRates_Up_AnomCoupl, VBFinterfRates_Up_AnomCoupl, VBFbkgRates_Up, x, mu, muV)
             )
 
         VBFsigRates_Down_AnomCoupl_Name = "signal_VBFDownrate_AnomCoupl_{0:.0f}_{1:.0f}_{2:.0f}".format(self.channel, self.sqrts, useDjet)
@@ -782,10 +1588,220 @@ class width_datacardClass:
             "( (1-abs(@3))*@0 + sign(@3)*sqrt(abs(@3)*(1-abs(@3)))*@1 + abs(@3)*@2 )",
             ROOT.RooArgList(VBFinterfRates_Down,VBFinterfRates_mZZ2_1_Down,VBFinterfRates_mZZ2_2_Down, fai1)
             )
+
+
+        VBFsigRates_Nominal_AnomCoupl_Name_OppositeDjet = "signal_VBFNominal_OppositeDjet_rate_AnomCoupl_{0:.0f}_{1:.0f}_{2:.0f}".format(self.channel, self.sqrts, useDjet)
+        VBFsigRates_Nominal_AnomCoupl_OppositeDjet = ROOT.RooFormulaVar(
+            VBFsigRates_Nominal_AnomCoupl_Name_OppositeDjet,
+            "( pow((1-abs(@5)),2)*@0 + sign(@5)*sqrt(abs(@5))*pow(sqrt(1-abs(@5)),3)*@1 + abs(@5)*(1-abs(@5))*@2 + sign(@5)*pow(sqrt(abs(@5)),3)*sqrt(1-abs(@5))*@3 + pow(@5,2)*@4 )",
+            ROOT.RooArgList(VBFsigRates_Nominal_OppositeDjet,VBFsigRates_mZZ2_1_Nominal_OppositeDjet,VBFsigRates_mZZ2_2_Nominal_OppositeDjet,VBFsigRates_mZZ2_3_Nominal_OppositeDjet,VBFsigRates_mZZ2_4_Nominal_OppositeDjet, fai1)
+            )
+        VBFinterfRates_Nominal_AnomCoupl_Name_OppositeDjet = "interf_VBFNominal_OppositeDjet_rate_AnomCoupl_{0:.0f}_{1:.0f}_{2:.0f}".format(self.channel, self.sqrts, useDjet)
+        VBFinterfRates_Nominal_AnomCoupl_OppositeDjet = ROOT.RooFormulaVar(
+            VBFinterfRates_Nominal_AnomCoupl_Name_OppositeDjet,
+            "( (1-abs(@3))*@0 + sign(@3)*sqrt(abs(@3)*(1-abs(@3)))*@1 + abs(@3)*@2 )",
+            ROOT.RooArgList(VBFinterfRates_Nominal_OppositeDjet,VBFinterfRates_mZZ2_1_Nominal_OppositeDjet,VBFinterfRates_mZZ2_2_Nominal_OppositeDjet, fai1)
+            )
+
+        VBFsigRates_Up_AnomCoupl_Name_OppositeDjet = "signal_VBFUp_OppositeDjet_rate_AnomCoupl_{0:.0f}_{1:.0f}_{2:.0f}".format(self.channel, self.sqrts, useDjet)
+        VBFsigRates_Up_AnomCoupl_OppositeDjet = ROOT.RooFormulaVar(
+            VBFsigRates_Up_AnomCoupl_Name_OppositeDjet,
+            "( pow((1-abs(@5)),2)*@0 + sign(@5)*sqrt(abs(@5))*pow(sqrt(1-abs(@5)),3)*@1 + abs(@5)*(1-abs(@5))*@2 + sign(@5)*pow(sqrt(abs(@5)),3)*sqrt(1-abs(@5))*@3 + pow(@5,2)*@4 )",
+            ROOT.RooArgList(VBFsigRates_Up_OppositeDjet,VBFsigRates_mZZ2_1_Up_OppositeDjet,VBFsigRates_mZZ2_2_Up_OppositeDjet,VBFsigRates_mZZ2_3_Up_OppositeDjet,VBFsigRates_mZZ2_4_Up_OppositeDjet, fai1)
+            )
+        VBFinterfRates_Up_AnomCoupl_Name_OppositeDjet = "interf_VBFUp_OppositeDjet_rate_AnomCoupl_{0:.0f}_{1:.0f}_{2:.0f}".format(self.channel, self.sqrts, useDjet)
+        VBFinterfRates_Up_AnomCoupl_OppositeDjet = ROOT.RooFormulaVar(
+            VBFinterfRates_Up_AnomCoupl_Name_OppositeDjet,
+            "( (1-abs(@3))*@0 + sign(@3)*sqrt(abs(@3)*(1-abs(@3)))*@1 + abs(@3)*@2 )",
+            ROOT.RooArgList(VBFinterfRates_Up_OppositeDjet,VBFinterfRates_mZZ2_1_Up_OppositeDjet,VBFinterfRates_mZZ2_2_Up_OppositeDjet, fai1)
+            )
+
+        VBFsigRates_Down_AnomCoupl_Name_OppositeDjet = "signal_VBFDown_OppositeDjet_rate_AnomCoupl_{0:.0f}_{1:.0f}_{2:.0f}".format(self.channel, self.sqrts, useDjet)
+        VBFsigRates_Down_AnomCoupl_OppositeDjet = ROOT.RooFormulaVar(
+            VBFsigRates_Down_AnomCoupl_Name_OppositeDjet,
+            "( pow((1-abs(@5)),2)*@0 + sign(@5)*sqrt(abs(@5))*pow(sqrt(1-abs(@5)),3)*@1 + abs(@5)*(1-abs(@5))*@2 + sign(@5)*pow(sqrt(abs(@5)),3)*sqrt(1-abs(@5))*@3 + pow(@5,2)*@4 )",
+            ROOT.RooArgList(VBFsigRates_Down_OppositeDjet,VBFsigRates_mZZ2_1_Down_OppositeDjet,VBFsigRates_mZZ2_2_Down_OppositeDjet,VBFsigRates_mZZ2_3_Down_OppositeDjet,VBFsigRates_mZZ2_4_Down_OppositeDjet, fai1)
+            )
+        VBFinterfRates_Down_AnomCoupl_Name_OppositeDjet = "interf_VBFDown_OppositeDjet_rate_AnomCoupl_{0:.0f}_{1:.0f}_{2:.0f}".format(self.channel, self.sqrts, useDjet)
+        VBFinterfRates_Down_AnomCoupl_OppositeDjet = ROOT.RooFormulaVar(
+            VBFinterfRates_Down_AnomCoupl_Name_OppositeDjet,
+            "( (1-abs(@3))*@0 + sign(@3)*sqrt(abs(@3)*(1-abs(@3)))*@1 + abs(@3)*@2 )",
+            ROOT.RooArgList(VBFinterfRates_Down_OppositeDjet,VBFinterfRates_mZZ2_1_Down_OppositeDjet,VBFinterfRates_mZZ2_2_Down_OppositeDjet, fai1)
+            )
+        
+        
+#------- Combined VBF Djet ----------------#
+
+        VBFsigRates_Nominal_AnomCoupl_CombinedJet_Name = "signal_VBFNominal_CombinedJet_rate_AnomCoupl_{0:.0f}_{1:.0f}_{2:.0f}".format(self.channel, self.sqrts, useDjet)
+        VBFinterfRates_Nominal_AnomCoupl_CombinedJet_Name = "interf_VBFNominal_CombinedJet_rate_AnomCoupl_{0:.0f}_{1:.0f}_{2:.0f}".format(self.channel, self.sqrts, useDjet)
+        VBFbkgRateNominalName_CombinedDjet = "bkg_VBFNominal_CombinedDjet_rate_{0:.0f}_{1:.0f}_{2:.0f}".format(self.channel, self.sqrts, useDjet)
+        VBFsigRates_Nominal_AnomCoupl_CombinedJet = ROOT.RooFormulaVar(
+            VBFsigRates_Nominal_AnomCoupl_CombinedJet_Name,
+            "( @0 )",
+            ROOT.RooArgList(VBFsigRates_Nominal_AnomCoupl)
+            )
+        VBFinterfRates_Nominal_AnomCoupl_CombinedJet = ROOT.RooFormulaVar(
+            VBFinterfRates_Nominal_AnomCoupl_CombinedJet_Name,
+            "( @0 )",
+            ROOT.RooArgList(VBFinterfRates_Nominal_AnomCoupl)
+            )
+        VBFbkgRates_Nominal_CombinedJet = ROOT.RooFormulaVar(
+            VBFbkgRateNominalName_CombinedDjet,
+            "( @0 )",
+            ROOT.RooArgList(VBFbkgRates_Nominal)
+            )
+        if useDjet == 1:
+            VBFsigRates_Nominal_AnomCoupl_CombinedJet = ROOT.RooFormulaVar(
+                VBFsigRates_Nominal_AnomCoupl_CombinedJet_Name,
+                "( @0 + ( TMath::Max(@2,0) -1)*@1 )",
+                ROOT.RooArgList(VBFsigRates_Nominal_AnomCoupl, VBFsigRates_Nominal_AnomCoupl_OppositeDjet, thetaSyst_djet_VBF_norm)
+                )
+            VBFinterfRates_Nominal_AnomCoupl_CombinedJet = ROOT.RooFormulaVar(
+                VBFinterfRates_Nominal_AnomCoupl_CombinedJet_Name,
+                "( @0 + ( TMath::Max(@2,0) -1)*@1 )",
+                ROOT.RooArgList(VBFinterfRates_Nominal_AnomCoupl, VBFinterfRates_Nominal_AnomCoupl_OppositeDjet, thetaSyst_djet_VBF_norm)
+                )
+            VBFbkgRates_Nominal_CombinedJet = ROOT.RooFormulaVar(
+                VBFbkgRateNominalName_CombinedDjet,
+                "( @0 + ( TMath::Max(@2,0) -1)*@1 )",
+                ROOT.RooArgList(VBFbkgRates_Nominal, VBFbkgRates_Nominal_OppositeDjet, thetaSyst_djet_VBF_norm)
+                )
+        if useDjet == 2:
+            VBFsigRates_Nominal_AnomCoupl_CombinedJet = ROOT.RooFormulaVar(
+                VBFsigRates_Nominal_AnomCoupl_CombinedJet_Name,
+                "( @0*TMath::Max(@1,0) )",
+                ROOT.RooArgList(VBFsigRates_Nominal_AnomCoupl, thetaSyst_djet_VBF_norm)
+                )
+            VBFinterfRates_Nominal_AnomCoupl_CombinedJet = ROOT.RooFormulaVar(
+                VBFinterfRates_Nominal_AnomCoupl_CombinedJet_Name,
+                "( @0*TMath::Max(@1,0) )",
+                ROOT.RooArgList(VBFinterfRates_Nominal_AnomCoupl, thetaSyst_djet_VBF_norm)
+                )
+            VBFbkgRates_Nominal_CombinedJet = ROOT.RooFormulaVar(
+                VBFbkgRateNominalName_CombinedDjet,
+                "( @0*TMath::Max(@1,0) )",
+                ROOT.RooArgList(VBFbkgRates_Nominal, thetaSyst_djet_VBF_norm)
+                )
+
+
+        VBFsigRates_Up_AnomCoupl_CombinedJet_Name = "signal_VBFUp_CombinedJet_rate_AnomCoupl_{0:.0f}_{1:.0f}_{2:.0f}".format(self.channel, self.sqrts, useDjet)
+        VBFinterfRates_Up_AnomCoupl_CombinedJet_Name = "interf_VBFUp_CombinedJet_rate_AnomCoupl_{0:.0f}_{1:.0f}_{2:.0f}".format(self.channel, self.sqrts, useDjet)
+        VBFbkgRateUpName_CombinedDjet = "bkg_VBFUp_CombinedDjet_rate_{0:.0f}_{1:.0f}_{2:.0f}".format(self.channel, self.sqrts, useDjet)
+        VBFsigRates_Up_AnomCoupl_CombinedJet = ROOT.RooFormulaVar(
+            VBFsigRates_Up_AnomCoupl_CombinedJet_Name,
+            "( @0 )",
+            ROOT.RooArgList(VBFsigRates_Up_AnomCoupl)
+            )
+        VBFinterfRates_Up_AnomCoupl_CombinedJet = ROOT.RooFormulaVar(
+            VBFinterfRates_Up_AnomCoupl_CombinedJet_Name,
+            "( @0 )",
+            ROOT.RooArgList(VBFinterfRates_Up_AnomCoupl)
+            )
+        VBFbkgRates_Up_CombinedJet = ROOT.RooFormulaVar(
+            VBFbkgRateUpName_CombinedDjet,
+            "( @0 )",
+            ROOT.RooArgList(VBFbkgRates_Up)
+            )
+        if useDjet == 1:
+            VBFsigRates_Up_AnomCoupl_CombinedJet = ROOT.RooFormulaVar(
+                VBFsigRates_Up_AnomCoupl_CombinedJet_Name,
+                "( @0 + ( TMath::Max(@2,0) -1)*@1 )",
+                ROOT.RooArgList(VBFsigRates_Up_AnomCoupl, VBFsigRates_Up_AnomCoupl_OppositeDjet, thetaSyst_djet_VBF_norm)
+                )
+            VBFinterfRates_Up_AnomCoupl_CombinedJet = ROOT.RooFormulaVar(
+                VBFinterfRates_Up_AnomCoupl_CombinedJet_Name,
+                "( @0 + ( TMath::Max(@2,0) -1)*@1 )",
+                ROOT.RooArgList(VBFinterfRates_Up_AnomCoupl, VBFinterfRates_Up_AnomCoupl_OppositeDjet, thetaSyst_djet_VBF_norm)
+                )
+            VBFbkgRates_Up_CombinedJet = ROOT.RooFormulaVar(
+                VBFbkgRateUpName_CombinedDjet,
+                "( @0 + ( TMath::Max(@2,0) -1)*@1 )",
+                ROOT.RooArgList(VBFbkgRates_Up, VBFbkgRates_Up_OppositeDjet, thetaSyst_djet_VBF_norm)
+                )
+        if useDjet == 2:
+            VBFsigRates_Up_AnomCoupl_CombinedJet = ROOT.RooFormulaVar(
+                VBFsigRates_Up_AnomCoupl_CombinedJet_Name,
+                "( @0*TMath::Max(@1,0) )",
+                ROOT.RooArgList(VBFsigRates_Up_AnomCoupl, thetaSyst_djet_VBF_norm)
+                )
+            VBFinterfRates_Up_AnomCoupl_CombinedJet = ROOT.RooFormulaVar(
+                VBFinterfRates_Up_AnomCoupl_CombinedJet_Name,
+                "( @0*TMath::Max(@1,0) )",
+                ROOT.RooArgList(VBFinterfRates_Up_AnomCoupl, thetaSyst_djet_VBF_norm)
+                )
+            VBFbkgRates_Up_CombinedJet = ROOT.RooFormulaVar(
+                VBFbkgRateUpName_CombinedDjet,
+                "( @0*TMath::Max(@1,0) )",
+                ROOT.RooArgList(VBFbkgRates_Up, thetaSyst_djet_VBF_norm)
+                )
+
+
+        VBFsigRates_Down_AnomCoupl_CombinedJet_Name = "signal_VBFDown_CombinedJet_rate_AnomCoupl_{0:.0f}_{1:.0f}_{2:.0f}".format(self.channel, self.sqrts, useDjet)
+        VBFinterfRates_Down_AnomCoupl_CombinedJet_Name = "interf_VBFDown_CombinedJet_rate_AnomCoupl_{0:.0f}_{1:.0f}_{2:.0f}".format(self.channel, self.sqrts, useDjet)
+        VBFbkgRateDownName_CombinedDjet = "bkg_VBFDown_CombinedDjet_rate_{0:.0f}_{1:.0f}_{2:.0f}".format(self.channel, self.sqrts, useDjet)
+        VBFsigRates_Down_AnomCoupl_CombinedJet = ROOT.RooFormulaVar(
+            VBFsigRates_Down_AnomCoupl_CombinedJet_Name,
+            "( @0 )",
+            ROOT.RooArgList(VBFsigRates_Down_AnomCoupl)
+            )
+        VBFinterfRates_Down_AnomCoupl_CombinedJet = ROOT.RooFormulaVar(
+            VBFinterfRates_Down_AnomCoupl_CombinedJet_Name,
+            "( @0 )",
+            ROOT.RooArgList(VBFinterfRates_Down_AnomCoupl)
+            )
+        VBFbkgRates_Down_CombinedJet = ROOT.RooFormulaVar(
+            VBFbkgRateDownName_CombinedDjet,
+            "( @0 )",
+            ROOT.RooArgList(VBFbkgRates_Down)
+            )
+        if useDjet == 1:
+            VBFsigRates_Down_AnomCoupl_CombinedJet = ROOT.RooFormulaVar(
+                VBFsigRates_Down_AnomCoupl_CombinedJet_Name,
+                "( @0 + ( TMath::Max(@2,0) -1)*@1 )",
+                ROOT.RooArgList(VBFsigRates_Down_AnomCoupl, VBFsigRates_Down_AnomCoupl_OppositeDjet, thetaSyst_djet_VBF_norm)
+                )
+            VBFinterfRates_Down_AnomCoupl_CombinedJet = ROOT.RooFormulaVar(
+                VBFinterfRates_Down_AnomCoupl_CombinedJet_Name,
+                "( @0 + ( TMath::Max(@2,0) -1)*@1 )",
+                ROOT.RooArgList(VBFinterfRates_Down_AnomCoupl, VBFinterfRates_Down_AnomCoupl_OppositeDjet, thetaSyst_djet_VBF_norm)
+                )
+            VBFbkgRates_Down_CombinedJet = ROOT.RooFormulaVar(
+                VBFbkgRateDownName_CombinedDjet,
+                "( @0 + ( TMath::Max(@2,0) -1)*@1 )",
+                ROOT.RooArgList(VBFbkgRates_Down, VBFbkgRates_Down_OppositeDjet, thetaSyst_djet_VBF_norm)
+                )
+        if useDjet == 2:
+            VBFsigRates_Down_AnomCoupl_CombinedJet = ROOT.RooFormulaVar(
+                VBFsigRates_Down_AnomCoupl_CombinedJet_Name,
+                "( @0*TMath::Max(@1,0) )",
+                ROOT.RooArgList(VBFsigRates_Down_AnomCoupl, thetaSyst_djet_VBF_norm)
+                )
+            VBFinterfRates_Down_AnomCoupl_CombinedJet = ROOT.RooFormulaVar(
+                VBFinterfRates_Down_AnomCoupl_CombinedJet_Name,
+                "( @0*TMath::Max(@1,0) )",
+                ROOT.RooArgList(VBFinterfRates_Down_AnomCoupl, thetaSyst_djet_VBF_norm)
+                )
+            VBFbkgRates_Down_CombinedJet = ROOT.RooFormulaVar(
+                VBFbkgRateDownName_CombinedDjet,
+                "( @0*TMath::Max(@1,0) )",
+                ROOT.RooArgList(VBFbkgRates_Down, thetaSyst_djet_VBF_norm)
+                )
+
+
+        VBFVarNormNominal_Name = "VBFVarNominalNorm_{0:.0f}_{1:.0f}_{2:.0f}".format(self.channel, self.sqrts, useDjet)
+        VBFNominal_norm = ROOT.RooFormulaVar(
+            VBFVarNormNominal_Name, "(@0*@3*@5*@4+@1*sqrt(@3*@5*@4)+@2)",
+            ROOT.RooArgList(VBFsigRates_Nominal_AnomCoupl_CombinedJet, VBFinterfRates_Nominal_AnomCoupl_CombinedJet, VBFbkgRates_Nominal_CombinedJet, x, mu, muV)
+            )
+        VBFVarNormUp_Name = "VBFVarUpNorm_{0:.0f}_{1:.0f}_{2:.0f}".format(self.channel, self.sqrts, useDjet)
+        VBFUp_norm = ROOT.RooFormulaVar(
+            VBFVarNormUp_Name, "(@0*@3*@5*@4+@1*sqrt(@3*@5*@4)+@2)",
+            ROOT.RooArgList(VBFsigRates_Up_AnomCoupl_CombinedJet, VBFinterfRates_Up_AnomCoupl_CombinedJet, VBFbkgRates_Up_CombinedJet, x, mu, muV)
+            )
         VBFVarNormDown_Name = "VBFVarDownNorm_{0:.0f}_{1:.0f}_{2:.0f}".format(self.channel, self.sqrts, useDjet)
         VBFDown_norm = ROOT.RooFormulaVar(
             VBFVarNormDown_Name, "(@0*@3*@5*@4+@1*sqrt(@3*@5*@4)+@2)",
-            ROOT.RooArgList(VBFsigRates_Down_AnomCoupl, VBFinterfRates_Down_AnomCoupl, VBFbkgRates_Down, x, mu, muV)
+            ROOT.RooArgList(VBFsigRates_Down_AnomCoupl_CombinedJet, VBFinterfRates_Down_AnomCoupl_CombinedJet, VBFbkgRates_Down_CombinedJet, x, mu, muV)
             )
 
 
@@ -815,9 +1831,6 @@ class width_datacardClass:
 
         CMS_zz4l_widthMass.setBins(dBinsX)
         CMS_zz4l_widthKD.setBins(dBinsY)
-
-        one = ROOT.RooRealVar("one", "one", 1.0)
-        one.setConstant(True)
 
         # -------------------------- gg2ZZ SHAPES ---------------------------------- ##
         sigRatesNormList=[]
@@ -1366,13 +2379,6 @@ class width_datacardClass:
             asympowname, "@0/@1", ROOT.RooArgList(ggZZPDFUp_norm, ggZZNominal_norm)
         )
 
-        ggzz_djetsyst_norm_nominal_name = "ggzz_djetsyst_norm_nominal_{0:.0f}_{1:.0f}_{2:.0f}".format(self.channel, self.sqrts, useDjet)
-        ggzz_djetsyst_norm_nominal = RooRealVar(ggzz_djetsyst_norm_nominal_name, ggzz_djetsyst_norm_nominal_name, 1.)
-        ggzz_djetsyst_norm_up_name = "ggzz_djetsyst_norm_up_{0:.0f}_{1:.0f}_{2:.0f}".format(self.channel, self.sqrts, useDjet)
-        ggzz_djetsyst_norm_up = RooRealVar(ggzz_djetsyst_norm_up_name, ggzz_djetsyst_norm_up_name, theInputs['djetscale_ggzz'])
-        ggzz_djetsyst_norm_dn_name = "ggzz_djetsyst_norm_dn_{0:.0f}_{1:.0f}_{2:.0f}".format(self.channel, self.sqrts, useDjet)
-        ggzz_djetsyst_norm_dn = RooRealVar(ggzz_djetsyst_norm_dn_name, ggzz_djetsyst_norm_dn_name, -theInputs['djetscale_ggzz'])
-
         MorphNormList_ggZZ = ROOT.RooArgList()
         MorphNormList_ggZZ.add(ggZZNominal_norm)
         MorphNormList_ggZZ.add(ggZZQCDUp_norm)
@@ -1380,26 +2386,15 @@ class width_datacardClass:
         MorphNormList_ggZZ.add(ggZZPDFUp_norm)
         MorphNormList_ggZZ.add(ggZZPDFDown_norm)     
 
-        MorphNormList_ggZZ_Djet = ROOT.RooArgList()
-        MorphNormList_ggZZ_Djet.add(ggzz_djetsyst_norm_nominal)   
-        MorphNormList_ggZZ_Djet.add(ggzz_djetsyst_norm_up)
-        MorphNormList_ggZZ_Djet.add(ggzz_djetsyst_norm_dn)
 
-        CMS_zz4l_ggzzdjet_syst = w.factory("Djetscale_ggZZ[-3,3]")
-        morphVarListggZZ_djet = ROOT.RooArgList()
-        morphVarListggZZ_djet.add(CMS_zz4l_ggzzdjet_syst)
-
-        asympowname = "Asymquad_ggZZ_djet_{0:.0f}_{1:.0f}_{2:.0f}".format(self.channel, self.sqrts, useDjet)
-        thetaSyst_djet_ggZZ_norm = ROOT.AsymQuad(asympowname, asympowname, MorphNormList_ggZZ_Djet, morphVarListggZZ_djet, 1.0)
-
-        asympowname = "Asympow_ggZZ_QCD_{0:.0f}_{1:.0f}_{2:.0f}".format(self.channel, self.sqrts, useDjet)
-        thetaSyst_ggZZ = AsymPow(
-            asympowname, asympowname, kappalow, kappahigh, CMS_zz4l_APscale_syst
-        )
-        asympowname = "Asympow_ggZZ_pdf_{0:.0f}_{1:.0f}_{2:.0f}".format(self.channel, self.sqrts, useDjet)
-        thetaSyst_ggZZ_pdf = AsymPow(
-            asympowname, asympowname, kappalow_pdf, kappahigh_pdf, CMS_zz4l_pdf_gg_syst
-        )
+#        asympowname = "Asympow_ggZZ_QCD_{0:.0f}_{1:.0f}_{2:.0f}".format(self.channel, self.sqrts, useDjet)
+#        thetaSyst_ggZZ = AsymPow(
+#            asympowname, asympowname, kappalow, kappahigh, CMS_zz4l_APscale_syst
+#        )
+#        asympowname = "Asympow_ggZZ_pdf_{0:.0f}_{1:.0f}_{2:.0f}".format(self.channel, self.sqrts, useDjet)
+#        thetaSyst_ggZZ_pdf = AsymPow(
+#            asympowname, asympowname, kappalow_pdf, kappahigh_pdf, CMS_zz4l_pdf_gg_syst
+#        )
         asympowname = "Asymquad_ggZZ_QCDPDF_{0:.0f}_{1:.0f}_{2:.0f}".format(self.channel, self.sqrts, useDjet)
         thetaSyst_ggZZ_norm = ROOT.AsymQuad(asympowname, asympowname, MorphNormList_ggZZ, morphVarListggZZ, 1.0) # THIS IS THE ggZZ PDF!!!
 
@@ -1736,36 +2731,17 @@ class width_datacardClass:
             VBFinterfRates_Nominal_AnomCoupl.Print("v")
             VBFbkgRates_Nominal.Print("v")
 
-        VBF_djetsyst_norm_nominal_name = "VBF_djetsyst_norm_nominal_{0:.0f}_{1:.0f}_{2:.0f}".format(self.channel, self.sqrts, useDjet)
-        VBF_djetsyst_norm_nominal = RooRealVar(VBF_djetsyst_norm_nominal_name, VBF_djetsyst_norm_nominal_name, 1.)
-        VBF_djetsyst_norm_up_name = "VBF_djetsyst_norm_up_{0:.0f}_{1:.0f}_{2:.0f}".format(self.channel, self.sqrts, useDjet)
-        VBF_djetsyst_norm_up = RooRealVar(VBF_djetsyst_norm_up_name, VBF_djetsyst_norm_up_name, theInputs['djetscale_vbf_offshell'])
-        VBF_djetsyst_norm_dn_name = "VBF_djetsyst_norm_dn_{0:.0f}_{1:.0f}_{2:.0f}".format(self.channel, self.sqrts, useDjet)
-        VBF_djetsyst_norm_dn = RooRealVar(VBF_djetsyst_norm_dn_name, VBF_djetsyst_norm_dn_name, -theInputs['djetscale_vbf_offshell'])
-
         MorphNormList_VBF = ROOT.RooArgList()
         MorphNormList_VBF.add(VBFNominal_norm)
         MorphNormList_VBF.add(VBFUp_norm)
         MorphNormList_VBF.add(VBFDown_norm)
 
-        MorphNormList_VBF_Djet = ROOT.RooArgList()
-        MorphNormList_VBF_Djet.add(VBF_djetsyst_norm_nominal)   
-        MorphNormList_VBF_Djet.add(VBF_djetsyst_norm_up)
-        MorphNormList_VBF_Djet.add(VBF_djetsyst_norm_dn)
-
-        CMS_zz4l_vbfdjet_syst = w.factory("Djetscale_vbf_offshell[-3,3]")
-        morphVarListVBF_djet = ROOT.RooArgList()
-        morphVarListVBF_djet.add(CMS_zz4l_vbfdjet_syst)
-
-        asympowname = "Asymquad_VBF_djet_{0:.0f}_{1:.0f}_{2:.0f}".format(self.channel, self.sqrts, useDjet)
-        thetaSyst_djet_VBF_norm = ROOT.AsymQuad(asympowname, asympowname, MorphNormList_VBF_Djet, morphVarListVBF_djet, 1.0)
-
-        asympowname = "kappalow_VBF_{0:.0f}_{1:.0f}_{2:.0f}".format(self.channel, self.sqrts, useDjet)
-        kappalowVBF = ROOT.RooFormulaVar(asympowname, "@0/@1", ROOT.RooArgList(VBFDown_norm, VBFNominal_norm))
-        asympowname = "kappahigh_VBF_{0:.0f}_{1:.0f}_{2:.0f}".format(self.channel, self.sqrts, useDjet)
-        kappahighVBF = ROOT.RooFormulaVar(asympowname, "@0/@1", ROOT.RooArgList(VBFUp_norm, VBFNominal_norm))
-        asympowname = "Asympow_VBF_{0:.0f}_{1:.0f}_{2:.0f}".format(self.channel, self.sqrts, useDjet)
-        thetaSyst_VBF = AsymPow(asympowname, asympowname, kappalowVBF, kappahighVBF, CMS_zz4l_VBFscale_syst)
+#        asympowname = "kappalow_VBF_{0:.0f}_{1:.0f}_{2:.0f}".format(self.channel, self.sqrts, useDjet)
+#        kappalowVBF = ROOT.RooFormulaVar(asympowname, "@0/@1", ROOT.RooArgList(VBFDown_norm, VBFNominal_norm))
+#        asympowname = "kappahigh_VBF_{0:.0f}_{1:.0f}_{2:.0f}".format(self.channel, self.sqrts, useDjet)
+#        kappahighVBF = ROOT.RooFormulaVar(asympowname, "@0/@1", ROOT.RooArgList(VBFUp_norm, VBFNominal_norm))
+#        asympowname = "Asympow_VBF_{0:.0f}_{1:.0f}_{2:.0f}".format(self.channel, self.sqrts, useDjet)
+#        thetaSyst_VBF = AsymPow(asympowname, asympowname, kappalowVBF, kappahighVBF, CMS_zz4l_VBFscale_syst)
         asympowname = "Asymquad_VBF_{0:.0f}_{1:.0f}_{2:.0f}".format(self.channel, self.sqrts, useDjet)
         thetaSyst_VBF_norm = ROOT.AsymQuad(asympowname, asympowname, MorphNormList_VBF, morphVarListVBF, 1.0) # THIS IS THE ggZZ PDF!!!
 
@@ -1774,11 +2750,11 @@ class width_datacardClass:
 
         ggZZpdfNormName = "ggZZ_RooWidth_{0:.0f}_{1:.0f}_{2:.0f}_norm".format(self.channel, self.sqrts, useDjet)
 #        ggZZpdf_norm = ROOT.RooFormulaVar(ggZZpdfNormName, "@0*@1*@2*@3", ROOT.RooArgList(ggZZNominal_norm, self.LUMI, thetaSyst_ggZZ, thetaSyst_ggZZ_pdf))
-        ggZZpdf_norm = ROOT.RooFormulaVar(ggZZpdfNormName, "TMath::Max(@0*@1*@2,0.0000000001)", ROOT.RooArgList(thetaSyst_ggZZ_norm, thetaSyst_djet_ggZZ_norm, self.LUMI))
+        ggZZpdf_norm = ROOT.RooFormulaVar(ggZZpdfNormName, "TMath::Max(@0*@1,1e-10)", ROOT.RooArgList(thetaSyst_ggZZ_norm, self.LUMI))
         ggZZpdf_norm.SetNameTitle("ggzz_norm", "ggzz_norm")
         VBFpdfNormName = "VBF_RooWidth_{0:.0f}_{1:.0f}_{2:.0f}_norm".format(self.channel, self.sqrts, useDjet)
 #        VBFpdf_norm = ROOT.RooFormulaVar(VBFpdfNormName, "@0*@1*@2", ROOT.RooArgList(VBFNominal_norm, self.LUMI, thetaSyst_VBF))
-        VBFpdf_norm = ROOT.RooFormulaVar(VBFpdfNormName, "TMath::Max(@0*@1*@2,0.0000000001)", ROOT.RooArgList(thetaSyst_VBF_norm, thetaSyst_djet_VBF_norm, self.LUMI))
+        VBFpdf_norm = ROOT.RooFormulaVar(VBFpdfNormName, "TMath::Max(@0*@1,1e-10)", ROOT.RooArgList(thetaSyst_VBF_norm, self.LUMI))
         VBFpdf_norm.SetNameTitle("vbf_offshell_norm", "vbf_offshell_norm")
 
 
@@ -1941,27 +2917,9 @@ class width_datacardClass:
                 djetcutarglist
             )
 
-        qqZZ_djetsyst_norm_nominal_name = "qqZZ_djetsyst_norm_nominal_{0:.0f}_{1:.0f}_{2:.0f}".format(self.channel, self.sqrts, useDjet)
-        qqZZ_djetsyst_norm_nominal = RooRealVar(qqZZ_djetsyst_norm_nominal_name, qqZZ_djetsyst_norm_nominal_name, 1.)
-        qqZZ_djetsyst_norm_up_name = "qqZZ_djetsyst_norm_up_{0:.0f}_{1:.0f}_{2:.0f}".format(self.channel, self.sqrts, useDjet)
-        qqZZ_djetsyst_norm_up = RooRealVar(qqZZ_djetsyst_norm_up_name, qqZZ_djetsyst_norm_up_name, theInputs['djetscale_bkg_qqzz'])
-        qqZZ_djetsyst_norm_dn_name = "qqZZ_djetsyst_norm_dn_{0:.0f}_{1:.0f}_{2:.0f}".format(self.channel, self.sqrts, useDjet)
-        qqZZ_djetsyst_norm_dn = RooRealVar(qqZZ_djetsyst_norm_dn_name, qqZZ_djetsyst_norm_dn_name, -theInputs['djetscale_bkg_qqzz'])
-
-        MorphNormList_qqZZ_Djet = ROOT.RooArgList()
-        MorphNormList_qqZZ_Djet.add(qqZZ_djetsyst_norm_nominal)   
-        MorphNormList_qqZZ_Djet.add(qqZZ_djetsyst_norm_up)
-        MorphNormList_qqZZ_Djet.add(qqZZ_djetsyst_norm_dn)
 
         qqZZ_Scale_Syst = w.factory("QCDscale_VV[-7,7]")
         qqZZ_EWK_Syst = w.factory("EWKcorr_VV[-7,7]")
-
-        CMS_zz4l_qqzzdjet_syst = w.factory("Djetscale_qqZZ[-3,3]")
-        morphVarListqqZZ_djet = ROOT.RooArgList()
-        morphVarListqqZZ_djet.add(CMS_zz4l_qqzzdjet_syst)
-
-        asympowname = "Asymquad_qqZZ_djet_{0:.0f}_{1:.0f}_{2:.0f}".format(self.channel, self.sqrts, useDjet)
-        thetaSyst_djet_qqZZ_norm = ROOT.AsymQuad(asympowname, asympowname, MorphNormList_qqZZ_Djet, morphVarListqqZZ_djet, 1.0)
 
         asympowname = "kappalow_qqZZ_QCD_{0:.0f}_{1:.0f}_{2:.0f}".format(self.channel, self.sqrts, useDjet)
         kappalow_QCD_qqzz = ROOT.RooRealVar(asympowname, asympowname, CMS_qqzzbkg_p3.getVal())
@@ -2458,25 +3416,6 @@ class width_datacardClass:
 
             bkg_zjets = ROOT.VerticalInterpPdf("bkg_zjets", "bkg_zjets", MorphList_ZX, morphVarListZX)
 
-
-        zjets_djetsyst_norm_nominal_name = "zjets_djetsyst_norm_nominal_{0:.0f}_{1:.0f}_{2:.0f}".format(self.channel, self.sqrts, useDjet)
-        zjets_djetsyst_norm_nominal = RooRealVar(zjets_djetsyst_norm_nominal_name, zjets_djetsyst_norm_nominal_name, 1.)
-        zjets_djetsyst_norm_up_name = "zjets_djetsyst_norm_up_{0:.0f}_{1:.0f}_{2:.0f}".format(self.channel, self.sqrts, useDjet)
-        zjets_djetsyst_norm_up = RooRealVar(zjets_djetsyst_norm_up_name, zjets_djetsyst_norm_up_name, theInputs['djetscale_bkg_zjets'])
-        zjets_djetsyst_norm_dn_name = "zjets_djetsyst_norm_dn_{0:.0f}_{1:.0f}_{2:.0f}".format(self.channel, self.sqrts, useDjet)
-        zjets_djetsyst_norm_dn = RooRealVar(zjets_djetsyst_norm_dn_name, zjets_djetsyst_norm_dn_name, -theInputs['djetscale_bkg_zjets'])
-
-        MorphNormList_zjets_Djet = ROOT.RooArgList()
-        MorphNormList_zjets_Djet.add(zjets_djetsyst_norm_nominal)   
-        MorphNormList_zjets_Djet.add(zjets_djetsyst_norm_up)
-        MorphNormList_zjets_Djet.add(zjets_djetsyst_norm_dn)
-
-        CMS_zz4l_zjetsdjet_syst = w.factory("Djetscale_zjets[-3,3]")
-        morphVarListzjets_djet = ROOT.RooArgList()
-        morphVarListzjets_djet.add(CMS_zz4l_zjetsdjet_syst)
-
-        asympowname = "Asymquad_zjets_djet_{0:.0f}_{1:.0f}_{2:.0f}".format(self.channel, self.sqrts, useDjet)
-        thetaSyst_djet_zjets_norm = ROOT.AsymQuad(asympowname, asympowname, MorphNormList_zjets_Djet, morphVarListzjets_djet, 1.0)
 
         bkg_zjets_norm = ROOT.RooFormulaVar("bkg_zjets_norm", "@0", ROOT.RooArgList(thetaSyst_djet_zjets_norm))
 
