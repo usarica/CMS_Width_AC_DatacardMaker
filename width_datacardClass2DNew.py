@@ -183,9 +183,9 @@ class width_datacardClass:
 
 #----------------- Djet systematics ----------------------#
 
-        CMS_zz4l_ggzz_djet_syst = w.factory("Djetscale_ggZZ[-3,3]")
+        CMS_zz4l_ggzz_djet_syst = w.factory("Djetscale_ggzz[-3,3]")
         CMS_zz4l_vbf_djet_syst = w.factory("Djetscale_vbf_offshell[-3,3]")
-        CMS_zz4l_qqzz_djet_syst = w.factory("Djetscale_qqZZ[-3,3]")
+        CMS_zz4l_qqzz_djet_syst = w.factory("Djetscale_qqzz[-3,3]")
         CMS_zz4l_zjets_djet_syst = w.factory("Djetscale_zjets[-1,1]") # Djet>0.5 uncertainty is 99% for Z+X
         if useDjet == 0:
             CMS_zz4l_ggzz_djet_syst.setConstant(True)
