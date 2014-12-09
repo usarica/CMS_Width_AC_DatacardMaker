@@ -11,8 +11,6 @@ echo HiggsCSandWidthFermi
 root -l -b -q buildHiggsCSandWidthFermi.C 
 echo HiggsCSandWidthSM4
 root -l -b -q buildHiggsCSandWidthSM4.C
-echo buildDjetContrainedSystematic
-root -l -b -q buildDjetConstrainedSystematic.C  
 cd ../
 
 echo "Done"
