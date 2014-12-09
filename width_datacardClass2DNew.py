@@ -1061,17 +1061,17 @@ class width_datacardClass:
         if useDjet == 1:
             sigRates_Nominal_AnomCoupl_CombinedJet = ROOT.RooFormulaVar(
                 sigRates_Nominal_AnomCoupl_CombinedJet_Name,
-                "( @0 + ( TMath::Max(@2,0) -1)*@1 )",
+                "( @0 + ( 1-TMath::Max(@2,0) )*@1 )",
                 ROOT.RooArgList(sigRates_Nominal_AnomCoupl, sigRates_Nominal_AnomCoupl_OppositeDjet, thetaSyst_djet_ggZZ_norm)
                 )
             interfRates_Nominal_AnomCoupl_CombinedJet = ROOT.RooFormulaVar(
                 interfRates_Nominal_AnomCoupl_CombinedJet_Name,
-                "( @0 + ( TMath::Max(@2,0) -1)*@1 )",
+                "( @0 + ( 1-TMath::Max(@2,0) )*@1 )",
                 ROOT.RooArgList(interfRates_Nominal_AnomCoupl, interfRates_Nominal_AnomCoupl_OppositeDjet, thetaSyst_djet_ggZZ_norm)
                 )
             bkgRates_Nominal_CombinedJet = ROOT.RooFormulaVar(
                 bkgRateNominalName_CombinedDjet,
-                "( @0 + ( TMath::Max(@2,0) -1)*@1 )",
+                "( @0 + ( 1-TMath::Max(@2,0) )*@1 )",
                 ROOT.RooArgList(bkgRates_Nominal, bkgRates_Nominal_OppositeDjet, thetaSyst_djet_ggZZ_norm)
                 )
         if useDjet == 2:
@@ -1112,17 +1112,17 @@ class width_datacardClass:
         if useDjet == 1:
             sigRates_QCDUp_AnomCoupl_CombinedJet = ROOT.RooFormulaVar(
                 sigRates_QCDUp_AnomCoupl_CombinedJet_Name,
-                "( @0 + ( TMath::Max(@2,0) -1)*@1 )",
+                "( @0 + ( 1-TMath::Max(@2,0) )*@1 )",
                 ROOT.RooArgList(sigRates_QCDUp_AnomCoupl, sigRates_QCDUp_AnomCoupl_OppositeDjet, thetaSyst_djet_ggZZ_norm)
                 )
             interfRates_QCDUp_AnomCoupl_CombinedJet = ROOT.RooFormulaVar(
                 interfRates_QCDUp_AnomCoupl_CombinedJet_Name,
-                "( @0 + ( TMath::Max(@2,0) -1)*@1 )",
+                "( @0 + ( 1-TMath::Max(@2,0) )*@1 )",
                 ROOT.RooArgList(interfRates_QCDUp_AnomCoupl, interfRates_QCDUp_AnomCoupl_OppositeDjet, thetaSyst_djet_ggZZ_norm)
                 )
             bkgRates_QCDUp_CombinedJet = ROOT.RooFormulaVar(
                 bkgRateQCDUpName_CombinedDjet,
-                "( @0 + ( TMath::Max(@2,0) -1)*@1 )",
+                "( @0 + ( 1-TMath::Max(@2,0) )*@1 )",
                 ROOT.RooArgList(bkgRates_QCDUp, bkgRates_QCDUp_OppositeDjet, thetaSyst_djet_ggZZ_norm)
                 )
         if useDjet == 2:
@@ -1163,17 +1163,17 @@ class width_datacardClass:
         if useDjet == 1:
             sigRates_QCDDown_AnomCoupl_CombinedJet = ROOT.RooFormulaVar(
                 sigRates_QCDDown_AnomCoupl_CombinedJet_Name,
-                "( @0 + ( TMath::Max(@2,0) -1)*@1 )",
+                "( @0 + ( 1-TMath::Max(@2,0) )*@1 )",
                 ROOT.RooArgList(sigRates_QCDDown_AnomCoupl, sigRates_QCDDown_AnomCoupl_OppositeDjet, thetaSyst_djet_ggZZ_norm)
                 )
             interfRates_QCDDown_AnomCoupl_CombinedJet = ROOT.RooFormulaVar(
                 interfRates_QCDDown_AnomCoupl_CombinedJet_Name,
-                "( @0 + ( TMath::Max(@2,0) -1)*@1 )",
+                "( @0 + ( 1-TMath::Max(@2,0) )*@1 )",
                 ROOT.RooArgList(interfRates_QCDDown_AnomCoupl, interfRates_QCDDown_AnomCoupl_OppositeDjet, thetaSyst_djet_ggZZ_norm)
                 )
             bkgRates_QCDDown_CombinedJet = ROOT.RooFormulaVar(
                 bkgRateQCDDownName_CombinedDjet,
-                "( @0 + ( TMath::Max(@2,0) -1)*@1 )",
+                "( @0 + ( 1-TMath::Max(@2,0) )*@1 )",
                 ROOT.RooArgList(bkgRates_QCDDown, bkgRates_QCDDown_OppositeDjet, thetaSyst_djet_ggZZ_norm)
                 )
         if useDjet == 2:
@@ -1215,17 +1215,17 @@ class width_datacardClass:
         if useDjet == 1:
             sigRates_PDFUp_AnomCoupl_CombinedJet = ROOT.RooFormulaVar(
                 sigRates_PDFUp_AnomCoupl_CombinedJet_Name,
-                "( @0 + ( TMath::Max(@2,0) -1)*@1 )",
+                "( @0 + ( 1-TMath::Max(@2,0) )*@1 )",
                 ROOT.RooArgList(sigRates_PDFUp_AnomCoupl, sigRates_PDFUp_AnomCoupl_OppositeDjet, thetaSyst_djet_ggZZ_norm)
                 )
             interfRates_PDFUp_AnomCoupl_CombinedJet = ROOT.RooFormulaVar(
                 interfRates_PDFUp_AnomCoupl_CombinedJet_Name,
-                "( @0 + ( TMath::Max(@2,0) -1)*@1 )",
+                "( @0 + ( 1-TMath::Max(@2,0) )*@1 )",
                 ROOT.RooArgList(interfRates_PDFUp_AnomCoupl, interfRates_PDFUp_AnomCoupl_OppositeDjet, thetaSyst_djet_ggZZ_norm)
                 )
             bkgRates_PDFUp_CombinedJet = ROOT.RooFormulaVar(
                 bkgRatePDFUpName_CombinedDjet,
-                "( @0 + ( TMath::Max(@2,0) -1)*@1 )",
+                "( @0 + ( 1-TMath::Max(@2,0) )*@1 )",
                 ROOT.RooArgList(bkgRates_PDFUp, bkgRates_PDFUp_OppositeDjet, thetaSyst_djet_ggZZ_norm)
                 )
         if useDjet == 2:
@@ -1266,17 +1266,17 @@ class width_datacardClass:
         if useDjet == 1:
             sigRates_PDFDown_AnomCoupl_CombinedJet = ROOT.RooFormulaVar(
                 sigRates_PDFDown_AnomCoupl_CombinedJet_Name,
-                "( @0 + ( TMath::Max(@2,0) -1)*@1 )",
+                "( @0 + ( 1-TMath::Max(@2,0) )*@1 )",
                 ROOT.RooArgList(sigRates_PDFDown_AnomCoupl, sigRates_PDFDown_AnomCoupl_OppositeDjet, thetaSyst_djet_ggZZ_norm)
                 )
             interfRates_PDFDown_AnomCoupl_CombinedJet = ROOT.RooFormulaVar(
                 interfRates_PDFDown_AnomCoupl_CombinedJet_Name,
-                "( @0 + ( TMath::Max(@2,0) -1)*@1 )",
+                "( @0 + ( 1-TMath::Max(@2,0) )*@1 )",
                 ROOT.RooArgList(interfRates_PDFDown_AnomCoupl, interfRates_PDFDown_AnomCoupl_OppositeDjet, thetaSyst_djet_ggZZ_norm)
                 )
             bkgRates_PDFDown_CombinedJet = ROOT.RooFormulaVar(
                 bkgRatePDFDownName_CombinedDjet,
-                "( @0 + ( TMath::Max(@2,0) -1)*@1 )",
+                "( @0 + ( 1-TMath::Max(@2,0) )*@1 )",
                 ROOT.RooArgList(bkgRates_PDFDown, bkgRates_PDFDown_OppositeDjet, thetaSyst_djet_ggZZ_norm)
                 )
         if useDjet == 2:
@@ -1653,17 +1653,17 @@ class width_datacardClass:
         if useDjet == 1:
             VBFsigRates_Nominal_AnomCoupl_CombinedJet = ROOT.RooFormulaVar(
                 VBFsigRates_Nominal_AnomCoupl_CombinedJet_Name,
-                "( @0 + ( TMath::Max(@2,0) -1)*@1 )",
+                "( @0 + ( 1-TMath::Max(@2,0) )*@1 )",
                 ROOT.RooArgList(VBFsigRates_Nominal_AnomCoupl, VBFsigRates_Nominal_AnomCoupl_OppositeDjet, thetaSyst_djet_VBF_norm)
                 )
             VBFinterfRates_Nominal_AnomCoupl_CombinedJet = ROOT.RooFormulaVar(
                 VBFinterfRates_Nominal_AnomCoupl_CombinedJet_Name,
-                "( @0 + ( TMath::Max(@2,0) -1)*@1 )",
+                "( @0 + ( 1-TMath::Max(@2,0) )*@1 )",
                 ROOT.RooArgList(VBFinterfRates_Nominal_AnomCoupl, VBFinterfRates_Nominal_AnomCoupl_OppositeDjet, thetaSyst_djet_VBF_norm)
                 )
             VBFbkgRates_Nominal_CombinedJet = ROOT.RooFormulaVar(
                 VBFbkgRateNominalName_CombinedDjet,
-                "( @0 + ( TMath::Max(@2,0) -1)*@1 )",
+                "( @0 + ( 1-TMath::Max(@2,0) )*@1 )",
                 ROOT.RooArgList(VBFbkgRates_Nominal, VBFbkgRates_Nominal_OppositeDjet, thetaSyst_djet_VBF_norm)
                 )
         if useDjet == 2:
@@ -1705,17 +1705,17 @@ class width_datacardClass:
         if useDjet == 1:
             VBFsigRates_Up_AnomCoupl_CombinedJet = ROOT.RooFormulaVar(
                 VBFsigRates_Up_AnomCoupl_CombinedJet_Name,
-                "( @0 + ( TMath::Max(@2,0) -1)*@1 )",
+                "( @0 + ( 1-TMath::Max(@2,0) )*@1 )",
                 ROOT.RooArgList(VBFsigRates_Up_AnomCoupl, VBFsigRates_Up_AnomCoupl_OppositeDjet, thetaSyst_djet_VBF_norm)
                 )
             VBFinterfRates_Up_AnomCoupl_CombinedJet = ROOT.RooFormulaVar(
                 VBFinterfRates_Up_AnomCoupl_CombinedJet_Name,
-                "( @0 + ( TMath::Max(@2,0) -1)*@1 )",
+                "( @0 + ( 1-TMath::Max(@2,0) )*@1 )",
                 ROOT.RooArgList(VBFinterfRates_Up_AnomCoupl, VBFinterfRates_Up_AnomCoupl_OppositeDjet, thetaSyst_djet_VBF_norm)
                 )
             VBFbkgRates_Up_CombinedJet = ROOT.RooFormulaVar(
                 VBFbkgRateUpName_CombinedDjet,
-                "( @0 + ( TMath::Max(@2,0) -1)*@1 )",
+                "( @0 + ( 1-TMath::Max(@2,0) )*@1 )",
                 ROOT.RooArgList(VBFbkgRates_Up, VBFbkgRates_Up_OppositeDjet, thetaSyst_djet_VBF_norm)
                 )
         if useDjet == 2:
@@ -1757,17 +1757,17 @@ class width_datacardClass:
         if useDjet == 1:
             VBFsigRates_Down_AnomCoupl_CombinedJet = ROOT.RooFormulaVar(
                 VBFsigRates_Down_AnomCoupl_CombinedJet_Name,
-                "( @0 + ( TMath::Max(@2,0) -1)*@1 )",
+                "( @0 + ( 1-TMath::Max(@2,0) )*@1 )",
                 ROOT.RooArgList(VBFsigRates_Down_AnomCoupl, VBFsigRates_Down_AnomCoupl_OppositeDjet, thetaSyst_djet_VBF_norm)
                 )
             VBFinterfRates_Down_AnomCoupl_CombinedJet = ROOT.RooFormulaVar(
                 VBFinterfRates_Down_AnomCoupl_CombinedJet_Name,
-                "( @0 + ( TMath::Max(@2,0) -1)*@1 )",
+                "( @0 + ( 1-TMath::Max(@2,0) )*@1 )",
                 ROOT.RooArgList(VBFinterfRates_Down_AnomCoupl, VBFinterfRates_Down_AnomCoupl_OppositeDjet, thetaSyst_djet_VBF_norm)
                 )
             VBFbkgRates_Down_CombinedJet = ROOT.RooFormulaVar(
                 VBFbkgRateDownName_CombinedDjet,
-                "( @0 + ( TMath::Max(@2,0) -1)*@1 )",
+                "( @0 + ( 1-TMath::Max(@2,0) )*@1 )",
                 ROOT.RooArgList(VBFbkgRates_Down, VBFbkgRates_Down_OppositeDjet, thetaSyst_djet_VBF_norm)
                 )
         if useDjet == 2:
