@@ -74,7 +74,7 @@ class width_datacardClass:
         self.ggZZ_interf_chan = theInputs['ggZZ_interf']
         self.VBF_offshell_chan = theInputs['VBF_offshell']
         self.zjets_chan = theInputs['zjets']
-        self.templRange = 220
+        self.templRange = theLowSide
 
         # ---------------- SET PLOTTING STYLE ---------------- ##
         ROOT.setTDRStyle(True)
@@ -241,6 +241,13 @@ class width_datacardClass:
         MorphNormList_qqZZ_Djet.add(qqZZ_djetsyst_norm_dn)
         asympowname = "Asymquad_qqZZ_djet_{0:.0f}_{1:.0f}_{2:.0f}".format(self.channel, self.sqrts, useDjet)
         thetaSyst_djet_qqZZ_norm = ROOT.AsymQuad(asympowname, asympowname, MorphNormList_qqZZ_Djet, morphVarListqqZZ_djet, 1.0)
+        if DEBUG:
+            print "theta qqZZ djet nominal: ",thetaSyst_djet_qqZZ_norm.getVal()
+            CMS_zz4l_qqzz_djet_syst.setVal(1)
+            print "theta qqZZ djet up: ",thetaSyst_djet_qqZZ_norm.getVal()
+            CMS_zz4l_qqzz_djet_syst.setVal(-1)
+            print "theta qqZZ djet dn: ",thetaSyst_djet_qqZZ_norm.getVal()
+            CMS_zz4l_qqzz_djet_syst.setVal(0)
 
         morphVarListzjets_djet.add(CMS_zz4l_zjets_djet_syst)
         zjets_djetsyst_norm_nominal_name = "zjets_djetsyst_norm_nominal_{0:.0f}_{1:.0f}_{2:.0f}".format(self.channel, self.sqrts, useDjet)
@@ -255,12 +262,6 @@ class width_datacardClass:
         asympowname = "Asymquad_zjets_djet_{0:.0f}_{1:.0f}_{2:.0f}".format(self.channel, self.sqrts, useDjet)
         thetaSyst_djet_zjets_norm = ROOT.AsymQuad(asympowname, asympowname, MorphNormList_zjets_Djet, morphVarListzjets_djet, 1.0)
 
-
-        if useDjet==0:
-            CMS_zz4l_ggzz_djet_syst.setConstant(True)
-            CMS_zz4l_vbf_djet_syst.setConstant(True)
-            CMS_zz4l_qqzz_djet_syst.setConstant(True)
-            CMS_zz4l_zjets_djet_syst.setConstant(True)
 
 #--------------------- End Djet systematics ---------------------------#
 
@@ -2796,21 +2797,6 @@ class width_datacardClass:
         name = "CMS_widthqqzzbkg_a13_{0:.0f}_{1:.0f}_{2:.0f}".format(self.channel, self.sqrts, useDjet)
         CMS_qqzzbkg_a13 = ROOT.RooRealVar(name, "CMS_widthqqzzbkg_a13", theInputs['qqZZshape_a13'])
 
-        # CMS_qqzzbkg_a0.setVal(theInputs['qqZZshape_a0'])
-        # CMS_qqzzbkg_a1.setVal(theInputs['qqZZshape_a1'])
-        # CMS_qqzzbkg_a2.setVal(theInputs['qqZZshape_a2'])
-        # CMS_qqzzbkg_a3.setVal(theInputs['qqZZshape_a3'])
-        # CMS_qqzzbkg_a4.setVal(theInputs['qqZZshape_a4'])
-        # CMS_qqzzbkg_a5.setVal(theInputs['qqZZshape_a5'])
-        # CMS_qqzzbkg_a6.setVal(theInputs['qqZZshape_a6'])
-        # CMS_qqzzbkg_a7.setVal(theInputs['qqZZshape_a7'])
-        # CMS_qqzzbkg_a8.setVal(theInputs['qqZZshape_a8'])
-        # CMS_qqzzbkg_a9.setVal(theInputs['qqZZshape_a9'])
-        # CMS_qqzzbkg_a10.setVal(theInputs['qqZZshape_a10'])
-        # CMS_qqzzbkg_a11.setVal(theInputs['qqZZshape_a11'])
-        # CMS_qqzzbkg_a12.setVal(theInputs['qqZZshape_a12'])
-        # CMS_qqzzbkg_a13.setVal(theInputs['qqZZshape_a13'])
-
         CMS_qqzzbkg_a0.setConstant(True)
         CMS_qqzzbkg_a1.setConstant(True)
         CMS_qqzzbkg_a2.setConstant(True)
@@ -2861,81 +2847,50 @@ class width_datacardClass:
             CMS_qqzzbkg_a12, CMS_qqzzbkg_a13
         )
 
-        if(useDjet == 1):
-            # code for analytic form of Djet <0.5 cut
-            if(self.sqrts == 7):
-                name = "qqzz_djetcut_p0_{0:.0f}_{1:.0f}".format(self.sqrts, useDjet)
-                qqzz_djetcut_p0 = ROOT.RooRealVar(name, name, 1. - 5.83513e-03)
-                name = "qqzz_djetcut_p1_{0:.0f}_{1:.0f}".format(self.sqrts, useDjet)
-                qqzz_djetcut_p1 = ROOT.RooRealVar(name, name, -6.88113e-06)
-                name = "qqzz_djetcut_p2_{0:.0f}_{1:.0f}".format(self.sqrts, useDjet)
-                qqzz_djetcut_p2 = ROOT.RooRealVar(name, name, 2.53708e+02)
-                name = "qqzz_djetcut_p3_{0:.0f}_{1:.0f}".format(self.sqrts, useDjet)
-                qqzz_djetcut_p3 = ROOT.RooRealVar(name, name, 4.46181e+01)
-            if(self.sqrts == 8):
-                name = "qqzz_djetcut_p0_{0:.0f}_{1:.0f}".format(self.sqrts, useDjet)
-                qqzz_djetcut_p0 = ROOT.RooRealVar(name, name, 1. - 6.54811e-03)
-                name = "qqzz_djetcut_p1_{0:.0f}_{1:.0f}".format(self.sqrts, useDjet)
-                qqzz_djetcut_p1 = ROOT.RooRealVar(name, name, -5.86652e-06)
-                name = "qqzz_djetcut_p2_{0:.0f}_{1:.0f}".format(self.sqrts, useDjet)
-                qqzz_djetcut_p2 = ROOT.RooRealVar(name, name, 2.43263e+02)
-                name = "qqzz_djetcut_p3_{0:.0f}_{1:.0f}".format(self.sqrts, useDjet)
-                qqzz_djetcut_p3 = ROOT.RooRealVar(name, name, 2.27248e+01)
-        if(useDjet == 2):
-            # code for analytic form of Djet > 0.5 cut
-            if(self.sqrts == 7):
-                name = "qqzz_djetcut_p0_{0:.0f}_{1:.0f}".format(self.sqrts, useDjet)
-                qqzz_djetcut_p0 = ROOT.RooRealVar(name, "qqzz_djetcut_p0", 5.83513e-03)
-                name = "qqzz_djetcut_p1_{0:.0f}_{1:.0f}".format(self.sqrts, useDjet)
-                qqzz_djetcut_p1 = ROOT.RooRealVar(name, "qqzz_djetcut_p1", 6.88113e-06)
-                name = "qqzz_djetcut_p2_{0:.0f}_{1:.0f}".format(self.sqrts, useDjet)
-                qqzz_djetcut_p2 = ROOT.RooRealVar(name, "qqzz_djetcut_p2", 2.53708e+02)
-                name = "qqzz_djetcut_p3_{0:.0f}_{1:.0f}".format(self.sqrts, useDjet)
-                qqzz_djetcut_p3 = ROOT.RooRealVar(name, "qqzz_djetcut_p3", 4.46181e+01)
-            if(self.sqrts == 8):
-                name = "qqzz_djetcut_p0_{0:.0f}_{1:.0f}".format(self.sqrts, useDjet)
-                qqzz_djetcut_p0 = ROOT.RooRealVar(name, "qqzz_djetcut_p0", 6.54811e-03)
-                name = "qqzz_djetcut_p1_{0:.0f}_{1:.0f}".format(self.sqrts, useDjet)
-                qqzz_djetcut_p1 = ROOT.RooRealVar(name, "qqzz_djetcut_p1", 5.86652e-06)
-                name = "qqzz_djetcut_p2_{0:.0f}_{1:.0f}".format(self.sqrts, useDjet)
-                qqzz_djetcut_p2 = ROOT.RooRealVar(name, "qqzz_djetcut_p2", 2.43263e+02)
-                name = "qqzz_djetcut_p3_{0:.0f}_{1:.0f}".format(self.sqrts, useDjet)
-                qqzz_djetcut_p3 = ROOT.RooRealVar(name, "qqzz_djetcut_p3", 2.27248e+01)
-        if(useDjet == 1 or useDjet == 2):
-            qqzz_djetcut_p0.setConstant(True)
-            qqzz_djetcut_p1.setConstant(True)
-            qqzz_djetcut_p2.setConstant(True)
-            qqzz_djetcut_p3.setConstant(True)
-            djetcutarglist = ROOT.RooArgList(
-                CMS_zz4l_widthMass,
-                qqzz_djetcut_p0, qqzz_djetcut_p1, qqzz_djetcut_p2, qqzz_djetcut_p3
-            )
-            bkg_qqzz_mass_Djet_shape = ROOT.RooGenericPdf(
-                "bkg_qqzz_widthmass_Djet_shape_{0:.0f}_{1:.0f}".format(self.sqrts, useDjet),
-                "bkg_qqzz_widthmass_Djet_shape_{0:.0f}_{1:.0f}".format(self.sqrts, useDjet),
-                "@1-@2*@0*TMath::Gaus((@0-@3)/@4)",
-                djetcutarglist
-            )
+        name = "qqzz_djetcut_p0_{0:.0f}_{1:.0f}".format(self.sqrts, useDjet)
+        qqzz_djetcut_p0 = ROOT.RooRealVar(name, name, 1,-1e5,1e5)
+        name = "qqzz_djetcut_p1_{0:.0f}_{1:.0f}".format(self.sqrts, useDjet)
+        qqzz_djetcut_p1 = ROOT.RooRealVar(name, name, 0,-1e5,1e5)
+        name = "qqzz_djetcut_p2_{0:.0f}_{1:.0f}".format(self.sqrts, useDjet)
+        qqzz_djetcut_p2 = ROOT.RooRealVar(name, name, 0,-1e5,1e5)
+        name = "qqzz_djetcut_p3_{0:.0f}_{1:.0f}".format(self.sqrts, useDjet)
+        qqzz_djetcut_p3 = ROOT.RooRealVar(name, name, 1,-1e5,1e5)
 
+        if useDjet != 0:
+            # code for analytic form of Djet > 0.5 cut, useDjet == 2; useDjet == 1 is 1-(useDjet == 2)
+            if self.sqrts == 7 :
+                qqzz_djetcut_p0.setVal(3.98058e-03)
+                qqzz_djetcut_p1.setVal(1.04364e-03)
+                qqzz_djetcut_p2.setVal(2.00000e+02)
+                qqzz_djetcut_p3.setVal(1.79004e+02)
+            if self.sqrts == 8 :
+                qqzz_djetcut_p0.setVal(5.64595e-03)
+                qqzz_djetcut_p1.setVal(8.67370e-04)
+                qqzz_djetcut_p2.setVal(2.73223e+02)
+                qqzz_djetcut_p3.setVal(4.00070e+01)
+
+        qqzz_djetcut_p0.setConstant(True)
+        qqzz_djetcut_p1.setConstant(True)
+        qqzz_djetcut_p2.setConstant(True)
+        qqzz_djetcut_p3.setConstant(True)
+        djetcutarglist = ROOT.RooArgList(
+            CMS_zz4l_widthMass,
+            qqzz_djetcut_p0, qqzz_djetcut_p1, qqzz_djetcut_p2, qqzz_djetcut_p3
+        )
+        bkg_qqzz_mass_Djet_shape_Name = "bkg_qqzz_widthmass_Djet_shape_{0:.0f}_{1:.0f}".format(self.sqrts, useDjet)
+        bkg_qqzz_mass_Djet_shape_FormulaCore = "(@1+@2*TMath::Erf((@0-@3)/@4))"
+        bkg_qqzz_mass_Djet_shape_Formula = "1"
+        if useDjet!=0:
+            bkg_qqzz_mass_Djet_shape_Formula = bkg_qqzz_mass_Djet_shape_FormulaCore
+        bkg_qqzz_mass_Djet_shape = ROOT.RooFormulaVar(
+            bkg_qqzz_mass_Djet_shape_Name, bkg_qqzz_mass_Djet_shape_Name,
+            bkg_qqzz_mass_Djet_shape_Formula,
+            djetcutarglist
+        )
 
         qqZZ_Scale_Syst = w.factory("QCDscale_VV[-7,7]")
         qqZZ_EWK_Syst = w.factory("EWKcorr_VV[-7,7]")
 
-        asympowname = "kappalow_qqZZ_QCD_{0:.0f}_{1:.0f}_{2:.0f}".format(self.channel, self.sqrts, useDjet)
-        kappalow_QCD_qqzz = ROOT.RooRealVar(asympowname, asympowname, CMS_qqzzbkg_p3.getVal())
-        asympowname = "kappahigh_qqZZ_QCD_{0:.0f}_{1:.0f}_{2:.0f}".format(self.channel, self.sqrts, useDjet)
-        kappahigh_QCD_qqzz = ROOT.RooRealVar(asympowname, asympowname, CMS_qqzzbkg_p4.getVal())
-        asympowname = "Asympow_qqZZ_QCD_{0:.0f}_{1:.0f}_{2:.0f}".format(self.channel, self.sqrts, useDjet)
-        thetaSyst_qqZZ_QCD = AsymPow(asympowname, asympowname, kappalow_QCD_qqzz, kappahigh_QCD_qqzz, qqZZ_Scale_Syst)
-
-        asympowname = "kappalow_qqZZ_EWK_{0:.0f}_{1:.0f}_{2:.0f}".format(self.channel, self.sqrts, useDjet)
-        kappalow_EWK_qqzz = ROOT.RooRealVar(asympowname, asympowname, CMS_qqzzbkg_EWK_p4.getVal())
-        asympowname = "kappahigh_qqZZ_EWK_{0:.0f}_{1:.0f}_{2:.0f}".format(self.channel, self.sqrts, useDjet)
-        kappahigh_EWK_qqzz = ROOT.RooRealVar(asympowname, asympowname, CMS_qqzzbkg_EWK_p5.getVal())
-        asympowname = "Asympow_qqZZ_EWK_{0:.0f}_{1:.0f}_{2:.0f}".format(self.channel, self.sqrts, useDjet)
-        thetaSyst_qqZZ_EWK = AsymPow(asympowname, asympowname, kappalow_EWK_qqzz, kappahigh_EWK_qqzz, qqZZ_EWK_Syst)
-
-        bkg_qqzz_norm = ROOT.RooFormulaVar("bkg_qqzz_norm", "@0*@1*@2", ROOT.RooArgList(thetaSyst_qqZZ_QCD, thetaSyst_qqZZ_EWK,thetaSyst_djet_qqZZ_norm))
         qqzzarglist = ROOT.RooArgList(
             qqZZ_EWK_Syst,
             CMS_qqzzbkg_EWK_p0,
@@ -2950,30 +2905,122 @@ class width_datacardClass:
             CMS_qqzzbkg_p1
         )
         qqzzarglist.add(CMS_qqzzbkg_p2)
-
+#        bkg_qqzz_mass_shape = ROOT.RooFormulaVar(
         bkg_qqzz_mass_shape = ROOT.RooGenericPdf(
             "bkg_qqzz_widthmass_shape_{0:.0f}_{1:.0f}_{2:.0f}".format(self.channel, self.sqrts, useDjet), "bkg_qqzz_mass_shape",
-            "TMath::Max( (1+@0*( @1-1 +@2*@5 +@3*@5*@5 +@4*@5*@5*@5 )) * (1+@6*( @7-1 +@8*@5 +@9*@5*@5 )) , 1.0E-10 )",
-            # max( ( 1 + EWKcorr_VV*pol3_EWK * (1 + QCDscale_VV*pol3_QCD ) ), 0 )
+            "TMath::Max( 1 + @0*( @1-1 +@2*@5 +@3*@5*@5 +@4*@5*@5*@5 ) + @6*( @7-1 +@8*@5 +@9*@5*@5 ) , 1e-15 )",
             qqzzarglist
         )
-        if(useDjet == 0):
-            bkg_qqzz_mass = ROOT.RooProdPdf(
-                "bkg_qqzz_widthmass_{0:.0f}_{1:.0f}_{2:.0f}".format(self.channel, self.sqrts, useDjet), "bkg_qqzz_mass",
-                ROOT.RooArgList(
-                    bkg_qqzz_mass_temp,
-                    bkg_qqzz_mass_shape
+        if useDjet != 0:
+            qqzzarglist.add(bkg_qqzz_mass_Djet_shape)
+            qqzzarglist.add(thetaSyst_djet_qqZZ_norm)
+            if useDjet == 2:
+#                bkg_qqzz_mass_shape = ROOT.RooFormulaVar(
+                bkg_qqzz_mass_shape = ROOT.RooGenericPdf(
+                    "bkg_qqzz_widthmass_shape_{0:.0f}_{1:.0f}_{2:.0f}".format(self.channel, self.sqrts, useDjet), "bkg_qqzz_mass_shape",
+                    "TMath::Max( ( TMath::Max(@11,0) + @0*( @1-1 +@2*@5 +@3*@5*@5 +@4*@5*@5*@5 ) + @6*( @7-1 +@8*@5 +@9*@5*@5 ) )*@10, 1e-15 )",
+                    qqzzarglist
                 )
-            )
-        elif(useDjet == 1 or useDjet == 2):
-            bkg_qqzz_mass = ROOT.RooProdPdf(
-                "bkg_qqzz_widthmass_{0:.0f}_{1:.0f}_{2:.0f}".format(self.channel, self.sqrts, useDjet), "bkg_qqzz_mass",
-                ROOT.RooArgList(
-                    bkg_qqzz_mass_temp,
-                    bkg_qqzz_mass_shape,
-                    bkg_qqzz_mass_Djet_shape
+            elif useDjet == 1:
+#                bkg_qqzz_mass_shape = ROOT.RooFormulaVar(
+                bkg_qqzz_mass_shape = ROOT.RooGenericPdf(
+                    "bkg_qqzz_widthmass_shape_{0:.0f}_{1:.0f}_{2:.0f}".format(self.channel, self.sqrts, useDjet), "bkg_qqzz_mass_shape",
+                    "TMath::Max( ( 1 + @0*( @1-1 +@2*@5 +@3*@5*@5 +@4*@5*@5*@5 ) + @6*( @7-1 +@8*@5 +@9*@5*@5 ) )*(1.-@10) + @10*(1-TMath::Max(@11,0)), 1e-15 )",
+                    qqzzarglist
                 )
+
+        bkg_qqzz_mass = ROOT.RooProdPdf(
+            "bkg_qqzz_widthmass_{0:.0f}_{1:.0f}_{2:.0f}".format(self.channel, self.sqrts, useDjet), "bkg_qqzz_mass",
+            ROOT.RooArgList(
+                bkg_qqzz_mass_temp,
+                bkg_qqzz_mass_shape
             )
+        )
+#        bkg_qqzz_mass = ROOT.RooGenericPdf(
+#            "bkg_qqzz_widthmass_{0:.0f}_{1:.0f}_{2:.0f}".format(self.channel, self.sqrts, useDjet), "bkg_qqzz_mass","@0*@1",
+#            ROOT.RooArgList(
+#                bkg_qqzz_mass_temp,
+#                bkg_qqzz_mass_shape
+#            )
+#        )
+
+        bkg_qqzz_mass.forceNumInt(True)
+        if DEBUG:
+            bkg_qqzz_mass_temp.Print("v")
+            bkg_qqzz_mass_shape.Print("v")
+            bkg_qqzz_mass.Print("v")
+
+        bkg_qqzz_Nominal_NormVal = bkg_qqzz_mass.createIntegral(ROOT.RooArgSet(CMS_zz4l_widthMass)).getVal()
+        bkg_qqzz_Nominal_Norm_Name = "bkg_qqzz_widthmass_NominalNorm_{0:.0f}_{1:.0f}_{2:.0f}".format(self.channel, self.sqrts, useDjet)
+        bkg_qqzz_Nominal_Norm = ROOT.RooRealVar(bkg_qqzz_Nominal_Norm_Name, bkg_qqzz_Nominal_Norm_Name, 1.)
+
+        bkg_qqzz_DjetUp_NormVal = bkg_qqzz_Nominal_NormVal
+        bkg_qqzz_DjetDown_NormVal = bkg_qqzz_Nominal_NormVal
+        if useDjet!=0:
+            CMS_zz4l_qqzz_djet_syst.setVal(1)
+            bkg_qqzz_DjetUp_NormVal = bkg_qqzz_mass.createIntegral(ROOT.RooArgSet(CMS_zz4l_widthMass)).getVal()
+            CMS_zz4l_qqzz_djet_syst.setVal(-1)
+            bkg_qqzz_DjetDown_NormVal = bkg_qqzz_mass.createIntegral(ROOT.RooArgSet(CMS_zz4l_widthMass)).getVal()
+            CMS_zz4l_qqzz_djet_syst.setVal(0)
+        bkg_qqzz_DjetUp_NormVal = bkg_qqzz_DjetUp_NormVal/bkg_qqzz_Nominal_NormVal
+        bkg_qqzz_DjetDown_NormVal = bkg_qqzz_DjetDown_NormVal/bkg_qqzz_Nominal_NormVal
+        bkg_qqzz_DjetUp_Norm_Name = "bkg_qqzz_widthmass_DjetUpNorm_{0:.0f}_{1:.0f}_{2:.0f}".format(self.channel, self.sqrts, useDjet)
+        bkg_qqzz_DjetUp_Norm = ROOT.RooRealVar(bkg_qqzz_DjetUp_Norm_Name, bkg_qqzz_DjetUp_Norm_Name, bkg_qqzz_DjetUp_NormVal)
+        bkg_qqzz_DjetDown_Norm_Name = "bkg_qqzz_widthmass_DjetDownNorm_{0:.0f}_{1:.0f}_{2:.0f}".format(self.channel, self.sqrts, useDjet)
+        bkg_qqzz_DjetDown_Norm = ROOT.RooRealVar(bkg_qqzz_DjetDown_Norm_Name, bkg_qqzz_DjetDown_Norm_Name, bkg_qqzz_DjetDown_NormVal)
+
+        qqZZ_Scale_Syst.setVal(1)
+        bkg_qqzz_QCDScaleUp_NormVal = bkg_qqzz_mass.createIntegral(ROOT.RooArgSet(CMS_zz4l_widthMass)).getVal()
+        qqZZ_Scale_Syst.setVal(-1)
+        bkg_qqzz_QCDScaleDown_NormVal = bkg_qqzz_mass.createIntegral(ROOT.RooArgSet(CMS_zz4l_widthMass)).getVal()
+        qqZZ_Scale_Syst.setVal(0)
+        bkg_qqzz_QCDScaleUp_NormVal = bkg_qqzz_QCDScaleUp_NormVal/bkg_qqzz_Nominal_NormVal
+        bkg_qqzz_QCDScaleDown_NormVal = bkg_qqzz_QCDScaleDown_NormVal/bkg_qqzz_Nominal_NormVal
+        bkg_qqzz_QCDScaleUp_Norm_Name = "bkg_qqzz_widthmass_QCDScaleUpNorm_{0:.0f}_{1:.0f}_{2:.0f}".format(self.channel, self.sqrts, useDjet)
+        bkg_qqzz_QCDScaleUp_Norm = ROOT.RooRealVar(bkg_qqzz_QCDScaleUp_Norm_Name, bkg_qqzz_QCDScaleUp_Norm_Name, bkg_qqzz_QCDScaleUp_NormVal)
+        bkg_qqzz_QCDScaleDown_Norm_Name = "bkg_qqzz_widthmass_QCDScaleDownNorm_{0:.0f}_{1:.0f}_{2:.0f}".format(self.channel, self.sqrts, useDjet)
+        bkg_qqzz_QCDScaleDown_Norm = ROOT.RooRealVar(bkg_qqzz_QCDScaleDown_Norm_Name, bkg_qqzz_QCDScaleDown_Norm_Name, bkg_qqzz_QCDScaleDown_NormVal)
+
+        qqZZ_EWK_Syst.setVal(1)
+        bkg_qqzz_EWKcorrUp_NormVal = bkg_qqzz_mass.createIntegral(ROOT.RooArgSet(CMS_zz4l_widthMass)).getVal()
+        qqZZ_EWK_Syst.setVal(-1)
+        bkg_qqzz_EWKcorrDown_NormVal = bkg_qqzz_mass.createIntegral(ROOT.RooArgSet(CMS_zz4l_widthMass)).getVal()
+        qqZZ_EWK_Syst.setVal(0)
+        bkg_qqzz_EWKcorrUp_NormVal = bkg_qqzz_EWKcorrUp_NormVal/bkg_qqzz_Nominal_NormVal
+        bkg_qqzz_EWKcorrDown_NormVal = bkg_qqzz_EWKcorrDown_NormVal/bkg_qqzz_Nominal_NormVal
+        bkg_qqzz_EWKcorrUp_Norm_Name = "bkg_qqzz_widthmass_EWKcorrUpNorm_{0:.0f}_{1:.0f}_{2:.0f}".format(self.channel, self.sqrts, useDjet)
+        bkg_qqzz_EWKcorrUp_Norm = ROOT.RooRealVar(bkg_qqzz_EWKcorrUp_Norm_Name, bkg_qqzz_EWKcorrUp_Norm_Name, bkg_qqzz_EWKcorrUp_NormVal)
+        bkg_qqzz_EWKcorrDown_Norm_Name = "bkg_qqzz_widthmass_EWKcorrDownNorm_{0:.0f}_{1:.0f}_{2:.0f}".format(self.channel, self.sqrts, useDjet)
+        bkg_qqzz_EWKcorrDown_Norm = ROOT.RooRealVar(bkg_qqzz_EWKcorrDown_Norm_Name, bkg_qqzz_EWKcorrDown_Norm_Name, bkg_qqzz_EWKcorrDown_NormVal)
+
+        morphVarListqqZZ_norm = ROOT.RooArgList()
+        MorphNormList_qqZZ_norm = ROOT.RooArgList()
+        morphVarListqqZZ_norm.add(qqZZ_Scale_Syst)
+        morphVarListqqZZ_norm.add(qqZZ_EWK_Syst)
+        MorphNormList_qqZZ_norm.add(bkg_qqzz_Nominal_Norm)
+        MorphNormList_qqZZ_norm.add(bkg_qqzz_QCDScaleUp_Norm)
+        MorphNormList_qqZZ_norm.add(bkg_qqzz_QCDScaleDown_Norm)
+        MorphNormList_qqZZ_norm.add(bkg_qqzz_EWKcorrUp_Norm)
+        MorphNormList_qqZZ_norm.add(bkg_qqzz_EWKcorrDown_Norm)
+        asympowname = "Asymquad_qqZZ_QCD_EWK_{0:.0f}_{1:.0f}_{2:.0f}".format(self.channel, self.sqrts, useDjet)
+        if useDjet!=0:
+            morphVarListqqZZ_norm.add(CMS_zz4l_qqzz_djet_syst)
+            MorphNormList_qqZZ_norm.add(bkg_qqzz_DjetUp_Norm)
+            MorphNormList_qqZZ_norm.add(bkg_qqzz_DjetDown_Norm)
+            asympowname = "Asymquad_qqZZ_Djet_QCD_EWK_{0:.0f}_{1:.0f}_{2:.0f}".format(self.channel, self.sqrts, useDjet)
+        thetaSyst_combined_qqZZ_norm = ROOT.AsymQuad(asympowname, asympowname, MorphNormList_qqZZ_norm, morphVarListqqZZ_norm, 1.0)
+        bkg_qqzz_norm = ROOT.RooFormulaVar("bkg_qqzz_norm", "TMath::Max(@0,1e-15)", ROOT.RooArgList(thetaSyst_combined_qqZZ_norm))
+
+        if DEBUG:
+            print "bkg_qqZZ_Nominal:",bkg_qqzz_Nominal_NormVal
+            print "bkg_qqZZ_QCD Up Ratio:",bkg_qqzz_QCDScaleUp_Norm.getVal()
+            print "bkg_qqZZ_QCD Dn Ratio:",bkg_qqzz_QCDScaleDown_Norm.getVal()
+            print "bkg_qqZZ_EWK Up Ratio:",bkg_qqzz_EWKcorrUp_Norm.getVal()
+            print "bkg_qqZZ_EWK Dn Ratio:",bkg_qqzz_EWKcorrDown_Norm.getVal()
+            print "bkg_qqZZ_Djet Up Ratio:",bkg_qqzz_DjetUp_Norm.getVal()
+            print "bkg_qqZZ_Djet Dn Ratio:",bkg_qqzz_DjetDown_Norm.getVal()
+
+
 
         TemplateName = "qqzz_TempDataHist_{0:.0f}_{1:.0f}_{2:.0f}".format(self.channel, self.sqrts, useDjet)
         qqzz_TempDataHist = ROOT.RooDataHist(
@@ -3073,6 +3120,33 @@ class width_datacardClass:
         # Add a RooProdPDF after each iteration of bkg_zjets_mass with
         # bkg_zjets_mass = Prod(bkg_zjets_mass,analytic form)
 
+        bkg_zjets_mass_Djet_ratio_Name = "bkg_zjets_mass_Djet_ratio_{0:.0f}_{1:.0f}_{2:.0f}".format(self.sqrts, self.channel, useDjet)
+        bkg_zjets_mass_Djet_shape_Name = "bkg_zjets_mass_Djet_shape_{0:.0f}_{1:.0f}_{2:.0f}".format(self.sqrts, self.channel, useDjet)
+        bkg_zjets_mass_Djet_shape_FormulaCore = "@0"
+        bkg_zjets_mass_Djet_shape_Formula = "1"
+        bkg_zjets_mass_Djet_ratio = ROOT.RooRealVar(bkg_zjets_mass_Djet_ratio_Name, "bkg_zjets_mass_Djet_ratio", 1,0,1)
+        if useDjet != 0:
+            # code for analytic form of Djet > 0.5 cut
+            if(self.sqrts == 7):
+                bkg_zjets_mass_Djet_ratio.setVal(9.94527e-03)
+            if(self.sqrts == 8):
+                bkg_zjets_mass_Djet_ratio.setVal(1.00038e-02)
+            if useDjet==1:
+                bkg_zjets_mass_Djet_shape_FormulaCore = "(1 + (@1/(1.-@1))*(1-TMath::Max(@0,0)))"
+            bkg_zjets_mass_Djet_shape_Formula = bkg_zjets_mass_Djet_shape_FormulaCore
+        bkg_zjets_mass_Djet_ratio.setConstant(True)
+        bkg_zjets_djet_arglist = ROOT.RooArgList(
+            thetaSyst_djet_zjets_norm
+        )
+        if useDjet==0:
+            bkg_zjets_djet_arglist.removeAll()
+        elif useDjet==1:
+            bkg_zjets_djet_arglist.add(bkg_zjets_mass_Djet_ratio)
+        bkg_zjets_norm = ROOT.RooFormulaVar("bkg_zjets_norm", bkg_zjets_mass_Djet_shape_Formula, bkg_zjets_djet_arglist)
+
+
+
+
         if (self.channel == self.ID_4mu):
             name = "mlZjet_width_{0:.0f}_{1:.0f}_{2:.0f}".format(self.channel, self.sqrts, useDjet)
             mlZjet = ROOT.RooRealVar(name, "mean landau Zjet", val_meanL_2P2F)
@@ -3085,48 +3159,12 @@ class width_datacardClass:
             bkg_zjets_mass = ROOT.RooLandau(
                 "bkg_zjetsTmp_width_{0:.0f}_{1:.0f}_{2:.0f}".format(self.channel, self.sqrts, useDjet), "bkg_zjetsTmp", CMS_zz4l_widthMass, mlZjet, slZjet)
 
-            bkg_zjets_mass_Djet_shape = ROOT.RooGenericPdf()
-            if(useDjet == 1):
-                # code for analytic form of Djet <0.5 cut
-                if(self.sqrts == 7):
-                    name = "bkg_zjets_mass_Djet_ratio_{0:.0f}_{1:.0f}_{2:.0f}".format(self.sqrts, self.channel, useDjet)
-                    bkg_zjets_mass_Djet_ratio = ROOT.RooRealVar(
-                        name, "bkg_zjets_mass_Djet_ratio", 1. - 9.94527e-03)
-                if(self.sqrts == 8):
-                    name = "bkg_zjets_mass_Djet_ratio_{0:.0f}_{1:.0f}_{2:.0f}".format(self.sqrts, self.channel, useDjet)
-                    bkg_zjets_mass_Djet_ratio = ROOT.RooRealVar(
-                        name, "bkg_zjets_mass_Djet_ratio", 1. - 1.00038e-02)
-            if(useDjet == 2):
-                # code for analytic form of Djet > 0.5 cut
-                if(self.sqrts == 7):
-                    name = "bkg_zjets_mass_Djet_ratio_{0:.0f}_{1:.0f}_{2:.0f}".format(self.sqrts, self.channel, useDjet)
-                    bkg_zjets_mass_Djet_ratio = ROOT.RooRealVar(
-                        name, "bkg_zjets_mass_Djet_ratio", 9.94527e-03)
-                if(self.sqrts == 8):
-                    name = "bkg_zjets_mass_Djet_ratio_{0:.0f}_{1:.0f}_{2:.0f}".format(self.sqrts, self.channel, useDjet)
-                    bkg_zjets_mass_Djet_ratio = ROOT.RooRealVar(
-                        name, "bkg_zjets_mass_Djet_ratio", 1.00038e-02)
-            if(useDjet == 1 or useDjet == 2):
-                bkg_zjets_mass_Djet_ratio.setConstant(True)
-                bkg_zjets_mass_Djet_shape = ROOT.RooGenericPdf(
-                    "bkg_zjets_mass_Djet_shape_{0:.0f}_{1:.0f}_{2:.0f}".format(self.channel, self.sqrts, useDjet), "@0", ROOT.RooArgList(bkg_zjets_mass_Djet_ratio))
-
-            if(useDjet == 0):
-                bkg_zjets_Nominal = ROOT.RooProdPdf("bkg_zjets_Nominal_{0:.0f}_{1:.0f}_{2:.0f}".format(self.channel, self.sqrts, useDjet), "bkg_zjets_Nominal", ROOT.RooArgSet(
-                    bkg_zjets_mass), ROOT.RooFit.Conditional(ROOT.RooArgSet(zjet_TemplatePdfNominal), ROOT.RooArgSet(CMS_zz4l_widthKD)))
-                bkg_zjets_Up = ROOT.RooProdPdf("bkg_zjets_Up_{0:.0f}_{1:.0f}_{2:.0f}".format(self.channel, self.sqrts, useDjet), "bkg_zjets_Up", ROOT.RooArgSet(
-                    bkg_zjets_mass), ROOT.RooFit.Conditional(ROOT.RooArgSet(zjet_TemplatePdfUp), ROOT.RooArgSet(CMS_zz4l_widthKD)))
-                bkg_zjets_Down = ROOT.RooProdPdf("bkg_zjets_Down_{0:.0f}_{1:.0f}_{2:.0f}".format(self.channel, self.sqrts, useDjet), "bkg_zjets_Down", ROOT.RooArgSet(
-                    bkg_zjets_mass), ROOT.RooFit.Conditional(ROOT.RooArgSet(zjet_TemplatePdfDown), ROOT.RooArgSet(CMS_zz4l_widthKD)))
-            if(useDjet == 1 or useDjet == 2):
-                bkg_zjets_mass_Djet = ROOT.RooProdPdf("bkg_zjets_mass_Djet_{0:.0f}_{1:.0f}_{2:.0f}".format(self.channel, self.sqrts, useDjet), "bkg_zjets_mass_Djet", ROOT.RooArgList(
-                    bkg_zjets_mass, bkg_zjets_mass_Djet_shape))
-                bkg_zjets_Nominal = ROOT.RooProdPdf("bkg_zjets_Nominal_{0:.0f}_{1:.0f}_{2:.0f}".format(self.channel, self.sqrts, useDjet), "bkg_zjets_Nominal", ROOT.RooArgSet(
-                    bkg_zjets_mass_Djet), ROOT.RooFit.Conditional(ROOT.RooArgSet(zjet_TemplatePdfNominal), ROOT.RooArgSet(CMS_zz4l_widthKD)))
-                bkg_zjets_Up = ROOT.RooProdPdf("bkg_zjets_Up_{0:.0f}_{1:.0f}_{2:.0f}".format(self.channel, self.sqrts, useDjet), "bkg_zjets_Up", ROOT.RooArgSet(
-                    bkg_zjets_mass_Djet), ROOT.RooFit.Conditional(ROOT.RooArgSet(zjet_TemplatePdfUp), ROOT.RooArgSet(CMS_zz4l_widthKD)))
-                bkg_zjets_Down = ROOT.RooProdPdf("bkg_zjets_Down_{0:.0f}_{1:.0f}_{2:.0f}".format(self.channel, self.sqrts, useDjet), "bkg_zjets_Down", ROOT.RooArgSet(
-                    bkg_zjets_mass_Djet), ROOT.RooFit.Conditional(ROOT.RooArgSet(zjet_TemplatePdfDown), ROOT.RooArgSet(CMS_zz4l_widthKD)))
+            bkg_zjets_Nominal = ROOT.RooProdPdf("bkg_zjets_Nominal_{0:.0f}_{1:.0f}_{2:.0f}".format(self.channel, self.sqrts, useDjet), "bkg_zjets_Nominal", ROOT.RooArgSet(
+                bkg_zjets_mass), ROOT.RooFit.Conditional(ROOT.RooArgSet(zjet_TemplatePdfNominal), ROOT.RooArgSet(CMS_zz4l_widthKD)))
+            bkg_zjets_Up = ROOT.RooProdPdf("bkg_zjets_Up_{0:.0f}_{1:.0f}_{2:.0f}".format(self.channel, self.sqrts, useDjet), "bkg_zjets_Up", ROOT.RooArgSet(
+                bkg_zjets_mass), ROOT.RooFit.Conditional(ROOT.RooArgSet(zjet_TemplatePdfUp), ROOT.RooArgSet(CMS_zz4l_widthKD)))
+            bkg_zjets_Down = ROOT.RooProdPdf("bkg_zjets_Down_{0:.0f}_{1:.0f}_{2:.0f}".format(self.channel, self.sqrts, useDjet), "bkg_zjets_Down", ROOT.RooArgSet(
+                bkg_zjets_mass), ROOT.RooFit.Conditional(ROOT.RooArgSet(zjet_TemplatePdfDown), ROOT.RooArgSet(CMS_zz4l_widthKD)))
 
         elif (self.channel == self.ID_4e):
 
@@ -3180,47 +3218,12 @@ class width_datacardClass:
             bkg_zjets_mass = ROOT.RooAddPdf("bkg_zjetsTmp_width_{0:.0f}_{1:.0f}_{2:.0f}".format(self.channel, self.sqrts, useDjet), "bkg_zjetsTmp", ROOT.RooArgList(
                 bkg_zjets_2p2f, bkg_zjets_3p1f), ROOT.RooArgList(nlZjet_2p2f, nlZjet_3p1f))
 
-            if(useDjet == 1):
-                # code for analytic form of Djet <0.5 cut
-                if(self.sqrts == 7):
-                    name = "bkg_zjets_mass_Djet_ratio_{0:.0f}_{1:.0f}_{2:.0f}".format(self.sqrts, self.channel, useDjet)
-                    bkg_zjets_mass_Djet_ratio = ROOT.RooRealVar(
-                        name, "bkg_zjets_mass_Djet_ratio", 1. - 9.94527e-03)
-                if(self.sqrts == 8):
-                    name = "bkg_zjets_mass_Djet_ratio_{0:.0f}_{1:.0f}_{2:.0f}".format(self.sqrts, self.channel, useDjet)
-                    bkg_zjets_mass_Djet_ratio = ROOT.RooRealVar(
-                        name, "bkg_zjets_mass_Djet_ratio", 1. - 1.00038e-02)
-            if(useDjet == 2):
-                # code for analytic form of Djet > 0.5 cut
-                if(self.sqrts == 7):
-                    name = "bkg_zjets_mass_Djet_ratio_{0:.0f}_{1:.0f}_{2:.0f}".format(self.sqrts, self.channel, useDjet)
-                    bkg_zjets_mass_Djet_ratio = ROOT.RooRealVar(
-                        name, "bkg_zjets_mass_Djet_ratio", 9.94527e-03)
-                if(self.sqrts == 8):
-                    name = "bkg_zjets_mass_Djet_ratio_{0:.0f}_{1:.0f}_{2:.0f}".format(self.sqrts, self.channel, useDjet)
-                    bkg_zjets_mass_Djet_ratio = ROOT.RooRealVar(
-                        name, "bkg_zjets_mass_Djet_ratio", 1.00038e-02)
-            if(useDjet == 1 or useDjet == 2):
-                bkg_zjets_mass_Djet_ratio.setConstant(True)
-                bkg_zjets_mass_Djet_shape = ROOT.RooGenericPdf(
-                    "bkg_zjets_mass_Djet_shape_{0:.0f}_{1:.0f}_{2:.0f}".format(self.channel, self.sqrts, useDjet), "@0", ROOT.RooArgList(bkg_zjets_mass_Djet_ratio))
-
-            if(useDjet == 0):
-                bkg_zjets_Nominal = ROOT.RooProdPdf("bkg_zjets_Nominal_{0:.0f}_{1:.0f}_{2:.0f}".format(self.channel, self.sqrts, useDjet), "bkg_zjets_Nominal", ROOT.RooArgSet(
-                    bkg_zjets_mass), ROOT.RooFit.Conditional(ROOT.RooArgSet(zjet_TemplatePdfNominal), ROOT.RooArgSet(CMS_zz4l_widthKD)))
-                bkg_zjets_Up = ROOT.RooProdPdf("bkg_zjets_Up_{0:.0f}_{1:.0f}_{2:.0f}".format(self.channel, self.sqrts, useDjet), "bkg_zjets_Up", ROOT.RooArgSet(
-                    bkg_zjets_mass), ROOT.RooFit.Conditional(ROOT.RooArgSet(zjet_TemplatePdfUp), ROOT.RooArgSet(CMS_zz4l_widthKD)))
-                bkg_zjets_Down = ROOT.RooProdPdf("bkg_zjets_Down_{0:.0f}_{1:.0f}_{2:.0f}".format(self.channel, self.sqrts, useDjet), "bkg_zjets_Down", ROOT.RooArgSet(
-                    bkg_zjets_mass), ROOT.RooFit.Conditional(ROOT.RooArgSet(zjet_TemplatePdfDown), ROOT.RooArgSet(CMS_zz4l_widthKD)))
-            if(useDjet == 1 or useDjet == 2):
-                bkg_zjets_mass_Djet = ROOT.RooProdPdf("bkg_zjets_mass_Djet_{0:.0f}_{1:.0f}_{2:.0f}".format(self.channel, self.sqrts, useDjet), "bkg_zjets_mass_Djet", ROOT.RooArgList(
-                    bkg_zjets_mass, bkg_zjets_mass_Djet_shape))
-                bkg_zjets_Nominal = ROOT.RooProdPdf("bkg_zjets_Nominal_{0:.0f}_{1:.0f}_{2:.0f}".format(self.channel, self.sqrts, useDjet), "bkg_zjets_Nominal", ROOT.RooArgSet(
-                    bkg_zjets_mass_Djet), ROOT.RooFit.Conditional(ROOT.RooArgSet(zjet_TemplatePdfNominal), ROOT.RooArgSet(CMS_zz4l_widthKD)))
-                bkg_zjets_Up = ROOT.RooProdPdf("bkg_zjets_Up_{0:.0f}_{1:.0f}_{2:.0f}".format(self.channel, self.sqrts, useDjet), "bkg_zjets_Up", ROOT.RooArgSet(
-                    bkg_zjets_mass_Djet), ROOT.RooFit.Conditional(ROOT.RooArgSet(zjet_TemplatePdfUp), ROOT.RooArgSet(CMS_zz4l_widthKD)))
-                bkg_zjets_Down = ROOT.RooProdPdf("bkg_zjets_Down_{0:.0f}_{1:.0f}_{2:.0f}".format(self.channel, self.sqrts, useDjet), "bkg_zjets_Down", ROOT.RooArgSet(
-                    bkg_zjets_mass_Djet), ROOT.RooFit.Conditional(ROOT.RooArgSet(zjet_TemplatePdfDown), ROOT.RooArgSet(CMS_zz4l_widthKD)))
+            bkg_zjets_Nominal = ROOT.RooProdPdf("bkg_zjets_Nominal_{0:.0f}_{1:.0f}_{2:.0f}".format(self.channel, self.sqrts, useDjet), "bkg_zjets_Nominal", ROOT.RooArgSet(
+                bkg_zjets_mass), ROOT.RooFit.Conditional(ROOT.RooArgSet(zjet_TemplatePdfNominal), ROOT.RooArgSet(CMS_zz4l_widthKD)))
+            bkg_zjets_Up = ROOT.RooProdPdf("bkg_zjets_Up_{0:.0f}_{1:.0f}_{2:.0f}".format(self.channel, self.sqrts, useDjet), "bkg_zjets_Up", ROOT.RooArgSet(
+                bkg_zjets_mass), ROOT.RooFit.Conditional(ROOT.RooArgSet(zjet_TemplatePdfUp), ROOT.RooArgSet(CMS_zz4l_widthKD)))
+            bkg_zjets_Down = ROOT.RooProdPdf("bkg_zjets_Down_{0:.0f}_{1:.0f}_{2:.0f}".format(self.channel, self.sqrts, useDjet), "bkg_zjets_Down", ROOT.RooArgSet(
+                bkg_zjets_mass), ROOT.RooFit.Conditional(ROOT.RooArgSet(zjet_TemplatePdfDown), ROOT.RooArgSet(CMS_zz4l_widthKD)))
 
         elif (self.channel == self.ID_2e2mu):
 
@@ -3288,47 +3291,12 @@ class width_datacardClass:
             bkg_zjets_mass = ROOT.RooAddPdf("bkg_zjetsTmp_width_{0:.0f}_{1:.0f}_{2:.0f}".format(self.channel, self.sqrts, useDjet), "bkg_zjetsTmp", ROOT.RooArgList(
                 bkg_zjets_2p2f, bkg_zjets_3p1f, bkg_zjets_2p2f_2), ROOT.RooArgList(nlZjet_2p2f, nlZjet_3p1f, nlZjet_2p2f_2))
 
-            if(useDjet == 1):
-                # code for analytic form of Djet <0.5 cut
-                if(self.sqrts == 7):
-                    name = "bkg_zjets_mass_Djet_ratio_{0:.0f}_{1:.0f}_{2:.0f}".format(self.sqrts, self.channel, useDjet)
-                    bkg_zjets_mass_Djet_ratio = ROOT.RooRealVar(
-                        name, "bkg_zjets_mass_Djet_ratio", 1. - 9.94527e-03)
-                if(self.sqrts == 8):
-                    name = "bkg_zjets_mass_Djet_ratio_{0:.0f}_{1:.0f}_{2:.0f}".format(self.sqrts, self.channel, useDjet)
-                    bkg_zjets_mass_Djet_ratio = ROOT.RooRealVar(
-                        name, "bkg_zjets_mass_Djet_ratio", 1. - 1.00038e-02)
-            if(useDjet == 2):
-                # code for analytic form of Djet > 0.5 cut
-                if(self.sqrts == 7):
-                    name = "bkg_zjets_mass_Djet_ratio_{0:.0f}_{1:.0f}_{2:.0f}".format(self.sqrts, self.channel, useDjet)
-                    bkg_zjets_mass_Djet_ratio = ROOT.RooRealVar(
-                        name, "bkg_zjets_mass_Djet_ratio", 9.94527e-03)
-                if(self.sqrts == 8):
-                    name = "bkg_zjets_mass_Djet_ratio_{0:.0f}_{1:.0f}_{2:.0f}".format(self.sqrts, self.channel, useDjet)
-                    bkg_zjets_mass_Djet_ratio = ROOT.RooRealVar(
-                        name, "bkg_zjets_mass_Djet_ratio", 1.00038e-02)
-            if(useDjet == 1 or useDjet == 2):
-                bkg_zjets_mass_Djet_ratio.setConstant(True)
-                bkg_zjets_mass_Djet_shape = ROOT.RooGenericPdf(
-                    "bkg_zjets_mass_Djet_shape_{0:.0f}_{1:.0f}_{2:.0f}".format(self.channel, self.sqrts, useDjet), "@0", ROOT.RooArgList(bkg_zjets_mass_Djet_ratio))
-
-            if(useDjet == 0):
-                bkg_zjets_Nominal = ROOT.RooProdPdf("bkg_zjets_Nominal_{0:.0f}_{1:.0f}_{2:.0f}".format(self.channel, self.sqrts, useDjet), "bkg_zjets_Nominal", ROOT.RooArgSet(
-                    bkg_zjets_mass), ROOT.RooFit.Conditional(ROOT.RooArgSet(zjet_TemplatePdfNominal), ROOT.RooArgSet(CMS_zz4l_widthKD)))
-                bkg_zjets_Up = ROOT.RooProdPdf("bkg_zjets_Up_{0:.0f}_{1:.0f}_{2:.0f}".format(self.channel, self.sqrts, useDjet), "bkg_zjets_Up", ROOT.RooArgSet(
-                    bkg_zjets_mass), ROOT.RooFit.Conditional(ROOT.RooArgSet(zjet_TemplatePdfUp), ROOT.RooArgSet(CMS_zz4l_widthKD)))
-                bkg_zjets_Down = ROOT.RooProdPdf("bkg_zjets_Down_{0:.0f}_{1:.0f}_{2:.0f}".format(self.channel, self.sqrts, useDjet), "bkg_zjets_Down", ROOT.RooArgSet(
-                    bkg_zjets_mass), ROOT.RooFit.Conditional(ROOT.RooArgSet(zjet_TemplatePdfDown), ROOT.RooArgSet(CMS_zz4l_widthKD)))
-            if(useDjet == 1 or useDjet == 2):
-                bkg_zjets_mass_Djet = ROOT.RooProdPdf("bkg_zjets_mass_Djet_{0:.0f}_{1:.0f}_{2:.0f}".format(self.channel, self.sqrts, useDjet), "bkg_zjets_mass_Djet", ROOT.RooArgList(
-                    bkg_zjets_mass, bkg_zjets_mass_Djet_shape))
-                bkg_zjets_Nominal = ROOT.RooProdPdf("bkg_zjets_Nominal_{0:.0f}_{1:.0f}_{2:.0f}".format(self.channel, self.sqrts, useDjet), "bkg_zjets_Nominal", ROOT.RooArgSet(
-                    bkg_zjets_mass_Djet), ROOT.RooFit.Conditional(ROOT.RooArgSet(zjet_TemplatePdfNominal), ROOT.RooArgSet(CMS_zz4l_widthKD)))
-                bkg_zjets_Up = ROOT.RooProdPdf("bkg_zjets_Up_{0:.0f}_{1:.0f}_{2:.0f}".format(self.channel, self.sqrts, useDjet), "bkg_zjets_Up", ROOT.RooArgSet(
-                    bkg_zjets_mass_Djet), ROOT.RooFit.Conditional(ROOT.RooArgSet(zjet_TemplatePdfUp), ROOT.RooArgSet(CMS_zz4l_widthKD)))
-                bkg_zjets_Down = ROOT.RooProdPdf("bkg_zjets_Down_{0:.0f}_{1:.0f}_{2:.0f}".format(self.channel, self.sqrts, useDjet), "bkg_zjets_Down", ROOT.RooArgSet(
-                    bkg_zjets_mass_Djet), ROOT.RooFit.Conditional(ROOT.RooArgSet(zjet_TemplatePdfDown), ROOT.RooArgSet(CMS_zz4l_widthKD)))
+            bkg_zjets_Nominal = ROOT.RooProdPdf("bkg_zjets_Nominal_{0:.0f}_{1:.0f}_{2:.0f}".format(self.channel, self.sqrts, useDjet), "bkg_zjets_Nominal", ROOT.RooArgSet(
+                bkg_zjets_mass), ROOT.RooFit.Conditional(ROOT.RooArgSet(zjet_TemplatePdfNominal), ROOT.RooArgSet(CMS_zz4l_widthKD)))
+            bkg_zjets_Up = ROOT.RooProdPdf("bkg_zjets_Up_{0:.0f}_{1:.0f}_{2:.0f}".format(self.channel, self.sqrts, useDjet), "bkg_zjets_Up", ROOT.RooArgSet(
+                bkg_zjets_mass), ROOT.RooFit.Conditional(ROOT.RooArgSet(zjet_TemplatePdfUp), ROOT.RooArgSet(CMS_zz4l_widthKD)))
+            bkg_zjets_Down = ROOT.RooProdPdf("bkg_zjets_Down_{0:.0f}_{1:.0f}_{2:.0f}".format(self.channel, self.sqrts, useDjet), "bkg_zjets_Down", ROOT.RooArgSet(
+                bkg_zjets_mass), ROOT.RooFit.Conditional(ROOT.RooArgSet(zjet_TemplatePdfDown), ROOT.RooArgSet(CMS_zz4l_widthKD)))
 
 
         DataName = "ZX_FullDataHist_{0:.0f}_{1:.0f}_{2:.0f}".format(
@@ -3415,9 +3383,6 @@ class width_datacardClass:
             MorphList_ZX.add(zjet_HistPdfDown)
 
             bkg_zjets = ROOT.VerticalInterpPdf("bkg_zjets", "bkg_zjets", MorphList_ZX, morphVarListZX)
-
-
-        bkg_zjets_norm = ROOT.RooFormulaVar("bkg_zjets_norm", "@0", ROOT.RooArgList(thetaSyst_djet_zjets_norm))
 
 
         # ----------------------- RANGES ----------------------- ##
@@ -3845,6 +3810,235 @@ class width_datacardClass:
             ctest.Close()
             x.setVal(1)
 
+            print "Plot: qqZZ additional wrt QCDScale"
+            canvasname = "c_{3}_vs_{4}_wrtQCDScale_{1:.0f}TeV_{0}_djet{2}".format(self.appendName, self.sqrts, useDjet,bkg_qqzz_mass_shape.GetName(),CMS_zz4l_widthMass.GetName())
+            ctest = ROOT.TCanvas( canvasname, canvasname, 750, 700 )
+            ctest.cd()
+            histo = bkg_qqzz_mass_shape.createHistogram("htemp",CMS_zz4l_widthMass)
+            histo.SetLineWidth(2)
+            histo.SetLineStyle(7)
+            histo2 = histo.Clone("htemp_Up")
+            histo2.SetLineWidth(2)
+            histo2.SetLineStyle(7)
+            histo2.SetLineColor(kRed)
+            histo3 = histo.Clone("htemp_Dn")
+            histo3.SetLineWidth(2)
+            histo3.SetLineStyle(2)
+            histo3.SetLineColor(kBlue)
+            for bin in range(1,histo.GetNbinsX()+1):
+                qqZZ_Scale_Syst.setVal(0)
+                CMS_zz4l_widthMass.setVal(histo.GetBinCenter(bin))
+                histo.SetBinContent(bin,bkg_qqzz_mass_shape.getVal())
+                qqZZ_Scale_Syst.setVal(1)
+                histo2.SetBinContent(bin,bkg_qqzz_mass_shape.getVal())
+                qqZZ_Scale_Syst.setVal(-1)
+                histo3.SetBinContent(bin,bkg_qqzz_mass_shape.getVal())
+                qqZZ_Scale_Syst.setVal(0)
+            histo.GetYaxis().SetRangeUser(0,2)
+            histo.Draw()
+            histo2.Draw("same")
+            histo3.Draw("same")
+            testhandle.WriteTObject(ctest)
+            ctest.Close()
+            qqZZ_Scale_Syst.setVal(0)
+
+
+            print "Plot: qqZZ additional wrt EWKcorr"
+            canvasname = "c_{3}_vs_{4}_wrtEWKcorr_{1:.0f}TeV_{0}_djet{2}".format(self.appendName, self.sqrts, useDjet,bkg_qqzz_mass_shape.GetName(),CMS_zz4l_widthMass.GetName())
+            ctest = ROOT.TCanvas( canvasname, canvasname, 750, 700 )
+            ctest.cd()
+            histo = bkg_qqzz_mass_shape.createHistogram("htemp",CMS_zz4l_widthMass)
+            histo.SetLineWidth(2)
+            histo.SetLineStyle(7)
+            histo2 = histo.Clone("htemp_Up")
+            histo2.SetLineWidth(2)
+            histo2.SetLineStyle(7)
+            histo2.SetLineColor(kRed)
+            histo3 = histo.Clone("htemp_Dn")
+            histo3.SetLineWidth(2)
+            histo3.SetLineStyle(2)
+            histo3.SetLineColor(kBlue)
+            for bin in range(1,histo.GetNbinsX()+1):
+                qqZZ_EWK_Syst.setVal(0)
+                CMS_zz4l_widthMass.setVal(histo.GetBinCenter(bin))
+                histo.SetBinContent(bin,bkg_qqzz_mass_shape.getVal())
+                qqZZ_EWK_Syst.setVal(1)
+                histo2.SetBinContent(bin,bkg_qqzz_mass_shape.getVal())
+                qqZZ_EWK_Syst.setVal(-1)
+                histo3.SetBinContent(bin,bkg_qqzz_mass_shape.getVal())
+                qqZZ_EWK_Syst.setVal(0)
+            histo.GetYaxis().SetRangeUser(0,2)
+            histo.Draw()
+            histo2.Draw("same")
+            histo3.Draw("same")
+            testhandle.WriteTObject(ctest)
+            ctest.Close()
+            qqZZ_EWK_Syst.setVal(0)
+
+            print "Plot: qqZZ additional wrt Djet"
+            canvasname = "c_{3}_vs_{4}_wrtDjet_{1:.0f}TeV_{0}_djet{2}".format(self.appendName, self.sqrts, useDjet,bkg_qqzz_mass_shape.GetName(),CMS_zz4l_widthMass.GetName())
+            ctest = ROOT.TCanvas( canvasname, canvasname, 750, 700 )
+            ctest.cd()
+            histo = bkg_qqzz_mass_shape.createHistogram("htemp",CMS_zz4l_widthMass)
+            histo.SetLineWidth(2)
+            histo.SetLineStyle(7)
+            histo2 = histo.Clone("htemp_Up")
+            histo2.SetLineWidth(2)
+            histo2.SetLineStyle(7)
+            histo2.SetLineColor(kRed)
+            histo3 = histo.Clone("htemp_Dn")
+            histo3.SetLineWidth(2)
+            histo3.SetLineStyle(2)
+            histo3.SetLineColor(kBlue)
+            for bin in range(1,histo.GetNbinsX()+1):
+                CMS_zz4l_qqzz_djet_syst.setVal(0)
+                bincenter = histo.GetBinCenter(bin)
+                CMS_zz4l_widthMass.setVal(bincenter)
+                histo.SetBinContent(bin,bkg_qqzz_mass_shape.getVal())
+                CMS_zz4l_qqzz_djet_syst.setVal(1)
+                histo2.SetBinContent(bin,bkg_qqzz_mass_shape.getVal())
+                CMS_zz4l_qqzz_djet_syst.setVal(-1)
+                histo3.SetBinContent(bin,bkg_qqzz_mass_shape.getVal())
+                CMS_zz4l_qqzz_djet_syst.setVal(0)
+            histo.GetYaxis().SetRangeUser(0,2)
+            histo2.Divide(histo)
+            histo3.Divide(histo)
+            histo.Divide(histo)
+            histo.Draw()
+            histo2.Draw("same")
+            histo3.Draw("same")
+            testhandle.WriteTObject(ctest)
+            ctest.Close()
+            qqZZ_Scale_Syst.setVal(0)
+
+
+            print "Plot: qqZZ PDF wrt EWKcorr"
+            canvasname = "c_{3}_vs_{4}_wrtEWKcorr_{1:.0f}TeV_{0}_djet{2}".format(self.appendName, self.sqrts, useDjet,bkg_qqzz_mass.GetName(),CMS_zz4l_widthMass.GetName())
+            ctest = ROOT.TCanvas( canvasname, canvasname, 750, 700 )
+            ctest.cd()
+            histo = bkg_qqzz_mass.createHistogram("htemp",CMS_zz4l_widthMass)
+            histo.SetLineWidth(2)
+            histo.SetLineStyle(7)
+            histo2 = histo.Clone("htemp_Up")
+            histo2.SetLineWidth(2)
+            histo2.SetLineStyle(7)
+            histo2.SetLineColor(kRed)
+            histo3 = histo.Clone("htemp_Dn")
+            histo3.SetLineWidth(2)
+            histo3.SetLineStyle(7)
+            histo3.SetLineColor(kBlue)
+            for bin in range(1,histo.GetNbinsX()+1):
+                qqZZ_EWK_Syst.setVal(0)
+                CMS_zz4l_widthMass.setVal(histo.GetBinCenter(bin))
+                histo.SetBinContent(bin,bkg_qqzz_mass.getVal())
+                qqZZ_EWK_Syst.setVal(1)
+                histo2.SetBinContent(bin,bkg_qqzz_mass.getVal())
+                qqZZ_EWK_Syst.setVal(-1)
+                histo3.SetBinContent(bin,bkg_qqzz_mass.getVal())
+                qqZZ_EWK_Syst.setVal(0)
+            histon = bkg_qqzz_mass_temp.createHistogram("htempn",CMS_zz4l_widthMass)
+            histon.SetLineWidth(2)
+            histon.SetLineStyle(2)
+            histon2 = histon.Clone("htempn_Up")
+            histon2.SetLineWidth(2)
+            histon2.SetLineStyle(2)
+            histon2.SetLineColor(kRed)
+            histon3 = histon.Clone("htempn_Dn")
+            histon3.SetLineWidth(2)
+            histon3.SetLineStyle(2)
+            histon3.SetLineColor(kBlue)
+            for bin in range(1,histon.GetNbinsX()+1):
+#                CMS_qqzzbkg_EWK_p0
+#                CMS_qqzzbkg_EWK_p1
+#                CMS_qqzzbkg_EWK_p2
+#                CMS_qqzzbkg_EWK_p3
+#                CMS_qqzzbkg_p0
+#                CMS_qqzzbkg_p1
+                bincenter = histon.GetXaxis().GetBinCenter(bin)
+                bincontent = histo.GetBinContent(bin)
+                systcorr = CMS_qqzzbkg_EWK_p0.getVal() + CMS_qqzzbkg_EWK_p1.getVal()*bincenter + CMS_qqzzbkg_EWK_p2.getVal()*bincenter*bincenter + CMS_qqzzbkg_EWK_p3.getVal()*bincenter*bincenter*bincenter
+                histon.SetBinContent(bin,bincontent)
+                histon2.SetBinContent(bin,bincontent*systcorr)
+                histon3.SetBinContent(bin,bincontent*(2-systcorr))
+            histo.Draw()
+            histo2.Draw("same")
+            histo3.Draw("same")
+            histon.Draw("same")
+            histon2.Draw("same")
+            histon3.Draw("same")
+            print "EWK up / EWK nominal from histo: ",(histo2.Integral()/histo.Integral())
+            print "EWK dn / EWK nominal from histo: ",(histo3.Integral()/histo.Integral())
+            print "EWK up / EWK nominal from histon: ",(histon2.Integral()/histon.Integral())
+            print "EWK dn / EWK nominal from histon: ",(histon3.Integral()/histon.Integral())
+            testhandle.WriteTObject(ctest)
+            ctest.Close()
+
+            print "Plot: qqZZ PDF wrt QCDScale"
+            canvasname = "c_{3}_vs_{4}_wrtQCDScale_{1:.0f}TeV_{0}_djet{2}".format(self.appendName, self.sqrts, useDjet,bkg_qqzz_mass.GetName(),CMS_zz4l_widthMass.GetName())
+            ctest = ROOT.TCanvas( canvasname, canvasname, 750, 700 )
+            ctest.cd()
+            histo = bkg_qqzz_mass.createHistogram("htemp",CMS_zz4l_widthMass)
+            histo.SetLineWidth(2)
+            histo.SetLineStyle(7)
+            histo2 = histo.Clone("htemp_Up")
+            histo2.SetLineWidth(2)
+            histo2.SetLineStyle(7)
+            histo2.SetLineColor(kRed)
+            histo3 = histo.Clone("htemp_Dn")
+            histo3.SetLineWidth(2)
+            histo3.SetLineStyle(7)
+            histo3.SetLineColor(kBlue)
+            for bin in range(1,histo.GetNbinsX()+1):
+                qqZZ_Scale_Syst.setVal(0)
+                CMS_zz4l_widthMass.setVal(histo.GetBinCenter(bin))
+                histo.SetBinContent(bin,bkg_qqzz_mass.getVal())
+                qqZZ_Scale_Syst.setVal(1)
+                histo2.SetBinContent(bin,bkg_qqzz_mass.getVal())
+                qqZZ_Scale_Syst.setVal(-1)
+                histo3.SetBinContent(bin,bkg_qqzz_mass.getVal())
+                qqZZ_Scale_Syst.setVal(0)
+            histon = bkg_qqzz_mass_temp.createHistogram("htempn",CMS_zz4l_widthMass)
+            histon.SetLineWidth(2)
+            histon.SetLineStyle(2)
+            histon2 = histon.Clone("htempn_Up")
+            histon2.SetLineWidth(2)
+            histon2.SetLineStyle(2)
+            histon2.SetLineColor(kRed)
+            histon3 = histon.Clone("htempn_Dn")
+            histon3.SetLineWidth(2)
+            histon3.SetLineStyle(2)
+            histon3.SetLineColor(kBlue)
+            for bin in range(1,histon.GetNbinsX()+1):
+                bincenter = histon.GetXaxis().GetBinCenter(bin)
+                bincontent = histo.GetBinContent(bin)
+                systcorr = CMS_qqzzbkg_p0.getVal() + CMS_qqzzbkg_p1.getVal()*bincenter + CMS_qqzzbkg_p2.getVal()*bincenter*bincenter
+                histon.SetBinContent(bin,bincontent)
+                histon2.SetBinContent(bin,bincontent*systcorr)
+                histon3.SetBinContent(bin,bincontent*(2-systcorr))
+            histo.Draw()
+            histo2.Draw("same")
+            histo3.Draw("same")
+            histon.Draw("same")
+            histon2.Draw("same")
+            histon3.Draw("same")
+            print "QCD up / QCD nominal from histo: ",(histo2.Integral()/histo.Integral())
+            print "QCD dn / QCD nominal from histo: ",(histo3.Integral()/histo.Integral())
+            print "QCD up / QCD nominal from histon: ",(histon2.Integral()/histon.Integral())
+            print "QCD dn / QCD nominal from histon: ",(histon3.Integral()/histon.Integral())
+            testhandle.WriteTObject(ctest)
+            ctest.Close()
+
+            print "Plot: Z+X Norm vs CMS_zz4l_zjets_djet_syst"
+            canvasname = "c_{3}_vs_{4}_{1:.0f}TeV_{0}_djet{2}".format(self.appendName, self.sqrts, useDjet,bkg_zjets_norm.GetName(),CMS_zz4l_zjets_djet_syst.GetName())
+            ctest = ROOT.TCanvas( canvasname, canvasname, 750, 700 )
+            ctest.cd()
+            histo = bkg_zjets_norm.createHistogram("htemp",CMS_zz4l_zjets_djet_syst)
+            histo.SetLineWidth(2)
+            histo.Scale(1/0.02)
+            histo.Draw()
+            testhandle.WriteTObject(ctest)
+            ctest.Close()
+
 
             testhandle.Close()
 
@@ -3975,18 +4169,18 @@ class width_datacardClass:
         getattr(w, 'import')(ggZZpdf, ROOT.RooFit.RecycleConflictNodes())
         VBFpdf.SetNameTitle("vbf_offshell", "vbf_offshell")
         getattr(w, 'import')(VBFpdf, ROOT.RooFit.RecycleConflictNodes())
+        bkg_zjets.SetNameTitle("bkg_zjets", "bkg_zjets")
+        getattr(w, 'import')(bkg_zjets, ROOT.RooFit.RecycleConflictNodes())
+        bkg_qqzz.SetNameTitle("bkg_qqzz", "bkg_qqzz")
+        getattr(w, 'import')(bkg_qqzz, ROOT.RooFit.RecycleConflictNodes())
 
         getattr(w, 'import')(ggZZpdf_norm, ROOT.RooFit.RecycleConflictNodes())
         getattr(w, 'import')(VBFpdf_norm, ROOT.RooFit.RecycleConflictNodes())
-
-        bkg_qqzz.SetNameTitle("bkg_qqzz", "bkg_qqzz")
-        getattr(w, 'import')(bkg_qqzz, ROOT.RooFit.RecycleConflictNodes())
         bkg_qqzz_norm.SetNameTitle("bkg_qqzz_norm", "bkg_qqzz_norm")
         getattr(w, 'import')(bkg_qqzz_norm, ROOT.RooFit.RecycleConflictNodes())
-        bkg_zjets.SetNameTitle("bkg_zjets", "bkg_zjets")
-        getattr(w, 'import')(bkg_zjets, ROOT.RooFit.RecycleConflictNodes())
-        bkg_zjets_norm.SetNameTitle("bkg_zjets_norm", "bkg_zjets_norm")
-        getattr(w, 'import')(bkg_zjets_norm, ROOT.RooFit.RecycleConflictNodes())
+        if useDjet!=0:
+            bkg_zjets_norm.SetNameTitle("bkg_zjets_norm", "bkg_zjets_norm")
+            getattr(w, 'import')(bkg_zjets_norm, ROOT.RooFit.RecycleConflictNodes())
 
         w.writeToFile(name_ShapeWS)
 

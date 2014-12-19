@@ -248,7 +248,7 @@ spinYield n2hminus 2.64378
 spinYield n2bplus 2.41226
 
 ## Uncertainties for Djet > 0.5 categorization
-unc ggzz 0.15
-unc vbf_offshell 0.05
-unc qqzz -0.001482907
-unc zjets -0.010003877
+djetunc ggzz 0.15
+djetunc vbf_offshell 0.05
+djetunc qqzz 0.25
+djetunc zjets 0.99

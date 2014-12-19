@@ -348,15 +348,15 @@ class inputReader:
                     self.zbb_rate = float(f[2])
                     if len(f) == 4: self.zbb_lumi = float(f[3])
 
-            if f[0].lower().startswith("unc"):
+            if f[0].lower().startswith("djetunc"):
                 if f[1].lower().startswith("ggzz"):
                     self.djetscale_ggzz = float(f[2])
                 if f[1].lower().startswith("vbf_offshell"):
                     self.djetscale_vbf_offshell = float(f[2])
-                if f[1].lower().startswith("bkg_qqzz"):
-                    self.djetscale_qqzz = float(f[2])
-                if f[1].lower().startswith("bkg_zjets"):
-                    self.djetscale_zjets = float(f[2])
+                if f[1].lower().startswith("qqzz"):
+                    self.djetscale_bkg_qqzz = float(f[2])
+                if f[1].lower().startswith("zjets"):
+                    self.djetscale_bkg_zjets = float(f[2])
 
 
             if f[0].lower().startswith("usehighmassreweightedshapes"):
