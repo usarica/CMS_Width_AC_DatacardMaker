@@ -5,7 +5,7 @@ kmax *
 shapes * * hzz4l_4muS_8TeV_0.input.root w:$PROCESS 
 ------------
 bin a1_0 
-observation 14 
+observation 13 
 ------------
 ## mass window [105.6,140.6] 
 bin a1_0 a1_0 a1_0 a1_0 a1_0 a1_0 a1_0 a1_0 
