@@ -44,6 +44,12 @@ def parseOptions():
                       help='dataDirAppend: Reference CMSdata folder per measurement')
     parser.add_option('-c', '--AnomCoupl', type='int', dest='anomalousCouplingIndex', default="0",
                       help='anomalousCouplingIndex: 0: SM-only, 1: fLQ')
+    parser.add_option('--mPOLE', '--mH', type='float', dest='mPOLE', default="125.6",
+                      help='mPOLE (--mPOLE/--mH): Pole mass for the Higgs (def=125.6)')
+    parser.add_option('--mLow', type='float', dest='mLow', default="220",
+                      help='mLow: Low m4l boundary (def=220)')
+    parser.add_option('--mHigh', type='float', dest='mHigh', default="1600",
+                      help='mHigh: High m4l boundary (def=1600)')
 
     # store options and arguments as global variables
     global opt, args
@@ -91,8 +97,6 @@ def processCmd(cmd):
 def creationLoop(directory):
     global opt, args
 
-    startMass = [220]
-
     myClass = width_datacardClass()
     myClass.loadIncludes()
     myClass.setDimensions(opt.dimensions)
@@ -137,43 +141,35 @@ def creationLoop(directory):
         myReader2e2mu_1.readInputs()
         theInputs2e2mu_1 = myReader2e2mu_1.getInputs()
 
-    a = 0
-    while (a < len(startMass)):
 
-        mh = startMass[a]
-        mhs = str(mh).replace('.0', '')
+    if (opt.useDjet == 0):
+        makeDirectory(directory + '/HCG')
+        makeDirectory(directory + '/HCG_XSxBR')
+        myClass.makeCardsWorkspaces(
+            opt, directory, theInputs4e, 0)
+        myClass.makeCardsWorkspaces(
+            opt, directory, theInputs4mu, 0)
+        myClass.makeCardsWorkspaces(
+            opt, directory, theInputs2e2mu, 0)
 
-        print mh
+    if (opt.useDjet == 1):
+        makeDirectory(directory + '_tagged/HCG')
+        makeDirectory(directory + '_tagged/HCG_XSxBR')
 
-        if (opt.useDjet == 0):
-            makeDirectory(directory + '/HCG/' + mhs)
-            makeDirectory(directory + '/HCG_XSxBR/' + mhs)
-            myClass.makeCardsWorkspaces(
-                mh, opt, directory, theInputs4e)
-            myClass.makeCardsWorkspaces(
-                mh, opt, directory, theInputs4mu)
-            myClass.makeCardsWorkspaces(
-                mh, opt, directory, theInputs2e2mu)
+        myClass.makeCardsWorkspaces(
+            opt, directory + '_tagged', theInputs4e_0, 1)
+        myClass.makeCardsWorkspaces(
+            opt, directory + '_tagged', theInputs4mu_0, 1)
+        myClass.makeCardsWorkspaces(
+            opt, directory + '_tagged', theInputs2e2mu_0, 1)
 
-        if (opt.useDjet == 1):
-            makeDirectory(directory + '_tagged/HCG/' + mhs)
-            makeDirectory(directory + '_tagged/HCG_XSxBR/' + mhs)
+        myClass.makeCardsWorkspaces(
+            opt, directory + '_tagged', theInputs4e_1, 2)
+        myClass.makeCardsWorkspaces(
+            opt, directory + '_tagged', theInputs4mu_1, 2)
+        myClass.makeCardsWorkspaces(
+            opt, directory + '_tagged', theInputs2e2mu_1, 2)
 
-            myClass.makeCardsWorkspaces(
-                mh, opt, directory + '_tagged', theInputs4e_0, 1)
-            myClass.makeCardsWorkspaces(
-                mh, opt, directory + '_tagged', theInputs4mu_0, 1)
-            myClass.makeCardsWorkspaces(
-                mh, opt, directory + '_tagged', theInputs2e2mu_0, 1)
-
-            myClass.makeCardsWorkspaces(
-                mh, opt, directory + '_tagged', theInputs4e_1, 2)
-            myClass.makeCardsWorkspaces(
-                mh, opt, directory + '_tagged', theInputs4mu_1, 2)
-            myClass.makeCardsWorkspaces(
-                mh, opt, directory + '_tagged', theInputs2e2mu_1, 2)
-
-        a += 1
 
 
 # the main procedure

@@ -7,336 +7,60 @@ from scipy.special import erf
 from ROOT import *
 import ROOT
 from array import array
-from systematicsClass import *
-from inputReader import *
 
-# ------------------------------------
-# card and workspace class
-# ------------------------------------
+class SignalTemplateHelper:
 
+   def __init__(self):
+      self.dimensions = 2
 
-class width_datacardClass:
+   def setDimensions(self, dim):
+      self.dimensions = dim
 
-    def __init__(self):
+   def loadIncludes(self):
 
-        self.ID_4mu = 1
-        self.ID_4e = 2
-        self.ID_2e2mu = 3
-        self.isFSR = True
-        self.dimensions = 2
-
-    def setDimensions(self, dim):
-        self.dimensions = dim
-
-    def loadIncludes(self):
-
-        ROOT.gSystem.AddIncludePath("-I$ROOFITSYS/include/")
-        ROOT.gSystem.AddIncludePath("-Iinclude/")
-        ROOT.gROOT.ProcessLine(".L include/tdrstyle.cc")
-        ROOT.gSystem.Load("libRooFit")
-        ROOT.gSystem.Load("libHiggsAnalysisCombinedLimit.so")
-        ROOT.gSystem.Load("include/HiggsCSandWidth_cc.so")
-        ROOT.gSystem.Load("include/HiggsCSandWidthSM4_cc.so")
-
-    # return TrueVar if testStatement else return falseVar
-    def getVariable(self, TrueVar, falseVar, testStatement):
-
-        if (testStatement):
-            return TrueVar
-        else:
-            return falseVar
-
-    # main datacard and workspace function
-    def makeCardsWorkspaces(self, options, theOutputDir, theInputs, useDjet):
-
-        # --------------- SETTINGS AND DECLARATIONS --------------- ##
-        DEBUG = True
-        USELEGACY = options.useLegacy
-        self.mH = options.mPOLE
-        self.lumi = theInputs['lumi']
-        self.inputlumi = theInputs['lumi']
-        self.sqrts = theInputs['sqrts']
-        self.channel = theInputs['decayChannel']
-        self.templateDir = options.templateDir
-        self.dataAppendDir = options.dataDirAppend
-        self.anomCoupl = options.anomalousCouplingIndex
-        self.outputDir = theOutputDir
-
-        self.ggH_chan = theInputs['ggH']
-        self.qqH_chan = theInputs['qqH']
-        self.WH_chan = theInputs['WH']
-        self.ZH_chan = theInputs['ZH']
-        self.ttH_chan = theInputs['ttH']
-        self.qqZZ_chan = theInputs['qqZZ']
-        self.ggZZ_chan = theInputs['ggZZ']
-        self.ggZZ_signal_chan = theInputs['ggZZ_signal']
-        self.ggZZ_bkg_chan = theInputs['ggZZbkg']
-        self.ggZZ_interf_chan = theInputs['ggZZ_interf']
-        self.VBF_offshell_chan = theInputs['VBF_offshell']
-        self.zjets_chan = theInputs['zjets']
-        self.low_M = options.mLow
-        self.high_M = options.mHigh
-
-        # ---------------- SET PLOTTING STYLE ---------------- ##
-        ROOT.setTDRStyle(True)
-        ROOT.gStyle.SetPalette(1)
-        ROOT.gStyle.SetPadLeftMargin(0.16)
-
-        # ---------------- VARIABLES FOR LATER --------------- ##
-        self.bUseCBnoConvolution = False
-
-        myCSW = HiggsCSandWidth()
-
-        w = ROOT.RooWorkspace("w", "w")
-
-        # ----------------- WIDTH AND RANGES ----------------- ##
-        self.widthHVal = myCSW.HiggsWidth(0, self.mH)
-        if(self.widthHVal < 0.12):
-            self.bUseCBnoConvolution = True
-        self.isHighMass = False
-        if self.mH >= 390:
-            if theInputs['useHighMassReweightedShapes']:
-                self.isHighMass = True
-            else:
-                print "useHighMassReweightedShapes set to FALSE, using non-reweighted shapes!"
-
-        print "Higgs width: ", self.widthHVal
-
-        if (self.channel == self.ID_4mu):
-            self.appendName = '4mu'
-            self.appendNameAlt = '4mu'
-        elif (self.channel == self.ID_4e):
-            self.appendName = '4e'
-            self.appendNameAlt = '4e'
-        elif (self.channel == self.ID_2e2mu):
-            self.appendName = '2e2mu'
-            self.appendNameAlt = '2mu2e'
-        else:
-            print "Input Error: Unknown channel! (4mu = 1, 4e = 2, 2e2mu = 3)"
-
-        # ------------------------- SYSTEMATICS CLASSES ----------------------------- ##
-        systematics = systematicsClass(self.mH, False, self.isFSR, theInputs)
-        systematics_forXSxBR = systematicsClass(self.mH, True, self.isFSR, theInputs)
-        systematics.useDjet = useDjet
-        systematics_forXSxBR.useDjet = useDjet
-
-        # -------------------------- SIGNAL SHAPE ----------------------------------- ##
-
-        bins = (self.high_M - self.low_M) / 20
-
-        CMS_zz4l_widthMass_name = "CMS_zz4l_widthMass"
-        CMS_zz4l_widthMass = ROOT.RooRealVar(
-            CMS_zz4l_widthMass_name, CMS_zz4l_widthMass_name, self.low_M, self.high_M)
-        CMS_zz4l_widthMass.setBins(bins)
-
-        # use this variable only For Integration (FI)
-        CMS_zz4l_widthMass_name = "CMS_zz4l_widthMass_FI"
-        CMS_zz4l_widthMass_FI = ROOT.RooRealVar(
-            CMS_zz4l_widthMass_name, CMS_zz4l_widthMass_name, self.low_M, self.high_M)
-        CMS_zz4l_widthMass_FI.setBins(bins)
-
-        x_name = "CMS_zz4l_GGsm"
-        x = ROOT.RooRealVar(x_name, x_name, 0, 50)
-        x.setVal(1)
-        x.setBins(500)
-
-        fai1_name = "CMS_zz4l_fai1"
-        fai1 = ROOT.RooRealVar(fai1_name, fai1_name, -1, 1)
-        fai1.setVal(0)
-        fai1.setBins(20)
-
-        mu_name = "R"
-        mu = ROOT.RooRealVar(mu_name, mu_name, 1, 0, 100)
-        mu.setVal(1)
-        mu.setBins(100)
-        mu_name = "RV"
-        muV = ROOT.RooRealVar(mu_name, mu_name, 1, 0, 100)
-        muV.setVal(1)
-        muV.setBins(100)
-        mu_name = "RF"
-        muF = ROOT.RooRealVar(mu_name, mu_name, 1, 0, 100)
-        muF.setVal(1)
-        muF.setBins(100)
-
-        mu_name = "CMS_widthH_kbkg"
-        kbkg = ROOT.RooRealVar(mu_name, mu_name, 0, 2)
-        kbkg.setVal(1.0)
-        kbkg.setBins(100)
-
-        D2name = "CMS_zz4l_widthKD"
-        CMS_zz4l_widthKD = ROOT.RooRealVar(D2name, D2name, 0, 1)
-        CMS_zz4l_widthKD.setBins(30)
-
-        one = ROOT.RooRealVar("one", "one", 1.0)
-        one.setConstant(True)
-
-        self.LUMI = ROOT.RooRealVar("LUMI_{0:.0f}".format(
-            self.sqrts), "LUMI_{0:.0f}".format(self.sqrts), self.lumi)
-        self.LUMI.setConstant(True)
+      ROOT.gSystem.AddIncludePath("-I$ROOFITSYS/include/")
+      ROOT.gSystem.AddIncludePath("-Iinclude/")
+      ROOT.gROOT.ProcessLine(".L include/tdrstyle.cc")
+      ROOT.gSystem.Load("libRooFit")
 
 
-#----------------- Djet systematics ----------------------#
+   def SignalTemplateHelper(self, options, templateFileAppendName, useDjet):
+      self.templateDir = options.templateDir
+      self.low_M = options.mLow
+      self.high_M = options.mHigh
 
-        CMS_zz4l_ggzz_djet_syst = w.factory("Djetscale_ggzz[-3,3]")
-        CMS_zz4l_vbf_djet_syst = w.factory("Djetscale_vbf_offshell[-3,3]")
-        CMS_zz4l_qqzz_djet_syst = w.factory("Djetscale_qqzz[-3,3]")
-        CMS_zz4l_zjets_djet_syst = w.factory("Djetscale_zjets[-1,1]") # Djet>0.5 uncertainty is 99% for Z+X
-        if useDjet == 0:
-            CMS_zz4l_ggzz_djet_syst.setConstant(True)
-            CMS_zz4l_vbf_djet_syst.setConstant(True)
-            CMS_zz4l_qqzz_djet_syst.setConstant(True)
-            CMS_zz4l_zjets_djet_syst.setConstant(True)
-
-        morphVarListggZZ_djet = ROOT.RooArgList()
-        morphVarListVBF_djet = ROOT.RooArgList()
-        morphVarListqqZZ_djet = ROOT.RooArgList()
-        morphVarListzjets_djet = ROOT.RooArgList()
-
-        MorphNormList_ggZZ_Djet = ROOT.RooArgList()
-        MorphNormList_VBF_Djet = ROOT.RooArgList()
-        MorphNormList_qqZZ_Djet = ROOT.RooArgList()
-        MorphNormList_zjets_Djet = ROOT.RooArgList()
-
-        morphVarListggZZ_djet.add(CMS_zz4l_ggzz_djet_syst)
-        ggzz_djetsyst_norm_nominal_name = "ggzz_djetsyst_norm_nominal_{0:.0f}_{1:.0f}_{2:.0f}".format(self.channel, self.sqrts, useDjet)
-        ggzz_djetsyst_norm_nominal = RooRealVar(ggzz_djetsyst_norm_nominal_name, ggzz_djetsyst_norm_nominal_name, 1)
-        ggzz_djetsyst_norm_up_name = "ggzz_djetsyst_norm_up_{0:.0f}_{1:.0f}_{2:.0f}".format(self.channel, self.sqrts, useDjet)
-        ggzz_djetsyst_norm_up = RooRealVar(ggzz_djetsyst_norm_up_name, ggzz_djetsyst_norm_up_name, 1.+theInputs['djetscale_ggzz'])
-        ggzz_djetsyst_norm_dn_name = "ggzz_djetsyst_norm_dn_{0:.0f}_{1:.0f}_{2:.0f}".format(self.channel, self.sqrts, useDjet)
-        ggzz_djetsyst_norm_dn = RooRealVar(ggzz_djetsyst_norm_dn_name, ggzz_djetsyst_norm_dn_name, 1.-theInputs['djetscale_ggzz'])
-        MorphNormList_ggZZ_Djet.add(ggzz_djetsyst_norm_nominal)
-        MorphNormList_ggZZ_Djet.add(ggzz_djetsyst_norm_up)
-        MorphNormList_ggZZ_Djet.add(ggzz_djetsyst_norm_dn)
-        asympowname = "Asymquad_ggZZ_djet_{0:.0f}_{1:.0f}_{2:.0f}".format(self.channel, self.sqrts, useDjet)
-        thetaSyst_djet_ggZZ_norm = ROOT.AsymQuad(asympowname, asympowname, MorphNormList_ggZZ_Djet, morphVarListggZZ_djet, 1.0)
-
-        morphVarListVBF_djet.add(CMS_zz4l_vbf_djet_syst)
-        VBF_djetsyst_norm_nominal_name = "VBF_djetsyst_norm_nominal_{0:.0f}_{1:.0f}_{2:.0f}".format(self.channel, self.sqrts, useDjet)
-        VBF_djetsyst_norm_nominal = RooRealVar(VBF_djetsyst_norm_nominal_name, VBF_djetsyst_norm_nominal_name, 1)
-        VBF_djetsyst_norm_up_name = "VBF_djetsyst_norm_up_{0:.0f}_{1:.0f}_{2:.0f}".format(self.channel, self.sqrts, useDjet)
-        VBF_djetsyst_norm_up = RooRealVar(VBF_djetsyst_norm_up_name, VBF_djetsyst_norm_up_name, 1.+theInputs['djetscale_vbf_offshell'])
-        VBF_djetsyst_norm_dn_name = "VBF_djetsyst_norm_dn_{0:.0f}_{1:.0f}_{2:.0f}".format(self.channel, self.sqrts, useDjet)
-        VBF_djetsyst_norm_dn = RooRealVar(VBF_djetsyst_norm_dn_name, VBF_djetsyst_norm_dn_name, 1.-theInputs['djetscale_vbf_offshell'])
-        MorphNormList_VBF_Djet.add(VBF_djetsyst_norm_nominal)
-        MorphNormList_VBF_Djet.add(VBF_djetsyst_norm_up)
-        MorphNormList_VBF_Djet.add(VBF_djetsyst_norm_dn)
-        asympowname = "Asymquad_VBF_djet_{0:.0f}_{1:.0f}_{2:.0f}".format(self.channel, self.sqrts, useDjet)
-        thetaSyst_djet_VBF_norm = ROOT.AsymQuad(asympowname, asympowname, MorphNormList_VBF_Djet, morphVarListVBF_djet, 1.0)
-
-        morphVarListqqZZ_djet.add(CMS_zz4l_qqzz_djet_syst)
-        qqZZ_djetsyst_norm_nominal_name = "qqZZ_djetsyst_norm_nominal_{0:.0f}_{1:.0f}_{2:.0f}".format(self.channel, self.sqrts, useDjet)
-        qqZZ_djetsyst_norm_nominal = RooRealVar(qqZZ_djetsyst_norm_nominal_name, qqZZ_djetsyst_norm_nominal_name, 1)
-        qqZZ_djetsyst_norm_up_name = "qqZZ_djetsyst_norm_up_{0:.0f}_{1:.0f}_{2:.0f}".format(self.channel, self.sqrts, useDjet)
-        qqZZ_djetsyst_norm_up = RooRealVar(qqZZ_djetsyst_norm_up_name, qqZZ_djetsyst_norm_up_name, 1.+theInputs['djetscale_bkg_qqzz'])
-        qqZZ_djetsyst_norm_dn_name = "qqZZ_djetsyst_norm_dn_{0:.0f}_{1:.0f}_{2:.0f}".format(self.channel, self.sqrts, useDjet)
-        qqZZ_djetsyst_norm_dn = RooRealVar(qqZZ_djetsyst_norm_dn_name, qqZZ_djetsyst_norm_dn_name, 1.-theInputs['djetscale_bkg_qqzz'])
-        MorphNormList_qqZZ_Djet.add(qqZZ_djetsyst_norm_nominal)
-        MorphNormList_qqZZ_Djet.add(qqZZ_djetsyst_norm_up)
-        MorphNormList_qqZZ_Djet.add(qqZZ_djetsyst_norm_dn)
-        asympowname = "Asymquad_qqZZ_djet_{0:.0f}_{1:.0f}_{2:.0f}".format(self.channel, self.sqrts, useDjet)
-        thetaSyst_djet_qqZZ_norm = ROOT.AsymQuad(asympowname, asympowname, MorphNormList_qqZZ_Djet, morphVarListqqZZ_djet, 1.0)
-        if DEBUG:
-            print "theta qqZZ djet nominal: ",thetaSyst_djet_qqZZ_norm.getVal()
-            CMS_zz4l_qqzz_djet_syst.setVal(1)
-            print "theta qqZZ djet up: ",thetaSyst_djet_qqZZ_norm.getVal()
-            CMS_zz4l_qqzz_djet_syst.setVal(-1)
-            print "theta qqZZ djet dn: ",thetaSyst_djet_qqZZ_norm.getVal()
-            CMS_zz4l_qqzz_djet_syst.setVal(0)
-
-        morphVarListzjets_djet.add(CMS_zz4l_zjets_djet_syst)
-        zjets_djetsyst_norm_nominal_name = "zjets_djetsyst_norm_nominal_{0:.0f}_{1:.0f}_{2:.0f}".format(self.channel, self.sqrts, useDjet)
-        zjets_djetsyst_norm_nominal = RooRealVar(zjets_djetsyst_norm_nominal_name, zjets_djetsyst_norm_nominal_name, 1)
-        zjets_djetsyst_norm_up_name = "zjets_djetsyst_norm_up_{0:.0f}_{1:.0f}_{2:.0f}".format(self.channel, self.sqrts, useDjet)
-        zjets_djetsyst_norm_up = RooRealVar(zjets_djetsyst_norm_up_name, zjets_djetsyst_norm_up_name, 1.+theInputs['djetscale_bkg_zjets'])
-        zjets_djetsyst_norm_dn_name = "zjets_djetsyst_norm_dn_{0:.0f}_{1:.0f}_{2:.0f}".format(self.channel, self.sqrts, useDjet)
-        zjets_djetsyst_norm_dn = RooRealVar(zjets_djetsyst_norm_dn_name, zjets_djetsyst_norm_dn_name, 1.-theInputs['djetscale_bkg_zjets'])
-        MorphNormList_zjets_Djet.add(zjets_djetsyst_norm_nominal)
-        MorphNormList_zjets_Djet.add(zjets_djetsyst_norm_up)
-        MorphNormList_zjets_Djet.add(zjets_djetsyst_norm_dn)
-        asympowname = "Asymquad_zjets_djet_{0:.0f}_{1:.0f}_{2:.0f}".format(self.channel, self.sqrts, useDjet)
-        thetaSyst_djet_zjets_norm = ROOT.AsymQuad(asympowname, asympowname, MorphNormList_zjets_Djet, morphVarListzjets_djet, 1.0)
-
-
-#--------------------- End Djet systematics ---------------------------#
-
-
-        # Add if-then for Djet cut here
-        #-------
-        print '2D signal shapes for Width'
-
-        templateSigNameMain = "HtoZZ4l_MCFM_125p6_ModifiedSmoothTemplatesForCombine_"
-        if(self.anomCoupl == 1):
-            templateSigNameMain = "{0}{1}".format(templateSigNameMain,"fLQAdded_")
-        templateSigNameMain = "{0}{1}".format(templateSigNameMain,"_GenLevelVBF")
-        if(USELEGACY == 1):
-            templateSigNameMain = "{0}{1}".format(templateSigNameMain,"_wResolution")
-        templateSigNameMain = "{0}{1}".format(templateSigNameMain,"_D_Gamma_gg_r10")
-        templateSigNameMain = "{0}/LHC_{1:.0f}TeV/{2}/{3}".format(self.templateDir, self.sqrts, self.appendNameAlt,templateSigNameMain)
-
-        templateSigNameMain_Nominal = "{0}_Nominal".format(templateSigNameMain)
-        templateSigNameMainUp_PDF = "{0}_SysUp_ggPDF".format(templateSigNameMain)
-        templateSigNameMainDown_PDF = "{0}_SysDown_ggPDF".format(templateSigNameMain)
-        templateSigNameMainUp_QCD = "{0}_SysUp_ggQCD".format(templateSigNameMain)
-        templateSigNameMainDown_QCD = "{0}_SysDown_ggQCD".format(templateSigNameMain)
-
-        templateSigNameMain_Nominal_OppositeDjet = templateSigNameMain_Nominal
-        templateSigNameMainUp_PDF_OppositeDjet = templateSigNameMainUp_PDF
-        templateSigNameMainDown_PDF_OppositeDjet = templateSigNameMainDown_PDF
-        templateSigNameMainUp_QCD_OppositeDjet = templateSigNameMainUp_QCD
-        templateSigNameMainDown_QCD_OppositeDjet = templateSigNameMainDown_QCD
+      # To be reset later
+      self.nbinsx=(self.high_M - self.low_M) / 20
+      self.nbinsy=30
+      self.nbinsz=30
+      self.templateXLow=self.low_M
+      self.templateYLow=0
+      self.templateZLow=0
+      self.templateXHigh=self.high_M
+      self.templateYHigh=1
+      self.templateZhigh=1
 
 
 
-        if(useDjet == 0):
-            templateSigNameMain_Nominal = "{0}{1}".format(templateSigNameMain_Nominal,".root")
-            templateSigNameMainUp_PDF = "{0}{1}".format(templateSigNameMainUp_PDF,".root")
-            templateSigNameMainDown_PDF = "{0}{1}".format(templateSigNameMainDown_PDF,".root")
-            templateSigNameMainUp_QCD = "{0}{1}".format(templateSigNameMainUp_QCD,".root")
-            templateSigNameMainDown_QCD = "{0}{1}".format(templateSigNameMainDown_QCD,".root")
-        if(useDjet == 1):
-            templateSigNameMain_Nominal = "{0}{1}".format(templateSigNameMain_Nominal,"_nonDjet.root")
-            templateSigNameMainUp_PDF = "{0}{1}".format(templateSigNameMainUp_PDF,"_nonDjet.root")
-            templateSigNameMainDown_PDF = "{0}{1}".format(templateSigNameMainDown_PDF,"_nonDjet.root")
-            templateSigNameMainUp_QCD = "{0}{1}".format(templateSigNameMainUp_QCD,"_nonDjet.root")
-            templateSigNameMainDown_QCD = "{0}{1}".format(templateSigNameMainDown_QCD,"_nonDjet.root")
-        if(useDjet == 2):
-            templateSigNameMain_Nominal = "{0}{1}".format(templateSigNameMain_Nominal,"_Djet.root")
-            templateSigNameMainUp_PDF = "{0}{1}".format(templateSigNameMainUp_PDF,"_Djet.root")
-            templateSigNameMainDown_PDF = "{0}{1}".format(templateSigNameMainDown_PDF,"_Djet.root")
-            templateSigNameMainUp_QCD = "{0}{1}".format(templateSigNameMainUp_QCD,"_Djet.root")
-            templateSigNameMainDown_QCD = "{0}{1}".format(templateSigNameMainDown_QCD,"_Djet.root")
+      # Get Djet and opposite Djet shapes
+      templateNameMain = "{0}/{1}".format(self.templateDir, templateFileAppendName)
+      templateNameList = []
+      templateFileList = []
 
-        if useDjet == 0:
-            templateSigNameMain_Nominal_OppositeDjet = "{0}{1}".format(templateSigNameMain_Nominal_OppositeDjet,"_Djet.root")
-            templateSigNameMainUp_PDF_OppositeDjet = "{0}{1}".format(templateSigNameMainUp_PDF_OppositeDjet,"_Djet.root")
-            templateSigNameMainDown_PDF_OppositeDjet = "{0}{1}".format(templateSigNameMainDown_PDF_OppositeDjet,"_Djet.root")
-            templateSigNameMainUp_QCD_OppositeDjet = "{0}{1}".format(templateSigNameMainUp_QCD_OppositeDjet,"_Djet.root")
-            templateSigNameMainDown_QCD_OppositeDjet = "{0}{1}".format(templateSigNameMainDown_QCD_OppositeDjet,"_Djet.root")
-        if useDjet == 1:
-            templateSigNameMain_Nominal_OppositeDjet = "{0}{1}".format(templateSigNameMain_Nominal_OppositeDjet,"_Djet.root")
-            templateSigNameMainUp_PDF_OppositeDjet = "{0}{1}".format(templateSigNameMainUp_PDF_OppositeDjet,"_Djet.root")
-            templateSigNameMainDown_PDF_OppositeDjet = "{0}{1}".format(templateSigNameMainDown_PDF_OppositeDjet,"_Djet.root")
-            templateSigNameMainUp_QCD_OppositeDjet = "{0}{1}".format(templateSigNameMainUp_QCD_OppositeDjet,"_Djet.root")
-            templateSigNameMainDown_QCD_OppositeDjet = "{0}{1}".format(templateSigNameMainDown_QCD_OppositeDjet,"_Djet.root")
-        if useDjet == 2:
-            templateSigNameMain_Nominal_OppositeDjet = "{0}{1}".format(templateSigNameMain_Nominal_OppositeDjet,"_nonDjet.root")
-            templateSigNameMainUp_PDF_OppositeDjet = "{0}{1}".format(templateSigNameMainUp_PDF_OppositeDjet,"_nonDjet.root")
-            templateSigNameMainDown_PDF_OppositeDjet = "{0}{1}".format(templateSigNameMainDown_PDF_OppositeDjet,"_nonDjet.root")
-            templateSigNameMainUp_QCD_OppositeDjet = "{0}{1}".format(templateSigNameMainUp_QCD_OppositeDjet,"_nonDjet.root")
-            templateSigNameMainDown_QCD_OppositeDjet = "{0}{1}".format(templateSigNameMainDown_QCD_OppositeDjet,"_nonDjet.root")
+      if(useDjet == 0):
+         templateNameList.append("{0}{1}".format(templateNameMain,".root"))
+      if(useDjet == 1):
+         templateNameList.append("{0}{1}".format(templateNameMain,"_nonDjet.root"))
+         templateNameList.append("{0}{1}".format(templateNameMain,"_Djet.root"))
+      if(useDjet == 2):
+         templateNameList.append("{0}{1}".format(templateNameMain,"_Djet.root"))
+         templateNameList.append("{0}{1}".format(templateNameMain,"_nonDjet.root"))
 
-        sigTempFileU = ROOT.TFile(templateSigNameMain_Nominal)
-        sigTempFileUp_PDF = ROOT.TFile(templateSigNameMainUp_PDF)
-        sigTempFileDown_PDF = ROOT.TFile(templateSigNameMainDown_PDF)
-        sigTempFileUp_QCD = ROOT.TFile(templateSigNameMainUp_QCD)
-        sigTempFileDown_QCD = ROOT.TFile(templateSigNameMainDown_QCD)
+      for fname in templateNameList:
+         print "Extracting template from {0}".fname
+         templateFileList.append(ROOT.TFile(fname, "read"))
 
-        sigTempFileU_OppositeDjet = ROOT.TFile(templateSigNameMain_Nominal_OppositeDjet)
-        sigTempFileUp_PDF_OppositeDjet = ROOT.TFile(templateSigNameMainUp_PDF_OppositeDjet)
-        sigTempFileDown_PDF_OppositeDjet = ROOT.TFile(templateSigNameMainDown_PDF_OppositeDjet)
-        sigTempFileUp_QCD_OppositeDjet = ROOT.TFile(templateSigNameMainUp_QCD_OppositeDjet)
-        sigTempFileDown_QCD_OppositeDjet = ROOT.TFile(templateSigNameMainDown_QCD_OppositeDjet)
-
+      # LEFT HERE
 
 #---------- SIGNAL TEMPLATES -------------
 
