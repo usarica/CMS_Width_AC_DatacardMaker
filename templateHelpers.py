@@ -155,7 +155,6 @@ class SignalTemplateHelper:
             self.nbinsx=self.gg_T_2_list[icat].GetNbinsX()
             self.nbinsy=self.gg_T_2_list[icat].GetNbinsY()
             self.nbinsz=self.gg_T_2_list[icat].GetNbinsZ()
-             # FIXME
             self.templateXLow=self.gg_T_2_list[icat].GetXaxis().GetBinLowEdge(1)
             self.templateYLow=self.gg_T_2_list[icat].GetYaxis().GetBinLowEdge(1)
             self.templateZLow=self.gg_T_2_list[icat].GetZaxis().GetBinLowEdge(1)
@@ -163,7 +162,7 @@ class SignalTemplateHelper:
             self.templateYHigh=self.gg_T_2_list[icat].GetYaxis().GetBinUpEdge(self.nbinsy)
             self.templateZhigh=self.gg_T_2_list[icat].GetZaxis().GetBinUpEdge(self.nbinsz)
             self.blankTemplate = self.gg_T_2_list[icat].Clone("blankTemplate")
-            self.blankTemplate.Reset() # FIXME
+            self.blankTemplate.Reset("M")
 
 
 # Signal ai**1 x a1**(2/4-1) real and imaginary parts
