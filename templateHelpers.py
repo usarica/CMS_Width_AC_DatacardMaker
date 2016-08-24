@@ -24,7 +24,10 @@ class SignalTemplateHelper:
       ROOT.gSystem.Load("libRooFit")
 
 
-   def SignalTemplateHelper(self, options, templateFileAppendName, useDjet):
+   def SignalTemplateHelper(self, options, templateFileAppendName, theInputs, useDjet, systName, anomCouplIndex):
+      self.sqrts = theInputs['sqrts']
+      self.channel = theInputs['decayChannel']
+
       self.templateDir = options.templateDir
       self.low_M = options.mLow
       self.high_M = options.mHigh
@@ -40,148 +43,296 @@ class SignalTemplateHelper:
       self.templateYHigh=1
       self.templateZhigh=1
 
+      self.anomCoupl=anomCouplIndex
+      self.ggSigLoops = 1
+      self.ggInterfLoops = 1
+      self.VBFSigLoops = 1
+      self.VBFInterfLoops = 1
+      if self.anomCoupl == 1: # Full parameterization with phases
+         self.ggSigLoops = 3
+         self.ggInterfLoops = 4
+         self.VBFSigLoops = 9
+         self.VBFInterfLoops = 6
+      elif self.anomCoupl == 2: # No phases, just [-1, 1]
+         self.ggSigLoops = 3
+         self.ggInterfLoops = 2
+         self.VBFSigLoops = 5 # a1**2 ai1**2 term does not receive sign(fai1)
+         self.VBFInterfLoops = 3
 
 
-      # Get Djet and opposite Djet shapes
+# Get Djet and opposite Djet shapes
+# Use cyclical ordering to keep everything simple
       templateNameMain = "{0}/{1}".format(self.templateDir, templateFileAppendName)
       templateNameList = []
+      catNameList = []
       templateFileList = []
 
       if(useDjet == 0):
          templateNameList.append("{0}{1}".format(templateNameMain,".root"))
+         catNameList.append("")
       if(useDjet == 1):
          templateNameList.append("{0}{1}".format(templateNameMain,"_nonDjet.root"))
          templateNameList.append("{0}{1}".format(templateNameMain,"_Djet.root"))
+         catNameList.append("nonDjet")
+         catNameList.append("Djet")
       if(useDjet == 2):
          templateNameList.append("{0}{1}".format(templateNameMain,"_Djet.root"))
          templateNameList.append("{0}{1}".format(templateNameMain,"_nonDjet.root"))
+         catNameList.append("Djet")
+         catNameList.append("nonDjet")
 
       for fname in templateNameList:
          print "Extracting template from {0}".fname
          templateFileList.append(ROOT.TFile(fname, "read"))
 
-      # LEFT HERE
 
 #---------- SIGNAL TEMPLATES -------------
 
 # Bare SM
+   # Templates
+      # ggF
+      self.gg_T_1_list = []
+      self.gg_T_2_list = []
+      self.gg_T_4_list = []
+      # VBF
+      self.VBF_T_1_list = []
+      self.VBF_T_2_list = []
+      self.VBF_T_4_list = []
 
-        Sig_T_2 = sigTempFileU.Get("T_2D_1").Clone("T_2D_1_Nominal")
-        Sig_T_2_Up_PDF = sigTempFileUp_PDF.Get("T_2D_1").Clone("T_2D_1_PDFUp")
-        Sig_T_2_Up_QCD = sigTempFileUp_QCD.Get("T_2D_1").Clone("T_2D_1_QCDUp")
-        Sig_T_2_Down_PDF = sigTempFileDown_PDF.Get("T_2D_1").Clone("T_2D_1_PDFDown")
-        Sig_T_2_Down_QCD = sigTempFileDown_QCD.Get("T_2D_1").Clone("T_2D_1_QCDDown")
+   # Template integral numbers
+      # ggF
+      self.integral_gg_T_1_list = []
+      self.integral_gg_T_2_list = []
+      self.integral_gg_T_4_list = []
+      # VBF
+      self.integral_VBF_T_1_list = []
+      self.integral_VBF_T_2_list = []
+      self.integral_VBF_T_4_list = []
 
-        Sig_T_1 = sigTempFileU.Get("T_2D_2").Clone("T_2D_2_Nominal")
-        Sig_T_1_Up_PDF = sigTempFileUp_PDF.Get("T_2D_2").Clone("T_2D_2_PDFUp")
-        Sig_T_1_Down_PDF = sigTempFileDown_PDF.Get("T_2D_2").Clone("T_2D_2_PDFDown")
-        Sig_T_1_Up_QCD = sigTempFileUp_QCD.Get("T_2D_2").Clone("T_2D_2_QCDUp")
-        Sig_T_1_Down_QCD = sigTempFileDown_QCD.Get("T_2D_2").Clone("T_2D_2_QCDDown")
+   # Template integral RooRealVars
+      # ggF
+      self.rate_gg_T_1_list = []
+      self.rate_gg_T_2_list = []
+      self.rate_gg_T_4_list = []
+      # VBF
+      self.rate_VBF_T_1_list = []
+      self.rate_VBF_T_2_list = []
+      self.rate_VBF_T_4_list = []
 
-        Sig_T_4 = sigTempFileU.Get("T_2D_4").Clone("T_2D_4_Nominal")
-        Sig_T_4_Up_PDF = sigTempFileUp_PDF.Get("T_2D_4").Clone("T_2D_4_PDFUp")
-        Sig_T_4_Up_QCD = sigTempFileUp_QCD.Get("T_2D_4").Clone("T_2D_4_QCDUp")
-        Sig_T_4_Down_PDF = sigTempFileDown_PDF.Get("T_2D_4").Clone("T_2D_4_PDFDown")
-        Sig_T_4_Down_QCD = sigTempFileDown_QCD.Get("T_2D_4").Clone("T_2D_4_QCDDown")
+      for icat in range(0,len(templateFileList)):
+         self.gg_T_1_list.append(templateFileList[icat].Get("T_2D_1").Clone("T_2D_gg_1_{0}_{1}_{2}_{3}TeV".format(systName,catNameList[icat],self.channel,self.sqrts)))
+         self.gg_T_2_list.append(templateFileList[icat].Get("T_2D_2").Clone("T_2D_gg_2_{0}_{1}_{2}_{3}TeV".format(systName,catNameList[icat],self.channel,self.sqrts)))
+         self.gg_T_4_list.append(templateFileList[icat].Get("T_2D_4").Clone("T_2D_gg_4_{0}_{1}_{2}_{3}TeV".format(systName,catNameList[icat],self.channel,self.sqrts)))
 
-        VBF_T_2 = sigTempFileU.Get("T_2D_VBF_1").Clone("T_2D_VBF_1_Nominal")
-        VBF_T_2_Up = sigTempFileUp_PDF.Get("T_2D_VBF_1").Clone("T_2D_VBF_1_PDFUp")
-        VBF_T_2_Down = sigTempFileDown_PDF.Get("T_2D_VBF_1").Clone("T_2D_VBF_1_PDFDown")
+         self.VBF_T_1_list.append(templateFileList[icat].Get("T_2D_VBF_1").Clone("T_2D_VBF_1_{0}_{1}_{2}_{3}TeV".format(systName,catNameList[icat],self.channel,self.sqrts)))
+         self.VBF_T_2_list.append(templateFileList[icat].Get("T_2D_VBF_2").Clone("T_2D_VBF_2_{0}_{1}_{2}_{3}TeV".format(systName,catNameList[icat],self.channel,self.sqrts)))
+         self.VBF_T_4_list.append(templateFileList[icat].Get("T_2D_VBF_4").Clone("T_2D_VBF_4_{0}_{1}_{2}_{3}TeV".format(systName,catNameList[icat],self.channel,self.sqrts)))
 
-        VBF_T_1 = sigTempFileU.Get("T_2D_VBF_2").Clone("T_2D_VBF_2_Nominal")
-        VBF_T_1_Up = sigTempFileUp_PDF.Get("T_2D_VBF_2").Clone("T_2D_VBF_2_PDFUp")
-        VBF_T_1_Down = sigTempFileDown_PDF.Get("T_2D_VBF_2").Clone("T_2D_VBF_2_PDFDown")
+         self.integral_gg_T_1_list.append(self.gg_T_1_list[icat].Integral("width"))
+         self.integral_gg_T_2_list.append(self.gg_T_2_list[icat].Integral("width"))
+         self.integral_gg_T_4_list.append(self.gg_T_4_list[icat].Integral("width"))
 
-        VBF_T_4 = sigTempFileU.Get("T_2D_VBF_4").Clone("T_2D_VBF_4_Nominal")
-        VBF_T_4_Up = sigTempFileUp_PDF.Get("T_2D_VBF_4").Clone("T_2D_VBF_4_PDFUp")
-        VBF_T_4_Down = sigTempFileDown_PDF.Get("T_2D_VBF_4").Clone("T_2D_VBF_4_PDFDown")
+         self.integral_VBF_T_1_list.append(self.VBF_T_1_list[icat].Integral("width"))
+         self.integral_VBF_T_2_list.append(self.VBF_T_2_list[icat].Integral("width"))
+         self.integral_VBF_T_4_list.append(self.VBF_T_4_list[icat].Integral("width"))
 
+         self.rate_gg_T_1_list.append( ROOT.RooRealVar(self.gg_T_1_list[icat].GetName(),self.gg_T_1_list[icat].GetName(),self.integral_gg_T_1_list[icat]) )
+         self.rate_gg_T_2_list.append( ROOT.RooRealVar(self.gg_T_2_list[icat].GetName(),self.gg_T_2_list[icat].GetName(),self.integral_gg_T_2_list[icat]) )
+         self.rate_gg_T_4_list.append( ROOT.RooRealVar(self.gg_T_4_list[icat].GetName(),self.gg_T_4_list[icat].GetName(),self.integral_gg_T_4_list[icat]) )
+         self.rate_gg_T_1_list[icat].setConstant(True)
+         self.rate_gg_T_2_list[icat].setConstant(True)
+         self.rate_gg_T_4_list[icat].setConstant(True)
 
+         self.rate_VBF_T_1_list.append( ROOT.RooRealVar(self.VBF_T_1_list[icat].GetName(),self.VBF_T_1_list[icat].GetName(),self.integral_VBF_T_1_list[icat]) )
+         self.rate_VBF_T_2_list.append( ROOT.RooRealVar(self.VBF_T_2_list[icat].GetName(),self.VBF_T_2_list[icat].GetName(),self.integral_VBF_T_2_list[icat]) )
+         self.rate_VBF_T_4_list.append( ROOT.RooRealVar(self.VBF_T_4_list[icat].GetName(),self.VBF_T_4_list[icat].GetName(),self.integral_VBF_T_4_list[icat]) )
+         self.rate_VBF_T_1_list[icat].setConstant(True)
+         self.rate_VBF_T_2_list[icat].setConstant(True)
+         self.rate_VBF_T_4_list[icat].setConstant(True)
 
-        Sig_T_2_OppositeDjet = sigTempFileU_OppositeDjet.Get("T_2D_1").Clone("T_2D_1_Nominal_OppositeDjet")
-        Sig_T_2_Up_PDF_OppositeDjet = sigTempFileUp_PDF_OppositeDjet.Get("T_2D_1").Clone("T_2D_1_PDFUp_OppositeDjet")
-        Sig_T_2_Up_QCD_OppositeDjet = sigTempFileUp_QCD_OppositeDjet.Get("T_2D_1").Clone("T_2D_1_QCDUp_OppositeDjet")
-        Sig_T_2_Down_PDF_OppositeDjet = sigTempFileDown_PDF_OppositeDjet.Get("T_2D_1").Clone("T_2D_1_PDFDown_OppositeDjet")
-        Sig_T_2_Down_QCD_OppositeDjet = sigTempFileDown_QCD_OppositeDjet.Get("T_2D_1").Clone("T_2D_1_QCDDown_OppositeDjet")
-
-        Sig_T_1_OppositeDjet = sigTempFileU_OppositeDjet.Get("T_2D_2").Clone("T_2D_2_Nominal_OppositeDjet")
-        Sig_T_1_Up_PDF_OppositeDjet = sigTempFileUp_PDF_OppositeDjet.Get("T_2D_2").Clone("T_2D_2_PDFUp_OppositeDjet")
-        Sig_T_1_Down_PDF_OppositeDjet = sigTempFileDown_PDF_OppositeDjet.Get("T_2D_2").Clone("T_2D_2_PDFDown_OppositeDjet")
-        Sig_T_1_Up_QCD_OppositeDjet = sigTempFileUp_QCD_OppositeDjet.Get("T_2D_2").Clone("T_2D_2_QCDUp_OppositeDjet")
-        Sig_T_1_Down_QCD_OppositeDjet = sigTempFileDown_QCD_OppositeDjet.Get("T_2D_2").Clone("T_2D_2_QCDDown_OppositeDjet")
-
-        Sig_T_4_OppositeDjet = sigTempFileU_OppositeDjet.Get("T_2D_4").Clone("T_2D_4_Nominal_OppositeDjet")
-        Sig_T_4_Up_PDF_OppositeDjet = sigTempFileUp_PDF_OppositeDjet.Get("T_2D_4").Clone("T_2D_4_PDFUp_OppositeDjet")
-        Sig_T_4_Up_QCD_OppositeDjet = sigTempFileUp_QCD_OppositeDjet.Get("T_2D_4").Clone("T_2D_4_QCDUp_OppositeDjet")
-        Sig_T_4_Down_PDF_OppositeDjet = sigTempFileDown_PDF_OppositeDjet.Get("T_2D_4").Clone("T_2D_4_PDFDown_OppositeDjet")
-        Sig_T_4_Down_QCD_OppositeDjet = sigTempFileDown_QCD_OppositeDjet.Get("T_2D_4").Clone("T_2D_4_QCDDown_OppositeDjet")
-
-        VBF_T_2_OppositeDjet = sigTempFileU_OppositeDjet.Get("T_2D_VBF_1").Clone("T_2D_VBF_1_Nominal_OppositeDjet")
-        VBF_T_2_Up_OppositeDjet = sigTempFileUp_PDF_OppositeDjet.Get("T_2D_VBF_1").Clone("T_2D_VBF_1_PDFUp_OppositeDjet")
-        VBF_T_2_Down_OppositeDjet = sigTempFileDown_PDF_OppositeDjet.Get("T_2D_VBF_1").Clone("T_2D_VBF_1_PDFDown_OppositeDjet")
-
-        VBF_T_1_OppositeDjet = sigTempFileU_OppositeDjet.Get("T_2D_VBF_2").Clone("T_2D_VBF_2_Nominal_OppositeDjet")
-        VBF_T_1_Up_OppositeDjet = sigTempFileUp_PDF_OppositeDjet.Get("T_2D_VBF_2").Clone("T_2D_VBF_2_PDFUp_OppositeDjet")
-        VBF_T_1_Down_OppositeDjet = sigTempFileDown_PDF_OppositeDjet.Get("T_2D_VBF_2").Clone("T_2D_VBF_2_PDFDown_OppositeDjet")
-
-        VBF_T_4_OppositeDjet = sigTempFileU_OppositeDjet.Get("T_2D_VBF_4").Clone("T_2D_VBF_4_Nominal_OppositeDjet")
-        VBF_T_4_Up_OppositeDjet = sigTempFileUp_PDF_OppositeDjet.Get("T_2D_VBF_4").Clone("T_2D_VBF_4_PDFUp_OppositeDjet")
-        VBF_T_4_Down_OppositeDjet = sigTempFileDown_PDF_OppositeDjet.Get("T_2D_VBF_4").Clone("T_2D_VBF_4_PDFDown_OppositeDjet")
-
-
-
-        integral_Sig_T_1 = Sig_T_1.Integral("width")
-        integral_Sig_T_1_Up_PDF = Sig_T_1_Up_PDF.Integral("width")
-        integral_Sig_T_1_Down_PDF = Sig_T_1_Down_PDF.Integral("width")
-        integral_Sig_T_1_Up_QCD = Sig_T_1_Up_QCD.Integral("width")
-        integral_Sig_T_1_Down_QCD = Sig_T_1_Down_QCD.Integral("width")
-        integral_Sig_T_2 = Sig_T_2.Integral("width")
-        integral_Sig_T_2_Up_PDF = Sig_T_2_Up_PDF.Integral("width")
-        integral_Sig_T_2_Down_PDF = Sig_T_2_Down_PDF.Integral("width")
-        integral_Sig_T_2_Up_QCD = Sig_T_2_Up_QCD.Integral("width")
-        integral_Sig_T_2_Down_QCD = Sig_T_2_Down_QCD.Integral("width")
-        integral_Sig_T_4 = Sig_T_4.Integral("width")
-        integral_Sig_T_4_Up_PDF = Sig_T_4_Up_PDF.Integral("width")
-        integral_Sig_T_4_Down_PDF = Sig_T_4_Down_PDF.Integral("width")
-        integral_Sig_T_4_Up_QCD = Sig_T_4_Up_QCD.Integral("width")
-        integral_Sig_T_4_Down_QCD = Sig_T_4_Down_QCD.Integral("width")
-
-        integral_VBF_T_1 = VBF_T_1.Integral("width")
-        integral_VBF_T_1_Up = VBF_T_1_Up.Integral("width")
-        integral_VBF_T_1_Down = VBF_T_1_Down.Integral("width")
-        integral_VBF_T_2 = VBF_T_2.Integral("width")
-        integral_VBF_T_2_Up = VBF_T_2_Up.Integral("width")
-        integral_VBF_T_2_Down = VBF_T_2_Down.Integral("width")
-        integral_VBF_T_4 = VBF_T_4.Integral("width")
-        integral_VBF_T_4_Up = VBF_T_4_Up.Integral("width")
-        integral_VBF_T_4_Down = VBF_T_4_Down.Integral("width")
+         # Special case: Get template properties from the gg bkg template
+         if icat == 0:
+            self.nbinsx=self.gg_T_2_list[icat].GetNbinsX()
+            self.nbinsy=self.gg_T_2_list[icat].GetNbinsY()
+            self.nbinsz=self.gg_T_2_list[icat].GetNbinsZ()
+             # FIXME
+            self.templateXLow=self.gg_T_2_list[icat].GetXaxis().GetBinLowEdge(1)
+            self.templateYLow=self.gg_T_2_list[icat].GetYaxis().GetBinLowEdge(1)
+            self.templateZLow=self.gg_T_2_list[icat].GetZaxis().GetBinLowEdge(1)
+            self.templateXHigh=self.gg_T_2_list[icat].GetXaxis().GetBinUpEdge(self.nbinsx)
+            self.templateYHigh=self.gg_T_2_list[icat].GetYaxis().GetBinUpEdge(self.nbinsy)
+            self.templateZhigh=self.gg_T_2_list[icat].GetZaxis().GetBinUpEdge(self.nbinsz)
+            self.blankTemplate = self.gg_T_2_list[icat].Clone("blankTemplate")
+            self.blankTemplate.Reset() # FIXME
 
 
-        integral_Sig_T_1_OppositeDjet = Sig_T_1_OppositeDjet.Integral("width")
-        integral_Sig_T_1_Up_PDF_OppositeDjet = Sig_T_1_Up_PDF_OppositeDjet.Integral("width")
-        integral_Sig_T_1_Down_PDF_OppositeDjet = Sig_T_1_Down_PDF_OppositeDjet.Integral("width")
-        integral_Sig_T_1_Up_QCD_OppositeDjet = Sig_T_1_Up_QCD_OppositeDjet.Integral("width")
-        integral_Sig_T_1_Down_QCD_OppositeDjet = Sig_T_1_Down_QCD_OppositeDjet.Integral("width")
-        integral_Sig_T_2_OppositeDjet = Sig_T_2_OppositeDjet.Integral("width")
-        integral_Sig_T_2_Up_PDF_OppositeDjet = Sig_T_2_Up_PDF_OppositeDjet.Integral("width")
-        integral_Sig_T_2_Down_PDF_OppositeDjet = Sig_T_2_Down_PDF_OppositeDjet.Integral("width")
-        integral_Sig_T_2_Up_QCD_OppositeDjet = Sig_T_2_Up_QCD_OppositeDjet.Integral("width")
-        integral_Sig_T_2_Down_QCD_OppositeDjet = Sig_T_2_Down_QCD_OppositeDjet.Integral("width")
-        integral_Sig_T_4_OppositeDjet = Sig_T_4_OppositeDjet.Integral("width")
-        integral_Sig_T_4_Up_PDF_OppositeDjet = Sig_T_4_Up_PDF_OppositeDjet.Integral("width")
-        integral_Sig_T_4_Down_PDF_OppositeDjet = Sig_T_4_Down_PDF_OppositeDjet.Integral("width")
-        integral_Sig_T_4_Up_QCD_OppositeDjet = Sig_T_4_Up_QCD_OppositeDjet.Integral("width")
-        integral_Sig_T_4_Down_QCD_OppositeDjet = Sig_T_4_Down_QCD_OppositeDjet.Integral("width")
+# Signal ai**1 x a1**(2/4-1) real and imaginary parts
+   # Templates
+      # ggF
+      self.gg_T_1_AC_1_Re_list = []
+      self.gg_T_1_AC_1_Im_list = []
+      # VBF
+      self.VBF_T_1_AC_1_Re_list = []
+      self.VBF_T_1_AC_1_Im_list = []
 
-        integral_VBF_T_1_OppositeDjet = VBF_T_1_OppositeDjet.Integral("width")
-        integral_VBF_T_1_Up_OppositeDjet = VBF_T_1_Up_OppositeDjet.Integral("width")
-        integral_VBF_T_1_Down_OppositeDjet = VBF_T_1_Down_OppositeDjet.Integral("width")
-        integral_VBF_T_2_OppositeDjet = VBF_T_2_OppositeDjet.Integral("width")
-        integral_VBF_T_2_Up_OppositeDjet = VBF_T_2_Up_OppositeDjet.Integral("width")
-        integral_VBF_T_2_Down_OppositeDjet = VBF_T_2_Down_OppositeDjet.Integral("width")
-        integral_VBF_T_4_OppositeDjet = VBF_T_4_OppositeDjet.Integral("width")
-        integral_VBF_T_4_Up_OppositeDjet = VBF_T_4_Up_OppositeDjet.Integral("width")
-        integral_VBF_T_4_Down_OppositeDjet = VBF_T_4_Down_OppositeDjet.Integral("width")
+   # Template integral numbers
+      # ggF
+      self.integral_gg_T_1_AC_1_Re_list = []
+      self.integral_gg_T_1_AC_1_Im_list = []
+      # VBF
+      self.integral_VBF_T_1_AC_1_Re_list = []
+      self.integral_VBF_T_1_AC_1_Im_list = []
+
+   # Template integral RooRealVars
+      # ggF
+      self.rate_gg_T_1_AC_1_Re_list = []
+      self.rate_gg_T_1_AC_1_Im_list = []
+      # VBF
+      self.rate_VBF_T_1_AC_1_Re_list = []
+      self.rate_VBF_T_1_AC_1_Im_list = []
+
+      if self.anomCoupl != 0:
+         for icat in range(0,len(templateFileList)):
+            self.gg_T_1_AC_1_Re_list.append(templateFileList[icat].Get("T_2D_1_AC_1_Re").Clone("T_2D_gg_1_AC_1_Re_{0}_{1}_{2}_{3}TeV".format(systName,catNameList[icat],self.channel,self.sqrts)))
+            self.VBF_T_1_AC_1_Re_list.append(templateFileList[icat].Get("T_2D_VBF_1_AC_1_Re").Clone("T_2D_VBF_1_AC_1_Re_{0}_{1}_{2}_{3}TeV".format(systName,catNameList[icat],self.channel,self.sqrts)))
+
+            self.integral_gg_T_1_AC_1_Re_list.append(self.gg_T_1_AC_1_Re_list[icat].Integral("width"))
+            self.integral_VBF_T_1_AC_1_Re_list.append(self.VBF_T_1_AC_1_Re_list[icat].Integral("width"))
+
+            self.rate_gg_T_1_AC_1_Re_list.append( ROOT.RooRealVar(self.gg_T_1_AC_1_Re_list[icat].GetName(),self.gg_T_1_AC_1_Re_list[icat].GetName(),self.integral_gg_T_1_AC_1_Re_list[icat]) )
+            self.rate_gg_T_1_AC_1_Re_list[icat].setConstant(True)
+            self.rate_VBF_T_1_AC_1_Re_list.append( ROOT.RooRealVar(self.VBF_T_1_AC_1_Re_list[icat].GetName(),self.VBF_T_1_AC_1_Re_list[icat].GetName(),self.integral_VBF_T_1_AC_1_Re_list[icat]) )
+            self.rate_VBF_T_1_AC_1_Re_list[icat].setConstant(True)
+
+            if self.anomCoupl == 1:
+               self.gg_T_1_AC_1_Im_list.append(templateFileList[icat].Get("T_2D_1_AC_1_Im").Clone("T_2D_gg_1_AC_1_Im_{0}_{1}_{2}_{3}TeV".format(systName,catNameList[icat],self.channel,self.sqrts)))
+               self.VBF_T_1_AC_1_Im_list.append(templateFileList[icat].Get("T_2D_VBF_1_AC_1_Im").Clone("T_2D_VBF_1_AC_1_Im_{0}_{1}_{2}_{3}TeV".format(systName,catNameList[icat],self.channel,self.sqrts)))
+
+               self.integral_gg_T_1_AC_1_Im_list.append(self.gg_T_1_AC_1_Im_list[icat].Integral("width"))
+               self.integral_VBF_T_1_AC_1_Im_list.append(self.VBF_T_1_AC_1_Im_list[icat].Integral("width"))
+
+               self.rate_gg_T_1_AC_1_Im_list.append( ROOT.RooRealVar(self.gg_T_1_AC_1_Im_list[icat].GetName(),self.gg_T_1_AC_1_Im_list[icat].GetName(),self.integral_gg_T_1_AC_1_Im_list[icat]) )
+               self.rate_gg_T_1_AC_1_Im_list[icat].setConstant(True)
+               self.rate_VBF_T_1_AC_1_Im_list.append( ROOT.RooRealVar(self.VBF_T_1_AC_1_Im_list[icat].GetName(),self.VBF_T_1_AC_1_Im_list[icat].GetName(),self.integral_VBF_T_1_AC_1_Im_list[icat]) )
+               self.rate_VBF_T_1_AC_1_Im_list[icat].setConstant(True)
+
+
+# Signal ai**2 x a1**(2/4-2) real and imaginary parts
+   # Templates
+      # ggF
+      self.gg_T_1_AC_2_Re_list = []
+      # VBF
+      self.VBF_T_1_AC_2_Re_list = []
+      self.VBF_T_1_AC_2_Im_list = []
+      self.VBF_T_1_AC_2_PosDef_list = []
+
+   # Template integral numbers
+      # ggF
+      self.integral_gg_T_1_AC_2_Re_list = []
+      # VBF
+      self.integral_VBF_T_1_AC_2_Re_list = []
+      self.integral_VBF_T_1_AC_2_Im_list = []
+      self.integral_VBF_T_1_AC_2_PosDef_list = []
+
+   # Template integral RooRealVars
+      # ggF
+      self.rate_gg_T_1_AC_2_Re_list = []
+      # VBF
+      self.rate_VBF_T_1_AC_2_Re_list = []
+      self.rate_VBF_T_1_AC_2_Im_list = []
+      self.rate_VBF_T_1_AC_2_PosDef_list = []
+
+      if self.anomCoupl != 0:
+         for icat in range(0,len(templateFileList)):
+            self.gg_T_1_AC_2_Re_list.append(templateFileList[icat].Get("T_2D_1_AC_2_Re").Clone("T_2D_gg_1_AC_2_Re_{0}_{1}_{2}_{3}TeV".format(systName,catNameList[icat],self.channel,self.sqrts)))
+            self.integral_gg_T_1_AC_2_Re_list.append(self.gg_T_1_AC_2_Re_list[icat].Integral("width"))
+            self.rate_gg_T_1_AC_2_Re_list.append( ROOT.RooRealVar(self.gg_T_1_AC_2_Re_list[icat].GetName(),self.gg_T_1_AC_2_Re_list[icat].GetName(),self.integral_gg_T_1_AC_2_Re_list[icat]) )
+            self.rate_gg_T_1_AC_2_Re_list[icat].setConstant(True)
+
+
+            if self.anomCoupl == 1:
+               self.VBF_T_1_AC_2_PosDef_list.append(templateFileList[icat].Get("T_2D_VBF_1_AC_2_PosDef").Clone("T_2D_VBF_1_AC_2_PosDef_{0}_{1}_{2}_{3}TeV".format(systName,catNameList[icat],self.channel,self.sqrts)))
+               self.integral_VBF_T_1_AC_2_PosDef_list.append(self.VBF_T_1_AC_2_PosDef_list[icat].Integral("width"))
+               self.rate_VBF_T_1_AC_2_PosDef_list.append( ROOT.RooRealVar(self.VBF_T_1_AC_2_PosDef_list[icat].GetName(),self.VBF_T_1_AC_2_PosDef_list[icat].GetName(),self.integral_VBF_T_1_AC_2_PosDef_list[icat]) )
+               self.rate_VBF_T_1_AC_2_PosDef_list[icat].setConstant(True)
+
+               self.VBF_T_1_AC_2_Re_list.append(templateFileList[icat].Get("T_2D_VBF_1_AC_2_Re").Clone("T_2D_VBF_1_AC_2_Re_{0}_{1}_{2}_{3}TeV".format(systName,catNameList[icat],self.channel,self.sqrts)))
+               self.integral_VBF_T_1_AC_2_Re_list.append(self.VBF_T_1_AC_2_Re_list[icat].Integral("width"))
+               self.rate_VBF_T_1_AC_2_Re_list.append( ROOT.RooRealVar(self.VBF_T_1_AC_2_Re_list[icat].GetName(),self.VBF_T_1_AC_2_Re_list[icat].GetName(),self.integral_VBF_T_1_AC_2_Re_list[icat]) )
+               self.rate_VBF_T_1_AC_2_Re_list[icat].setConstant(True)
+
+               self.VBF_T_1_AC_2_Im_list.append(templateFileList[icat].Get("T_2D_VBF_1_AC_2_Im").Clone("T_2D_VBF_1_AC_2_Im_{0}_{1}_{2}_{3}TeV".format(systName,catNameList[icat],self.channel,self.sqrts)))
+               self.integral_VBF_T_1_AC_2_Im_list.append(self.VBF_T_1_AC_2_Im_list[icat].Integral("width"))
+               self.rate_VBF_T_1_AC_2_Im_list.append( ROOT.RooRealVar(self.VBF_T_1_AC_2_Im_list[icat].GetName(),self.VBF_T_1_AC_2_Im_list[icat].GetName(),self.integral_VBF_T_1_AC_2_Im_list[icat]) )
+               self.rate_VBF_T_1_AC_2_Im_list[icat].setConstant(True)
+            elif self.anomCoupl == 2: # if self.anomCoupl == 2, PosDef = PosDef+Re
+               self.VBF_T_1_AC_2_PosDef_list.append(templateFileList[icat].Get("T_2D_VBF_1_AC_2_PosDef").Clone("T_2D_VBF_1_AC_2_PosDef_{0}_{1}_{2}_{3}TeV".format(systName,catNameList[icat],self.channel,self.sqrts)))
+               self.VBF_T_1_AC_2_PosDef_list[icat].Add(templateFileList[icat].Get("T_2D_VBF_1_AC_2_Re").Clone("T_2D_VBF_1_AC_2_Re_{0}_{1}_{2}_{3}TeV".format(systName,catNameList[icat],self.channel,self.sqrts)))
+               self.integral_VBF_T_1_AC_2_PosDef_list.append(self.VBF_T_1_AC_2_PosDef_list[icat].Integral("width"))
+               self.rate_VBF_T_1_AC_2_PosDef_list.append( ROOT.RooRealVar(self.VBF_T_1_AC_2_PosDef_list[icat].GetName(),self.VBF_T_1_AC_2_PosDef_list[icat].GetName(),self.integral_VBF_T_1_AC_2_PosDef_list[icat]) )
+               self.rate_VBF_T_1_AC_2_PosDef_list[icat].setConstant(True)
+
+
+# Signal ai**3 x a1**1 real and imaginary parts
+   # Templates
+      # No ggF
+      # VBF
+      self.VBF_T_1_AC_3_Re_list = []
+      self.VBF_T_1_AC_3_Im_list = []
+
+   # Template integral numbers
+      # No ggF
+      # VBF
+      self.integral_VBF_T_1_AC_3_Re_list = []
+      self.integral_VBF_T_1_AC_3_Im_list = []
+
+   # Template integral RooRealVars
+      # No ggF
+      # VBF
+      self.rate_VBF_T_1_AC_3_Re_list = []
+      self.rate_VBF_T_1_AC_3_Im_list = []
+
+      if self.anomCoupl != 0:
+         for icat in range(0,len(templateFileList)):
+            self.VBF_T_1_AC_3_Re_list.append(templateFileList[icat].Get("T_2D_VBF_1_AC_3_Re").Clone("T_2D_VBF_1_AC_3_Re_{0}_{1}_{2}_{3}TeV".format(systName,catNameList[icat],self.channel,self.sqrts)))
+            self.integral_VBF_T_1_AC_3_Re_list.append(self.VBF_T_1_AC_3_Re_list[icat].Integral("width"))
+            self.rate_VBF_T_1_AC_3_Re_list.append( ROOT.RooRealVar(self.VBF_T_1_AC_3_Re_list[icat].GetName(),self.VBF_T_1_AC_3_Re_list[icat].GetName(),self.integral_VBF_T_1_AC_3_Re_list[icat]) )
+            self.rate_VBF_T_1_AC_3_Re_list[icat].setConstant(True)
+
+            if self.anomCoupl == 1:
+               self.VBF_T_1_AC_3_Im_list.append(templateFileList[icat].Get("T_2D_VBF_1_AC_3_Im").Clone("T_2D_VBF_1_AC_3_Im_{0}_{1}_{2}_{3}TeV".format(systName,catNameList[icat],self.channel,self.sqrts)))
+               self.integral_VBF_T_1_AC_3_Im_list.append(self.VBF_T_1_AC_3_Im_list[icat].Integral("width"))
+               self.rate_VBF_T_1_AC_3_Im_list.append( ROOT.RooRealVar(self.VBF_T_1_AC_3_Im_list[icat].GetName(),self.VBF_T_1_AC_3_Im_list[icat].GetName(),self.integral_VBF_T_1_AC_3_Im_list[icat]) )
+               self.rate_VBF_T_1_AC_3_Im_list[icat].setConstant(True)
+
+
+# Signal ai**3 x a1**1 real and imaginary parts
+   # Templates
+      # No ggF
+      # VBF
+      self.VBF_T_1_AC_4_list = []
+
+   # Template integral numbers
+      # No ggF
+      # VBF
+      self.integral_VBF_T_1_AC_4_list = []
+
+   # Template integral RooRealVars
+      # No ggF
+      # VBF
+      self.rate_VBF_T_1_AC_4_list = []
+
+      if self.anomCoupl != 0:
+         for icat in range(0,len(templateFileList)):
+            self.VBF_T_1_AC_4_list.append(templateFileList[icat].Get("T_2D_VBF_1_AC_4").Clone("T_2D_VBF_1_AC_4_{0}_{1}_{2}_{3}TeV".format(systName,catNameList[icat],self.channel,self.sqrts)))
+            self.integral_VBF_T_1_AC_4_list.append(self.VBF_T_1_AC_4_list[icat].Integral("width"))
+            self.rate_VBF_T_1_AC_4_list.append( ROOT.RooRealVar(self.VBF_T_1_AC_4_list[icat].GetName(),self.VBF_T_1_AC_4_list[icat].GetName(),self.integral_VBF_T_1_AC_4_list[icat]) )
+            self.rate_VBF_T_1_AC_4_list[icat].setConstant(True)
+
+# Interference ai**1 x a1**(1/2-1) real and imaginary parts
+
+
+# LEFT HERE
 
 
 
