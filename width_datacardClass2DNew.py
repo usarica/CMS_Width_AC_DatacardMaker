@@ -158,14 +158,23 @@ class width_datacardClass:
         muF.setVal(1)
         muF.setBins(100)
 
-        mu_name = "CMS_widthH_kbkg"
-        kbkg = ROOT.RooRealVar(mu_name, mu_name, 0, 2)
-        kbkg.setVal(1.0)
-        kbkg.setBins(100)
+        mu_name = "CMS_widthH_kbkg_gg"
+        kbkg_gg = ROOT.RooRealVar(mu_name, mu_name, 0, 2)
+        kbkg_gg.setVal(1.0)
+        kbkg_gg.setBins(100)
+
+        mu_name = "CMS_widthH_kbkg_VBF"
+        kbkg_VBF = ROOT.RooRealVar(mu_name, mu_name, 0, 2)
+        kbkg_VBF.setVal(1.0)
+        kbkg_VBF.setBins(100)
 
         D2name = "CMS_zz4l_widthKD"
         CMS_zz4l_widthKD = ROOT.RooRealVar(D2name, D2name, 0, 1)
         CMS_zz4l_widthKD.setBins(30)
+
+        D2name = "CMS_zz4l_widthKD2"
+        CMS_zz4l_widthKD2 = ROOT.RooRealVar(D2name, D2name, 0, 1)
+        CMS_zz4l_widthKD2.setBins(30)
 
         one = ROOT.RooRealVar("one", "one", 1.0)
         one.setConstant(True)
@@ -1296,27 +1305,27 @@ class width_datacardClass:
         ggZZVarNorm_Name = "ggZZVarNominalNorm_{0:.0f}_{1:.0f}_{2:.0f}".format(self.channel, self.sqrts, useDjet)
         ggZZNominal_norm = ROOT.RooFormulaVar(
             ggZZVarNorm_Name, "(@0*@3*@6*@4+@1*sqrt(@3*@6*@4)*sign(@5)*sqrt(abs(@5))+@2*abs(@5))",
-            ROOT.RooArgList(sigRates_Nominal_AnomCoupl_CombinedJet, interfRates_Nominal_AnomCoupl_CombinedJet, bkgRates_Nominal_CombinedJet, x, mu, kbkg, muF)
+            ROOT.RooArgList(sigRates_Nominal_AnomCoupl_CombinedJet, interfRates_Nominal_AnomCoupl_CombinedJet, bkgRates_Nominal_CombinedJet, x, mu, kbkg_gg, muF)
             )
         ggZZVarNormQCDUp_Name = "ggZZVarQCDUpNorm_{0:.0f}_{1:.0f}_{2:.0f}".format(self.channel, self.sqrts, useDjet)
         ggZZQCDUp_norm = ROOT.RooFormulaVar(
             ggZZVarNormQCDUp_Name, "(@0*@3*@6*@4+@1*sqrt(@3*@6*@4)*sign(@5)*sqrt(abs(@5))+@2*abs(@5))",
-            ROOT.RooArgList(sigRates_QCDUp_AnomCoupl_CombinedJet, interfRates_QCDUp_AnomCoupl_CombinedJet, bkgRates_QCDUp_CombinedJet, x, mu, kbkg, muF)
+            ROOT.RooArgList(sigRates_QCDUp_AnomCoupl_CombinedJet, interfRates_QCDUp_AnomCoupl_CombinedJet, bkgRates_QCDUp_CombinedJet, x, mu, kbkg_gg, muF)
             )
         ggZZVarNormQCDDown_Name = "ggZZVarQCDDownNorm_{0:.0f}_{1:.0f}_{2:.0f}".format(self.channel, self.sqrts, useDjet)
         ggZZQCDDown_norm = ROOT.RooFormulaVar(
             ggZZVarNormQCDDown_Name, "(@0*@3*@6*@4+@1*sqrt(@3*@6*@4)*sign(@5)*sqrt(abs(@5))+@2*abs(@5))",
-            ROOT.RooArgList(sigRates_QCDDown_AnomCoupl_CombinedJet, interfRates_QCDDown_AnomCoupl_CombinedJet, bkgRates_QCDDown_CombinedJet, x, mu, kbkg, muF)
+            ROOT.RooArgList(sigRates_QCDDown_AnomCoupl_CombinedJet, interfRates_QCDDown_AnomCoupl_CombinedJet, bkgRates_QCDDown_CombinedJet, x, mu, kbkg_gg, muF)
             )
         ggZZVarNormPDFUp_Name = "ggZZVarPDFUpNorm_{0:.0f}_{1:.0f}_{2:.0f}".format(self.channel, self.sqrts, useDjet)
         ggZZPDFUp_norm = ROOT.RooFormulaVar(
             ggZZVarNormPDFUp_Name, "(@0*@3*@6*@4+@1*sqrt(@3*@6*@4)*sign(@5)*sqrt(abs(@5))+@2*abs(@5))",
-            ROOT.RooArgList(sigRates_PDFUp_AnomCoupl_CombinedJet, interfRates_PDFUp_AnomCoupl_CombinedJet, bkgRates_PDFUp_CombinedJet, x, mu, kbkg, muF)
+            ROOT.RooArgList(sigRates_PDFUp_AnomCoupl_CombinedJet, interfRates_PDFUp_AnomCoupl_CombinedJet, bkgRates_PDFUp_CombinedJet, x, mu, kbkg_gg, muF)
             )
         ggZZVarNormPDFDown_Name = "ggZZVarPDFDownNorm_{0:.0f}_{1:.0f}_{2:.0f}".format(self.channel, self.sqrts, useDjet)
         ggZZPDFDown_norm = ROOT.RooFormulaVar(
             ggZZVarNormPDFDown_Name, "(@0*@3*@6*@4+@1*sqrt(@3*@6*@4)*sign(@5)*sqrt(abs(@5))+@2*abs(@5))",
-            ROOT.RooArgList(sigRates_PDFDown_AnomCoupl_CombinedJet, interfRates_PDFDown_AnomCoupl_CombinedJet, bkgRates_PDFDown_CombinedJet, x, mu, kbkg, muF)
+            ROOT.RooArgList(sigRates_PDFDown_AnomCoupl_CombinedJet, interfRates_PDFDown_AnomCoupl_CombinedJet, bkgRates_PDFDown_CombinedJet, x, mu, kbkg_gg, muF)
             )
 
 
@@ -1896,13 +1905,13 @@ class width_datacardClass:
 
 
         bkgRateNameNorm = "bkgNorm_ggZZrate"
-        bkgRatesNorm = ROOT.RooFormulaVar(bkgRateNameNorm, "@0", ROOT.RooArgList(kbkg))
+        bkgRatesNorm = ROOT.RooFormulaVar(bkgRateNameNorm, "@0", ROOT.RooArgList(kbkg_gg))
 
         sigRateNameWidthNorm = "signalWidthNorm_ggZZrate"
         interfRateNameWidthNorm = "interfWidthNorm_ggZZrate"
 
         sigRatesWidthNorm = ROOT.RooFormulaVar(sigRateNameWidthNorm, "@0*@1*@2", ROOT.RooArgList(x, mu, muF))
-        interfRatesWidthNorm = ROOT.RooFormulaVar(interfRateNameWidthNorm, "sqrt(@0*@1*@2)*sign(@3)*sqrt(abs(@3))", ROOT.RooArgList(x, mu, muF, kbkg))
+        interfRatesWidthNorm = ROOT.RooFormulaVar(interfRateNameWidthNorm, "sqrt(@0*@1*@2)*sign(@3)*sqrt(abs(@3))", ROOT.RooArgList(x, mu, muF, kbkg_gg))
 
 
 # ggZZ Bkg histfunc construction
@@ -4145,7 +4154,7 @@ class width_datacardClass:
         # Import dependencies explicitly first since text2workspace gives irrelevant error messages
         getattr(w, 'import')(self.LUMI, ROOT.RooFit.RecycleConflictNodes())
         getattr(w, 'import')(x, ROOT.RooFit.RecycleConflictNodes())
-        getattr(w, 'import')(kbkg, ROOT.RooFit.RecycleConflictNodes())
+        getattr(w, 'import')(kbkg_gg, ROOT.RooFit.RecycleConflictNodes())
         getattr(w, 'import')(mu, ROOT.RooFit.RecycleConflictNodes())
         getattr(w, 'import')(muV, ROOT.RooFit.RecycleConflictNodes())
         getattr(w, 'import')(muF, ROOT.RooFit.RecycleConflictNodes())

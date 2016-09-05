@@ -12,9 +12,46 @@ class SignalTemplateHelper:
 
    def __init__(self):
       self.dimensions = 2
+      self.ProjDim = -1
 
    def setDimensions(self, dim):
       self.dimensions = dim
+
+   def setProjectionDimension(self, dim):
+      self.ProjDim = dim
+
+   def convertTemplateToDataHistFunc(self, theTemplate):
+      TemplateName = theTemplate.GetName()
+      TemplateName = "{0}_DataHist".format(TemplateName)
+      PdfName = theTemplate.GetName()
+      PdfName = "{0}_HistFunc".format(TemplateName)
+      if (self.ProjDim==0 and self.dimensions>1):
+         TempDataHist = ROOT.RooDataHist(TemplateName, TemplateName, ROOT.RooArgList(self.varm4l), theTemplate.ProjectionX())
+         TempHistFunc = ROOT.RooHistFunc(PdfName, PdfName, ROOT.RooArgSet(self.varm4l), TempDataHist)
+         return (TempDataHist,TempHistFunc)
+      elif (self.ProjDim==1 and self.dimensions>1):
+         TempDataHist = ROOT.RooDataHist(TemplateName, TemplateName, ROOT.RooArgList(self.varKD), theTemplate.ProjectionY())
+         TempHistFunc = ROOT.RooHistFunc(PdfName, PdfName, ROOT.RooArgSet(self.varKD), TempDataHist)
+         return (TempDataHist,TempHistFunc)
+      elif (self.ProjDim==2 and self.dimensions>2):
+         TempDataHist = ROOT.RooDataHist(TemplateName, TemplateName, ROOT.RooArgList(self.varKD2), theTemplate.ProjectionZ())
+         TempHistFunc = ROOT.RooHistFunc(PdfName, PdfName, ROOT.RooArgSet(self.varKD2), TempDataHist)
+         return (TempDataHist,TempHistFunc)
+      else:
+         ral = ROOT.RooArgList()
+         ras = ROOT.RooArgSet()
+         if self.dimensions>0:
+            ral.add(self.varm4l)
+            ras.add(self.varm4l)
+         if self.dimensions>1:
+            ral.add(self.varKD)
+            ras.add(self.varKD)
+         if self.dimensions>2:
+            ral.add(self.varKD2)
+            ras.add(self.varKD2)
+         TempDataHist = ROOT.RooDataHist(TemplateName, TemplateName, ral, theTemplate)
+         TempHistFunc = ROOT.RooHistFunc(PdfName, PdfName, ras, TempDataHist)
+         return (TempDataHist,TempHistFunc)
 
    def loadIncludes(self):
 
@@ -24,20 +61,26 @@ class SignalTemplateHelper:
       ROOT.gSystem.Load("libRooFit")
 
 
-   def SignalTemplateHelper(self, options, templateFileAppendName, theMaker, useDjet, systName, anomCouplIndex):
+   def makeSignalTemplates(self, options, templateFileAppendName, theMaker, useDjet, systName, anomCouplIndex):
       # sqrts and channel index from the datacard maker class
       self.sqrts = theMaker.sqrts
       self.channel = theMaker.channel
 
       # RooRealVars from the datacard maker class
       self.x = theMaker.x # x == GH/GHSM
+      self.mu = theMaker.mu
+      self.muV = theMaker.muV
+      self.muF = theMaker.muF
+      self.kbkg_gg = theMaker.kbkg_gg
+      self.kbkg_VBF = theMaker.kbkg_VBF
       self.fai1 = theMaker.fai1
       self.phiai1 = theMaker.phiai1
       self.phia1_gg = theMaker.phia1_gg
       self.phia1_VBF = theMaker.phia1_VBF
-      self.mu = theMaker.mu
-      self.muV = theMaker.muV
-      self.muF = theMaker.muF
+
+      self.varm4l = theMaker.CMS_zz4l_widthMass
+      self.varKD = theMaker.CMS_zz4l_widthKD
+      self.varKD2 = theMaker.CMS_zz4l_widthKD2
 
       self.templateDir = options.templateDir
       self.low_M = options.mLow
@@ -93,7 +136,7 @@ class SignalTemplateHelper:
          catNameList.append("nonDjet")
 
       for fname in templateNameList:
-         print "Extracting template from {0}".fname
+         print "Extracting template from {0}".format(fname)
          templateFileList.append(ROOT.TFile(fname, "read"))
 
       nCategories = len(templateFileList)
@@ -103,9 +146,9 @@ class SignalTemplateHelper:
          print "len(self.thetaSyst_catsplit_gg) = {0:.0f}".format(len(self.thetaSyst_catsplit_gg))
          print "len(self.thetaSyst_catsplit_VBF) = {0:.0f}".format(len(self.thetaSyst_catsplit_VBF))
          print "nCategories = {0:.0f}".format(nCategories)
-         sys.exit("Number of categories interpreted in the signal template helper is not equal to the number of category splitting systematic variables passed by the datacard makerclass."
+         sys.exit("Number of categories interpreted in the signal template helper is not equal to the number of category splitting systematic variables passed by the datacard makerclass.")
 
-#---------- SIGNAL TEMPLATES -------------
+#---------- SM SIGNAL AND BACKGROUND TEMPLATES -------------
 
 # Bare SM
    # Templates
@@ -286,7 +329,6 @@ class SignalTemplateHelper:
             self.rate_gg_T_1_AC_2_Re_list.append( ROOT.RooRealVar(self.gg_T_1_AC_2_Re_list[icat].GetName(),self.gg_T_1_AC_2_Re_list[icat].GetName(),self.integral_gg_T_1_AC_2_Re_list[icat]) )
             self.rate_gg_T_1_AC_2_Re_list[icat].setConstant(True)
 
-
             if self.anomCoupl == 1:
                self.VBF_T_1_AC_2_PosDef_list.append(templateFileList[icat].Get("T_2D_VBF_1_AC_2_PosDef").Clone("T_2D_VBF_1_AC_2_PosDef_{0}_{1}_{2}_{3}TeV".format(systName,catNameList[icat],self.channel,self.sqrts)))
                self.integral_VBF_T_1_AC_2_PosDef_list.append(self.VBF_T_1_AC_2_PosDef_list[icat].Integral("width"))
@@ -455,39 +497,154 @@ class SignalTemplateHelper:
 
 
 # FORMULAE
-      # No ai1 dependence
-      self.ggSigFormula = "( @0 )"
-      self.ggInterfFormula = "( @0 )"
-      self.VBFSigFormula = "( @0 )"
-      self.VBFInterfFormula = "( @0 )"
+      self.ggSigFormula_list = []
+      self.ggInterfFormula_list = []
+      self.VBFSigFormula_list = []
+      self.VBFInterfFormula_list = []
+
+      self.ggSigRFV_list = []
+      self.ggInterfRFV_list = []
+      self.VBFSigRFV_list = []
+      self.VBFInterfRFV_list = []
+
+      # In signals and interferences, @0==mu, @1==muF/V; additionally in interferences, @2==kbkg_gg/VBF
       if self.anomCoupl == 1: # Full parameterization with fai1=[-1, 1], and phases phiai1 and phia1_gg, phia1_VBF (phia1 are different since the bkg phase could be different)
-         # @0-3 are templates, @4==fai1, @5==phiai1
-         self.ggSigFormula = "( (1-abs(@4))*@0 + sign(@4)*sqrt(abs(@4)*(1-abs(@4)))*(@1*cos(@5) + @2*sin(@5)) + abs(@4)*@3 )"
+         # 0-3 are templates, @2==fai1, @3==phiai1
+         self.ggSigFormula_list.append("@0*@1*(1-abs(@2))")
+         self.ggSigFormula_list.append("@0*@1*sign(@2)*sqrt(abs(@2)*(1-abs(@2)))*cos(@3)")
+         self.ggSigFormula_list.append("@0*@1*sign(@2)*sqrt(abs(@2)*(1-abs(@2)))*sin(@3)")
+         self.ggSigFormula_list.append("@0*@1*abs(@2)")
 
-         # @0-3 are templates, @4==fai1, @5==phiai1, @6==phia1 (gg)
-         self.ggInterfFormula = "( sqrt(1-abs(@4))*(@0*cos(@6) + @1*sin(@6)) + sign(@4)*sqrt(abs(@4))*(@2*cos(@5+@6) + @3*sin(@5+@6)) )"
+         # 0-3 are templates, @3==fai1, @4==phiai1, @5==phia1 (gg)
+         self.ggInterfFormula_list.append("sqrt(@0*@1*@2)*sqrt(1-abs(@3))*cos(@5)")
+         self.ggInterfFormula_list.append("sqrt(@0*@1*@2)*sqrt(1-abs(@3))*sin(@5)")
+         self.ggInterfFormula_list.append("sqrt(@0*@1*@2)*sign(@3)*sqrt(abs(@3))*cos(@4+@5)")
+         self.ggInterfFormula_list.append("sqrt(@0*@1*@2)*sign(@3)*sqrt(abs(@3))*sin(@4+@5)")
 
-         # @0-8 are templates, @9==fai1, @10==phiai1
-         self.VBFSigFormula = "( pow((1-abs(@9)),2)*@0 + sign(@9)*sqrt(abs(@9))*pow(sqrt(1-abs(@9)),3)*(@1*cos(@10) + @2*sin(@10)) + abs(@9)*(1-abs(@9))*(@3 + @4*cos(2*@10) + @5*sin(2*@10)) + sign(@9)*pow(sqrt(abs(@9)),3)*sqrt(1-abs(@9))*(@6*cos(@10) + @7*sin(@10)) + pow(@9,2)*@8 )"
+         # 0-8 are templates, @2==fai1, @3==phiai1
+         self.VBFSigFormula_list.append("@0*@1*pow((1-abs(@2)),2)")
+         self.VBFSigFormula_list.append("@0*@1*sign(@2)*sqrt(abs(@2))*pow(sqrt(1-abs(@2)),3)*cos(@3)")
+         self.VBFSigFormula_list.append("@0*@1*sign(@2)*sqrt(abs(@2))*pow(sqrt(1-abs(@2)),3)*sin(@3)")
+         self.VBFSigFormula_list.append("@0*@1*abs(@2)*(1-abs(@2))")
+         self.VBFSigFormula_list.append("@0*@1*abs(@2)*(1-abs(@2))*cos(2*@3)")
+         self.VBFSigFormula_list.append("@0*@1*abs(@2)*(1-abs(@2))*sin(2*@3)")
+         self.VBFSigFormula_list.append("@0*@1*sign(@2)*pow(sqrt(abs(@2)),3)*sqrt(1-abs(@2))*cos(@3)")
+         self.VBFSigFormula_list.append("@0*@1*sign(@2)*pow(sqrt(abs(@2)),3)*sqrt(1-abs(@2))*sin(@3)")
+         self.VBFSigFormula_list.append("@0*@1*pow(@2,2)")
 
-         # @0-5 are templates, @6==fai1, @7==phiai1, @8==phia1 (VBF)
-         self.VBFInterfFormula = "( (1-abs(@6))*(@0*cos(@8) + @1*sin(@8)) + sign(@6)*sqrt(abs(@6)*(1-abs(@6)))*(@2*cos(@7+@8) + @3*sin(@7+@8)) + abs(@6)*(@4*cos(2*(@7+@8)) + @5*sin(2*(@7+@8))) )"
+         # 0-5 are templates, @3==fai1, @4==phiai1, @5==phia1 (VBF)
+         self.VBFInterfFormula_list.append("sqrt(@0*@1*@2)*(1-abs(@3))*cos(@5)")
+         self.VBFInterfFormula_list.append("sqrt(@0*@1*@2)*(1-abs(@3))*sin(@5)")
+         self.VBFInterfFormula_list.append("sqrt(@0*@1*@2)*sign(@3)*sqrt(abs(@3)*(1-abs(@3)))*cos(@4+@5)")
+         self.VBFInterfFormula_list.append("sqrt(@0*@1*@2)*sign(@3)*sqrt(abs(@3)*(1-abs(@3)))*sin(@4+@5)")
+         self.VBFInterfFormula_list.append("sqrt(@0*@1*@2)*abs(@3)*cos(2*(@4+@5))")
+         self.VBFInterfFormula_list.append("sqrt(@0*@1*@2)*abs(@3)*sin(2*(@4+@5))")
       elif self.anomCoupl == 2: # No phases, just fai1=[-1, 1]
-         # @0-2 are templates, @3==fai1
-         self.ggSigFormula = "( (1-abs(@3))*@0 + sign(@3)*sqrt(abs(@3)*(1-abs(@3)))*@1 + abs(@3)*@2 )"
+         # 0-2 are templates, @2==fai1
+         self.ggSigFormula_list.append("@0*@1*(1-abs(@2))")
+         self.ggSigFormula_list.append("@0*@1*sign(@2)*sqrt(abs(@2)*(1-abs(@2)))")
+         self.ggSigFormula_list.append("@0*@1*abs(@2)")
 
-         # @0-1 are templates, @2==fai1
-         self.ggInterfFormula = "( sqrt(1-abs(@2))*@0 + sign(@2)*sqrt(abs(@2))*@1 )"
+         # 0-1 are templates, @3==fai1
+         self.ggInterfFormula_list.append("sqrt(@0*@1*@2)*sqrt(1-abs(@3))")
+         self.ggInterfFormula_list.append("sqrt(@0*@1*@2)*sign(@3)*sqrt(abs(@3))")
 
-         # @0-4 are templates, @5==fai1
-         self.VBFSigFormula = "( pow((1-abs(@5)),2)*@0 + sign(@5)*sqrt(abs(@5))*pow(sqrt(1-abs(@5)),3)*@1 + abs(@5)*(1-abs(@5))*@2 + sign(@5)*pow(sqrt(abs(@5)),3)*sqrt(1-abs(@5))*@3 + pow(@5,2)*@4 )"
+         # 0-4 are templates, @2==fai1
+         self.VBFSigFormula_list.append("@0*@1*pow((1-abs(@2)),2)")
+         self.VBFSigFormula_list.append("@0*@1*sign(@2)*sqrt(abs(@2))*pow(sqrt(1-abs(@2)),3)")
+         self.VBFSigFormula_list.append("@0*@1*abs(@2)*(1-abs(@2))")
+         self.VBFSigFormula_list.append("@0*@1*sign(@2)*pow(sqrt(abs(@2)),3)*sqrt(1-abs(@2))")
+         self.VBFSigFormula_list.append("@0*@1*pow(@2,2)")
 
-         # @0-2 are templates, @3==fai1
-         self.VBFInterfFormula = "( (1-abs(@3))*@0 + sign(@3)*sqrt(abs(@3)*(1-abs(@3)))*@1 + abs(@3)*@2 )"
+         # 0-2 are templates, @3==fai1
+         self.VBFInterfFormula_list.append("sqrt(@0*@1*@2)*(1-abs(@3))")
+         self.VBFInterfFormula_list.append("sqrt(@0*@1*@2)*sign(@3)*sqrt(abs(@3)*(1-abs(@3)))")
+         self.VBFInterfFormula_list.append("sqrt(@0*@1*@2)*abs(@3)")
+      else: # No ai1 dependence
+         self.ggSigFormula_list.append("@0*@1")
+         self.ggInterfFormula_list.append("sqrt(@0*@1*@2)")
+         self.VBFSigFormula_list.append("@0*@1")
+         self.VBFInterfFormula_list.append("sqrt(@0*@1*@2)")
+
+      for irfv in range(0,len(self.ggSigFormula_list)):
+         rfvname = "ggSig_AC_{0:.0f}_Coef".format(irfv)
+         rfvargs = ROOT.RooArgList()
+         rfvargs.add(self.mu)
+         rfvargs.add(self.muF)
+         if self.anomCoupl == 1:
+            rfvargs.add(self.fai1)
+            rfvargs.add(self.phiai1)
+         elif self.anomCoupl == 2:
+            rfvargs.add(self.fai1)
+         if rfvargs.getSize()>0:
+            seg_rfv = ROOT.RooFormulaVar( rfvname , self.ggSigFormula_list[irfv] , rfvargs )
+            self.ggSigRFV_list.append(seg_rfv)
+         else:
+            seg_rfv = ROOT.RooRealVar( rfvname , rfvname , 1.0 )
+            self.ggSigRFV_list.append(seg_rfv)
+
+      for irfv in range(0,len(self.ggInterfFormula_list)):
+         rfvname = "ggInterf_AC_{0:.0f}_Coef".format(irfv)
+         rfvargs = ROOT.RooArgList()
+         rfvargs.add(self.mu)
+         rfvargs.add(self.muF)
+         rfvargs.add(self.kbkg_gg)
+         if self.anomCoupl == 1:
+            rfvargs.add(self.fai1)
+            rfvargs.add(self.phiai1)
+            rfvargs.add(self.phia1_gg)
+         elif self.anomCoupl == 2:
+            rfvargs.add(self.fai1)
+         if rfvargs.getSize()>0:
+            seg_rfv = ROOT.RooFormulaVar( rfvname , self.ggInterfFormula_list[irfv] , rfvargs )
+            self.ggInterfRFV_list.append(seg_rfv)
+         else:
+            seg_rfv = ROOT.RooRealVar( rfvname , rfvname , 1.0 )
+            self.ggInterfRFV_list.append(seg_rfv)
+
+      for irfv in range(0,len(self.VBFSigFormula_list)):
+         rfvname = "VBFSig_AC_{0:.0f}_Coef".format(irfv)
+         rfvargs = ROOT.RooArgList()
+         rfvargs.add(self.mu)
+         rfvargs.add(self.muV)
+         if self.anomCoupl == 1:
+            rfvargs.add(self.fai1)
+            rfvargs.add(self.phiai1)
+         elif self.anomCoupl == 2:
+            rfvargs.add(self.fai1)
+         if rfvargs.getSize()>0:
+            seg_rfv = ROOT.RooFormulaVar( rfvname , self.VBFSigFormula_list[irfv] , rfvargs )
+            self.VBFSigRFV_list.append(seg_rfv)
+         else:
+            seg_rfv = ROOT.RooRealVar( rfvname , rfvname , 1.0 )
+            self.VBFSigRFV_list.append(seg_rfv)
+
+      for irfv in range(0,len(self.VBFInterfFormula_list)):
+         rfvname = "VBFInterf_AC_{0:.0f}_Coef".format(irfv)
+         rfvargs = ROOT.RooArgList()
+         rfvargs.add(self.mu)
+         rfvargs.add(self.muV)
+         rfvargs.add(self.kbkg_VBF)
+         if self.anomCoupl == 1:
+            rfvargs.add(self.fai1)
+            rfvargs.add(self.phiai1)
+            rfvargs.add(self.phia1_VBF)
+         elif self.anomCoupl == 2:
+            rfvargs.add(self.fai1)
+         if rfvargs.getSize()>0:
+            seg_rfv = ROOT.RooFormulaVar( rfvname , self.VBFInterfFormula_list[irfv] , rfvargs )
+            self.VBFInterfRFV_list.append(seg_rfv)
+         else:
+            seg_rfv = ROOT.RooRealVar( rfvname , rfvname , 1.0 )
+            self.VBFInterfRFV_list.append(seg_rfv)
 
 
 # Lists of template arguments
       self.ggSigTemplates_Args_list = []
+      self.ggInterfTemplates_Args_list = []
+      self.VBFSigTemplates_Args_list = []
+      self.VBFInterfTemplates_Args_list = []
+
       self.ggSigTemplates_Args_list.append(self.gg_T_1_list)
       if self.anomCoupl == 1:
          self.ggSigTemplates_Args_list.append(self.gg_T_1_AC_1_Re_list)
@@ -496,8 +653,9 @@ class SignalTemplateHelper:
       elif self.anomCoupl == 2:
          self.ggSigTemplates_Args_list.append(self.gg_T_1_AC_1_Re_list)
          self.ggSigTemplates_Args_list.append(self.gg_T_1_AC_2_Re_list)
+      if len(self.ggSigTemplates_Args_list)!=len(self.ggSigRFV_list):
+         sys.exit("Number of ggSig templates {0:.0f} is not equal to number of funcficients {1:.0f}!".format(len(self.ggSigTemplates_Args_list),len(self.ggSigRFV_list)))
 
-      self.ggInterfTemplates_Args_list = []
       self.ggInterfTemplates_Args_list.append(self.gg_T_4_Re_list)
       if self.anomCoupl == 1:
          self.ggInterfTemplates_Args_list.append(self.gg_T_4_Im_list)
@@ -505,8 +663,9 @@ class SignalTemplateHelper:
          self.ggInterfTemplates_Args_list.append(self.gg_T_4_AC_1_Im_list)
       elif self.anomCoupl == 2:
          self.ggInterfTemplates_Args_list.append(self.gg_T_4_AC_1_Re_list)
+      if len(self.ggInterfTemplates_Args_list)!=len(self.ggInterfRFV_list):
+         sys.exit("Number of ggInterf templates {0:.0f} is not equal to number of funcficients {1:.0f}!".format(len(self.ggInterfTemplates_Args_list),len(self.ggInterfRFV_list)))
 
-      self.VBFSigTemplates_Args_list = []
       self.VBFSigTemplates_Args_list.append(self.VBF_T_1_list)
       if self.anomCoupl == 1:
          self.VBFSigTemplates_Args_list.append(self.VBF_T_1_AC_1_Re_list)
@@ -522,8 +681,9 @@ class SignalTemplateHelper:
          self.VBFSigTemplates_Args_list.append(self.VBF_T_1_AC_2_PosDef_list)
          self.VBFSigTemplates_Args_list.append(self.VBF_T_1_AC_3_Re_list)
          self.VBFSigTemplates_Args_list.append(self.VBF_T_1_AC_4_list)
+      if len(self.VBFSigTemplates_Args_list)!=len(self.VBFSigRFV_list):
+         sys.exit("Number of VBFSig templates {0:.0f} is not equal to number of funcficients {1:.0f}!".format(len(self.VBFSigTemplates_Args_list),len(self.VBFSigRFV_list)))
 
-      self.VBFInterfTemplates_Args_list = []
       self.VBFInterfTemplates_Args_list.append(self.VBF_T_4_Re_list)
       if self.anomCoupl == 1:
          self.VBFInterfTemplates_Args_list.append(self.VBF_T_4_Im_list)
@@ -534,6 +694,131 @@ class SignalTemplateHelper:
       elif self.anomCoupl == 2:
          self.VBFInterfTemplates_Args_list.append(self.VBF_T_4_AC_1_Re_list)
          self.VBFInterfTemplates_Args_list.append(self.VBF_T_4_AC_2_Re_list)
+      if len(self.VBFInterfTemplates_Args_list)!=len(self.VBFInterfRFV_list):
+         sys.exit("Number of VBFInterf templates {0:.0f} is not equal to number of funcficients {1:.0f}!".format(len(self.VBFInterfTemplates_Args_list),len(self.VBFInterfRFV_list)))
+
+
+# Create the data hist and hist funcs for the templates
+      self.ggSigDataHists_list = []
+      self.ggInterfDataHists_list = []
+      self.ggBkgDataHists_list = []
+      self.VBFSigDataHists_list = []
+      self.VBFInterfDataHists_list = []
+      self.VBFBkgDataHists_list = []
+
+      self.ggSigHistFuncs_list = []
+      self.ggInterfHistFuncs_list = []
+      self.ggBkgHistFuncs_list = []
+      self.VBFSigHistFuncs_list = []
+      self.VBFInterfHistFuncs_list = []
+      self.VBFBkgHistFuncs_list = []
+
+      for icat in range(0,nCategories):
+         tmp_datahist_list = []
+         tmp_histfunc_list = []
+         for ivar in range(0,len(self.ggSigTemplates_Args_list)):
+            TempDataHist,TempHistFunc = self.convertTemplateToDataHistFunc(self.ggSigTemplates_Args_list[ivar][icat])
+            tmp_datahist_list.append(TempDataHist)
+            tmp_histfunc_list.append(TempHistFunc)
+         self.ggSigDataHists_list.append(tmp_datahist_list)
+         self.ggSigHistFuncs_list.append(tmp_histfunc_list)
+      for icat in range(0,nCategories):
+         tmp_datahist_list = []
+         tmp_histfunc_list = []
+         for ivar in range(0,len(self.ggInterfTemplates_Args_list)):
+            TempDataHist,TempHistFunc = self.convertTemplateToDataHistFunc(self.ggInterfTemplates_Args_list[ivar][icat])
+            tmp_datahist_list.append(TempDataHist)
+            tmp_histfunc_list.append(TempHistFunc)
+         self.ggInterfDataHists_list.append(tmp_datahist_list)
+         self.ggInterfHistFuncs_list.append(tmp_histfunc_list)
+      for icat in range(0,nCategories):
+         tmp_datahist_list = []
+         tmp_histfunc_list = []
+         TempDataHist,TempHistFunc = self.convertTemplateToDataHistFunc(self.gg_T_2_list[icat])
+         tmp_datahist_list.append(TempDataHist)
+         tmp_histfunc_list.append(TempHistFunc)
+         self.ggBkgDataHists_list.append(tmp_datahist_list)
+         self.ggBkgHistFuncs_list.append(tmp_histfunc_list)
+
+      for icat in range(0,nCategories):
+         tmp_datahist_list = []
+         tmp_histfunc_list = []
+         for ivar in range(0,len(self.VBFSigTemplates_Args_list)):
+            TempDataHist,TempHistFunc = self.convertTemplateToDataHistFunc(self.VBFSigTemplates_Args_list[ivar][icat])
+            tmp_datahist_list.append(TempDataHist)
+            tmp_histfunc_list.append(TempHistFunc)
+         self.VBFSigDataHists_list.append(tmp_datahist_list)
+         self.VBFSigHistFuncs_list.append(tmp_histfunc_list)
+      for icat in range(0,nCategories):
+         tmp_datahist_list = []
+         tmp_histfunc_list = []
+         for ivar in range(0,len(self.VBFInterfTemplates_Args_list)):
+            TempDataHist,TempHistFunc = self.convertTemplateToDataHistFunc(self.VBFInterfTemplates_Args_list[ivar][icat])
+            tmp_datahist_list.append(TempDataHist)
+            tmp_histfunc_list.append(TempHistFunc)
+         self.VBFInterfDataHists_list.append(tmp_datahist_list)
+         self.VBFInterfHistFuncs_list.append(tmp_histfunc_list)
+      for icat in range(0,nCategories):
+         tmp_datahist_list = []
+         tmp_histfunc_list = []
+         TempDataHist,TempHistFunc = self.convertTemplateToDataHistFunc(self.VBF_T_2_list[icat])
+         tmp_datahist_list.append(TempDataHist)
+         tmp_histfunc_list.append(TempHistFunc)
+         self.VBFBkgDataHists_list.append(tmp_datahist_list)
+         self.VBFBkgHistFuncs_list.append(tmp_histfunc_list)
+
+      self.ggHistFunc_Arg_list = []
+      self.VBFHistFunc_Arg_list = []
+      for icat in range(0,nCategories):
+         ral = ROOT.RooArgList()
+         for ivar in range(0,len(self.ggSigHistFuncs_list[icat])):
+            ral.add(self.ggSigHistFuncs_list[icat][ivar])
+         for ivar in range(0,len(self.ggInterfHistFuncs_list[icat])):
+            ral.add(self.ggInterfHistFuncs_list[icat][ivar])
+         for ivar in range(0,len(self.ggBkgHistFuncs_list[icat])):
+            ral.add(self.ggBkgHistFuncs_list[icat][ivar])
+         self.ggHistFunc_Arg_list.append(ral)
+      for icat in range(0,nCategories):
+         ral = ROOT.RooArgList()
+         for ivar in range(0,len(self.VBFSigHistFuncs_list[icat])):
+            ral.add(self.VBFSigHistFuncs_list[icat][ivar])
+         for ivar in range(0,len(self.VBFInterfHistFuncs_list[icat])):
+            ral.add(self.VBFInterfHistFuncs_list[icat][ivar])
+         for ivar in range(0,len(self.VBFBkgHistFuncs_list[icat])):
+            ral.add(self.VBFBkgHistFuncs_list[icat][ivar])
+         self.VBFHistFunc_Arg_list.append(ral)
+
+
+# Construct the p.d.f.'s
+      self.ggPdf_list = []
+      self.VBFPdf_list = []
+      for icat in range(0,nCategories):
+         rfvargs = ROOT.RooArgList()
+         for ivar in range(0,len(self.ggSigRFV_list)):
+            rfvargs.add(self.ggSigRFV_list[ivar])
+         for ivar in range(0,len(self.ggInterfRFV_list)):
+            rfvargs.add(self.ggInterfRFV_list[ivar])
+         rfvargs.add(self.kbkg_gg)
+         PdfName = "ggPdf_{0}_{1}_{2}_{3}TeV".format(systName,catNameList[icat],self.channel,self.sqrts))
+         ggPdf = ROOT.RooRealSumPdf(
+            PdfName, PdfName,
+            self.ggHistFunc_Arg_list[icat],ggZZ_funcficients
+         )
+         self.ggPdf_list.append(ggPdf)
+      for icat in range(0,nCategories):
+         rfvargs = ROOT.RooArgList()
+         for ivar in range(0,len(self.VBFSigRFV_list)):
+            rfvargs.add(self.VBFSigRFV_list[ivar])
+         for ivar in range(0,len(self.VBFInterfRFV_list)):
+            rfvargs.add(self.VBFInterfRFV_list[ivar])
+         rfvargs.add(self.kbkg_VBF)
+         PdfName = "VBFPdf_{0}_{1}_{2}_{3}TeV".format(systName,catNameList[icat],self.channel,self.sqrts))
+         VBFPdf = ROOT.RooRealSumPdf(
+            PdfName, PdfName,
+            self.VBFHistFunc_Arg_list[icat],VBFZZ_funcficients
+         )
+         self.VBFPdf_list.append(VBFPdf)
+
 
 # Lists of rate arguments
       self.ggSigRates_Args_list = []
@@ -545,6 +830,8 @@ class SignalTemplateHelper:
       elif self.anomCoupl == 2:
          self.ggSigRates_Args_list.append(self.rate_gg_T_1_AC_1_Re_list)
          self.ggSigRates_Args_list.append(self.rate_gg_T_1_AC_2_Re_list)
+      if len(self.ggSigRates_Args_list)!=len(self.ggSigRFV_list):
+         sys.exit("Number of ggSig rates {0:.0f} is not equal to number of funcficients {1:.0f}!".format(len(self.ggSigRates_Args_list),len(self.ggSigRFV_list)))
 
       self.ggInterfRates_Args_list = []
       self.ggInterfRates_Args_list.append(self.rate_gg_T_4_Re_list)
@@ -554,6 +841,8 @@ class SignalTemplateHelper:
          self.ggInterfRates_Args_list.append(self.rate_gg_T_4_AC_1_Im_list)
       elif self.anomCoupl == 2:
          self.ggInterfRates_Args_list.append(self.rate_gg_T_4_AC_1_Re_list)
+      if len(self.ggInterfRates_Args_list)!=len(self.ggInterfRFV_list):
+         sys.exit("Number of ggInterf rates {0:.0f} is not equal to number of funcficients {1:.0f}!".format(len(self.ggInterfRates_Args_list),len(self.ggInterfRFV_list)))
 
       self.VBFSigRates_Args_list = []
       self.VBFSigRates_Args_list.append(self.rate_VBF_T_1_list)
@@ -571,6 +860,8 @@ class SignalTemplateHelper:
          self.VBFSigRates_Args_list.append(self.rate_VBF_T_1_AC_2_PosDef_list)
          self.VBFSigRates_Args_list.append(self.rate_VBF_T_1_AC_3_Re_list)
          self.VBFSigRates_Args_list.append(self.rate_VBF_T_1_AC_4_list)
+      if len(self.VBFSigRates_Args_list)!=len(self.VBFSigRFV_list):
+         sys.exit("Number of VBFSig rates {0:.0f} is not equal to number of funcficients {1:.0f}!".format(len(self.VBFSigRates_Args_list),len(self.VBFSigRFV_list)))
 
       self.VBFInterfRates_Args_list = []
       self.VBFInterfRates_Args_list.append(self.rate_VBF_T_4_Re_list)
@@ -583,71 +874,119 @@ class SignalTemplateHelper:
       elif self.anomCoupl == 2:
          self.VBFInterfRates_Args_list.append(self.rate_VBF_T_4_AC_1_Re_list)
          self.VBFInterfRates_Args_list.append(self.rate_VBF_T_4_AC_2_Re_list)
+      if len(self.VBFInterfRates_Args_list)!=len(self.VBFInterfRFV_list):
+         sys.exit("Number of VBFInterf rates {0:.0f} is not equal to number of funcficients {1:.0f}!".format(len(self.VBFInterfRates_Args_list),len(self.VBFInterfRFV_list)))
 
 
 # Lists of rate FormulaVars
-      self.ggSigRates_RooArgList_list = []
+# Each signal, bkg and interf is constructed separately to be able to count their contributions in the end
+      self.ggSigRates_RooFormulaVar_list = []
       for icat in range(0,nCategories):
          rfvargs = ROOT.RooArgList()
+         strformula = ""
          for ivar in range(0,len(self.ggSigRates_Args_list)):
+            rfvargs.add(self.ggSigRFV_list[ivar])
             rfvargs.add(self.ggSigRates_Args_list[ivar][icat])
-         if self.anomCoupl == 1:
-            rfvargs.add(self.fai1)
-            rfvargs.add(self.phiai1)
-         elif self.anomCoupl == 2:
-            rfvargs.add(self.fai1)
+            if ivar==0:
+               strformula = "{0:.0f}*{1:,0f}".format(2*ivar,2*ivar+1)
+            else:
+               strformula = "{0:.0f}*{1:,0f} + {2}".format(2*ivar,2*ivar+1,strformula)
          rfvname = "ggSigRate_{0}_{1}_{2}_{3}TeV".format(systName,catNameList[icat],self.channel,self.sqrts)
-         rfv = ROOT.RooFormulaVar( rfvname , self.ggSigFormula , rfvargs )
-         self.ggSigRates_RooArgList_list.append(rfv)
+         rfv = ROOT.RooFormulaVar( rfvname , strformula , rfvargs )
+         self.ggSigRates_RooFormulaVar_list.append(rfv)
 
-      self.ggInterfRates_RooArgList_list = []
+      self.ggInterfRates_RooFormulaVar_list = []
       for icat in range(0,nCategories):
          rfvargs = ROOT.RooArgList()
+         strformula = ""
          for ivar in range(0,len(self.ggInterfRates_Args_list)):
+            rfvargs.add(self.ggInterfRFV_list[ivar])
             rfvargs.add(self.ggInterfRates_Args_list[ivar][icat])
-         if self.anomCoupl == 1:
-            rfvargs.add(self.fai1)
-            rfvargs.add(self.phiai1)
-            rfvargs.add(self.phia1_gg)
-         elif self.anomCoupl == 2:
-            rfvargs.add(self.fai1)
+            if ivar==0:
+               strformula = "{0:.0f}*{1:,0f}".format(2*ivar,2*ivar+1)
+            else:
+               strformula = "{0:.0f}*{1:,0f} + {2}".format(2*ivar,2*ivar+1,strformula)
          rfvname = "ggInterfRate_{0}_{1}_{2}_{3}TeV".format(systName,catNameList[icat],self.channel,self.sqrts)
-         rfv = ROOT.RooFormulaVar( rfvname , self.ggInterfFormula , rfvargs )
-         self.ggInterfRates_RooArgList_list.append(rfv)
+         rfv = ROOT.RooFormulaVar( rfvname , strformula , rfvargs )
+         self.ggInterfRates_RooFormulaVar_list.append(rfv)
 
-      self.VBFSigRates_RooArgList_list = []
+      self.ggBkgRates_RooFormulaVar_list = []
       for icat in range(0,nCategories):
          rfvargs = ROOT.RooArgList()
+         strformula = "@0*@1"
+         rfvargs.add(self.kbkg_gg)
+         rfvargs.add(self.rate_gg_T_2_list[icat])
+         rfvname = "ggBkgRate_{0}_{1}_{2}_{3}TeV".format(systName,catNameList[icat],self.channel,self.sqrts)
+         rfv = ROOT.RooFormulaVar( rfvname , strformula , rfvargs )
+         self.ggBkgRates_RooFormulaVar_list.append(rfv)
+
+      self.VBFSigRates_RooFormulaVar_list = []
+      for icat in range(0,nCategories):
+         rfvargs = ROOT.RooArgList()
+         strformula = ""
          for ivar in range(0,len(self.VBFSigRates_Args_list)):
+            rfvargs.add(self.VBFSigRFV_list[ivar])
             rfvargs.add(self.VBFSigRates_Args_list[ivar][icat])
-         if self.anomCoupl == 1:
-            rfvargs.add(self.fai1)
-            rfvargs.add(self.phiai1)
-         elif self.anomCoupl == 2:
-            rfvargs.add(self.fai1)
+            if ivar==0:
+               strformula = "{0:.0f}*{1:,0f}".format(2*ivar,2*ivar+1)
+            else:
+               strformula = "{0:.0f}*{1:,0f} + {2}".format(2*ivar,2*ivar+1,strformula)
          rfvname = "VBFSigRate_{0}_{1}_{2}_{3}TeV".format(systName,catNameList[icat],self.channel,self.sqrts)
-         rfv = ROOT.RooFormulaVar( rfvname , self.VBFSigFormula , rfvargs )
-         self.VBFSigRates_RooArgList_list.append(rfv)
+         rfv = ROOT.RooFormulaVar( rfvname , strformula , rfvargs )
+         self.VBFSigRates_RooFormulaVar_list.append(rfv)
 
-      self.VBFInterfRates_RooArgList_list = []
+      self.VBFInterfRates_RooFormulaVar_list = []
       for icat in range(0,nCategories):
          rfvargs = ROOT.RooArgList()
+         strformula = ""
          for ivar in range(0,len(self.VBFInterfRates_Args_list)):
+            rfvargs.add(self.VBFInterfRFV_list[ivar])
             rfvargs.add(self.VBFInterfRates_Args_list[ivar][icat])
-         if self.anomCoupl == 1:
-            rfvargs.add(self.fai1)
-            rfvargs.add(self.phiai1)
-            rfvargs.add(self.phia1_VBF)
-         elif self.anomCoupl == 2:
-            rfvargs.add(self.fai1)
+            if ivar==0:
+               strformula = "{0:.0f}*{1:,0f}".format(2*ivar,2*ivar+1)
+            else:
+               strformula = "{0:.0f}*{1:,0f} + {2}".format(2*ivar,2*ivar+1,strformula)
          rfvname = "VBFInterfRate_{0}_{1}_{2}_{3}TeV".format(systName,catNameList[icat],self.channel,self.sqrts)
-         rfv = ROOT.RooFormulaVar( rfvname , self.VBFInterfFormula , rfvargs )
-         self.VBFInterfRates_RooArgList_list.append(rfv)
+         self.VBFInterfRates_RooFormulaVar_list.append(rfv)
 
+      self.VBFBkgRates_RooFormulaVar_list = []
+      for icat in range(0,nCategories):
+         rfvargs = ROOT.RooArgList()
+         strformula = "@0*@1"
+         rfvargs.add(self.kbkg_VBF)
+         rfvargs.add(self.rate_VBF_T_2_list[icat])
+         rfvname = "VBFBkgRate_{0}_{1}_{2}_{3}TeV".format(systName,catNameList[icat],self.channel,self.sqrts)
+         rfv = ROOT.RooFormulaVar( rfvname , strformula , rfvargs )
+         self.VBFBkgRates_RooFormulaVar_list.append(rfv)
+
+
+# Construct total rates
+      self.ggTotalRate_list = []
+      for icat in range(0,nCategories):
+         rfvargs = ROOT.RooArgList()
+         strformula = "@0+@1+@2"
+         rfvargs.add(self.ggSigRates_RooFormulaVar_list[icat])
+         rfvargs.add(self.ggInterfRates_RooFormulaVar_list[icat])
+         rfvargs.add(self.ggBkgRates_RooFormulaVar_list[icat])
+         rfvname = "ggTotalRate_{0}_{1}_{2}_{3}TeV".format(systName,catNameList[icat],self.channel,self.sqrts)
+         rfv = ROOT.RooFormulaVar( rfvname , strformula , rfvargs )
+         self.ggTotalRate_list.append(rfv)
+
+      self.VBFTotalRate_list = []
+      for icat in range(0,nCategories):
+         rfvargs = ROOT.RooArgList()
+         strformula = "@0+@1+@2"
+         rfvargs.add(self.VBFSigRates_RooFormulaVar_list[icat])
+         rfvargs.add(self.VBFInterfRates_RooFormulaVar_list[icat])
+         rfvargs.add(self.VBFBkgRates_RooFormulaVar_list[icat])
+         rfvname = "VBFTotalRate_{0}_{1}_{2}_{3}TeV".format(systName,catNameList[icat],self.channel,self.sqrts)
+         rfv = ROOT.RooFormulaVar( rfvname , strformula , rfvargs )
+         self.VBFTotalRate_list.append(rfv)
 
 
 # LEFT HERE
 
+# Combine each category
 
 
 #------- Combined ggZZ Djet ----------------#
