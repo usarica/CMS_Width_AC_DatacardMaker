@@ -23,8 +23,8 @@ class ExtendedTemplate:
       # Construct the rate and integral first, dealing with templates is a little bit more involved
       self.integral = float(self.origTemplate.Integral("width")) # Ensure that the precision is floating-point
       RateName = "{0}_Rate".format(TemplateName)
-      self.rate = ROOT.RooRealVar(RateName,RateName,self.integral)
-      self.rate.setConstant(True)
+      self.theRate = ROOT.RooRealVar(RateName,RateName,self.integral)
+      self.theRate.setConstant(True)
 
       # Construct the actual template,
       # FIXME: X and Y projections do not take bin widths into account, should sum manually!

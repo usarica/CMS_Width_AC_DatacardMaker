@@ -7,7 +7,8 @@ from scipy.special import erf
 from ROOT import *
 import ROOT
 from array import array
-from ExtendedTemplate import *
+import CategoryHelper
+import ExtendedTemplate
 
 class SignalTemplateHelper:
 
@@ -29,7 +30,7 @@ class SignalTemplateHelper:
       ROOT.gSystem.Load("libRooFit")
 
 
-   def makeSignalTemplates(self, options, templateFileAppendName, theMaker, useDjet, systName, anomCouplIndex):
+   def makeSignalTemplates(self, options, theMaker, theCategorizer, templateFileAppendName, systName, anomCouplIndex):
       # sqrts and channel index from the datacard maker class
       self.sqrts = theMaker.sqrts
       self.channel = theMaker.channel
@@ -50,7 +51,6 @@ class SignalTemplateHelper:
       self.varKD = theMaker.CMS_zz4l_widthKD
       self.varKD2 = theMaker.CMS_zz4l_widthKD2
 
-      self.templateDir = options.templateDir
       self.low_M = options.mLow
       self.high_M = options.mHigh
 
@@ -82,34 +82,28 @@ class SignalTemplateHelper:
          self.VBFInterfLoops = 3
 
 
-# Get Djet and opposite Djet shapes
-# Use cyclical ordering to keep everything simple
-      templateNameMain = "{0}/{1}".format(self.templateDir, templateFileAppendName)
+# Get shapes for each category
+      iCatScheme = theCategorizer.iCatScheme
+      catNameList = theCategorizer.catNameList
+      nCategories = theCategorizer.nCategories
+      templateDir = options.templateDir
+      templateNameMain = "{0}/{1}".format(templateDir, templateFileAppendName)
       templateNameList = []
-      catNameList = []
-      templateFileList = []
+      self.templateFileList = []
 
-      if(useDjet == 0):
-         templateNameList.append("{0}{1}".format(templateNameMain,".root"))
-         catNameList.append("")
-      if(useDjet == 1):
-         templateNameList.append("{0}{1}".format(templateNameMain,"_nonDjet.root"))
-         templateNameList.append("{0}{1}".format(templateNameMain,"_Djet.root"))
-         catNameList.append("nonDjet")
-         catNameList.append("Djet")
-      if(useDjet == 2):
-         templateNameList.append("{0}{1}".format(templateNameMain,"_Djet.root"))
-         templateNameList.append("{0}{1}".format(templateNameMain,"_nonDjet.root"))
-         catNameList.append("Djet")
-         catNameList.append("nonDjet")
+      for icat in range(0,nCategories):
 
+      if(iCatScheme == 1): # icat==0: VBF, ==1: Non-VBF
+         if(catNameList[icat] == ""):
+            templateNameList.append("{0}{1}".format(templateNameMain,".root"))
+         else:
+            templateNameList.append("{0}{1}{2}{3}".format(templateNameMain,"_",catNameList[icat],".root"))
       for fname in templateNameList:
          print "Extracting template from {0}".format(fname)
-         templateFileList.append(ROOT.TFile(fname, "read"))
+         self.templateFileList.append(ROOT.TFile(fname, "read"))
 
-      nCategories = len(templateFileList)
-      self.thetaSyst_catsplit_gg = theMaker.thetaSyst_catsplit_gg
-      self.thetaSyst_catsplit_VBF = theMaker.thetaSyst_catsplit_VBF
+      self.thetaSyst_catsplit_gg = theCategorizer.thetaSyst_catsplit_gg
+      self.thetaSyst_catsplit_VBF = theCategorizer.thetaSyst_catsplit_VBF
       if (len(self.thetaSyst_catsplit_gg)!=nCategories) or (len(self.thetaSyst_catsplit_VBF)!=nCategories):
          print "len(self.thetaSyst_catsplit_gg) = {0:.0f}".format(len(self.thetaSyst_catsplit_gg))
          print "len(self.thetaSyst_catsplit_VBF) = {0:.0f}".format(len(self.thetaSyst_catsplit_VBF))
@@ -135,21 +129,21 @@ class SignalTemplateHelper:
       for icat in range(0,nCategories):
          self.gg_T_1_list.append(
             ExtendedTemplate(
-                  templateFileList[icat].Get("T_2D_1").Clone("T_2D_gg_1_{0}_{1}_{2}_{3}TeV".format(systName,catNameList[icat],self.channel,self.sqrts)),
+                  self.templateFileList[icat].Get("T_2D_1").Clone("T_2D_gg_1_{0}_{1}_{2}_{3}TeV".format(systName,catNameList[icat],self.channel,self.sqrts)),
                   self.dimensions, self.ProjDim,
                   self.varm4l, self.varKD, self.varKD2
                )
             )
          self.gg_T_2_list.append(
             ExtendedTemplate(
-                  templateFileList[icat].Get("T_2D_2").Clone("T_2D_gg_2_{0}_{1}_{2}_{3}TeV".format(systName,catNameList[icat],self.channel,self.sqrts)),
+                  self.templateFileList[icat].Get("T_2D_2").Clone("T_2D_gg_2_{0}_{1}_{2}_{3}TeV".format(systName,catNameList[icat],self.channel,self.sqrts)),
                   self.dimensions, self.ProjDim,
                   self.varm4l, self.varKD, self.varKD2
                )
             )
          self.gg_T_4_Re_list.append(
             ExtendedTemplate(
-                  templateFileList[icat].Get("T_2D_4_Re").Clone("T_2D_gg_4_Re_{0}_{1}_{2}_{3}TeV".format(systName,catNameList[icat],self.channel,self.sqrts)),
+                  self.templateFileList[icat].Get("T_2D_4_Re").Clone("T_2D_gg_4_Re_{0}_{1}_{2}_{3}TeV".format(systName,catNameList[icat],self.channel,self.sqrts)),
                   self.dimensions, self.ProjDim,
                   self.varm4l, self.varKD, self.varKD2
                )
@@ -157,21 +151,21 @@ class SignalTemplateHelper:
 
          self.VBF_T_1_list.append(
             ExtendedTemplate(
-                  templateFileList[icat].Get("T_2D_VBF_1").Clone("T_2D_VBF_1_{0}_{1}_{2}_{3}TeV".format(systName,catNameList[icat],self.channel,self.sqrts)),
+                  self.templateFileList[icat].Get("T_2D_VBF_1").Clone("T_2D_VBF_1_{0}_{1}_{2}_{3}TeV".format(systName,catNameList[icat],self.channel,self.sqrts)),
                   self.dimensions, self.ProjDim,
                   self.varm4l, self.varKD, self.varKD2
                )
             )
          self.VBF_T_2_list.append(
             ExtendedTemplate(
-                  templateFileList[icat].Get("T_2D_VBF_2").Clone("T_2D_VBF_2_{0}_{1}_{2}_{3}TeV".format(systName,catNameList[icat],self.channel,self.sqrts)),
+                  self.templateFileList[icat].Get("T_2D_VBF_2").Clone("T_2D_VBF_2_{0}_{1}_{2}_{3}TeV".format(systName,catNameList[icat],self.channel,self.sqrts)),
                   self.dimensions, self.ProjDim,
                   self.varm4l, self.varKD, self.varKD2
                )
             )
          self.VBF_T_4_Re_list.append(
             ExtendedTemplate(
-                  templateFileList[icat].Get("T_2D_VBF_4_Re").Clone("T_2D_VBF_4_Re_{0}_{1}_{2}_{3}TeV".format(systName,catNameList[icat],self.channel,self.sqrts)),
+                  self.templateFileList[icat].Get("T_2D_VBF_4_Re").Clone("T_2D_VBF_4_Re_{0}_{1}_{2}_{3}TeV".format(systName,catNameList[icat],self.channel,self.sqrts)),
                   self.dimensions, self.ProjDim,
                   self.varm4l, self.varKD, self.varKD2
                )
@@ -180,14 +174,14 @@ class SignalTemplateHelper:
          if self.anomCoupl == 1:
             self.gg_T_4_Im_list.append(
                ExtendedTemplate(
-                     templateFileList[icat].Get("T_2D_4_Im").Clone("T_2D_gg_4_Im_{0}_{1}_{2}_{3}TeV".format(systName,catNameList[icat],self.channel,self.sqrts)),
+                     self.templateFileList[icat].Get("T_2D_4_Im").Clone("T_2D_gg_4_Im_{0}_{1}_{2}_{3}TeV".format(systName,catNameList[icat],self.channel,self.sqrts)),
                      self.dimensions, self.ProjDim,
                      self.varm4l, self.varKD, self.varKD2
                   )
                )
             self.VBF_T_4_Im_list.append(
                ExtendedTemplate(
-                     templateFileList[icat].Get("T_2D_VBF_4_Im").Clone("T_2D_VBF_4_Im_{0}_{1}_{2}_{3}TeV".format(systName,catNameList[icat],self.channel,self.sqrts)),
+                     self.templateFileList[icat].Get("T_2D_VBF_4_Im").Clone("T_2D_VBF_4_Im_{0}_{1}_{2}_{3}TeV".format(systName,catNameList[icat],self.channel,self.sqrts)),
                      self.dimensions, self.ProjDim,
                      self.varm4l, self.varKD, self.varKD2
                   )
@@ -224,14 +218,14 @@ class SignalTemplateHelper:
          for icat in range(0,nCategories):
             self.gg_T_1_AC_1_Re_list.append(
                ExtendedTemplate(
-                     templateFileList[icat].Get("T_2D_1_AC_1_Re").Clone("T_2D_gg_1_AC_1_Re_{0}_{1}_{2}_{3}TeV".format(systName,catNameList[icat],self.channel,self.sqrts)),
+                     self.templateFileList[icat].Get("T_2D_1_AC_1_Re").Clone("T_2D_gg_1_AC_1_Re_{0}_{1}_{2}_{3}TeV".format(systName,catNameList[icat],self.channel,self.sqrts)),
                      self.dimensions, self.ProjDim,
                      self.varm4l, self.varKD, self.varKD2
                   )
                )
             self.VBF_T_1_AC_1_Re_list.append(
                ExtendedTemplate(
-                     templateFileList[icat].Get("T_2D_VBF_1_AC_1_Re").Clone("T_2D_VBF_1_AC_1_Re_{0}_{1}_{2}_{3}TeV".format(systName,catNameList[icat],self.channel,self.sqrts)),
+                     self.templateFileList[icat].Get("T_2D_VBF_1_AC_1_Re").Clone("T_2D_VBF_1_AC_1_Re_{0}_{1}_{2}_{3}TeV".format(systName,catNameList[icat],self.channel,self.sqrts)),
                      self.dimensions, self.ProjDim,
                      self.varm4l, self.varKD, self.varKD2
                   )
@@ -240,14 +234,14 @@ class SignalTemplateHelper:
             if self.anomCoupl == 1:
                self.gg_T_1_AC_1_Im_list.append(
                   ExtendedTemplate(
-                        templateFileList[icat].Get("T_2D_1_AC_1_Im").Clone("T_2D_gg_1_AC_1_Im_{0}_{1}_{2}_{3}TeV".format(systName,catNameList[icat],self.channel,self.sqrts)),
+                        self.templateFileList[icat].Get("T_2D_1_AC_1_Im").Clone("T_2D_gg_1_AC_1_Im_{0}_{1}_{2}_{3}TeV".format(systName,catNameList[icat],self.channel,self.sqrts)),
                         self.dimensions, self.ProjDim,
                         self.varm4l, self.varKD, self.varKD2
                      )
                   )
                self.VBF_T_1_AC_1_Im_list.append(
                   ExtendedTemplate(
-                        templateFileList[icat].Get("T_2D_VBF_1_AC_1_Im").Clone("T_2D_VBF_1_AC_1_Im_{0}_{1}_{2}_{3}TeV".format(systName,catNameList[icat],self.channel,self.sqrts)),
+                        self.templateFileList[icat].Get("T_2D_VBF_1_AC_1_Im").Clone("T_2D_VBF_1_AC_1_Im_{0}_{1}_{2}_{3}TeV".format(systName,catNameList[icat],self.channel,self.sqrts)),
                         self.dimensions, self.ProjDim,
                         self.varm4l, self.varKD, self.varKD2
                      )
@@ -267,7 +261,7 @@ class SignalTemplateHelper:
          for icat in range(0,nCategories):
             self.gg_T_1_AC_2_Re_list.append(
                ExtendedTemplate(
-                     templateFileList[icat].Get("T_2D_1_AC_2_Re").Clone("T_2D_gg_1_AC_2_Re_{0}_{1}_{2}_{3}TeV".format(systName,catNameList[icat],self.channel,self.sqrts)),
+                     self.templateFileList[icat].Get("T_2D_1_AC_2_Re").Clone("T_2D_gg_1_AC_2_Re_{0}_{1}_{2}_{3}TeV".format(systName,catNameList[icat],self.channel,self.sqrts)),
                      self.dimensions, self.ProjDim,
                      self.varm4l, self.varKD, self.varKD2
                   )
@@ -276,7 +270,7 @@ class SignalTemplateHelper:
             if self.anomCoupl == 1:
                self.VBF_T_1_AC_2_PosDef_list.append(
                   ExtendedTemplate(
-                        templateFileList[icat].Get("T_2D_VBF_1_AC_2_PosDef").Clone("T_2D_VBF_1_AC_2_PosDef_{0}_{1}_{2}_{3}TeV".format(systName,catNameList[icat],self.channel,self.sqrts)),
+                        self.templateFileList[icat].Get("T_2D_VBF_1_AC_2_PosDef").Clone("T_2D_VBF_1_AC_2_PosDef_{0}_{1}_{2}_{3}TeV".format(systName,catNameList[icat],self.channel,self.sqrts)),
                         self.dimensions, self.ProjDim,
                         self.varm4l, self.varKD, self.varKD2
                      )
@@ -284,7 +278,7 @@ class SignalTemplateHelper:
 
                self.VBF_T_1_AC_2_Re_list.append(
                   ExtendedTemplate(
-                        templateFileList[icat].Get("T_2D_VBF_1_AC_2_Re").Clone("T_2D_VBF_1_AC_2_Re_{0}_{1}_{2}_{3}TeV".format(systName,catNameList[icat],self.channel,self.sqrts)),
+                        self.templateFileList[icat].Get("T_2D_VBF_1_AC_2_Re").Clone("T_2D_VBF_1_AC_2_Re_{0}_{1}_{2}_{3}TeV".format(systName,catNameList[icat],self.channel,self.sqrts)),
                         self.dimensions, self.ProjDim,
                         self.varm4l, self.varKD, self.varKD2
                      )
@@ -292,14 +286,14 @@ class SignalTemplateHelper:
 
                self.VBF_T_1_AC_2_Im_list.append(
                   ExtendedTemplate(
-                        templateFileList[icat].Get("T_2D_VBF_1_AC_2_Im").Clone("T_2D_VBF_1_AC_2_Im_{0}_{1}_{2}_{3}TeV".format(systName,catNameList[icat],self.channel,self.sqrts)),
+                        self.templateFileList[icat].Get("T_2D_VBF_1_AC_2_Im").Clone("T_2D_VBF_1_AC_2_Im_{0}_{1}_{2}_{3}TeV".format(systName,catNameList[icat],self.channel,self.sqrts)),
                         self.dimensions, self.ProjDim,
                         self.varm4l, self.varKD, self.varKD2
                      )
                   )
             elif self.anomCoupl == 2: # if self.anomCoupl == 2, PosDef = PosDef+Re
-               tmpTpl = templateFileList[icat].Get("T_2D_VBF_1_AC_2_PosDef").Clone("T_2D_VBF_1_AC_2_PosDef_{0}_{1}_{2}_{3}TeV".format(systName,catNameList[icat],self.channel,self.sqrts))
-               tmpTpl.Add(templateFileList[icat].Get("T_2D_VBF_1_AC_2_Re").Clone("T_2D_VBF_1_AC_2_Re_{0}_{1}_{2}_{3}TeV".format(systName,catNameList[icat],self.channel,self.sqrts)))
+               tmpTpl = self.templateFileList[icat].Get("T_2D_VBF_1_AC_2_PosDef").Clone("T_2D_VBF_1_AC_2_PosDef_{0}_{1}_{2}_{3}TeV".format(systName,catNameList[icat],self.channel,self.sqrts))
+               tmpTpl.Add(self.templateFileList[icat].Get("T_2D_VBF_1_AC_2_Re").Clone("T_2D_VBF_1_AC_2_Re_{0}_{1}_{2}_{3}TeV".format(systName,catNameList[icat],self.channel,self.sqrts)))
                self.VBF_T_1_AC_2_PosDef_list.append(
                   ExtendedTemplate(
                         tmpTpl,
@@ -320,7 +314,7 @@ class SignalTemplateHelper:
          for icat in range(0,nCategories):
             self.VBF_T_1_AC_3_Re_list.append(
                ExtendedTemplate(
-                     templateFileList[icat].Get("T_2D_VBF_1_AC_3_Re").Clone("T_2D_VBF_1_AC_3_Re_{0}_{1}_{2}_{3}TeV".format(systName,catNameList[icat],self.channel,self.sqrts)),
+                     self.templateFileList[icat].Get("T_2D_VBF_1_AC_3_Re").Clone("T_2D_VBF_1_AC_3_Re_{0}_{1}_{2}_{3}TeV".format(systName,catNameList[icat],self.channel,self.sqrts)),
                      self.dimensions, self.ProjDim,
                      self.varm4l, self.varKD, self.varKD2
                   )
@@ -329,7 +323,7 @@ class SignalTemplateHelper:
             if self.anomCoupl == 1:
                self.VBF_T_1_AC_3_Im_list.append(
                   ExtendedTemplate(
-                        templateFileList[icat].Get("T_2D_VBF_1_AC_3_Im").Clone("T_2D_VBF_1_AC_3_Im_{0}_{1}_{2}_{3}TeV".format(systName,catNameList[icat],self.channel,self.sqrts)),
+                        self.templateFileList[icat].Get("T_2D_VBF_1_AC_3_Im").Clone("T_2D_VBF_1_AC_3_Im_{0}_{1}_{2}_{3}TeV".format(systName,catNameList[icat],self.channel,self.sqrts)),
                         self.dimensions, self.ProjDim,
                         self.varm4l, self.varKD, self.varKD2
                      )
@@ -346,7 +340,7 @@ class SignalTemplateHelper:
          for icat in range(0,nCategories):
             self.VBF_T_1_AC_4_list.append(
                ExtendedTemplate(
-                     templateFileList[icat].Get("T_2D_VBF_1_AC_4").Clone("T_2D_VBF_1_AC_4_{0}_{1}_{2}_{3}TeV".format(systName,catNameList[icat],self.channel,self.sqrts)),
+                     self.templateFileList[icat].Get("T_2D_VBF_1_AC_4").Clone("T_2D_VBF_1_AC_4_{0}_{1}_{2}_{3}TeV".format(systName,catNameList[icat],self.channel,self.sqrts)),
                      self.dimensions, self.ProjDim,
                      self.varm4l, self.varKD, self.varKD2
                   )
@@ -369,14 +363,14 @@ class SignalTemplateHelper:
          for icat in range(0,nCategories):
             self.gg_T_4_AC_1_Re_list.append(
                ExtendedTemplate(
-                     templateFileList[icat].Get("T_2D_4_AC_1_Re").Clone("T_2D_gg_4_AC_1_Re_{0}_{1}_{2}_{3}TeV".format(systName,catNameList[icat],self.channel,self.sqrts)),
+                     self.templateFileList[icat].Get("T_2D_4_AC_1_Re").Clone("T_2D_gg_4_AC_1_Re_{0}_{1}_{2}_{3}TeV".format(systName,catNameList[icat],self.channel,self.sqrts)),
                      self.dimensions, self.ProjDim,
                      self.varm4l, self.varKD, self.varKD2
                   )
                )
             self.VBF_T_4_AC_1_Re_list.append(
                ExtendedTemplate(
-                     templateFileList[icat].Get("T_2D_VBF_4_AC_1_Re").Clone("T_2D_VBF_4_AC_1_Re_{0}_{1}_{2}_{3}TeV".format(systName,catNameList[icat],self.channel,self.sqrts)),
+                     self.templateFileList[icat].Get("T_2D_VBF_4_AC_1_Re").Clone("T_2D_VBF_4_AC_1_Re_{0}_{1}_{2}_{3}TeV".format(systName,catNameList[icat],self.channel,self.sqrts)),
                      self.dimensions, self.ProjDim,
                      self.varm4l, self.varKD, self.varKD2
                   )
@@ -385,14 +379,14 @@ class SignalTemplateHelper:
             if self.anomCoupl == 1:
                self.gg_T_4_AC_1_Im_list.append(
                   ExtendedTemplate(
-                        templateFileList[icat].Get("T_2D_4_AC_1_Im").Clone("T_2D_gg_4_AC_1_Im_{0}_{1}_{2}_{3}TeV".format(systName,catNameList[icat],self.channel,self.sqrts)),
+                        self.templateFileList[icat].Get("T_2D_4_AC_1_Im").Clone("T_2D_gg_4_AC_1_Im_{0}_{1}_{2}_{3}TeV".format(systName,catNameList[icat],self.channel,self.sqrts)),
                         self.dimensions, self.ProjDim,
                         self.varm4l, self.varKD, self.varKD2
                      )
                   )
                self.VBF_T_4_AC_1_Im_list.append(
                   ExtendedTemplate(
-                        templateFileList[icat].Get("T_2D_VBF_4_AC_1_Im").Clone("T_2D_VBF_4_AC_1_Im_{0}_{1}_{2}_{3}TeV".format(systName,catNameList[icat],self.channel,self.sqrts)),
+                        self.templateFileList[icat].Get("T_2D_VBF_4_AC_1_Im").Clone("T_2D_VBF_4_AC_1_Im_{0}_{1}_{2}_{3}TeV".format(systName,catNameList[icat],self.channel,self.sqrts)),
                         self.dimensions, self.ProjDim,
                         self.varm4l, self.varKD, self.varKD2
                      )
@@ -410,7 +404,7 @@ class SignalTemplateHelper:
          for icat in range(0,nCategories):
             self.VBF_T_4_AC_2_Re_list.append(
                ExtendedTemplate(
-                     templateFileList[icat].Get("T_2D_VBF_4_AC_2_Re").Clone("T_2D_VBF_4_AC_2_Re_{0}_{1}_{2}_{3}TeV".format(systName,catNameList[icat],self.channel,self.sqrts)),
+                     self.templateFileList[icat].Get("T_2D_VBF_4_AC_2_Re").Clone("T_2D_VBF_4_AC_2_Re_{0}_{1}_{2}_{3}TeV".format(systName,catNameList[icat],self.channel,self.sqrts)),
                      self.dimensions, self.ProjDim,
                      self.varm4l, self.varKD, self.varKD2
                   )
@@ -419,7 +413,7 @@ class SignalTemplateHelper:
             if self.anomCoupl == 1:
                self.VBF_T_4_AC_2_Im_list.append(
                   ExtendedTemplate(
-                        templateFileList[icat].Get("T_2D_VBF_4_AC_2_Im").Clone("T_2D_VBF_4_AC_2_Im_{0}_{1}_{2}_{3}TeV".format(systName,catNameList[icat],self.channel,self.sqrts)),
+                        self.templateFileList[icat].Get("T_2D_VBF_4_AC_2_Im").Clone("T_2D_VBF_4_AC_2_Im_{0}_{1}_{2}_{3}TeV".format(systName,catNameList[icat],self.channel,self.sqrts)),
                         self.dimensions, self.ProjDim,
                         self.varm4l, self.varKD, self.varKD2
                      )
@@ -688,7 +682,7 @@ class SignalTemplateHelper:
          strformula = ""
          for ivar in range(0,len(self.ggSigFunctions_Args_list)):
             rfvargs.add(self.ggSigRFV_list[ivar])
-            rfvargs.add(self.ggSigFunctions_Args_list[ivar][icat].rate)
+            rfvargs.add(self.ggSigFunctions_Args_list[ivar][icat].theRate)
             if ivar==0:
                strformula = "{0:.0f}*{1:,0f}".format(2*ivar,2*ivar+1)
             else:
@@ -703,7 +697,7 @@ class SignalTemplateHelper:
          strformula = ""
          for ivar in range(0,len(self.ggInterfFunctions_Args_list)):
             rfvargs.add(self.ggInterfRFV_list[ivar])
-            rfvargs.add(self.ggInterfFunctions_Args_list[ivar][icat].rate)
+            rfvargs.add(self.ggInterfFunctions_Args_list[ivar][icat].theRate)
             if ivar==0:
                strformula = "{0:.0f}*{1:,0f}".format(2*ivar,2*ivar+1)
             else:
@@ -717,7 +711,7 @@ class SignalTemplateHelper:
          rfvargs = ROOT.RooArgList()
          strformula = "@0*@1"
          rfvargs.add(self.kbkg_gg)
-         rfvargs.add(self.gg_T_2_list[icat].rate)
+         rfvargs.add(self.gg_T_2_list[icat].theRate)
          rfvname = "ggBkgRate_{0}_{1}_{2}_{3}TeV".format(systName,catNameList[icat],self.channel,self.sqrts)
          rfv = ROOT.RooFormulaVar( rfvname , strformula , rfvargs )
          self.ggBkgRates_RooFormulaVar_list.append(rfv)
@@ -728,7 +722,7 @@ class SignalTemplateHelper:
          strformula = ""
          for ivar in range(0,len(self.VBFSigFunctions_Args_list)):
             rfvargs.add(self.VBFSigRFV_list[ivar])
-            rfvargs.add(self.VBFSigFunctions_Args_list[ivar][icat].rate)
+            rfvargs.add(self.VBFSigFunctions_Args_list[ivar][icat].theRate)
             if ivar==0:
                strformula = "{0:.0f}*{1:,0f}".format(2*ivar,2*ivar+1)
             else:
@@ -743,7 +737,7 @@ class SignalTemplateHelper:
          strformula = ""
          for ivar in range(0,len(self.VBFInterfFunctions_Args_list)):
             rfvargs.add(self.VBFInterfRFV_list[ivar])
-            rfvargs.add(self.VBFInterfFunctions_Args_list[ivar][icat].rate)
+            rfvargs.add(self.VBFInterfFunctions_Args_list[ivar][icat].theRate)
             if ivar==0:
                strformula = "{0:.0f}*{1:,0f}".format(2*ivar,2*ivar+1)
             else:
@@ -756,7 +750,7 @@ class SignalTemplateHelper:
          rfvargs = ROOT.RooArgList()
          strformula = "@0*@1"
          rfvargs.add(self.kbkg_VBF)
-         rfvargs.add(self.VBF_T_2_list[icat].rate)
+         rfvargs.add(self.VBF_T_2_list[icat].theRate)
          rfvname = "VBFBkgRate_{0}_{1}_{2}_{3}TeV".format(systName,catNameList[icat],self.channel,self.sqrts)
          rfv = ROOT.RooFormulaVar( rfvname , strformula , rfvargs )
          self.VBFBkgRates_RooFormulaVar_list.append(rfv)
@@ -786,1290 +780,9 @@ class SignalTemplateHelper:
          self.VBFTotalRate_list.append(rfv)
 
 
-# LEFT HERE
-
 # Combine each category
 
-
-#------- Combined ggZZ Djet ----------------#
-
-        sigRates_Nominal_AnomCoupl_CombinedJet_Name = "signal_ggZZNominal_CombinedJet_rate_AnomCoupl_{0:.0f}_{1:.0f}_{2:.0f}".format(self.channel, self.sqrts, useDjet)
-        interfRates_Nominal_AnomCoupl_CombinedJet_Name = "interf_ggZZNominal_CombinedJet_rate_AnomCoupl_{0:.0f}_{1:.0f}_{2:.0f}".format(self.channel, self.sqrts, useDjet)
-        bkgRateNominalName_CombinedDjet = "bkg_ggZZNominal_CombinedDjet_rate_{0:.0f}_{1:.0f}_{2:.0f}".format(self.channel, self.sqrts, useDjet)
-        sigRates_Nominal_AnomCoupl_CombinedJet = ROOT.RooFormulaVar(
-            sigRates_Nominal_AnomCoupl_CombinedJet_Name,
-            "( @0 )",
-            ROOT.RooArgList(sigRates_Nominal_AnomCoupl)
-            )
-        interfRates_Nominal_AnomCoupl_CombinedJet = ROOT.RooFormulaVar(
-            interfRates_Nominal_AnomCoupl_CombinedJet_Name,
-            "( @0 )",
-            ROOT.RooArgList(interfRates_Nominal_AnomCoupl)
-            )
-        bkgRates_Nominal_CombinedJet = ROOT.RooFormulaVar(
-            bkgRateNominalName_CombinedDjet,
-            "( @0 )",
-            ROOT.RooArgList(bkgRates_Nominal)
-            )
-        if useDjet == 1:
-            sigRates_Nominal_AnomCoupl_CombinedJet = ROOT.RooFormulaVar(
-                sigRates_Nominal_AnomCoupl_CombinedJet_Name,
-                "( @0 + ( 1-TMath::Max(@2,0) )*@1 )",
-                ROOT.RooArgList(sigRates_Nominal_AnomCoupl, sigRates_Nominal_AnomCoupl_OppositeDjet, thetaSyst_djet_ggZZ_norm)
-                )
-            interfRates_Nominal_AnomCoupl_CombinedJet = ROOT.RooFormulaVar(
-                interfRates_Nominal_AnomCoupl_CombinedJet_Name,
-                "( @0 + ( 1-TMath::Max(@2,0) )*@1 )",
-                ROOT.RooArgList(interfRates_Nominal_AnomCoupl, interfRates_Nominal_AnomCoupl_OppositeDjet, thetaSyst_djet_ggZZ_norm)
-                )
-            bkgRates_Nominal_CombinedJet = ROOT.RooFormulaVar(
-                bkgRateNominalName_CombinedDjet,
-                "( @0 + ( 1-TMath::Max(@2,0) )*@1 )",
-                ROOT.RooArgList(bkgRates_Nominal, bkgRates_Nominal_OppositeDjet, thetaSyst_djet_ggZZ_norm)
-                )
-        if useDjet == 2:
-            sigRates_Nominal_AnomCoupl_CombinedJet = ROOT.RooFormulaVar(
-                sigRates_Nominal_AnomCoupl_CombinedJet_Name,
-                "( @0*TMath::Max(@1,0) )",
-                ROOT.RooArgList(sigRates_Nominal_AnomCoupl, thetaSyst_djet_ggZZ_norm)
-                )
-            interfRates_Nominal_AnomCoupl_CombinedJet = ROOT.RooFormulaVar(
-                interfRates_Nominal_AnomCoupl_CombinedJet_Name,
-                "( @0*TMath::Max(@1,0) )",
-                ROOT.RooArgList(interfRates_Nominal_AnomCoupl, thetaSyst_djet_ggZZ_norm)
-                )
-            bkgRates_Nominal_CombinedJet = ROOT.RooFormulaVar(
-                bkgRateNominalName_CombinedDjet,
-                "( @0*TMath::Max(@1,0) )",
-                ROOT.RooArgList(bkgRates_Nominal, thetaSyst_djet_ggZZ_norm)
-                )
-
-        sigRates_QCDUp_AnomCoupl_CombinedJet_Name = "signal_ggZZQCDUp_CombinedJet_rate_AnomCoupl_{0:.0f}_{1:.0f}_{2:.0f}".format(self.channel, self.sqrts, useDjet)
-        interfRates_QCDUp_AnomCoupl_CombinedJet_Name = "interf_ggZZQCDUp_CombinedJet_rate_AnomCoupl_{0:.0f}_{1:.0f}_{2:.0f}".format(self.channel, self.sqrts, useDjet)
-        bkgRateQCDUpName_CombinedDjet = "bkg_ggZZQCDUp_CombinedDjet_rate_{0:.0f}_{1:.0f}_{2:.0f}".format(self.channel, self.sqrts, useDjet)
-        sigRates_QCDUp_AnomCoupl_CombinedJet = ROOT.RooFormulaVar(
-            sigRates_QCDUp_AnomCoupl_CombinedJet_Name,
-            "( @0 )",
-            ROOT.RooArgList(sigRates_QCDUp_AnomCoupl)
-            )
-        interfRates_QCDUp_AnomCoupl_CombinedJet = ROOT.RooFormulaVar(
-            interfRates_QCDUp_AnomCoupl_CombinedJet_Name,
-            "( @0 )",
-            ROOT.RooArgList(interfRates_QCDUp_AnomCoupl)
-            )
-        bkgRates_QCDUp_CombinedJet = ROOT.RooFormulaVar(
-            bkgRateQCDUpName_CombinedDjet,
-            "( @0 )",
-            ROOT.RooArgList(bkgRates_QCDUp)
-            )
-        if useDjet == 1:
-            sigRates_QCDUp_AnomCoupl_CombinedJet = ROOT.RooFormulaVar(
-                sigRates_QCDUp_AnomCoupl_CombinedJet_Name,
-                "( @0 + ( 1-TMath::Max(@2,0) )*@1 )",
-                ROOT.RooArgList(sigRates_QCDUp_AnomCoupl, sigRates_QCDUp_AnomCoupl_OppositeDjet, thetaSyst_djet_ggZZ_norm)
-                )
-            interfRates_QCDUp_AnomCoupl_CombinedJet = ROOT.RooFormulaVar(
-                interfRates_QCDUp_AnomCoupl_CombinedJet_Name,
-                "( @0 + ( 1-TMath::Max(@2,0) )*@1 )",
-                ROOT.RooArgList(interfRates_QCDUp_AnomCoupl, interfRates_QCDUp_AnomCoupl_OppositeDjet, thetaSyst_djet_ggZZ_norm)
-                )
-            bkgRates_QCDUp_CombinedJet = ROOT.RooFormulaVar(
-                bkgRateQCDUpName_CombinedDjet,
-                "( @0 + ( 1-TMath::Max(@2,0) )*@1 )",
-                ROOT.RooArgList(bkgRates_QCDUp, bkgRates_QCDUp_OppositeDjet, thetaSyst_djet_ggZZ_norm)
-                )
-        if useDjet == 2:
-            sigRates_QCDUp_AnomCoupl_CombinedJet = ROOT.RooFormulaVar(
-                sigRates_QCDUp_AnomCoupl_CombinedJet_Name,
-                "( @0*TMath::Max(@1,0) )",
-                ROOT.RooArgList(sigRates_QCDUp_AnomCoupl, thetaSyst_djet_ggZZ_norm)
-                )
-            interfRates_QCDUp_AnomCoupl_CombinedJet = ROOT.RooFormulaVar(
-                interfRates_QCDUp_AnomCoupl_CombinedJet_Name,
-                "( @0*TMath::Max(@1,0) )",
-                ROOT.RooArgList(interfRates_QCDUp_AnomCoupl, thetaSyst_djet_ggZZ_norm)
-                )
-            bkgRates_QCDUp_CombinedJet = ROOT.RooFormulaVar(
-                bkgRateQCDUpName_CombinedDjet,
-                "( @0*TMath::Max(@1,0) )",
-                ROOT.RooArgList(bkgRates_QCDUp, thetaSyst_djet_ggZZ_norm)
-                )
-
-        sigRates_QCDDown_AnomCoupl_CombinedJet_Name = "signal_ggZZQCDDown_CombinedJet_rate_AnomCoupl_{0:.0f}_{1:.0f}_{2:.0f}".format(self.channel, self.sqrts, useDjet)
-        interfRates_QCDDown_AnomCoupl_CombinedJet_Name = "interf_ggZZQCDDown_CombinedJet_rate_AnomCoupl_{0:.0f}_{1:.0f}_{2:.0f}".format(self.channel, self.sqrts, useDjet)
-        bkgRateQCDDownName_CombinedDjet = "bkg_ggZZQCDDown_CombinedDjet_rate_{0:.0f}_{1:.0f}_{2:.0f}".format(self.channel, self.sqrts, useDjet)
-        sigRates_QCDDown_AnomCoupl_CombinedJet = ROOT.RooFormulaVar(
-            sigRates_QCDDown_AnomCoupl_CombinedJet_Name,
-            "( @0 )",
-            ROOT.RooArgList(sigRates_QCDDown_AnomCoupl)
-            )
-        interfRates_QCDDown_AnomCoupl_CombinedJet = ROOT.RooFormulaVar(
-            interfRates_QCDDown_AnomCoupl_CombinedJet_Name,
-            "( @0 )",
-            ROOT.RooArgList(interfRates_QCDDown_AnomCoupl)
-            )
-        bkgRates_QCDDown_CombinedJet = ROOT.RooFormulaVar(
-            bkgRateQCDDownName_CombinedDjet,
-            "( @0 )",
-            ROOT.RooArgList(bkgRates_QCDDown)
-            )
-        if useDjet == 1:
-            sigRates_QCDDown_AnomCoupl_CombinedJet = ROOT.RooFormulaVar(
-                sigRates_QCDDown_AnomCoupl_CombinedJet_Name,
-                "( @0 + ( 1-TMath::Max(@2,0) )*@1 )",
-                ROOT.RooArgList(sigRates_QCDDown_AnomCoupl, sigRates_QCDDown_AnomCoupl_OppositeDjet, thetaSyst_djet_ggZZ_norm)
-                )
-            interfRates_QCDDown_AnomCoupl_CombinedJet = ROOT.RooFormulaVar(
-                interfRates_QCDDown_AnomCoupl_CombinedJet_Name,
-                "( @0 + ( 1-TMath::Max(@2,0) )*@1 )",
-                ROOT.RooArgList(interfRates_QCDDown_AnomCoupl, interfRates_QCDDown_AnomCoupl_OppositeDjet, thetaSyst_djet_ggZZ_norm)
-                )
-            bkgRates_QCDDown_CombinedJet = ROOT.RooFormulaVar(
-                bkgRateQCDDownName_CombinedDjet,
-                "( @0 + ( 1-TMath::Max(@2,0) )*@1 )",
-                ROOT.RooArgList(bkgRates_QCDDown, bkgRates_QCDDown_OppositeDjet, thetaSyst_djet_ggZZ_norm)
-                )
-        if useDjet == 2:
-            sigRates_QCDDown_AnomCoupl_CombinedJet = ROOT.RooFormulaVar(
-                sigRates_QCDDown_AnomCoupl_CombinedJet_Name,
-                "( @0*TMath::Max(@1,0) )",
-                ROOT.RooArgList(sigRates_QCDDown_AnomCoupl, thetaSyst_djet_ggZZ_norm)
-                )
-            interfRates_QCDDown_AnomCoupl_CombinedJet = ROOT.RooFormulaVar(
-                interfRates_QCDDown_AnomCoupl_CombinedJet_Name,
-                "( @0*TMath::Max(@1,0) )",
-                ROOT.RooArgList(interfRates_QCDDown_AnomCoupl, thetaSyst_djet_ggZZ_norm)
-                )
-            bkgRates_QCDDown_CombinedJet = ROOT.RooFormulaVar(
-                bkgRateQCDDownName_CombinedDjet,
-                "( @0*TMath::Max(@1,0) )",
-                ROOT.RooArgList(bkgRates_QCDDown, thetaSyst_djet_ggZZ_norm)
-                )
-
-
-        sigRates_PDFUp_AnomCoupl_CombinedJet_Name = "signal_ggZZPDFUp_CombinedJet_rate_AnomCoupl_{0:.0f}_{1:.0f}_{2:.0f}".format(self.channel, self.sqrts, useDjet)
-        interfRates_PDFUp_AnomCoupl_CombinedJet_Name = "interf_ggZZPDFUp_CombinedJet_rate_AnomCoupl_{0:.0f}_{1:.0f}_{2:.0f}".format(self.channel, self.sqrts, useDjet)
-        bkgRatePDFUpName_CombinedDjet = "bkg_ggZZPDFUp_CombinedDjet_rate_{0:.0f}_{1:.0f}_{2:.0f}".format(self.channel, self.sqrts, useDjet)
-        sigRates_PDFUp_AnomCoupl_CombinedJet = ROOT.RooFormulaVar(
-            sigRates_PDFUp_AnomCoupl_CombinedJet_Name,
-            "( @0 )",
-            ROOT.RooArgList(sigRates_PDFUp_AnomCoupl)
-            )
-        interfRates_PDFUp_AnomCoupl_CombinedJet = ROOT.RooFormulaVar(
-            interfRates_PDFUp_AnomCoupl_CombinedJet_Name,
-            "( @0 )",
-            ROOT.RooArgList(interfRates_PDFUp_AnomCoupl)
-            )
-        bkgRates_PDFUp_CombinedJet = ROOT.RooFormulaVar(
-            bkgRatePDFUpName_CombinedDjet,
-            "( @0 )",
-            ROOT.RooArgList(bkgRates_PDFUp)
-            )
-        if useDjet == 1:
-            sigRates_PDFUp_AnomCoupl_CombinedJet = ROOT.RooFormulaVar(
-                sigRates_PDFUp_AnomCoupl_CombinedJet_Name,
-                "( @0 + ( 1-TMath::Max(@2,0) )*@1 )",
-                ROOT.RooArgList(sigRates_PDFUp_AnomCoupl, sigRates_PDFUp_AnomCoupl_OppositeDjet, thetaSyst_djet_ggZZ_norm)
-                )
-            interfRates_PDFUp_AnomCoupl_CombinedJet = ROOT.RooFormulaVar(
-                interfRates_PDFUp_AnomCoupl_CombinedJet_Name,
-                "( @0 + ( 1-TMath::Max(@2,0) )*@1 )",
-                ROOT.RooArgList(interfRates_PDFUp_AnomCoupl, interfRates_PDFUp_AnomCoupl_OppositeDjet, thetaSyst_djet_ggZZ_norm)
-                )
-            bkgRates_PDFUp_CombinedJet = ROOT.RooFormulaVar(
-                bkgRatePDFUpName_CombinedDjet,
-                "( @0 + ( 1-TMath::Max(@2,0) )*@1 )",
-                ROOT.RooArgList(bkgRates_PDFUp, bkgRates_PDFUp_OppositeDjet, thetaSyst_djet_ggZZ_norm)
-                )
-        if useDjet == 2:
-            sigRates_PDFUp_AnomCoupl_CombinedJet = ROOT.RooFormulaVar(
-                sigRates_PDFUp_AnomCoupl_CombinedJet_Name,
-                "( @0*TMath::Max(@1,0) )",
-                ROOT.RooArgList(sigRates_PDFUp_AnomCoupl, thetaSyst_djet_ggZZ_norm)
-                )
-            interfRates_PDFUp_AnomCoupl_CombinedJet = ROOT.RooFormulaVar(
-                interfRates_PDFUp_AnomCoupl_CombinedJet_Name,
-                "( @0*TMath::Max(@1,0) )",
-                ROOT.RooArgList(interfRates_PDFUp_AnomCoupl, thetaSyst_djet_ggZZ_norm)
-                )
-            bkgRates_PDFUp_CombinedJet = ROOT.RooFormulaVar(
-                bkgRatePDFUpName_CombinedDjet,
-                "( @0*TMath::Max(@1,0) )",
-                ROOT.RooArgList(bkgRates_PDFUp, thetaSyst_djet_ggZZ_norm)
-                )
-
-        sigRates_PDFDown_AnomCoupl_CombinedJet_Name = "signal_ggZZPDFDown_CombinedJet_rate_AnomCoupl_{0:.0f}_{1:.0f}_{2:.0f}".format(self.channel, self.sqrts, useDjet)
-        interfRates_PDFDown_AnomCoupl_CombinedJet_Name = "interf_ggZZPDFDown_CombinedJet_rate_AnomCoupl_{0:.0f}_{1:.0f}_{2:.0f}".format(self.channel, self.sqrts, useDjet)
-        bkgRatePDFDownName_CombinedDjet = "bkg_ggZZPDFDown_CombinedDjet_rate_{0:.0f}_{1:.0f}_{2:.0f}".format(self.channel, self.sqrts, useDjet)
-        sigRates_PDFDown_AnomCoupl_CombinedJet = ROOT.RooFormulaVar(
-            sigRates_PDFDown_AnomCoupl_CombinedJet_Name,
-            "( @0 )",
-            ROOT.RooArgList(sigRates_PDFDown_AnomCoupl)
-            )
-        interfRates_PDFDown_AnomCoupl_CombinedJet = ROOT.RooFormulaVar(
-            interfRates_PDFDown_AnomCoupl_CombinedJet_Name,
-            "( @0 )",
-            ROOT.RooArgList(interfRates_PDFDown_AnomCoupl)
-            )
-        bkgRates_PDFDown_CombinedJet = ROOT.RooFormulaVar(
-            bkgRatePDFDownName_CombinedDjet,
-            "( @0 )",
-            ROOT.RooArgList(bkgRates_PDFDown)
-            )
-        if useDjet == 1:
-            sigRates_PDFDown_AnomCoupl_CombinedJet = ROOT.RooFormulaVar(
-                sigRates_PDFDown_AnomCoupl_CombinedJet_Name,
-                "( @0 + ( 1-TMath::Max(@2,0) )*@1 )",
-                ROOT.RooArgList(sigRates_PDFDown_AnomCoupl, sigRates_PDFDown_AnomCoupl_OppositeDjet, thetaSyst_djet_ggZZ_norm)
-                )
-            interfRates_PDFDown_AnomCoupl_CombinedJet = ROOT.RooFormulaVar(
-                interfRates_PDFDown_AnomCoupl_CombinedJet_Name,
-                "( @0 + ( 1-TMath::Max(@2,0) )*@1 )",
-                ROOT.RooArgList(interfRates_PDFDown_AnomCoupl, interfRates_PDFDown_AnomCoupl_OppositeDjet, thetaSyst_djet_ggZZ_norm)
-                )
-            bkgRates_PDFDown_CombinedJet = ROOT.RooFormulaVar(
-                bkgRatePDFDownName_CombinedDjet,
-                "( @0 + ( 1-TMath::Max(@2,0) )*@1 )",
-                ROOT.RooArgList(bkgRates_PDFDown, bkgRates_PDFDown_OppositeDjet, thetaSyst_djet_ggZZ_norm)
-                )
-        if useDjet == 2:
-            sigRates_PDFDown_AnomCoupl_CombinedJet = ROOT.RooFormulaVar(
-                sigRates_PDFDown_AnomCoupl_CombinedJet_Name,
-                "( @0*TMath::Max(@1,0) )",
-                ROOT.RooArgList(sigRates_PDFDown_AnomCoupl, thetaSyst_djet_ggZZ_norm)
-                )
-            interfRates_PDFDown_AnomCoupl_CombinedJet = ROOT.RooFormulaVar(
-                interfRates_PDFDown_AnomCoupl_CombinedJet_Name,
-                "( @0*TMath::Max(@1,0) )",
-                ROOT.RooArgList(interfRates_PDFDown_AnomCoupl, thetaSyst_djet_ggZZ_norm)
-                )
-            bkgRates_PDFDown_CombinedJet = ROOT.RooFormulaVar(
-                bkgRatePDFDownName_CombinedDjet,
-                "( @0*TMath::Max(@1,0) )",
-                ROOT.RooArgList(bkgRates_PDFDown, thetaSyst_djet_ggZZ_norm)
-                )
-
-
-
-        ggZZVarNorm_Name = "ggZZVarNominalNorm_{0:.0f}_{1:.0f}_{2:.0f}".format(self.channel, self.sqrts, useDjet)
-        ggZZNominal_norm = ROOT.RooFormulaVar(
-            ggZZVarNorm_Name, "(@0*@3*@6*@4+@1*sqrt(@3*@6*@4)*sign(@5)*sqrt(abs(@5))+@2*abs(@5))",
-            ROOT.RooArgList(sigRates_Nominal_AnomCoupl_CombinedJet, interfRates_Nominal_AnomCoupl_CombinedJet, bkgRates_Nominal_CombinedJet, x, mu, kbkg, muF)
-            )
-        ggZZVarNormQCDUp_Name = "ggZZVarQCDUpNorm_{0:.0f}_{1:.0f}_{2:.0f}".format(self.channel, self.sqrts, useDjet)
-        ggZZQCDUp_norm = ROOT.RooFormulaVar(
-            ggZZVarNormQCDUp_Name, "(@0*@3*@6*@4+@1*sqrt(@3*@6*@4)*sign(@5)*sqrt(abs(@5))+@2*abs(@5))",
-            ROOT.RooArgList(sigRates_QCDUp_AnomCoupl_CombinedJet, interfRates_QCDUp_AnomCoupl_CombinedJet, bkgRates_QCDUp_CombinedJet, x, mu, kbkg, muF)
-            )
-        ggZZVarNormQCDDown_Name = "ggZZVarQCDDownNorm_{0:.0f}_{1:.0f}_{2:.0f}".format(self.channel, self.sqrts, useDjet)
-        ggZZQCDDown_norm = ROOT.RooFormulaVar(
-            ggZZVarNormQCDDown_Name, "(@0*@3*@6*@4+@1*sqrt(@3*@6*@4)*sign(@5)*sqrt(abs(@5))+@2*abs(@5))",
-            ROOT.RooArgList(sigRates_QCDDown_AnomCoupl_CombinedJet, interfRates_QCDDown_AnomCoupl_CombinedJet, bkgRates_QCDDown_CombinedJet, x, mu, kbkg, muF)
-            )
-        ggZZVarNormPDFUp_Name = "ggZZVarPDFUpNorm_{0:.0f}_{1:.0f}_{2:.0f}".format(self.channel, self.sqrts, useDjet)
-        ggZZPDFUp_norm = ROOT.RooFormulaVar(
-            ggZZVarNormPDFUp_Name, "(@0*@3*@6*@4+@1*sqrt(@3*@6*@4)*sign(@5)*sqrt(abs(@5))+@2*abs(@5))",
-            ROOT.RooArgList(sigRates_PDFUp_AnomCoupl_CombinedJet, interfRates_PDFUp_AnomCoupl_CombinedJet, bkgRates_PDFUp_CombinedJet, x, mu, kbkg, muF)
-            )
-        ggZZVarNormPDFDown_Name = "ggZZVarPDFDownNorm_{0:.0f}_{1:.0f}_{2:.0f}".format(self.channel, self.sqrts, useDjet)
-        ggZZPDFDown_norm = ROOT.RooFormulaVar(
-            ggZZVarNormPDFDown_Name, "(@0*@3*@6*@4+@1*sqrt(@3*@6*@4)*sign(@5)*sqrt(abs(@5))+@2*abs(@5))",
-            ROOT.RooArgList(sigRates_PDFDown_AnomCoupl_CombinedJet, interfRates_PDFDown_AnomCoupl_CombinedJet, bkgRates_PDFDown_CombinedJet, x, mu, kbkg, muF)
-            )
-
-
-#--------------- VBF ------------
-
-        # Set names, bounds, and values for rates of VBF
-        totalRate_vbf = integral_VBF_T_1+integral_VBF_T_2+integral_VBF_T_4
-        totalRate_vbf_Shape = totalRate_vbf * self.lumi
-        rate_signal_vbf_Shape = integral_VBF_T_2 * self.lumi
-        rate_bkg_vbf_Shape = integral_VBF_T_1 * self.lumi
-        rate_interf_vbf_Shape = integral_VBF_T_4 * self.lumi
-
-        VBFsigRateUpName = "signal_VBFUprate_{0:.0f}_{1:.0f}_{2:.0f}".format(self.channel, self.sqrts, useDjet)
-        VBFbkgRateUpName = "bkg_VBFUprate_{0:.0f}_{1:.0f}_{2:.0f}".format(self.channel, self.sqrts, useDjet)
-        VBFinterfRateUpName = "interf_VBFUprate_{0:.0f}_{1:.0f}_{2:.0f}".format(self.channel, self.sqrts, useDjet)
-        VBFsigRates_Up = ROOT.RooRealVar(VBFsigRateUpName, VBFsigRateUpName, integral_VBF_T_2_Up)
-        VBFbkgRates_Up = ROOT.RooRealVar(VBFbkgRateUpName, VBFbkgRateUpName, integral_VBF_T_1_Up)
-        VBFinterfRates_Up = ROOT.RooRealVar(VBFinterfRateUpName, VBFinterfRateUpName, integral_VBF_T_4_Up)
-        VBFsigRates_Up.setConstant(True)
-        VBFbkgRates_Up.setConstant(True)
-        VBFinterfRates_Up.setConstant(True)
-
-        VBFsigRateDownName = "signal_VBFDownrate_{0:.0f}_{1:.0f}_{2:.0f}".format(self.channel, self.sqrts, useDjet)
-        VBFbkgRateDownName = "bkg_VBFDownrate_{0:.0f}_{1:.0f}_{2:.0f}".format(self.channel, self.sqrts, useDjet)
-        VBFinterfRateDownName = "interf_VBFDownrate_{0:.0f}_{1:.0f}_{2:.0f}".format(self.channel, self.sqrts, useDjet)
-        VBFsigRates_Down = ROOT.RooRealVar(VBFsigRateDownName, VBFsigRateDownName, integral_VBF_T_2_Down)
-        VBFbkgRates_Down = ROOT.RooRealVar(VBFbkgRateDownName, VBFbkgRateDownName, integral_VBF_T_1_Down)
-        VBFinterfRates_Down = ROOT.RooRealVar(VBFinterfRateDownName, VBFinterfRateDownName, integral_VBF_T_4_Down)
-        VBFsigRates_Down.setConstant(True)
-        VBFbkgRates_Down.setConstant(True)
-        VBFinterfRates_Down.setConstant(True)
-
-        VBFsigRateNominalName = "signal_VBFNominalrate_{0:.0f}_{1:.0f}_{2:.0f}".format(self.channel, self.sqrts, useDjet)
-        VBFbkgRateNominalName = "bkg_VBFNominalrate_{0:.0f}_{1:.0f}_{2:.0f}".format(self.channel, self.sqrts, useDjet)
-        VBFinterfRateNominalName = "interf_VBFNominalrate_{0:.0f}_{1:.0f}_{2:.0f}".format(self.channel, self.sqrts, useDjet)
-        VBFsigRates_Nominal = ROOT.RooRealVar(VBFsigRateNominalName, VBFsigRateNominalName, integral_VBF_T_2)
-        VBFbkgRates_Nominal = ROOT.RooRealVar(VBFbkgRateNominalName, VBFbkgRateNominalName, integral_VBF_T_1)
-        VBFinterfRates_Nominal = ROOT.RooRealVar(VBFinterfRateNominalName, VBFinterfRateNominalName, integral_VBF_T_4)
-        VBFsigRates_Nominal.setConstant(True)
-        VBFbkgRates_Nominal.setConstant(True)
-        VBFinterfRates_Nominal.setConstant(True)
-
-
-# VBF mZZ/mH**2
-
-        VBFsigRateUp_mZZ2_1_Name = "signal_VBFUprate_mZZ2_1_{0:.0f}_{1:.0f}_{2:.0f}".format(self.channel, self.sqrts, useDjet)
-        VBFinterfRateUp_mZZ2_1_Name = "interf_VBFUprate_mZZ2_1_{0:.0f}_{1:.0f}_{2:.0f}".format(self.channel, self.sqrts, useDjet)
-        VBFsigRates_mZZ2_1_Up = ROOT.RooRealVar(VBFsigRateUp_mZZ2_1_Name, VBFsigRateUp_mZZ2_1_Name, integral_VBF_T_mZZ2_1_2_Up)
-        VBFinterfRates_mZZ2_1_Up = ROOT.RooRealVar(VBFinterfRateUp_mZZ2_1_Name, VBFinterfRateUp_mZZ2_1_Name, integral_VBF_T_mZZ2_1_4_Up)
-        VBFsigRates_mZZ2_1_Up.setConstant(True)
-        VBFinterfRates_mZZ2_1_Up.setConstant(True)
-
-        VBFsigRateDown_mZZ2_1_Name = "signal_VBFDownrate_mZZ2_1_{0:.0f}_{1:.0f}_{2:.0f}".format(self.channel, self.sqrts, useDjet)
-        VBFinterfRateDown_mZZ2_1_Name = "interf_VBFDownrate_mZZ2_1_{0:.0f}_{1:.0f}_{2:.0f}".format(self.channel, self.sqrts, useDjet)
-        VBFsigRates_mZZ2_1_Down = ROOT.RooRealVar(VBFsigRateDown_mZZ2_1_Name, VBFsigRateDown_mZZ2_1_Name, integral_VBF_T_mZZ2_1_2_Down)
-        VBFinterfRates_mZZ2_1_Down = ROOT.RooRealVar(VBFinterfRateDown_mZZ2_1_Name, VBFinterfRateDown_mZZ2_1_Name, integral_VBF_T_mZZ2_1_4_Down)
-        VBFsigRates_mZZ2_1_Down.setConstant(True)
-        VBFinterfRates_mZZ2_1_Down.setConstant(True)
-
-        VBFsigRateNominal_mZZ2_1_Name = "signal_VBFNominalrate_mZZ2_1_{0:.0f}_{1:.0f}_{2:.0f}".format(self.channel, self.sqrts, useDjet)
-        VBFinterfRateNominal_mZZ2_1_Name = "interf_VBFNominalrate_mZZ2_1_{0:.0f}_{1:.0f}_{2:.0f}".format(self.channel, self.sqrts, useDjet)
-        VBFsigRates_mZZ2_1_Nominal = ROOT.RooRealVar(VBFsigRateNominal_mZZ2_1_Name, VBFsigRateNominal_mZZ2_1_Name, integral_VBF_T_mZZ2_1_2)
-        VBFinterfRates_mZZ2_1_Nominal = ROOT.RooRealVar(VBFinterfRateNominal_mZZ2_1_Name, VBFinterfRateNominal_mZZ2_1_Name, integral_VBF_T_mZZ2_1_4)
-        VBFsigRates_mZZ2_1_Nominal.setConstant(True)
-        VBFinterfRates_mZZ2_1_Nominal.setConstant(True)
-
-# VBF mZZ/mH**2**2
-
-        VBFsigRateUp_mZZ2_2_Name = "signal_VBFUprate_mZZ2_2_{0:.0f}_{1:.0f}_{2:.0f}".format(self.channel, self.sqrts, useDjet)
-        VBFinterfRateUp_mZZ2_2_Name = "interf_VBFUprate_mZZ2_2_{0:.0f}_{1:.0f}_{2:.0f}".format(self.channel, self.sqrts, useDjet)
-        VBFsigRates_mZZ2_2_Up = ROOT.RooRealVar(VBFsigRateUp_mZZ2_2_Name, VBFsigRateUp_mZZ2_2_Name, integral_VBF_T_mZZ2_2_2_Up)
-        VBFinterfRates_mZZ2_2_Up = ROOT.RooRealVar(VBFinterfRateUp_mZZ2_2_Name, VBFinterfRateUp_mZZ2_2_Name, integral_VBF_T_mZZ2_2_4_Up)
-        VBFsigRates_mZZ2_2_Up.setConstant(True)
-        VBFinterfRates_mZZ2_2_Up.setConstant(True)
-
-        VBFsigRateDown_mZZ2_2_Name = "signal_VBFDownrate_mZZ2_2_{0:.0f}_{1:.0f}_{2:.0f}".format(self.channel, self.sqrts, useDjet)
-        VBFinterfRateDown_mZZ2_2_Name = "interf_VBFDownrate_mZZ2_2_{0:.0f}_{1:.0f}_{2:.0f}".format(self.channel, self.sqrts, useDjet)
-        VBFsigRates_mZZ2_2_Down = ROOT.RooRealVar(VBFsigRateDown_mZZ2_2_Name, VBFsigRateDown_mZZ2_2_Name, integral_VBF_T_mZZ2_2_2_Down)
-        VBFinterfRates_mZZ2_2_Down = ROOT.RooRealVar(VBFinterfRateDown_mZZ2_2_Name, VBFinterfRateDown_mZZ2_2_Name, integral_VBF_T_mZZ2_2_4_Down)
-        VBFsigRates_mZZ2_2_Down.setConstant(True)
-        VBFinterfRates_mZZ2_2_Down.setConstant(True)
-
-        VBFsigRateNominal_mZZ2_2_Name = "signal_VBFNominalrate_mZZ2_2_{0:.0f}_{1:.0f}_{2:.0f}".format(self.channel, self.sqrts, useDjet)
-        VBFinterfRateNominal_mZZ2_2_Name = "interf_VBFNominalrate_mZZ2_2_{0:.0f}_{1:.0f}_{2:.0f}".format(self.channel, self.sqrts, useDjet)
-        VBFsigRates_mZZ2_2_Nominal = ROOT.RooRealVar(VBFsigRateNominal_mZZ2_2_Name, VBFsigRateNominal_mZZ2_2_Name, integral_VBF_T_mZZ2_2_2)
-        VBFinterfRates_mZZ2_2_Nominal = ROOT.RooRealVar(VBFinterfRateNominal_mZZ2_2_Name, VBFinterfRateNominal_mZZ2_2_Name, integral_VBF_T_mZZ2_2_4)
-        VBFsigRates_mZZ2_2_Nominal.setConstant(True)
-        VBFinterfRates_mZZ2_2_Nominal.setConstant(True)
-
-# VBF mZZ/mH**2**3
-
-        VBFsigRateUp_mZZ2_3_Name = "signal_VBFUprate_mZZ2_3_{0:.0f}_{1:.0f}_{2:.0f}".format(self.channel, self.sqrts, useDjet)
-        VBFsigRates_mZZ2_3_Up = ROOT.RooRealVar(VBFsigRateUp_mZZ2_3_Name, VBFsigRateUp_mZZ2_3_Name, integral_VBF_T_mZZ2_3_2_Up)
-        VBFsigRates_mZZ2_3_Up.setConstant(True)
-
-        VBFsigRateDown_mZZ2_3_Name = "signal_VBFDownrate_mZZ2_3_{0:.0f}_{1:.0f}_{2:.0f}".format(self.channel, self.sqrts, useDjet)
-        VBFsigRates_mZZ2_3_Down = ROOT.RooRealVar(VBFsigRateDown_mZZ2_3_Name, VBFsigRateDown_mZZ2_3_Name, integral_VBF_T_mZZ2_3_2_Down)
-        VBFsigRates_mZZ2_3_Down.setConstant(True)
-
-        VBFsigRateNominal_mZZ2_3_Name = "signal_VBFNominalrate_mZZ2_3_{0:.0f}_{1:.0f}_{2:.0f}".format(self.channel, self.sqrts, useDjet)
-        VBFsigRates_mZZ2_3_Nominal = ROOT.RooRealVar(VBFsigRateNominal_mZZ2_3_Name, VBFsigRateNominal_mZZ2_3_Name, integral_VBF_T_mZZ2_3_2)
-        VBFsigRates_mZZ2_3_Nominal.setConstant(True)
-
-# VBF mZZ/mH**2**4
-
-        VBFsigRateUp_mZZ2_4_Name = "signal_VBFUprate_mZZ2_4_{0:.0f}_{1:.0f}_{2:.0f}".format(self.channel, self.sqrts, useDjet)
-        VBFsigRates_mZZ2_4_Up = ROOT.RooRealVar(VBFsigRateUp_mZZ2_4_Name, VBFsigRateUp_mZZ2_4_Name, integral_VBF_T_mZZ2_4_2_Up)
-        VBFsigRates_mZZ2_4_Up.setConstant(True)
-
-        VBFsigRateDown_mZZ2_4_Name = "signal_VBFDownrate_mZZ2_4_{0:.0f}_{1:.0f}_{2:.0f}".format(self.channel, self.sqrts, useDjet)
-        VBFsigRates_mZZ2_4_Down = ROOT.RooRealVar(VBFsigRateDown_mZZ2_4_Name, VBFsigRateDown_mZZ2_4_Name, integral_VBF_T_mZZ2_4_2_Down)
-        VBFsigRates_mZZ2_4_Down.setConstant(True)
-
-        VBFsigRateNominal_mZZ2_4_Name = "signal_VBFNominalrate_mZZ2_4_{0:.0f}_{1:.0f}_{2:.0f}".format(self.channel, self.sqrts, useDjet)
-        VBFsigRates_mZZ2_4_Nominal = ROOT.RooRealVar(VBFsigRateNominal_mZZ2_4_Name, VBFsigRateNominal_mZZ2_4_Name, integral_VBF_T_mZZ2_4_2)
-        VBFsigRates_mZZ2_4_Nominal.setConstant(True)
-
-
-#------------- VBF Opposite Djet --------------#
-
-        VBFsigRateUpName_OppositeDjet = "signal_VBFUp_OppositeDjet_rate_{0:.0f}_{1:.0f}_{2:.0f}".format(self.channel, self.sqrts, useDjet)
-        VBFbkgRateUpName_OppositeDjet = "bkg_VBFUp_OppositeDjet_rate_{0:.0f}_{1:.0f}_{2:.0f}".format(self.channel, self.sqrts, useDjet)
-        VBFinterfRateUpName_OppositeDjet = "interf_VBFUp_OppositeDjet_rate_{0:.0f}_{1:.0f}_{2:.0f}".format(self.channel, self.sqrts, useDjet)
-        VBFsigRates_Up_OppositeDjet = ROOT.RooRealVar(VBFsigRateUpName_OppositeDjet, VBFsigRateUpName_OppositeDjet, integral_VBF_T_2_Up_OppositeDjet)
-        VBFbkgRates_Up_OppositeDjet = ROOT.RooRealVar(VBFbkgRateUpName_OppositeDjet, VBFbkgRateUpName_OppositeDjet, integral_VBF_T_1_Up_OppositeDjet)
-        VBFinterfRates_Up_OppositeDjet = ROOT.RooRealVar(VBFinterfRateUpName_OppositeDjet, VBFinterfRateUpName_OppositeDjet, integral_VBF_T_4_Up_OppositeDjet)
-        VBFsigRates_Up_OppositeDjet.setConstant(True)
-        VBFbkgRates_Up_OppositeDjet.setConstant(True)
-        VBFinterfRates_Up_OppositeDjet.setConstant(True)
-
-        VBFsigRateDownName_OppositeDjet = "signal_VBFDown_OppositeDjet_rate_{0:.0f}_{1:.0f}_{2:.0f}".format(self.channel, self.sqrts, useDjet)
-        VBFbkgRateDownName_OppositeDjet = "bkg_VBFDown_OppositeDjet_rate_{0:.0f}_{1:.0f}_{2:.0f}".format(self.channel, self.sqrts, useDjet)
-        VBFinterfRateDownName_OppositeDjet = "interf_VBFDown_OppositeDjet_rate_{0:.0f}_{1:.0f}_{2:.0f}".format(self.channel, self.sqrts, useDjet)
-        VBFsigRates_Down_OppositeDjet = ROOT.RooRealVar(VBFsigRateDownName_OppositeDjet, VBFsigRateDownName_OppositeDjet, integral_VBF_T_2_Down_OppositeDjet)
-        VBFbkgRates_Down_OppositeDjet = ROOT.RooRealVar(VBFbkgRateDownName_OppositeDjet, VBFbkgRateDownName_OppositeDjet, integral_VBF_T_1_Down_OppositeDjet)
-        VBFinterfRates_Down_OppositeDjet = ROOT.RooRealVar(VBFinterfRateDownName_OppositeDjet, VBFinterfRateDownName_OppositeDjet, integral_VBF_T_4_Down_OppositeDjet)
-        VBFsigRates_Down_OppositeDjet.setConstant(True)
-        VBFbkgRates_Down_OppositeDjet.setConstant(True)
-        VBFinterfRates_Down_OppositeDjet.setConstant(True)
-
-        VBFsigRateNominalName_OppositeDjet = "signal_VBFNominal_OppositeDjet_rate_{0:.0f}_{1:.0f}_{2:.0f}".format(self.channel, self.sqrts, useDjet)
-        VBFbkgRateNominalName_OppositeDjet = "bkg_VBFNominal_OppositeDjet_rate_{0:.0f}_{1:.0f}_{2:.0f}".format(self.channel, self.sqrts, useDjet)
-        VBFinterfRateNominalName_OppositeDjet = "interf_VBFNominal_OppositeDjet_rate_{0:.0f}_{1:.0f}_{2:.0f}".format(self.channel, self.sqrts, useDjet)
-        VBFsigRates_Nominal_OppositeDjet = ROOT.RooRealVar(VBFsigRateNominalName_OppositeDjet, VBFsigRateNominalName_OppositeDjet, integral_VBF_T_2_OppositeDjet)
-        VBFbkgRates_Nominal_OppositeDjet = ROOT.RooRealVar(VBFbkgRateNominalName_OppositeDjet, VBFbkgRateNominalName_OppositeDjet, integral_VBF_T_1_OppositeDjet)
-        VBFinterfRates_Nominal_OppositeDjet = ROOT.RooRealVar(VBFinterfRateNominalName_OppositeDjet, VBFinterfRateNominalName_OppositeDjet, integral_VBF_T_4_OppositeDjet)
-        VBFsigRates_Nominal_OppositeDjet.setConstant(True)
-        VBFbkgRates_Nominal_OppositeDjet.setConstant(True)
-        VBFinterfRates_Nominal_OppositeDjet.setConstant(True)
-
-
-# VBF mZZ/mH**2
-
-        VBFsigRateUp_mZZ2_1_Name_OppositeDjet = "signal_VBFUp_OppositeDjet_rate_mZZ2_1_{0:.0f}_{1:.0f}_{2:.0f}".format(self.channel, self.sqrts, useDjet)
-        VBFinterfRateUp_mZZ2_1_Name_OppositeDjet = "interf_VBFUp_OppositeDjet_rate_mZZ2_1_{0:.0f}_{1:.0f}_{2:.0f}".format(self.channel, self.sqrts, useDjet)
-        VBFsigRates_mZZ2_1_Up_OppositeDjet = ROOT.RooRealVar(VBFsigRateUp_mZZ2_1_Name_OppositeDjet, VBFsigRateUp_mZZ2_1_Name_OppositeDjet, integral_VBF_T_mZZ2_1_2_Up_OppositeDjet)
-        VBFinterfRates_mZZ2_1_Up_OppositeDjet = ROOT.RooRealVar(VBFinterfRateUp_mZZ2_1_Name_OppositeDjet, VBFinterfRateUp_mZZ2_1_Name_OppositeDjet, integral_VBF_T_mZZ2_1_4_Up_OppositeDjet)
-        VBFsigRates_mZZ2_1_Up_OppositeDjet.setConstant(True)
-        VBFinterfRates_mZZ2_1_Up_OppositeDjet.setConstant(True)
-
-        VBFsigRateDown_mZZ2_1_Name_OppositeDjet = "signal_VBFDown_OppositeDjet_rate_mZZ2_1_{0:.0f}_{1:.0f}_{2:.0f}".format(self.channel, self.sqrts, useDjet)
-        VBFinterfRateDown_mZZ2_1_Name_OppositeDjet = "interf_VBFDown_OppositeDjet_rate_mZZ2_1_{0:.0f}_{1:.0f}_{2:.0f}".format(self.channel, self.sqrts, useDjet)
-        VBFsigRates_mZZ2_1_Down_OppositeDjet = ROOT.RooRealVar(VBFsigRateDown_mZZ2_1_Name_OppositeDjet, VBFsigRateDown_mZZ2_1_Name_OppositeDjet, integral_VBF_T_mZZ2_1_2_Down_OppositeDjet)
-        VBFinterfRates_mZZ2_1_Down_OppositeDjet = ROOT.RooRealVar(VBFinterfRateDown_mZZ2_1_Name_OppositeDjet, VBFinterfRateDown_mZZ2_1_Name_OppositeDjet, integral_VBF_T_mZZ2_1_4_Down_OppositeDjet)
-        VBFsigRates_mZZ2_1_Down_OppositeDjet.setConstant(True)
-        VBFinterfRates_mZZ2_1_Down_OppositeDjet.setConstant(True)
-
-        VBFsigRateNominal_mZZ2_1_Name_OppositeDjet = "signal_VBFNominal_OppositeDjet_rate_mZZ2_1_{0:.0f}_{1:.0f}_{2:.0f}".format(self.channel, self.sqrts, useDjet)
-        VBFinterfRateNominal_mZZ2_1_Name_OppositeDjet = "interf_VBFNominal_OppositeDjet_rate_mZZ2_1_{0:.0f}_{1:.0f}_{2:.0f}".format(self.channel, self.sqrts, useDjet)
-        VBFsigRates_mZZ2_1_Nominal_OppositeDjet = ROOT.RooRealVar(VBFsigRateNominal_mZZ2_1_Name_OppositeDjet, VBFsigRateNominal_mZZ2_1_Name_OppositeDjet, integral_VBF_T_mZZ2_1_2_OppositeDjet)
-        VBFinterfRates_mZZ2_1_Nominal_OppositeDjet = ROOT.RooRealVar(VBFinterfRateNominal_mZZ2_1_Name_OppositeDjet, VBFinterfRateNominal_mZZ2_1_Name_OppositeDjet, integral_VBF_T_mZZ2_1_4_OppositeDjet)
-        VBFsigRates_mZZ2_1_Nominal_OppositeDjet.setConstant(True)
-        VBFinterfRates_mZZ2_1_Nominal_OppositeDjet.setConstant(True)
-
-# VBF mZZ/mH**2**2
-
-        VBFsigRateUp_mZZ2_2_Name_OppositeDjet = "signal_VBFUp_OppositeDjet_rate_mZZ2_2_{0:.0f}_{1:.0f}_{2:.0f}".format(self.channel, self.sqrts, useDjet)
-        VBFinterfRateUp_mZZ2_2_Name_OppositeDjet = "interf_VBFUp_OppositeDjet_rate_mZZ2_2_{0:.0f}_{1:.0f}_{2:.0f}".format(self.channel, self.sqrts, useDjet)
-        VBFsigRates_mZZ2_2_Up_OppositeDjet = ROOT.RooRealVar(VBFsigRateUp_mZZ2_2_Name_OppositeDjet, VBFsigRateUp_mZZ2_2_Name_OppositeDjet, integral_VBF_T_mZZ2_2_2_Up_OppositeDjet)
-        VBFinterfRates_mZZ2_2_Up_OppositeDjet = ROOT.RooRealVar(VBFinterfRateUp_mZZ2_2_Name_OppositeDjet, VBFinterfRateUp_mZZ2_2_Name_OppositeDjet, integral_VBF_T_mZZ2_2_4_Up_OppositeDjet)
-        VBFsigRates_mZZ2_2_Up_OppositeDjet.setConstant(True)
-        VBFinterfRates_mZZ2_2_Up_OppositeDjet.setConstant(True)
-
-        VBFsigRateDown_mZZ2_2_Name_OppositeDjet = "signal_VBFDown_OppositeDjet_rate_mZZ2_2_{0:.0f}_{1:.0f}_{2:.0f}".format(self.channel, self.sqrts, useDjet)
-        VBFinterfRateDown_mZZ2_2_Name_OppositeDjet = "interf_VBFDown_OppositeDjet_rate_mZZ2_2_{0:.0f}_{1:.0f}_{2:.0f}".format(self.channel, self.sqrts, useDjet)
-        VBFsigRates_mZZ2_2_Down_OppositeDjet = ROOT.RooRealVar(VBFsigRateDown_mZZ2_2_Name_OppositeDjet, VBFsigRateDown_mZZ2_2_Name_OppositeDjet, integral_VBF_T_mZZ2_2_2_Down_OppositeDjet)
-        VBFinterfRates_mZZ2_2_Down_OppositeDjet = ROOT.RooRealVar(VBFinterfRateDown_mZZ2_2_Name_OppositeDjet, VBFinterfRateDown_mZZ2_2_Name_OppositeDjet, integral_VBF_T_mZZ2_2_4_Down_OppositeDjet)
-        VBFsigRates_mZZ2_2_Down_OppositeDjet.setConstant(True)
-        VBFinterfRates_mZZ2_2_Down_OppositeDjet.setConstant(True)
-
-        VBFsigRateNominal_mZZ2_2_Name_OppositeDjet = "signal_VBFNominal_OppositeDjet_rate_mZZ2_2_{0:.0f}_{1:.0f}_{2:.0f}".format(self.channel, self.sqrts, useDjet)
-        VBFinterfRateNominal_mZZ2_2_Name_OppositeDjet = "interf_VBFNominal_OppositeDjet_rate_mZZ2_2_{0:.0f}_{1:.0f}_{2:.0f}".format(self.channel, self.sqrts, useDjet)
-        VBFsigRates_mZZ2_2_Nominal_OppositeDjet = ROOT.RooRealVar(VBFsigRateNominal_mZZ2_2_Name_OppositeDjet, VBFsigRateNominal_mZZ2_2_Name_OppositeDjet, integral_VBF_T_mZZ2_2_2_OppositeDjet)
-        VBFinterfRates_mZZ2_2_Nominal_OppositeDjet = ROOT.RooRealVar(VBFinterfRateNominal_mZZ2_2_Name_OppositeDjet, VBFinterfRateNominal_mZZ2_2_Name_OppositeDjet, integral_VBF_T_mZZ2_2_4_OppositeDjet)
-        VBFsigRates_mZZ2_2_Nominal_OppositeDjet.setConstant(True)
-        VBFinterfRates_mZZ2_2_Nominal_OppositeDjet.setConstant(True)
-
-# VBF mZZ/mH**2**3
-
-        VBFsigRateUp_mZZ2_3_Name_OppositeDjet = "signal_VBFUp_OppositeDjet_rate_mZZ2_3_{0:.0f}_{1:.0f}_{2:.0f}".format(self.channel, self.sqrts, useDjet)
-        VBFsigRates_mZZ2_3_Up_OppositeDjet = ROOT.RooRealVar(VBFsigRateUp_mZZ2_3_Name_OppositeDjet, VBFsigRateUp_mZZ2_3_Name_OppositeDjet, integral_VBF_T_mZZ2_3_2_Up_OppositeDjet)
-        VBFsigRates_mZZ2_3_Up_OppositeDjet.setConstant(True)
-
-        VBFsigRateDown_mZZ2_3_Name_OppositeDjet = "signal_VBFDown_OppositeDjet_rate_mZZ2_3_{0:.0f}_{1:.0f}_{2:.0f}".format(self.channel, self.sqrts, useDjet)
-        VBFsigRates_mZZ2_3_Down_OppositeDjet = ROOT.RooRealVar(VBFsigRateDown_mZZ2_3_Name_OppositeDjet, VBFsigRateDown_mZZ2_3_Name_OppositeDjet, integral_VBF_T_mZZ2_3_2_Down_OppositeDjet)
-        VBFsigRates_mZZ2_3_Down_OppositeDjet.setConstant(True)
-
-        VBFsigRateNominal_mZZ2_3_Name_OppositeDjet = "signal_VBFNominal_OppositeDjet_rate_mZZ2_3_{0:.0f}_{1:.0f}_{2:.0f}".format(self.channel, self.sqrts, useDjet)
-        VBFsigRates_mZZ2_3_Nominal_OppositeDjet = ROOT.RooRealVar(VBFsigRateNominal_mZZ2_3_Name_OppositeDjet, VBFsigRateNominal_mZZ2_3_Name_OppositeDjet, integral_VBF_T_mZZ2_3_2_OppositeDjet)
-        VBFsigRates_mZZ2_3_Nominal_OppositeDjet.setConstant(True)
-
-# VBF mZZ/mH**2**4
-
-        VBFsigRateUp_mZZ2_4_Name_OppositeDjet = "signal_VBFUp_OppositeDjet_rate_mZZ2_4_{0:.0f}_{1:.0f}_{2:.0f}".format(self.channel, self.sqrts, useDjet)
-        VBFsigRates_mZZ2_4_Up_OppositeDjet = ROOT.RooRealVar(VBFsigRateUp_mZZ2_4_Name_OppositeDjet, VBFsigRateUp_mZZ2_4_Name_OppositeDjet, integral_VBF_T_mZZ2_4_2_Up_OppositeDjet)
-        VBFsigRates_mZZ2_4_Up_OppositeDjet.setConstant(True)
-
-        VBFsigRateDown_mZZ2_4_Name_OppositeDjet = "signal_VBFDown_OppositeDjet_rate_mZZ2_4_{0:.0f}_{1:.0f}_{2:.0f}".format(self.channel, self.sqrts, useDjet)
-        VBFsigRates_mZZ2_4_Down_OppositeDjet = ROOT.RooRealVar(VBFsigRateDown_mZZ2_4_Name_OppositeDjet, VBFsigRateDown_mZZ2_4_Name_OppositeDjet, integral_VBF_T_mZZ2_4_2_Down_OppositeDjet)
-        VBFsigRates_mZZ2_4_Down_OppositeDjet.setConstant(True)
-
-        VBFsigRateNominal_mZZ2_4_Name_OppositeDjet = "signal_VBFNominal_OppositeDjet_rate_mZZ2_4_{0:.0f}_{1:.0f}_{2:.0f}".format(self.channel, self.sqrts, useDjet)
-        VBFsigRates_mZZ2_4_Nominal_OppositeDjet = ROOT.RooRealVar(VBFsigRateNominal_mZZ2_4_Name_OppositeDjet, VBFsigRateNominal_mZZ2_4_Name_OppositeDjet, integral_VBF_T_mZZ2_4_2_OppositeDjet)
-        VBFsigRates_mZZ2_4_Nominal_OppositeDjet.setConstant(True)
-
-
-# VBF anomalous coupling rate parameterizations
-
-        VBFsigRates_Nominal_AnomCoupl_Name = "signal_VBFNominalrate_AnomCoupl_{0:.0f}_{1:.0f}_{2:.0f}".format(self.channel, self.sqrts, useDjet)
-        VBFsigRates_Nominal_AnomCoupl = ROOT.RooFormulaVar(
-            VBFsigRates_Nominal_AnomCoupl_Name,
-            "( pow((1-abs(@5)),2)*@0 + sign(@5)*sqrt(abs(@5))*pow(sqrt(1-abs(@5)),3)*@1 + abs(@5)*(1-abs(@5))*@2 + sign(@5)*pow(sqrt(abs(@5)),3)*sqrt(1-abs(@5))*@3 + pow(@5,2)*@4 )",
-            ROOT.RooArgList(VBFsigRates_Nominal,VBFsigRates_mZZ2_1_Nominal,VBFsigRates_mZZ2_2_Nominal,VBFsigRates_mZZ2_3_Nominal,VBFsigRates_mZZ2_4_Nominal, fai1)
-            )
-        VBFinterfRates_Nominal_AnomCoupl_Name = "interf_VBFNominalrate_AnomCoupl_{0:.0f}_{1:.0f}_{2:.0f}".format(self.channel, self.sqrts, useDjet)
-        VBFinterfRates_Nominal_AnomCoupl = ROOT.RooFormulaVar(
-            VBFinterfRates_Nominal_AnomCoupl_Name,
-            "( (1-abs(@3))*@0 + sign(@3)*sqrt(abs(@3)*(1-abs(@3)))*@1 + abs(@3)*@2 )",
-            ROOT.RooArgList(VBFinterfRates_Nominal,VBFinterfRates_mZZ2_1_Nominal,VBFinterfRates_mZZ2_2_Nominal, fai1)
-            )
-
-        VBFsigRates_Up_AnomCoupl_Name = "signal_VBFUprate_AnomCoupl_{0:.0f}_{1:.0f}_{2:.0f}".format(self.channel, self.sqrts, useDjet)
-        VBFsigRates_Up_AnomCoupl = ROOT.RooFormulaVar(
-            VBFsigRates_Up_AnomCoupl_Name,
-            "( pow((1-abs(@5)),2)*@0 + sign(@5)*sqrt(abs(@5))*pow(sqrt(1-abs(@5)),3)*@1 + abs(@5)*(1-abs(@5))*@2 + sign(@5)*pow(sqrt(abs(@5)),3)*sqrt(1-abs(@5))*@3 + pow(@5,2)*@4 )",
-            ROOT.RooArgList(VBFsigRates_Up,VBFsigRates_mZZ2_1_Up,VBFsigRates_mZZ2_2_Up,VBFsigRates_mZZ2_3_Up,VBFsigRates_mZZ2_4_Up, fai1)
-            )
-        VBFinterfRates_Up_AnomCoupl_Name = "interf_VBFUprate_AnomCoupl_{0:.0f}_{1:.0f}_{2:.0f}".format(self.channel, self.sqrts, useDjet)
-        VBFinterfRates_Up_AnomCoupl = ROOT.RooFormulaVar(
-            VBFinterfRates_Up_AnomCoupl_Name,
-            "( (1-abs(@3))*@0 + sign(@3)*sqrt(abs(@3)*(1-abs(@3)))*@1 + abs(@3)*@2 )",
-            ROOT.RooArgList(VBFinterfRates_Up,VBFinterfRates_mZZ2_1_Up,VBFinterfRates_mZZ2_2_Up, fai1)
-            )
-
-        VBFsigRates_Down_AnomCoupl_Name = "signal_VBFDownrate_AnomCoupl_{0:.0f}_{1:.0f}_{2:.0f}".format(self.channel, self.sqrts, useDjet)
-        VBFsigRates_Down_AnomCoupl = ROOT.RooFormulaVar(
-            VBFsigRates_Down_AnomCoupl_Name,
-            "( pow((1-abs(@5)),2)*@0 + sign(@5)*sqrt(abs(@5))*pow(sqrt(1-abs(@5)),3)*@1 + abs(@5)*(1-abs(@5))*@2 + sign(@5)*pow(sqrt(abs(@5)),3)*sqrt(1-abs(@5))*@3 + pow(@5,2)*@4 )",
-            ROOT.RooArgList(VBFsigRates_Down,VBFsigRates_mZZ2_1_Down,VBFsigRates_mZZ2_2_Down,VBFsigRates_mZZ2_3_Down,VBFsigRates_mZZ2_4_Down, fai1)
-            )
-        VBFinterfRates_Down_AnomCoupl_Name = "interf_VBFDownrate_AnomCoupl_{0:.0f}_{1:.0f}_{2:.0f}".format(self.channel, self.sqrts, useDjet)
-        VBFinterfRates_Down_AnomCoupl = ROOT.RooFormulaVar(
-            VBFinterfRates_Down_AnomCoupl_Name,
-            "( (1-abs(@3))*@0 + sign(@3)*sqrt(abs(@3)*(1-abs(@3)))*@1 + abs(@3)*@2 )",
-            ROOT.RooArgList(VBFinterfRates_Down,VBFinterfRates_mZZ2_1_Down,VBFinterfRates_mZZ2_2_Down, fai1)
-            )
-
-
-        VBFsigRates_Nominal_AnomCoupl_Name_OppositeDjet = "signal_VBFNominal_OppositeDjet_rate_AnomCoupl_{0:.0f}_{1:.0f}_{2:.0f}".format(self.channel, self.sqrts, useDjet)
-        VBFsigRates_Nominal_AnomCoupl_OppositeDjet = ROOT.RooFormulaVar(
-            VBFsigRates_Nominal_AnomCoupl_Name_OppositeDjet,
-            "( pow((1-abs(@5)),2)*@0 + sign(@5)*sqrt(abs(@5))*pow(sqrt(1-abs(@5)),3)*@1 + abs(@5)*(1-abs(@5))*@2 + sign(@5)*pow(sqrt(abs(@5)),3)*sqrt(1-abs(@5))*@3 + pow(@5,2)*@4 )",
-            ROOT.RooArgList(VBFsigRates_Nominal_OppositeDjet,VBFsigRates_mZZ2_1_Nominal_OppositeDjet,VBFsigRates_mZZ2_2_Nominal_OppositeDjet,VBFsigRates_mZZ2_3_Nominal_OppositeDjet,VBFsigRates_mZZ2_4_Nominal_OppositeDjet, fai1)
-            )
-        VBFinterfRates_Nominal_AnomCoupl_Name_OppositeDjet = "interf_VBFNominal_OppositeDjet_rate_AnomCoupl_{0:.0f}_{1:.0f}_{2:.0f}".format(self.channel, self.sqrts, useDjet)
-        VBFinterfRates_Nominal_AnomCoupl_OppositeDjet = ROOT.RooFormulaVar(
-            VBFinterfRates_Nominal_AnomCoupl_Name_OppositeDjet,
-            "( (1-abs(@3))*@0 + sign(@3)*sqrt(abs(@3)*(1-abs(@3)))*@1 + abs(@3)*@2 )",
-            ROOT.RooArgList(VBFinterfRates_Nominal_OppositeDjet,VBFinterfRates_mZZ2_1_Nominal_OppositeDjet,VBFinterfRates_mZZ2_2_Nominal_OppositeDjet, fai1)
-            )
-
-        VBFsigRates_Up_AnomCoupl_Name_OppositeDjet = "signal_VBFUp_OppositeDjet_rate_AnomCoupl_{0:.0f}_{1:.0f}_{2:.0f}".format(self.channel, self.sqrts, useDjet)
-        VBFsigRates_Up_AnomCoupl_OppositeDjet = ROOT.RooFormulaVar(
-            VBFsigRates_Up_AnomCoupl_Name_OppositeDjet,
-            "( pow((1-abs(@5)),2)*@0 + sign(@5)*sqrt(abs(@5))*pow(sqrt(1-abs(@5)),3)*@1 + abs(@5)*(1-abs(@5))*@2 + sign(@5)*pow(sqrt(abs(@5)),3)*sqrt(1-abs(@5))*@3 + pow(@5,2)*@4 )",
-            ROOT.RooArgList(VBFsigRates_Up_OppositeDjet,VBFsigRates_mZZ2_1_Up_OppositeDjet,VBFsigRates_mZZ2_2_Up_OppositeDjet,VBFsigRates_mZZ2_3_Up_OppositeDjet,VBFsigRates_mZZ2_4_Up_OppositeDjet, fai1)
-            )
-        VBFinterfRates_Up_AnomCoupl_Name_OppositeDjet = "interf_VBFUp_OppositeDjet_rate_AnomCoupl_{0:.0f}_{1:.0f}_{2:.0f}".format(self.channel, self.sqrts, useDjet)
-        VBFinterfRates_Up_AnomCoupl_OppositeDjet = ROOT.RooFormulaVar(
-            VBFinterfRates_Up_AnomCoupl_Name_OppositeDjet,
-            "( (1-abs(@3))*@0 + sign(@3)*sqrt(abs(@3)*(1-abs(@3)))*@1 + abs(@3)*@2 )",
-            ROOT.RooArgList(VBFinterfRates_Up_OppositeDjet,VBFinterfRates_mZZ2_1_Up_OppositeDjet,VBFinterfRates_mZZ2_2_Up_OppositeDjet, fai1)
-            )
-
-        VBFsigRates_Down_AnomCoupl_Name_OppositeDjet = "signal_VBFDown_OppositeDjet_rate_AnomCoupl_{0:.0f}_{1:.0f}_{2:.0f}".format(self.channel, self.sqrts, useDjet)
-        VBFsigRates_Down_AnomCoupl_OppositeDjet = ROOT.RooFormulaVar(
-            VBFsigRates_Down_AnomCoupl_Name_OppositeDjet,
-            "( pow((1-abs(@5)),2)*@0 + sign(@5)*sqrt(abs(@5))*pow(sqrt(1-abs(@5)),3)*@1 + abs(@5)*(1-abs(@5))*@2 + sign(@5)*pow(sqrt(abs(@5)),3)*sqrt(1-abs(@5))*@3 + pow(@5,2)*@4 )",
-            ROOT.RooArgList(VBFsigRates_Down_OppositeDjet,VBFsigRates_mZZ2_1_Down_OppositeDjet,VBFsigRates_mZZ2_2_Down_OppositeDjet,VBFsigRates_mZZ2_3_Down_OppositeDjet,VBFsigRates_mZZ2_4_Down_OppositeDjet, fai1)
-            )
-        VBFinterfRates_Down_AnomCoupl_Name_OppositeDjet = "interf_VBFDown_OppositeDjet_rate_AnomCoupl_{0:.0f}_{1:.0f}_{2:.0f}".format(self.channel, self.sqrts, useDjet)
-        VBFinterfRates_Down_AnomCoupl_OppositeDjet = ROOT.RooFormulaVar(
-            VBFinterfRates_Down_AnomCoupl_Name_OppositeDjet,
-            "( (1-abs(@3))*@0 + sign(@3)*sqrt(abs(@3)*(1-abs(@3)))*@1 + abs(@3)*@2 )",
-            ROOT.RooArgList(VBFinterfRates_Down_OppositeDjet,VBFinterfRates_mZZ2_1_Down_OppositeDjet,VBFinterfRates_mZZ2_2_Down_OppositeDjet, fai1)
-            )
-
-
-#------- Combined VBF Djet ----------------#
-
-        VBFsigRates_Nominal_AnomCoupl_CombinedJet_Name = "signal_VBFNominal_CombinedJet_rate_AnomCoupl_{0:.0f}_{1:.0f}_{2:.0f}".format(self.channel, self.sqrts, useDjet)
-        VBFinterfRates_Nominal_AnomCoupl_CombinedJet_Name = "interf_VBFNominal_CombinedJet_rate_AnomCoupl_{0:.0f}_{1:.0f}_{2:.0f}".format(self.channel, self.sqrts, useDjet)
-        VBFbkgRateNominalName_CombinedDjet = "bkg_VBFNominal_CombinedDjet_rate_{0:.0f}_{1:.0f}_{2:.0f}".format(self.channel, self.sqrts, useDjet)
-        VBFsigRates_Nominal_AnomCoupl_CombinedJet = ROOT.RooFormulaVar(
-            VBFsigRates_Nominal_AnomCoupl_CombinedJet_Name,
-            "( @0 )",
-            ROOT.RooArgList(VBFsigRates_Nominal_AnomCoupl)
-            )
-        VBFinterfRates_Nominal_AnomCoupl_CombinedJet = ROOT.RooFormulaVar(
-            VBFinterfRates_Nominal_AnomCoupl_CombinedJet_Name,
-            "( @0 )",
-            ROOT.RooArgList(VBFinterfRates_Nominal_AnomCoupl)
-            )
-        VBFbkgRates_Nominal_CombinedJet = ROOT.RooFormulaVar(
-            VBFbkgRateNominalName_CombinedDjet,
-            "( @0 )",
-            ROOT.RooArgList(VBFbkgRates_Nominal)
-            )
-        if useDjet == 1:
-            VBFsigRates_Nominal_AnomCoupl_CombinedJet = ROOT.RooFormulaVar(
-                VBFsigRates_Nominal_AnomCoupl_CombinedJet_Name,
-                "( @0 + ( 1-TMath::Max(@2,0) )*@1 )",
-                ROOT.RooArgList(VBFsigRates_Nominal_AnomCoupl, VBFsigRates_Nominal_AnomCoupl_OppositeDjet, thetaSyst_djet_VBF_norm)
-                )
-            VBFinterfRates_Nominal_AnomCoupl_CombinedJet = ROOT.RooFormulaVar(
-                VBFinterfRates_Nominal_AnomCoupl_CombinedJet_Name,
-                "( @0 + ( 1-TMath::Max(@2,0) )*@1 )",
-                ROOT.RooArgList(VBFinterfRates_Nominal_AnomCoupl, VBFinterfRates_Nominal_AnomCoupl_OppositeDjet, thetaSyst_djet_VBF_norm)
-                )
-            VBFbkgRates_Nominal_CombinedJet = ROOT.RooFormulaVar(
-                VBFbkgRateNominalName_CombinedDjet,
-                "( @0 + ( 1-TMath::Max(@2,0) )*@1 )",
-                ROOT.RooArgList(VBFbkgRates_Nominal, VBFbkgRates_Nominal_OppositeDjet, thetaSyst_djet_VBF_norm)
-                )
-        if useDjet == 2:
-            VBFsigRates_Nominal_AnomCoupl_CombinedJet = ROOT.RooFormulaVar(
-                VBFsigRates_Nominal_AnomCoupl_CombinedJet_Name,
-                "( @0*TMath::Max(@1,0) )",
-                ROOT.RooArgList(VBFsigRates_Nominal_AnomCoupl, thetaSyst_djet_VBF_norm)
-                )
-            VBFinterfRates_Nominal_AnomCoupl_CombinedJet = ROOT.RooFormulaVar(
-                VBFinterfRates_Nominal_AnomCoupl_CombinedJet_Name,
-                "( @0*TMath::Max(@1,0) )",
-                ROOT.RooArgList(VBFinterfRates_Nominal_AnomCoupl, thetaSyst_djet_VBF_norm)
-                )
-            VBFbkgRates_Nominal_CombinedJet = ROOT.RooFormulaVar(
-                VBFbkgRateNominalName_CombinedDjet,
-                "( @0*TMath::Max(@1,0) )",
-                ROOT.RooArgList(VBFbkgRates_Nominal, thetaSyst_djet_VBF_norm)
-                )
-
-
-        VBFsigRates_Up_AnomCoupl_CombinedJet_Name = "signal_VBFUp_CombinedJet_rate_AnomCoupl_{0:.0f}_{1:.0f}_{2:.0f}".format(self.channel, self.sqrts, useDjet)
-        VBFinterfRates_Up_AnomCoupl_CombinedJet_Name = "interf_VBFUp_CombinedJet_rate_AnomCoupl_{0:.0f}_{1:.0f}_{2:.0f}".format(self.channel, self.sqrts, useDjet)
-        VBFbkgRateUpName_CombinedDjet = "bkg_VBFUp_CombinedDjet_rate_{0:.0f}_{1:.0f}_{2:.0f}".format(self.channel, self.sqrts, useDjet)
-        VBFsigRates_Up_AnomCoupl_CombinedJet = ROOT.RooFormulaVar(
-            VBFsigRates_Up_AnomCoupl_CombinedJet_Name,
-            "( @0 )",
-            ROOT.RooArgList(VBFsigRates_Up_AnomCoupl)
-            )
-        VBFinterfRates_Up_AnomCoupl_CombinedJet = ROOT.RooFormulaVar(
-            VBFinterfRates_Up_AnomCoupl_CombinedJet_Name,
-            "( @0 )",
-            ROOT.RooArgList(VBFinterfRates_Up_AnomCoupl)
-            )
-        VBFbkgRates_Up_CombinedJet = ROOT.RooFormulaVar(
-            VBFbkgRateUpName_CombinedDjet,
-            "( @0 )",
-            ROOT.RooArgList(VBFbkgRates_Up)
-            )
-        if useDjet == 1:
-            VBFsigRates_Up_AnomCoupl_CombinedJet = ROOT.RooFormulaVar(
-                VBFsigRates_Up_AnomCoupl_CombinedJet_Name,
-                "( @0 + ( 1-TMath::Max(@2,0) )*@1 )",
-                ROOT.RooArgList(VBFsigRates_Up_AnomCoupl, VBFsigRates_Up_AnomCoupl_OppositeDjet, thetaSyst_djet_VBF_norm)
-                )
-            VBFinterfRates_Up_AnomCoupl_CombinedJet = ROOT.RooFormulaVar(
-                VBFinterfRates_Up_AnomCoupl_CombinedJet_Name,
-                "( @0 + ( 1-TMath::Max(@2,0) )*@1 )",
-                ROOT.RooArgList(VBFinterfRates_Up_AnomCoupl, VBFinterfRates_Up_AnomCoupl_OppositeDjet, thetaSyst_djet_VBF_norm)
-                )
-            VBFbkgRates_Up_CombinedJet = ROOT.RooFormulaVar(
-                VBFbkgRateUpName_CombinedDjet,
-                "( @0 + ( 1-TMath::Max(@2,0) )*@1 )",
-                ROOT.RooArgList(VBFbkgRates_Up, VBFbkgRates_Up_OppositeDjet, thetaSyst_djet_VBF_norm)
-                )
-        if useDjet == 2:
-            VBFsigRates_Up_AnomCoupl_CombinedJet = ROOT.RooFormulaVar(
-                VBFsigRates_Up_AnomCoupl_CombinedJet_Name,
-                "( @0*TMath::Max(@1,0) )",
-                ROOT.RooArgList(VBFsigRates_Up_AnomCoupl, thetaSyst_djet_VBF_norm)
-                )
-            VBFinterfRates_Up_AnomCoupl_CombinedJet = ROOT.RooFormulaVar(
-                VBFinterfRates_Up_AnomCoupl_CombinedJet_Name,
-                "( @0*TMath::Max(@1,0) )",
-                ROOT.RooArgList(VBFinterfRates_Up_AnomCoupl, thetaSyst_djet_VBF_norm)
-                )
-            VBFbkgRates_Up_CombinedJet = ROOT.RooFormulaVar(
-                VBFbkgRateUpName_CombinedDjet,
-                "( @0*TMath::Max(@1,0) )",
-                ROOT.RooArgList(VBFbkgRates_Up, thetaSyst_djet_VBF_norm)
-                )
-
-
-        VBFsigRates_Down_AnomCoupl_CombinedJet_Name = "signal_VBFDown_CombinedJet_rate_AnomCoupl_{0:.0f}_{1:.0f}_{2:.0f}".format(self.channel, self.sqrts, useDjet)
-        VBFinterfRates_Down_AnomCoupl_CombinedJet_Name = "interf_VBFDown_CombinedJet_rate_AnomCoupl_{0:.0f}_{1:.0f}_{2:.0f}".format(self.channel, self.sqrts, useDjet)
-        VBFbkgRateDownName_CombinedDjet = "bkg_VBFDown_CombinedDjet_rate_{0:.0f}_{1:.0f}_{2:.0f}".format(self.channel, self.sqrts, useDjet)
-        VBFsigRates_Down_AnomCoupl_CombinedJet = ROOT.RooFormulaVar(
-            VBFsigRates_Down_AnomCoupl_CombinedJet_Name,
-            "( @0 )",
-            ROOT.RooArgList(VBFsigRates_Down_AnomCoupl)
-            )
-        VBFinterfRates_Down_AnomCoupl_CombinedJet = ROOT.RooFormulaVar(
-            VBFinterfRates_Down_AnomCoupl_CombinedJet_Name,
-            "( @0 )",
-            ROOT.RooArgList(VBFinterfRates_Down_AnomCoupl)
-            )
-        VBFbkgRates_Down_CombinedJet = ROOT.RooFormulaVar(
-            VBFbkgRateDownName_CombinedDjet,
-            "( @0 )",
-            ROOT.RooArgList(VBFbkgRates_Down)
-            )
-        if useDjet == 1:
-            VBFsigRates_Down_AnomCoupl_CombinedJet = ROOT.RooFormulaVar(
-                VBFsigRates_Down_AnomCoupl_CombinedJet_Name,
-                "( @0 + ( 1-TMath::Max(@2,0) )*@1 )",
-                ROOT.RooArgList(VBFsigRates_Down_AnomCoupl, VBFsigRates_Down_AnomCoupl_OppositeDjet, thetaSyst_djet_VBF_norm)
-                )
-            VBFinterfRates_Down_AnomCoupl_CombinedJet = ROOT.RooFormulaVar(
-                VBFinterfRates_Down_AnomCoupl_CombinedJet_Name,
-                "( @0 + ( 1-TMath::Max(@2,0) )*@1 )",
-                ROOT.RooArgList(VBFinterfRates_Down_AnomCoupl, VBFinterfRates_Down_AnomCoupl_OppositeDjet, thetaSyst_djet_VBF_norm)
-                )
-            VBFbkgRates_Down_CombinedJet = ROOT.RooFormulaVar(
-                VBFbkgRateDownName_CombinedDjet,
-                "( @0 + ( 1-TMath::Max(@2,0) )*@1 )",
-                ROOT.RooArgList(VBFbkgRates_Down, VBFbkgRates_Down_OppositeDjet, thetaSyst_djet_VBF_norm)
-                )
-        if useDjet == 2:
-            VBFsigRates_Down_AnomCoupl_CombinedJet = ROOT.RooFormulaVar(
-                VBFsigRates_Down_AnomCoupl_CombinedJet_Name,
-                "( @0*TMath::Max(@1,0) )",
-                ROOT.RooArgList(VBFsigRates_Down_AnomCoupl, thetaSyst_djet_VBF_norm)
-                )
-            VBFinterfRates_Down_AnomCoupl_CombinedJet = ROOT.RooFormulaVar(
-                VBFinterfRates_Down_AnomCoupl_CombinedJet_Name,
-                "( @0*TMath::Max(@1,0) )",
-                ROOT.RooArgList(VBFinterfRates_Down_AnomCoupl, thetaSyst_djet_VBF_norm)
-                )
-            VBFbkgRates_Down_CombinedJet = ROOT.RooFormulaVar(
-                VBFbkgRateDownName_CombinedDjet,
-                "( @0*TMath::Max(@1,0) )",
-                ROOT.RooArgList(VBFbkgRates_Down, thetaSyst_djet_VBF_norm)
-                )
-
-
-        VBFVarNormNominal_Name = "VBFVarNominalNorm_{0:.0f}_{1:.0f}_{2:.0f}".format(self.channel, self.sqrts, useDjet)
-        VBFNominal_norm = ROOT.RooFormulaVar(
-            VBFVarNormNominal_Name, "(@0*@3*@5*@4+@1*sqrt(@3*@5*@4)+@2)",
-            ROOT.RooArgList(VBFsigRates_Nominal_AnomCoupl_CombinedJet, VBFinterfRates_Nominal_AnomCoupl_CombinedJet, VBFbkgRates_Nominal_CombinedJet, x, mu, muV)
-            )
-        VBFVarNormUp_Name = "VBFVarUpNorm_{0:.0f}_{1:.0f}_{2:.0f}".format(self.channel, self.sqrts, useDjet)
-        VBFUp_norm = ROOT.RooFormulaVar(
-            VBFVarNormUp_Name, "(@0*@3*@5*@4+@1*sqrt(@3*@5*@4)+@2)",
-            ROOT.RooArgList(VBFsigRates_Up_AnomCoupl_CombinedJet, VBFinterfRates_Up_AnomCoupl_CombinedJet, VBFbkgRates_Up_CombinedJet, x, mu, muV)
-            )
-        VBFVarNormDown_Name = "VBFVarDownNorm_{0:.0f}_{1:.0f}_{2:.0f}".format(self.channel, self.sqrts, useDjet)
-        VBFDown_norm = ROOT.RooFormulaVar(
-            VBFVarNormDown_Name, "(@0*@3*@5*@4+@1*sqrt(@3*@5*@4)+@2)",
-            ROOT.RooArgList(VBFsigRates_Down_AnomCoupl_CombinedJet, VBFinterfRates_Down_AnomCoupl_CombinedJet, VBFbkgRates_Down_CombinedJet, x, mu, muV)
-            )
-
-
-
-        # normalization on background and protection against negative
-        # fluctuations
-        for ix in range(0, Bkg_T.GetXaxis().GetNbins() + 2):
-            yNorm = Bkg_T.Integral(ix, ix, 1, Bkg_T.GetYaxis().GetNbins())
-            yNorm_zx = Bkg_ZX.Integral(ix, ix, 1, Bkg_ZX.GetYaxis().GetNbins())
-            yNorm_zx_Up = Bkg_ZX_Up.Integral(ix, ix, 1, Bkg_ZX_Up.GetYaxis().GetNbins())
-            yNorm_zx_Down = Bkg_ZX_Down.Integral(ix, ix, 1, Bkg_ZX_Down.GetYaxis().GetNbins())
-            for iy in range(0, Bkg_T.GetYaxis().GetNbins() + 2):
-              if yNorm != 0:
-                  Bkg_T.SetBinContent(ix, iy, Bkg_T.GetBinContent(ix, iy) / yNorm)
-              if yNorm_zx != 0:
-                  Bkg_ZX.SetBinContent(ix, iy, Bkg_ZX.GetBinContent(ix, iy) / yNorm_zx)
-              if yNorm_zx_Up != 0:
-                  Bkg_ZX_Up.SetBinContent(ix, iy, Bkg_ZX_Up.GetBinContent(ix, iy) / yNorm_zx_Up)
-              if yNorm_zx_Down != 0:
-                  Bkg_ZX_Down.SetBinContent(ix, iy, Bkg_ZX_Down.GetBinContent(ix, iy) / yNorm_zx_Down)
-
-        dBinsX = Sig_T_1.GetXaxis().GetNbins()
-        print "X bins: ", dBinsX
-
-        dBinsY = Sig_T_1.GetYaxis().GetNbins()
-        print "Y bins: ", dBinsY
-
-        CMS_zz4l_widthMass.setBins(dBinsX)
-        CMS_zz4l_widthKD.setBins(dBinsY)
-
-        # -------------------------- gg2ZZ SHAPES ---------------------------------- ##
-        sigRatesNormList=[]
-        interfRatesNormList=[]
-        bkgRatesNormList=[]
-
-        bkg_ggZZ_RawHistList=[Sig_T_1]
-        bkg_ggZZ_DataHistList=[]
-        bkg_ggZZ_HistFuncList=[]
-
-        bkg_ggZZ_RawHistPDFUpList=[Sig_T_1_Up_PDF]
-        bkg_ggZZ_DataHistPDFUpList=[]
-        bkg_ggZZ_HistFuncPDFUpList=[]
-
-        bkg_ggZZ_RawHistPDFDownList=[Sig_T_1_Down_PDF]
-        bkg_ggZZ_DataHistPDFDownList=[]
-        bkg_ggZZ_HistFuncPDFDownList=[]
-
-        bkg_ggZZ_RawHistQCDUpList=[Sig_T_1_Up_QCD]
-        bkg_ggZZ_DataHistQCDUpList=[]
-        bkg_ggZZ_HistFuncQCDUpList=[]
-
-        bkg_ggZZ_RawHistQCDDownList=[Sig_T_1_Down_QCD]
-        bkg_ggZZ_DataHistQCDDownList=[]
-        bkg_ggZZ_HistFuncQCDDownList=[]
-
-
-        signal_ggZZ_RawHistList=[Sig_T_2,Sig_T_mZZ2_1_2,Sig_T_mZZ2_2_2]
-        signal_ggZZ_DataHistList=[]
-        signal_ggZZ_HistFuncList=[]
-
-        signal_ggZZ_RawHistPDFUpList=[Sig_T_2_Up_PDF,Sig_T_mZZ2_1_2_Up_PDF,Sig_T_mZZ2_2_2_Up_PDF]
-        signal_ggZZ_DataHistPDFUpList=[]
-        signal_ggZZ_HistFuncPDFUpList=[]
-
-        signal_ggZZ_RawHistPDFDownList=[Sig_T_2_Down_PDF,Sig_T_mZZ2_1_2_Down_PDF,Sig_T_mZZ2_2_2_Down_PDF]
-        signal_ggZZ_DataHistPDFDownList=[]
-        signal_ggZZ_HistFuncPDFDownList=[]
-
-        signal_ggZZ_RawHistQCDUpList=[Sig_T_2_Up_QCD,Sig_T_mZZ2_1_2_Up_QCD,Sig_T_mZZ2_2_2_Up_QCD]
-        signal_ggZZ_DataHistQCDUpList=[]
-        signal_ggZZ_HistFuncQCDUpList=[]
-
-        signal_ggZZ_RawHistQCDDownList=[Sig_T_2_Down_QCD,Sig_T_mZZ2_1_2_Down_QCD,Sig_T_mZZ2_2_2_Down_QCD]
-        signal_ggZZ_DataHistQCDDownList=[]
-        signal_ggZZ_HistFuncQCDDownList=[]
-
-
-        interf_ggZZ_RawHistList=[Sig_T_4,Sig_T_mZZ2_1_4]
-        interf_ggZZ_DataHistList=[]
-        interf_ggZZ_HistFuncList=[]
-
-        interf_ggZZ_RawHistPDFUpList=[Sig_T_4_Up_PDF,Sig_T_mZZ2_1_4_Up_PDF]
-        interf_ggZZ_DataHistPDFUpList=[]
-        interf_ggZZ_HistFuncPDFUpList=[]
-
-        interf_ggZZ_RawHistPDFDownList=[Sig_T_4_Down_PDF,Sig_T_mZZ2_1_4_Down_PDF]
-        interf_ggZZ_DataHistPDFDownList=[]
-        interf_ggZZ_HistFuncPDFDownList=[]
-
-        interf_ggZZ_RawHistQCDUpList=[Sig_T_4_Up_QCD,Sig_T_mZZ2_1_4_Up_QCD]
-        interf_ggZZ_DataHistQCDUpList=[]
-        interf_ggZZ_HistFuncQCDUpList=[]
-
-        interf_ggZZ_RawHistQCDDownList=[Sig_T_4_Down_QCD,Sig_T_mZZ2_1_4_Down_QCD]
-        interf_ggZZ_DataHistQCDDownList=[]
-        interf_ggZZ_HistFuncQCDDownList=[]
-
-
-        bkgRateNameNorm = "bkgNorm_ggZZrate"
-        bkgRatesNorm = ROOT.RooFormulaVar(bkgRateNameNorm, "@0", ROOT.RooArgList(kbkg))
-
-        sigRateNameWidthNorm = "signalWidthNorm_ggZZrate"
-        interfRateNameWidthNorm = "interfWidthNorm_ggZZrate"
-
-        sigRatesWidthNorm = ROOT.RooFormulaVar(sigRateNameWidthNorm, "@0*@1*@2", ROOT.RooArgList(x, mu, muF))
-        interfRatesWidthNorm = ROOT.RooFormulaVar(interfRateNameWidthNorm, "sqrt(@0*@1*@2)*sign(@3)*sqrt(abs(@3))", ROOT.RooArgList(x, mu, muF, kbkg))
-
-
-# ggZZ Bkg histfunc construction
-        TemplateName = "ggZZbkg_TempDataHist_{0:.0f}_{1:.0f}_{2:.0f}".format(self.channel, self.sqrts, useDjet)
-        PdfName = "ggZZbkg_TempHistFunc_{0:.0f}_{1:.0f}_{2:.0f}".format(self.channel, self.sqrts, useDjet)
-        if self.dimensions > 1:
-            TempDataHist = ROOT.RooDataHist(TemplateName, TemplateName, ROOT.RooArgList(CMS_zz4l_widthMass, CMS_zz4l_widthKD), bkg_ggZZ_RawHistList[0])
-            bkg_ggZZ_DataHistList.append(TempDataHist)
-            TempHistFunc = ROOT.RooHistFunc(PdfName, PdfName, ROOT.RooArgSet(CMS_zz4l_widthMass, CMS_zz4l_widthKD), TempDataHist)
-            bkg_ggZZ_HistFuncList.append(TempHistFunc)
-        elif self.dimensions == 1:
-            TempDataHist = ROOT.RooDataHist(TemplateName, TemplateName, ROOT.RooArgList(CMS_zz4l_widthMass), bkg_ggZZ_RawHistList[0].ProjectionX())
-            bkg_ggZZ_DataHistList.append(TempDataHist)
-            TempHistFunc = ROOT.RooHistFunc(PdfName, PdfName, ROOT.RooArgSet(CMS_zz4l_widthMass), TempDataHist)
-            bkg_ggZZ_HistFuncList.append(TempHistFunc)
-        elif self.dimensions == 0:
-            TempDataHist = ROOT.RooDataHist(TemplateName, TemplateName, ROOT.RooArgList(CMS_zz4l_widthKD), bkg_ggZZ_RawHistList[0].ProjectionY())
-            bkg_ggZZ_DataHistList.append(TempDataHist)
-            TempHistFunc = ROOT.RooHistFunc(PdfName, PdfName, ROOT.RooArgSet(CMS_zz4l_widthKD), TempDataHist)
-            bkg_ggZZ_HistFuncList.append(TempHistFunc)
-        TemplateName = "ggZZbkg_TempDataHist_Down_{0:.0f}_{1:.0f}_{2:.0f}".format(self.channel, self.sqrts, useDjet)
-        PdfName = "ggZZbkg_TempHistFunc_Down_{0:.0f}_{1:.0f}_{2:.0f}".format(self.channel, self.sqrts, useDjet)
-        if self.dimensions > 1:
-            TempDataHist = ROOT.RooDataHist(TemplateName, TemplateName, ROOT.RooArgList(CMS_zz4l_widthMass, CMS_zz4l_widthKD), bkg_ggZZ_RawHistQCDDownList[0])
-            bkg_ggZZ_DataHistQCDDownList.append(TempDataHist)
-            TempHistFunc = ROOT.RooHistFunc(PdfName, PdfName, ROOT.RooArgSet(CMS_zz4l_widthMass, CMS_zz4l_widthKD), TempDataHist)
-            bkg_ggZZ_HistFuncQCDDownList.append(TempHistFunc)
-        elif self.dimensions == 1:
-            TempDataHist = ROOT.RooDataHist(TemplateName, TemplateName, ROOT.RooArgList(CMS_zz4l_widthMass), bkg_ggZZ_RawHistQCDDownList[0].ProjectionX())
-            bkg_ggZZ_DataHistQCDDownList.append(TempDataHist)
-            TempHistFunc = ROOT.RooHistFunc(PdfName, PdfName, ROOT.RooArgSet(CMS_zz4l_widthMass), TempDataHist)
-            bkg_ggZZ_HistFuncQCDDownList.append(TempHistFunc)
-        elif self.dimensions == 0:
-            TempDataHist = ROOT.RooDataHist(TemplateName, TemplateName, ROOT.RooArgList(CMS_zz4l_widthKD), bkg_ggZZ_RawHistQCDDownList[0].ProjectionY())
-            bkg_ggZZ_DataHistQCDDownList.append(TempDataHist)
-            TempHistFunc = ROOT.RooHistFunc(PdfName, PdfName, ROOT.RooArgSet(CMS_zz4l_widthKD), TempDataHist)
-            bkg_ggZZ_HistFuncQCDDownList.append(TempHistFunc)
-        TemplateName = "ggZZbkg_TempDataHist_Up_{0:.0f}_{1:.0f}_{2:.0f}".format(self.channel, self.sqrts, useDjet)
-        PdfName = "ggZZbkg_TempHistFunc_Up_{0:.0f}_{1:.0f}_{2:.0f}".format(self.channel, self.sqrts, useDjet)
-        if self.dimensions > 1:
-            TempDataHist = ROOT.RooDataHist(TemplateName, TemplateName, ROOT.RooArgList(CMS_zz4l_widthMass, CMS_zz4l_widthKD), bkg_ggZZ_RawHistQCDUpList[0])
-            bkg_ggZZ_DataHistQCDUpList.append(TempDataHist)
-            TempHistFunc = ROOT.RooHistFunc(PdfName, PdfName, ROOT.RooArgSet(CMS_zz4l_widthMass, CMS_zz4l_widthKD), TempDataHist)
-            bkg_ggZZ_HistFuncQCDUpList.append(TempHistFunc)
-        elif self.dimensions == 1:
-            TempDataHist = ROOT.RooDataHist(TemplateName, TemplateName, ROOT.RooArgList(CMS_zz4l_widthMass), bkg_ggZZ_RawHistQCDUpList[0].ProjectionX())
-            bkg_ggZZ_DataHistQCDUpList.append(TempDataHist)
-            TempHistFunc = ROOT.RooHistFunc(PdfName, PdfName, ROOT.RooArgSet(CMS_zz4l_widthMass), TempDataHist)
-            bkg_ggZZ_HistFuncQCDUpList.append(TempHistFunc)
-        elif self.dimensions == 0:
-            TempDataHist = ROOT.RooDataHist(TemplateName, TemplateName, ROOT.RooArgList(CMS_zz4l_widthKD), bkg_ggZZ_RawHistQCDUpList[0].ProjectionY())
-            bkg_ggZZ_DataHistQCDUpList.append(TempDataHist)
-            TempHistFunc = ROOT.RooHistFunc(PdfName, PdfName, ROOT.RooArgSet(CMS_zz4l_widthKD), TempDataHist)
-            bkg_ggZZ_HistFuncQCDUpList.append(TempHistFunc)
-        TemplateName = "ggZZbkg_TempDataHist_Down_pdf_{0:.0f}_{1:.0f}_{2:.0f}".format(self.channel, self.sqrts, useDjet)
-        PdfName = "ggZZbkg_TempHistFunc_Down_pdf_{0:.0f}_{1:.0f}_{2:.0f}".format(self.channel, self.sqrts, useDjet)
-        if self.dimensions > 1:
-            TempDataHist = ROOT.RooDataHist(TemplateName, TemplateName, ROOT.RooArgList(CMS_zz4l_widthMass, CMS_zz4l_widthKD), bkg_ggZZ_RawHistPDFDownList[0])
-            bkg_ggZZ_DataHistPDFDownList.append(TempDataHist)
-            TempHistFunc = ROOT.RooHistFunc(PdfName, PdfName, ROOT.RooArgSet(CMS_zz4l_widthMass, CMS_zz4l_widthKD), TempDataHist)
-            bkg_ggZZ_HistFuncPDFDownList.append(TempHistFunc)
-        elif self.dimensions == 1:
-            TempDataHist = ROOT.RooDataHist(TemplateName, TemplateName, ROOT.RooArgList(CMS_zz4l_widthMass), bkg_ggZZ_RawHistPDFDownList[0].ProjectionX())
-            bkg_ggZZ_DataHistPDFDownList.append(TempDataHist)
-            TempHistFunc = ROOT.RooHistFunc(PdfName, PdfName, ROOT.RooArgSet(CMS_zz4l_widthMass), TempDataHist)
-            bkg_ggZZ_HistFuncPDFDownList.append(TempHistFunc)
-        elif self.dimensions == 0:
-            TempDataHist = ROOT.RooDataHist(TemplateName, TemplateName, ROOT.RooArgList(CMS_zz4l_widthKD), bkg_ggZZ_RawHistPDFDownList[0].ProjectionY())
-            bkg_ggZZ_DataHistPDFDownList.append(TempDataHist)
-            TempHistFunc = ROOT.RooHistFunc(PdfName, PdfName, ROOT.RooArgSet(CMS_zz4l_widthKD), TempDataHist)
-            bkg_ggZZ_HistFuncPDFDownList.append(TempHistFunc)
-        TemplateName = "ggZZbkg_TempDataHist_Up_pdf_{0:.0f}_{1:.0f}_{2:.0f}".format(self.channel, self.sqrts, useDjet)
-        PdfName = "ggZZbkg_TempHistFunc_Up_pdf_{0:.0f}_{1:.0f}_{2:.0f}".format(self.channel, self.sqrts, useDjet)
-        if self.dimensions > 1:
-            TempDataHist = ROOT.RooDataHist(TemplateName, TemplateName, ROOT.RooArgList(CMS_zz4l_widthMass, CMS_zz4l_widthKD), bkg_ggZZ_RawHistPDFUpList[0])
-            bkg_ggZZ_DataHistPDFUpList.append(TempDataHist)
-            TempHistFunc = ROOT.RooHistFunc(PdfName, PdfName, ROOT.RooArgSet(CMS_zz4l_widthMass, CMS_zz4l_widthKD), TempDataHist)
-            bkg_ggZZ_HistFuncPDFUpList.append(TempHistFunc)
-        elif self.dimensions == 1:
-            TempDataHist = ROOT.RooDataHist(TemplateName, TemplateName, ROOT.RooArgList(CMS_zz4l_widthMass), bkg_ggZZ_RawHistPDFUpList[0].ProjectionX())
-            bkg_ggZZ_DataHistPDFUpList.append(TempDataHist)
-            TempHistFunc = ROOT.RooHistFunc(PdfName, PdfName, ROOT.RooArgSet(CMS_zz4l_widthMass), TempDataHist)
-            bkg_ggZZ_HistFuncPDFUpList.append(TempHistFunc)
-        elif self.dimensions == 0:
-            TempDataHist = ROOT.RooDataHist(TemplateName, TemplateName, ROOT.RooArgList(CMS_zz4l_widthKD), bkg_ggZZ_RawHistPDFUpList[0].ProjectionY())
-            bkg_ggZZ_DataHistPDFUpList.append(TempDataHist)
-            TempHistFunc = ROOT.RooHistFunc(PdfName, PdfName, ROOT.RooArgSet(CMS_zz4l_widthKD), TempDataHist)
-            bkg_ggZZ_HistFuncPDFUpList.append(TempHistFunc)
-
-
-        anomalousLoops = 1
-        anomalousLoops_interf = 1
-        if self.anomCoupl == 1:
-            anomalousLoops = 3 # For ggZZ
-            anomalousLoops_interf = 2
-
-        for al in range(0,anomalousLoops) :
-            TemplateName = "ggZZsignal_TempDataHist_AC{3:.0f}_{0:.0f}_{1:.0f}_{2:.0f}".format(self.channel, self.sqrts, useDjet, al)
-            PdfName = "ggZZsignal_TempHistFunc_AC{3:.0f}_{0:.0f}_{1:.0f}_{2:.0f}".format(self.channel, self.sqrts, useDjet, al)
-            if self.dimensions > 1:
-                TempDataHist = ROOT.RooDataHist(TemplateName, TemplateName, ROOT.RooArgList(CMS_zz4l_widthMass, CMS_zz4l_widthKD), signal_ggZZ_RawHistList[al])
-                signal_ggZZ_DataHistList.append(TempDataHist)
-                TempHistFunc = ROOT.RooHistFunc(PdfName, PdfName, ROOT.RooArgSet(CMS_zz4l_widthMass, CMS_zz4l_widthKD), TempDataHist)
-                signal_ggZZ_HistFuncList.append(TempHistFunc)
-            elif self.dimensions == 1:
-                TempDataHist = ROOT.RooDataHist(TemplateName, TemplateName, ROOT.RooArgList(CMS_zz4l_widthMass), signal_ggZZ_RawHistList[al].ProjectionX())
-                signal_ggZZ_DataHistList.append(TempDataHist)
-                TempHistFunc = ROOT.RooHistFunc(PdfName, PdfName, ROOT.RooArgSet(CMS_zz4l_widthMass), TempDataHist)
-                signal_ggZZ_HistFuncList.append(TempHistFunc)
-            elif self.dimensions == 0:
-                TempDataHist = ROOT.RooDataHist(TemplateName, TemplateName, ROOT.RooArgList(CMS_zz4l_widthKD), signal_ggZZ_RawHistList[al].ProjectionY())
-                signal_ggZZ_DataHistList.append(TempDataHist)
-                TempHistFunc = ROOT.RooHistFunc(PdfName, PdfName, ROOT.RooArgSet(CMS_zz4l_widthKD), TempDataHist)
-                signal_ggZZ_HistFuncList.append(TempHistFunc)
-            TemplateName = "ggZZsignal_TempDataHist_Up_AC{3:.0f}_{0:.0f}_{1:.0f}_{2:.0f}".format(self.channel, self.sqrts, useDjet, al)
-            PdfName = "ggZZsignal_TempHistFunc_Up_AC{3:.0f}_{0:.0f}_{1:.0f}_{2:.0f}".format(self.channel, self.sqrts, useDjet, al)
-            if self.dimensions > 1:
-                TempDataHist = ROOT.RooDataHist(TemplateName, TemplateName, ROOT.RooArgList(CMS_zz4l_widthMass, CMS_zz4l_widthKD), signal_ggZZ_RawHistQCDUpList[al])
-                signal_ggZZ_DataHistQCDUpList.append(TempDataHist)
-                TempHistFunc = ROOT.RooHistFunc(PdfName, PdfName, ROOT.RooArgSet(CMS_zz4l_widthMass, CMS_zz4l_widthKD), TempDataHist)
-                signal_ggZZ_HistFuncQCDUpList.append(TempHistFunc)
-            elif self.dimensions == 1:
-                TempDataHist = ROOT.RooDataHist(TemplateName, TemplateName, ROOT.RooArgList(CMS_zz4l_widthMass), signal_ggZZ_RawHistQCDUpList[al].ProjectionX())
-                signal_ggZZ_DataHistQCDUpList.append(TempDataHist)
-                TempHistFunc = ROOT.RooHistFunc(PdfName, PdfName, ROOT.RooArgSet(CMS_zz4l_widthMass), TempDataHist)
-                signal_ggZZ_HistFuncQCDUpList.append(TempHistFunc)
-            elif self.dimensions == 0:
-                TempDataHist = ROOT.RooDataHist(TemplateName, TemplateName, ROOT.RooArgList(CMS_zz4l_widthKD), signal_ggZZ_RawHistQCDUpList[al].ProjectionY())
-                signal_ggZZ_DataHistQCDUpList.append(TempDataHist)
-                TempHistFunc = ROOT.RooHistFunc(PdfName, PdfName, ROOT.RooArgSet(CMS_zz4l_widthKD), TempDataHist)
-                signal_ggZZ_HistFuncQCDUpList.append(TempHistFunc)
-            TemplateName = "ggZZsignal_TempDataHist_Down_AC{3:.0f}_{0:.0f}_{1:.0f}_{2:.0f}".format(self.channel, self.sqrts, useDjet, al)
-            PdfName = "ggZZsignal_TempHistFunc_Down_AC{3:.0f}_{0:.0f}_{1:.0f}_{2:.0f}".format(self.channel, self.sqrts, useDjet, al)
-            if self.dimensions > 1:
-                TempDataHist = ROOT.RooDataHist(TemplateName, TemplateName, ROOT.RooArgList(CMS_zz4l_widthMass, CMS_zz4l_widthKD), signal_ggZZ_RawHistQCDDownList[al])
-                signal_ggZZ_DataHistQCDDownList.append(TempDataHist)
-                TempHistFunc = ROOT.RooHistFunc(PdfName, PdfName, ROOT.RooArgSet(CMS_zz4l_widthMass, CMS_zz4l_widthKD), TempDataHist)
-                signal_ggZZ_HistFuncQCDDownList.append(TempHistFunc)
-            elif self.dimensions == 1:
-                TempDataHist = ROOT.RooDataHist(TemplateName, TemplateName, ROOT.RooArgList(CMS_zz4l_widthMass), signal_ggZZ_RawHistQCDDownList[al].ProjectionX())
-                signal_ggZZ_DataHistQCDDownList.append(TempDataHist)
-                TempHistFunc = ROOT.RooHistFunc(PdfName, PdfName, ROOT.RooArgSet(CMS_zz4l_widthMass), TempDataHist)
-                signal_ggZZ_HistFuncQCDDownList.append(TempHistFunc)
-            elif self.dimensions == 0:
-                TempDataHist = ROOT.RooDataHist(TemplateName, TemplateName, ROOT.RooArgList(CMS_zz4l_widthKD), signal_ggZZ_RawHistQCDDownList[al].ProjectionY())
-                signal_ggZZ_DataHistQCDDownList.append(TempDataHist)
-                TempHistFunc = ROOT.RooHistFunc(PdfName, PdfName, ROOT.RooArgSet(CMS_zz4l_widthKD), TempDataHist)
-                signal_ggZZ_HistFuncQCDDownList.append(TempHistFunc)
-            TemplateName = "ggZZsignal_TempDataHist_Up_pdf_AC{3:.0f}_{0:.0f}_{1:.0f}_{2:.0f}".format(self.channel, self.sqrts, useDjet, al)
-            PdfName = "ggZZsignal_TempHistFunc_Up_pdf_AC{3:.0f}_{0:.0f}_{1:.0f}_{2:.0f}".format(self.channel, self.sqrts, useDjet, al)
-            if self.dimensions > 1:
-                TempDataHist = ROOT.RooDataHist(TemplateName, TemplateName, ROOT.RooArgList(CMS_zz4l_widthMass, CMS_zz4l_widthKD), signal_ggZZ_RawHistPDFUpList[al])
-                signal_ggZZ_DataHistPDFUpList.append(TempDataHist)
-                TempHistFunc = ROOT.RooHistFunc(PdfName, PdfName, ROOT.RooArgSet(CMS_zz4l_widthMass, CMS_zz4l_widthKD), TempDataHist)
-                signal_ggZZ_HistFuncPDFUpList.append(TempHistFunc)
-            elif self.dimensions == 1:
-                TempDataHist = ROOT.RooDataHist(TemplateName, TemplateName, ROOT.RooArgList(CMS_zz4l_widthMass), signal_ggZZ_RawHistPDFUpList[al].ProjectionX())
-                signal_ggZZ_DataHistPDFUpList.append(TempDataHist)
-                TempHistFunc = ROOT.RooHistFunc(PdfName, PdfName, ROOT.RooArgSet(CMS_zz4l_widthMass), TempDataHist)
-                signal_ggZZ_HistFuncPDFUpList.append(TempHistFunc)
-            elif self.dimensions == 0:
-                TempDataHist = ROOT.RooDataHist(TemplateName, TemplateName, ROOT.RooArgList(CMS_zz4l_widthKD), signal_ggZZ_RawHistPDFUpList[al].ProjectionY())
-                signal_ggZZ_DataHistPDFUpList.append(TempDataHist)
-                TempHistFunc = ROOT.RooHistFunc(PdfName, PdfName, ROOT.RooArgSet(CMS_zz4l_widthKD), TempDataHist)
-                signal_ggZZ_HistFuncPDFUpList.append(TempHistFunc)
-            TemplateName = "ggZZsignal_TempDataHist_Down_pdf_AC{3:.0f}_{0:.0f}_{1:.0f}_{2:.0f}".format(self.channel, self.sqrts, useDjet, al)
-            PdfName = "ggZZsignal_TempHistFunc_Down_pdf_AC{3:.0f}_{0:.0f}_{1:.0f}_{2:.0f}".format(self.channel, self.sqrts, useDjet, al)
-            if self.dimensions > 1:
-                TempDataHist = ROOT.RooDataHist(TemplateName, TemplateName, ROOT.RooArgList(CMS_zz4l_widthMass, CMS_zz4l_widthKD), signal_ggZZ_RawHistPDFDownList[al])
-                signal_ggZZ_DataHistPDFDownList.append(TempDataHist)
-                TempHistFunc = ROOT.RooHistFunc(PdfName, PdfName, ROOT.RooArgSet(CMS_zz4l_widthMass, CMS_zz4l_widthKD), TempDataHist)
-                signal_ggZZ_HistFuncPDFDownList.append(TempHistFunc)
-            elif self.dimensions == 1:
-                TempDataHist = ROOT.RooDataHist(TemplateName, TemplateName, ROOT.RooArgList(CMS_zz4l_widthMass), signal_ggZZ_RawHistPDFDownList[al].ProjectionX())
-                signal_ggZZ_DataHistPDFDownList.append(TempDataHist)
-                TempHistFunc = ROOT.RooHistFunc(PdfName, PdfName, ROOT.RooArgSet(CMS_zz4l_widthMass), TempDataHist)
-                signal_ggZZ_HistFuncPDFDownList.append(TempHistFunc)
-            elif self.dimensions == 0:
-                TempDataHist = ROOT.RooDataHist(TemplateName, TemplateName, ROOT.RooArgList(CMS_zz4l_widthKD), signal_ggZZ_RawHistPDFDownList[al].ProjectionY())
-                signal_ggZZ_DataHistPDFDownList.append(TempDataHist)
-                TempHistFunc = ROOT.RooHistFunc(PdfName, PdfName, ROOT.RooArgSet(CMS_zz4l_widthKD), TempDataHist)
-                signal_ggZZ_HistFuncPDFDownList.append(TempHistFunc)
-
-        for al in range(0,anomalousLoops_interf) :
-            TemplateName = "ggZZinterf_TempDataHist_AC{3:.0f}_{0:.0f}_{1:.0f}_{2:.0f}".format(self.channel, self.sqrts, useDjet, al)
-            PdfName = "ggZZinterf_TempHistFunc_AC{3:.0f}_{0:.0f}_{1:.0f}_{2:.0f}".format(self.channel, self.sqrts, useDjet, al)
-            if self.dimensions > 1:
-                TempDataHist = ROOT.RooDataHist(TemplateName, TemplateName, ROOT.RooArgList(CMS_zz4l_widthMass, CMS_zz4l_widthKD), interf_ggZZ_RawHistList[al])
-                interf_ggZZ_DataHistList.append(TempDataHist)
-                TempHistFunc = ROOT.RooHistFunc(PdfName, PdfName, ROOT.RooArgSet(CMS_zz4l_widthMass, CMS_zz4l_widthKD), TempDataHist)
-                interf_ggZZ_HistFuncList.append(TempHistFunc)
-            elif self.dimensions == 1:
-                TempDataHist = ROOT.RooDataHist(TemplateName, TemplateName, ROOT.RooArgList(CMS_zz4l_widthMass), interf_ggZZ_RawHistList[al].ProjectionX())
-                interf_ggZZ_DataHistList.append(TempDataHist)
-                TempHistFunc = ROOT.RooHistFunc(PdfName, PdfName, ROOT.RooArgSet(CMS_zz4l_widthMass), TempDataHist)
-                interf_ggZZ_HistFuncList.append(TempHistFunc)
-            elif self.dimensions == 0:
-                TempDataHist = ROOT.RooDataHist(TemplateName, TemplateName, ROOT.RooArgList(CMS_zz4l_widthKD), interf_ggZZ_RawHistList[al].ProjectionY())
-                interf_ggZZ_DataHistList.append(TempDataHist)
-                TempHistFunc = ROOT.RooHistFunc(PdfName, PdfName, ROOT.RooArgSet(CMS_zz4l_widthKD), TempDataHist)
-                interf_ggZZ_HistFuncList.append(TempHistFunc)
-            TemplateName = "ggZZinterf_TempDataHist_Up_AC{3:.0f}_{0:.0f}_{1:.0f}_{2:.0f}".format(self.channel, self.sqrts, useDjet, al)
-            PdfName = "ggZZinterf_TempHistFunc_Up_AC{3:.0f}_{0:.0f}_{1:.0f}_{2:.0f}".format(self.channel, self.sqrts, useDjet, al)
-            if self.dimensions > 1:
-                TempDataHist = ROOT.RooDataHist(TemplateName, TemplateName, ROOT.RooArgList(CMS_zz4l_widthMass, CMS_zz4l_widthKD), interf_ggZZ_RawHistQCDUpList[al])
-                interf_ggZZ_DataHistQCDUpList.append(TempDataHist)
-                TempHistFunc = ROOT.RooHistFunc(PdfName, PdfName, ROOT.RooArgSet(CMS_zz4l_widthMass, CMS_zz4l_widthKD), TempDataHist)
-                interf_ggZZ_HistFuncQCDUpList.append(TempHistFunc)
-            elif self.dimensions == 1:
-                TempDataHist = ROOT.RooDataHist(TemplateName, TemplateName, ROOT.RooArgList(CMS_zz4l_widthMass), interf_ggZZ_RawHistQCDUpList[al].ProjectionX())
-                interf_ggZZ_DataHistQCDUpList.append(TempDataHist)
-                TempHistFunc = ROOT.RooHistFunc(PdfName, PdfName, ROOT.RooArgSet(CMS_zz4l_widthMass), TempDataHist)
-                interf_ggZZ_HistFuncQCDUpList.append(TempHistFunc)
-            elif self.dimensions == 0:
-                TempDataHist = ROOT.RooDataHist(TemplateName, TemplateName, ROOT.RooArgList(CMS_zz4l_widthKD), interf_ggZZ_RawHistQCDUpList[al].ProjectionY())
-                interf_ggZZ_DataHistQCDUpList.append(TempDataHist)
-                TempHistFunc = ROOT.RooHistFunc(PdfName, PdfName, ROOT.RooArgSet(CMS_zz4l_widthKD), TempDataHist)
-                interf_ggZZ_HistFuncQCDUpList.append(TempHistFunc)
-            TemplateName = "ggZZinterf_TempDataHist_Down_AC{3:.0f}_{0:.0f}_{1:.0f}_{2:.0f}".format(self.channel, self.sqrts, useDjet, al)
-            PdfName = "ggZZinterf_TempHistFunc_Down_AC{3:.0f}_{0:.0f}_{1:.0f}_{2:.0f}".format(self.channel, self.sqrts, useDjet, al)
-            if self.dimensions > 1:
-                TempDataHist = ROOT.RooDataHist(TemplateName, TemplateName, ROOT.RooArgList(CMS_zz4l_widthMass, CMS_zz4l_widthKD), interf_ggZZ_RawHistQCDDownList[al])
-                interf_ggZZ_DataHistQCDDownList.append(TempDataHist)
-                TempHistFunc = ROOT.RooHistFunc(PdfName, PdfName, ROOT.RooArgSet(CMS_zz4l_widthMass, CMS_zz4l_widthKD), TempDataHist)
-                interf_ggZZ_HistFuncQCDDownList.append(TempHistFunc)
-            elif self.dimensions == 1:
-                TempDataHist = ROOT.RooDataHist(TemplateName, TemplateName, ROOT.RooArgList(CMS_zz4l_widthMass), interf_ggZZ_RawHistQCDDownList[al].ProjectionX())
-                interf_ggZZ_DataHistQCDDownList.append(TempDataHist)
-                TempHistFunc = ROOT.RooHistFunc(PdfName, PdfName, ROOT.RooArgSet(CMS_zz4l_widthMass), TempDataHist)
-                interf_ggZZ_HistFuncQCDDownList.append(TempHistFunc)
-            elif self.dimensions == 0:
-                TempDataHist = ROOT.RooDataHist(TemplateName, TemplateName, ROOT.RooArgList(CMS_zz4l_widthKD), interf_ggZZ_RawHistQCDDownList[al].ProjectionY())
-                interf_ggZZ_DataHistQCDDownList.append(TempDataHist)
-                TempHistFunc = ROOT.RooHistFunc(PdfName, PdfName, ROOT.RooArgSet(CMS_zz4l_widthKD), TempDataHist)
-                interf_ggZZ_HistFuncQCDDownList.append(TempHistFunc)
-            TemplateName = "ggZZinterf_TempDataHist_Up_pdf_AC{3:.0f}_{0:.0f}_{1:.0f}_{2:.0f}".format(self.channel, self.sqrts, useDjet, al)
-            PdfName = "ggZZinterf_TempHistFunc_Up_pdf_AC{3:.0f}_{0:.0f}_{1:.0f}_{2:.0f}".format(self.channel, self.sqrts, useDjet, al)
-            if self.dimensions > 1:
-                TempDataHist = ROOT.RooDataHist(TemplateName, TemplateName, ROOT.RooArgList(CMS_zz4l_widthMass, CMS_zz4l_widthKD), interf_ggZZ_RawHistPDFUpList[al])
-                interf_ggZZ_DataHistPDFUpList.append(TempDataHist)
-                TempHistFunc = ROOT.RooHistFunc(PdfName, PdfName, ROOT.RooArgSet(CMS_zz4l_widthMass, CMS_zz4l_widthKD), TempDataHist)
-                interf_ggZZ_HistFuncPDFUpList.append(TempHistFunc)
-            elif self.dimensions == 1:
-                TempDataHist = ROOT.RooDataHist(TemplateName, TemplateName, ROOT.RooArgList(CMS_zz4l_widthMass), interf_ggZZ_RawHistPDFUpList[al].ProjectionX())
-                interf_ggZZ_DataHistPDFUpList.append(TempDataHist)
-                TempHistFunc = ROOT.RooHistFunc(PdfName, PdfName, ROOT.RooArgSet(CMS_zz4l_widthMass), TempDataHist)
-                interf_ggZZ_HistFuncPDFUpList.append(TempHistFunc)
-            elif self.dimensions == 0:
-                TempDataHist = ROOT.RooDataHist(TemplateName, TemplateName, ROOT.RooArgList(CMS_zz4l_widthKD), interf_ggZZ_RawHistPDFUpList[al].ProjectionY())
-                interf_ggZZ_DataHistPDFUpList.append(TempDataHist)
-                TempHistFunc = ROOT.RooHistFunc(PdfName, PdfName, ROOT.RooArgSet(CMS_zz4l_widthKD), TempDataHist)
-                interf_ggZZ_HistFuncPDFUpList.append(TempHistFunc)
-            TemplateName = "ggZZinterf_TempDataHist_Down_pdf_AC{3:.0f}_{0:.0f}_{1:.0f}_{2:.0f}".format(self.channel, self.sqrts, useDjet, al)
-            PdfName = "ggZZinterf_TempHistFunc_Down_pdf_AC{3:.0f}_{0:.0f}_{1:.0f}_{2:.0f}".format(self.channel, self.sqrts, useDjet, al)
-            if self.dimensions > 1:
-                TempDataHist = ROOT.RooDataHist(TemplateName, TemplateName, ROOT.RooArgList(CMS_zz4l_widthMass, CMS_zz4l_widthKD), interf_ggZZ_RawHistPDFDownList[al])
-                interf_ggZZ_DataHistPDFDownList.append(TempDataHist)
-                TempHistFunc = ROOT.RooHistFunc(PdfName, PdfName, ROOT.RooArgSet(CMS_zz4l_widthMass, CMS_zz4l_widthKD), TempDataHist)
-                interf_ggZZ_HistFuncPDFDownList.append(TempHistFunc)
-            elif self.dimensions == 1:
-                TempDataHist = ROOT.RooDataHist(TemplateName, TemplateName, ROOT.RooArgList(CMS_zz4l_widthMass), interf_ggZZ_RawHistPDFDownList[al].ProjectionX())
-                interf_ggZZ_DataHistPDFDownList.append(TempDataHist)
-                TempHistFunc = ROOT.RooHistFunc(PdfName, PdfName, ROOT.RooArgSet(CMS_zz4l_widthMass), TempDataHist)
-                interf_ggZZ_HistFuncPDFDownList.append(TempHistFunc)
-            elif self.dimensions == 0:
-                TempDataHist = ROOT.RooDataHist(TemplateName, TemplateName, ROOT.RooArgList(CMS_zz4l_widthKD), interf_ggZZ_RawHistPDFDownList[al].ProjectionY())
-                interf_ggZZ_DataHistPDFDownList.append(TempDataHist)
-                TempHistFunc = ROOT.RooHistFunc(PdfName, PdfName, ROOT.RooArgSet(CMS_zz4l_widthKD), TempDataHist)
-                interf_ggZZ_HistFuncPDFDownList.append(TempHistFunc)
-
-
-        if self.anomCoupl == 0:
-            sigRatesNormList.append(sigRatesWidthNorm)
-            interfRatesNormList.append(interfRatesWidthNorm)
-        elif self.anomCoupl == 1:
-            sigRateNameACNorm = "signalNorm_AC_0_ggZZrate"
-            sigRatesACNorm = ROOT.RooFormulaVar(sigRateNameACNorm, "(1.-abs(@0))*@1", ROOT.RooArgList(fai1,sigRatesWidthNorm))
-            interfRateNameACNorm = "interfNorm_AC_0_ggZZrate"
-            interfRatesACNorm = ROOT.RooFormulaVar(interfRateNameACNorm, "sqrt(1-abs(@0))*@1", ROOT.RooArgList(fai1,interfRatesWidthNorm))
-            sigRatesNormList.append(sigRatesACNorm)
-            interfRatesNormList.append(interfRatesACNorm)
-
-            sigRateNameACNorm = "signalNorm_AC_1_ggZZrate"
-            sigRatesACNorm = ROOT.RooFormulaVar(sigRateNameACNorm, "sign(@0)*sqrt(abs(@0)*(1-abs(@0)))*@1", ROOT.RooArgList(fai1,sigRatesWidthNorm))
-            interfRateNameACNorm = "interfNorm_AC_1_ggZZrate"
-            interfRatesACNorm = ROOT.RooFormulaVar(interfRateNameACNorm, "sign(@0)*sqrt(abs(@0))*@1", ROOT.RooArgList(fai1,interfRatesWidthNorm))
-            sigRatesNormList.append(sigRatesACNorm)
-            interfRatesNormList.append(interfRatesACNorm)
-
-            sigRateNameACNorm = "signalNorm_AC_2_ggZZrate"
-            sigRatesACNorm = ROOT.RooFormulaVar(sigRateNameACNorm, "abs(@0)*@1", ROOT.RooArgList(fai1,sigRatesWidthNorm))
-            sigRatesNormList.append(sigRatesACNorm)
-
-        ggZZ_funcficients = ROOT.RooArgList()
-        for al in range(0,len(sigRatesNormList)) :
-            ggZZ_funcficients.add(sigRatesNormList[al])
-        for al in range(0,len(interfRatesNormList)) :
-            ggZZ_funcficients.add(interfRatesNormList[al])
-        ggZZ_funcficients.add(bkgRatesNorm)
-
-        ggZZ_Nominal_histfuncs = ROOT.RooArgList()
-        ggZZ_QCDUp_histfuncs = ROOT.RooArgList()
-        ggZZ_QCDDown_histfuncs = ROOT.RooArgList()
-        ggZZ_PDFUp_histfuncs = ROOT.RooArgList()
-        ggZZ_PDFDown_histfuncs = ROOT.RooArgList()
-        for al in range(0,anomalousLoops) :
-            ggZZ_Nominal_histfuncs.add(signal_ggZZ_HistFuncList[al])
-            ggZZ_QCDUp_histfuncs.add(signal_ggZZ_HistFuncQCDUpList[al])
-            ggZZ_QCDDown_histfuncs.add(signal_ggZZ_HistFuncQCDDownList[al])
-            ggZZ_PDFUp_histfuncs.add(signal_ggZZ_HistFuncPDFUpList[al])
-            ggZZ_PDFDown_histfuncs.add(signal_ggZZ_HistFuncPDFDownList[al])
-        for al in range(0,anomalousLoops_interf) :
-            ggZZ_Nominal_histfuncs.add(interf_ggZZ_HistFuncList[al])
-            ggZZ_QCDUp_histfuncs.add(interf_ggZZ_HistFuncQCDUpList[al])
-            ggZZ_QCDDown_histfuncs.add(interf_ggZZ_HistFuncQCDDownList[al])
-            ggZZ_PDFUp_histfuncs.add(interf_ggZZ_HistFuncPDFUpList[al])
-            ggZZ_PDFDown_histfuncs.add(interf_ggZZ_HistFuncPDFDownList[al])
-        for al in range(0,1) :
-            ggZZ_Nominal_histfuncs.add(bkg_ggZZ_HistFuncList[al])
-            ggZZ_QCDUp_histfuncs.add(bkg_ggZZ_HistFuncQCDUpList[al])
-            ggZZ_QCDDown_histfuncs.add(bkg_ggZZ_HistFuncQCDDownList[al])
-            ggZZ_PDFUp_histfuncs.add(bkg_ggZZ_HistFuncPDFUpList[al])
-            ggZZ_PDFDown_histfuncs.add(bkg_ggZZ_HistFuncPDFDownList[al])
-
-#        print "ggZZ_Nominal_histfuncs"
-#        ggZZ_Nominal_histfuncs.Print("v")
-
-#        print "ggZZ_funcficients"
-#        ggZZ_funcficients.Print("v")
-
-        mixedList_ggZZ_Nominal = ROOT.RooArgList()
-        mixedList_ggZZ_QCDUp = ROOT.RooArgList()
-        mixedList_ggZZ_QCDDown = ROOT.RooArgList()
-        mixedList_ggZZ_PDFUp = ROOT.RooArgList()
-        mixedList_ggZZ_PDFDown = ROOT.RooArgList()
-        totalsize = anomalousLoops + anomalousLoops_interf + 1
-        genericpdf_ggZZ_formula = "TMath::Max( "
-        for al in range(0,totalsize):
-            mixedList_ggZZ_Nominal.add(ggZZ_Nominal_histfuncs[al])
-            mixedList_ggZZ_Nominal.add(ggZZ_funcficients[al])
-            mixedList_ggZZ_QCDUp.add(ggZZ_QCDUp_histfuncs[al])
-            mixedList_ggZZ_QCDUp.add(ggZZ_funcficients[al])
-            mixedList_ggZZ_QCDDown.add(ggZZ_QCDDown_histfuncs[al])
-            mixedList_ggZZ_QCDDown.add(ggZZ_funcficients[al])
-            mixedList_ggZZ_PDFUp.add(ggZZ_PDFUp_histfuncs[al])
-            mixedList_ggZZ_PDFUp.add(ggZZ_funcficients[al])
-            mixedList_ggZZ_PDFDown.add(ggZZ_PDFDown_histfuncs[al])
-            mixedList_ggZZ_PDFDown.add(ggZZ_funcficients[al])
-            indexA = 2*al
-            indexB = 2*al+1
-            addstring = "@{0}*@{1}".format(indexA,indexB)
-            if al != (totalsize-1): addstring += "+"
-            genericpdf_ggZZ_formula += addstring
-        genericpdf_ggZZ_formula += " , 0.0000000001 )"
-        print "ggZZ formula string: ",genericpdf_ggZZ_formula
-
-        ggZZpdfName = "ggZZ_RooWidth_Nominal2_{0:.0f}_{1:.0f}_{2:.0f}".format(self.channel, self.sqrts, useDjet)
-        ggZZpdf2_Nominal = ROOT.RooRealSumPdf(
-            ggZZpdfName, ggZZpdfName,
-            ggZZ_Nominal_histfuncs,ggZZ_funcficients
-        )
-        ggZZpdfName = "ggZZ_RooWidth_Up2_{0:.0f}_{1:.0f}_{2:.0f}".format(self.channel, self.sqrts, useDjet)
-        ggZZpdf2_Up = ROOT.RooRealSumPdf(
-            ggZZpdfName, ggZZpdfName,
-            ggZZ_QCDUp_histfuncs,ggZZ_funcficients
-        )
-        ggZZpdfName = "ggZZ_RooWidth_Down2_{0:.0f}_{1:.0f}_{2:.0f}".format(self.channel, self.sqrts, useDjet)
-        ggZZpdf2_Down = ROOT.RooRealSumPdf(
-            ggZZpdfName, ggZZpdfName,
-            ggZZ_QCDDown_histfuncs,ggZZ_funcficients
-        )
-        ggZZpdfName = "ggZZ_RooWidth_Up_pdf2_{0:.0f}_{1:.0f}_{2:.0f}".format(self.channel, self.sqrts, useDjet)
-        ggZZpdf2_Up_pdf = ROOT.RooRealSumPdf(
-            ggZZpdfName, ggZZpdfName,
-            ggZZ_PDFUp_histfuncs,ggZZ_funcficients
-        )
-        ggZZpdfName = "ggZZ_RooWidth_Down_pdf2_{0:.0f}_{1:.0f}_{2:.0f}".format(self.channel, self.sqrts, useDjet)
-        ggZZpdf2_Down_pdf = ROOT.RooRealSumPdf(
-            ggZZpdfName, ggZZpdfName,
-            ggZZ_PDFDown_histfuncs,ggZZ_funcficients
-        )
-
-
-        ggZZpdfName = "ggZZ_RooWidth_Nominal_{0:.0f}_{1:.0f}_{2:.0f}".format(self.channel, self.sqrts, useDjet)
-        ggZZpdf_Nominal = ROOT.RooRealFlooredSumPdf(
-            ggZZpdfName, ggZZpdfName,
-            ggZZ_Nominal_histfuncs,ggZZ_funcficients
-        )
-        ggZZpdfName = "ggZZ_RooWidth_Up_{0:.0f}_{1:.0f}_{2:.0f}".format(self.channel, self.sqrts, useDjet)
-        ggZZpdf_Up = ROOT.RooRealFlooredSumPdf(
-            ggZZpdfName, ggZZpdfName,
-            ggZZ_QCDUp_histfuncs,ggZZ_funcficients
-        )
-        ggZZpdfName = "ggZZ_RooWidth_Down_{0:.0f}_{1:.0f}_{2:.0f}".format(self.channel, self.sqrts, useDjet)
-        ggZZpdf_Down = ROOT.RooRealFlooredSumPdf(
-            ggZZpdfName, ggZZpdfName,
-            ggZZ_QCDDown_histfuncs,ggZZ_funcficients
-        )
-        ggZZpdfName = "ggZZ_RooWidth_Up_pdf_{0:.0f}_{1:.0f}_{2:.0f}".format(self.channel, self.sqrts, useDjet)
-        ggZZpdf_Up_pdf = ROOT.RooRealFlooredSumPdf(
-            ggZZpdfName, ggZZpdfName,
-            ggZZ_PDFUp_histfuncs,ggZZ_funcficients
-        )
-        ggZZpdfName = "ggZZ_RooWidth_Down_pdf_{0:.0f}_{1:.0f}_{2:.0f}".format(self.channel, self.sqrts, useDjet)
-        ggZZpdf_Down_pdf = ROOT.RooRealFlooredSumPdf(
-            ggZZpdfName, ggZZpdfName,
-            ggZZ_PDFDown_histfuncs,ggZZ_funcficients
-        )
-
+# LEFT HERE
 #        print "Original value: ",ggZZpdf2_Nominal.getVal()
 #        print "New value: ",ggZZpdf_Nominal.getVal()
 
@@ -2115,19 +828,19 @@ class SignalTemplateHelper:
             bkgRates_Nominal.Print("v")
 
 
-        asympowname = "kappalow_ggZZ_QCD_{0:.0f}_{1:.0f}_{2:.0f}".format(self.channel, self.sqrts, useDjet)
+        asympowname = "kappalow_ggZZ_QCD_{0:.0f}_{1:.0f}_{2:.0f}".format(self.channel, self.sqrts, iCatScheme)
         kappalow = ROOT.RooFormulaVar(
             asympowname, "@0/@1", ROOT.RooArgList(ggZZQCDDown_norm, ggZZNominal_norm)
         )
-        asympowname = "kappahigh_ggZZ_QCD_{0:.0f}_{1:.0f}_{2:.0f}".format(self.channel, self.sqrts, useDjet)
+        asympowname = "kappahigh_ggZZ_QCD_{0:.0f}_{1:.0f}_{2:.0f}".format(self.channel, self.sqrts, iCatScheme)
         kappahigh = ROOT.RooFormulaVar(
             asympowname, "@0/@1", ROOT.RooArgList(ggZZQCDUp_norm, ggZZNominal_norm)
         )
-        asympowname = "kappalow_ggZZ_pdf_{0:.0f}_{1:.0f}_{2:.0f}".format(self.channel, self.sqrts, useDjet)
+        asympowname = "kappalow_ggZZ_pdf_{0:.0f}_{1:.0f}_{2:.0f}".format(self.channel, self.sqrts, iCatScheme)
         kappalow_pdf = ROOT.RooFormulaVar(
             asympowname, "@0/@1", ROOT.RooArgList(ggZZPDFDown_norm, ggZZNominal_norm)
         )
-        asympowname = "kappahigh_ggZZ_pdf_{0:.0f}_{1:.0f}_{2:.0f}".format(self.channel, self.sqrts, useDjet)
+        asympowname = "kappahigh_ggZZ_pdf_{0:.0f}_{1:.0f}_{2:.0f}".format(self.channel, self.sqrts, iCatScheme)
         kappahigh_pdf = ROOT.RooFormulaVar(
             asympowname, "@0/@1", ROOT.RooArgList(ggZZPDFUp_norm, ggZZNominal_norm)
         )
@@ -2140,15 +853,15 @@ class SignalTemplateHelper:
         MorphNormList_ggZZ.add(ggZZPDFDown_norm)
 
 
-#        asympowname = "Asympow_ggZZ_QCD_{0:.0f}_{1:.0f}_{2:.0f}".format(self.channel, self.sqrts, useDjet)
+#        asympowname = "Asympow_ggZZ_QCD_{0:.0f}_{1:.0f}_{2:.0f}".format(self.channel, self.sqrts, iCatScheme)
 #        thetaSyst_ggZZ = AsymPow(
 #            asympowname, asympowname, kappalow, kappahigh, CMS_zz4l_APscale_syst
 #        )
-#        asympowname = "Asympow_ggZZ_pdf_{0:.0f}_{1:.0f}_{2:.0f}".format(self.channel, self.sqrts, useDjet)
+#        asympowname = "Asympow_ggZZ_pdf_{0:.0f}_{1:.0f}_{2:.0f}".format(self.channel, self.sqrts, iCatScheme)
 #        thetaSyst_ggZZ_pdf = AsymPow(
 #            asympowname, asympowname, kappalow_pdf, kappahigh_pdf, CMS_zz4l_pdf_gg_syst
 #        )
-        asympowname = "Asymquad_ggZZ_QCDPDF_{0:.0f}_{1:.0f}_{2:.0f}".format(self.channel, self.sqrts, useDjet)
+        asympowname = "Asymquad_ggZZ_QCDPDF_{0:.0f}_{1:.0f}_{2:.0f}".format(self.channel, self.sqrts, iCatScheme)
         thetaSyst_ggZZ_norm = ROOT.AsymQuad(asympowname, asympowname, MorphNormList_ggZZ, morphVarListggZZ, 1.0) # THIS IS THE ggZZ PDF!!!
 
 
@@ -2208,8 +921,8 @@ class SignalTemplateHelper:
 
 
 # VBF Bkg histfunc construction
-        TemplateName = "VBFbkg_TempDataHist_{0:.0f}_{1:.0f}_{2:.0f}".format(self.channel, self.sqrts, useDjet)
-        PdfName = "VBFbkg_TempHistFunc_{0:.0f}_{1:.0f}_{2:.0f}".format(self.channel, self.sqrts, useDjet)
+        TemplateName = "VBFbkg_TempDataHist_{0:.0f}_{1:.0f}_{2:.0f}".format(self.channel, self.sqrts, iCatScheme)
+        PdfName = "VBFbkg_TempHistFunc_{0:.0f}_{1:.0f}_{2:.0f}".format(self.channel, self.sqrts, iCatScheme)
         if self.dimensions > 1:
             TempDataHist = ROOT.RooDataHist(TemplateName, TemplateName, ROOT.RooArgList(CMS_zz4l_widthMass, CMS_zz4l_widthKD), bkg_VBF_RawHistList[0])
             bkg_VBF_DataHistList.append(TempDataHist)
@@ -2225,8 +938,8 @@ class SignalTemplateHelper:
             bkg_VBF_DataHistList.append(TempDataHist)
             TempHistFunc = ROOT.RooHistFunc(PdfName, PdfName, ROOT.RooArgSet(CMS_zz4l_widthKD), TempDataHist)
             bkg_VBF_HistFuncList.append(TempHistFunc)
-        TemplateName = "VBFbkg_TempDataHist_Down_{0:.0f}_{1:.0f}_{2:.0f}".format(self.channel, self.sqrts, useDjet)
-        PdfName = "VBFbkg_TempHistFunc_Down_{0:.0f}_{1:.0f}_{2:.0f}".format(self.channel, self.sqrts, useDjet)
+        TemplateName = "VBFbkg_TempDataHist_Down_{0:.0f}_{1:.0f}_{2:.0f}".format(self.channel, self.sqrts, iCatScheme)
+        PdfName = "VBFbkg_TempHistFunc_Down_{0:.0f}_{1:.0f}_{2:.0f}".format(self.channel, self.sqrts, iCatScheme)
         if self.dimensions > 1:
             TempDataHist = ROOT.RooDataHist(TemplateName, TemplateName, ROOT.RooArgList(CMS_zz4l_widthMass, CMS_zz4l_widthKD), bkg_VBF_RawHistDownList[0])
             bkg_VBF_DataHistDownList.append(TempDataHist)
@@ -2242,8 +955,8 @@ class SignalTemplateHelper:
             bkg_VBF_DataHistDownList.append(TempDataHist)
             TempHistFunc = ROOT.RooHistFunc(PdfName, PdfName, ROOT.RooArgSet(CMS_zz4l_widthKD), TempDataHist)
             bkg_VBF_HistFuncDownList.append(TempHistFunc)
-        TemplateName = "VBFbkg_TempDataHist_Up_{0:.0f}_{1:.0f}_{2:.0f}".format(self.channel, self.sqrts, useDjet)
-        PdfName = "VBFbkg_TempHistFunc_Up_{0:.0f}_{1:.0f}_{2:.0f}".format(self.channel, self.sqrts, useDjet)
+        TemplateName = "VBFbkg_TempDataHist_Up_{0:.0f}_{1:.0f}_{2:.0f}".format(self.channel, self.sqrts, iCatScheme)
+        PdfName = "VBFbkg_TempHistFunc_Up_{0:.0f}_{1:.0f}_{2:.0f}".format(self.channel, self.sqrts, iCatScheme)
         if self.dimensions > 1:
             TempDataHist = ROOT.RooDataHist(TemplateName, TemplateName, ROOT.RooArgList(CMS_zz4l_widthMass, CMS_zz4l_widthKD), bkg_VBF_RawHistUpList[0])
             bkg_VBF_DataHistUpList.append(TempDataHist)
@@ -2268,8 +981,8 @@ class SignalTemplateHelper:
             anomalousLoops_interf = 3
 
         for al in range(0,anomalousLoops) :
-            TemplateName = "VBFsignal_TempDataHist_AC{3:.0f}_{0:.0f}_{1:.0f}_{2:.0f}".format(self.channel, self.sqrts, useDjet, al)
-            PdfName = "VBFsignal_TempHistFunc_AC{3:.0f}_{0:.0f}_{1:.0f}_{2:.0f}".format(self.channel, self.sqrts, useDjet, al)
+            TemplateName = "VBFsignal_TempDataHist_AC{3:.0f}_{0:.0f}_{1:.0f}_{2:.0f}".format(self.channel, self.sqrts, iCatScheme, al)
+            PdfName = "VBFsignal_TempHistFunc_AC{3:.0f}_{0:.0f}_{1:.0f}_{2:.0f}".format(self.channel, self.sqrts, iCatScheme, al)
             if self.dimensions > 1:
                 TempDataHist = ROOT.RooDataHist(TemplateName, TemplateName, ROOT.RooArgList(CMS_zz4l_widthMass, CMS_zz4l_widthKD), signal_VBF_RawHistList[al])
                 signal_VBF_DataHistList.append(TempDataHist)
@@ -2285,8 +998,8 @@ class SignalTemplateHelper:
                 signal_VBF_DataHistList.append(TempDataHist)
                 TempHistFunc = ROOT.RooHistFunc(PdfName, PdfName, ROOT.RooArgSet(CMS_zz4l_widthKD), TempDataHist)
                 signal_VBF_HistFuncList.append(TempHistFunc)
-            TemplateName = "VBFsignal_TempDataHist_Up_AC{3:.0f}_{0:.0f}_{1:.0f}_{2:.0f}".format(self.channel, self.sqrts, useDjet, al)
-            PdfName = "VBFsignal_TempHistFunc_Up_AC{3:.0f}_{0:.0f}_{1:.0f}_{2:.0f}".format(self.channel, self.sqrts, useDjet, al)
+            TemplateName = "VBFsignal_TempDataHist_Up_AC{3:.0f}_{0:.0f}_{1:.0f}_{2:.0f}".format(self.channel, self.sqrts, iCatScheme, al)
+            PdfName = "VBFsignal_TempHistFunc_Up_AC{3:.0f}_{0:.0f}_{1:.0f}_{2:.0f}".format(self.channel, self.sqrts, iCatScheme, al)
             if self.dimensions > 1:
                 TempDataHist = ROOT.RooDataHist(TemplateName, TemplateName, ROOT.RooArgList(CMS_zz4l_widthMass, CMS_zz4l_widthKD), signal_VBF_RawHistUpList[al])
                 signal_VBF_DataHistUpList.append(TempDataHist)
@@ -2302,8 +1015,8 @@ class SignalTemplateHelper:
                 signal_VBF_DataHistUpList.append(TempDataHist)
                 TempHistFunc = ROOT.RooHistFunc(PdfName, PdfName, ROOT.RooArgSet(CMS_zz4l_widthKD), TempDataHist)
                 signal_VBF_HistFuncUpList.append(TempHistFunc)
-            TemplateName = "VBFsignal_TempDataHist_Down_AC{3:.0f}_{0:.0f}_{1:.0f}_{2:.0f}".format(self.channel, self.sqrts, useDjet, al)
-            PdfName = "VBFsignal_TempHistFunc_Down_AC{3:.0f}_{0:.0f}_{1:.0f}_{2:.0f}".format(self.channel, self.sqrts, useDjet, al)
+            TemplateName = "VBFsignal_TempDataHist_Down_AC{3:.0f}_{0:.0f}_{1:.0f}_{2:.0f}".format(self.channel, self.sqrts, iCatScheme, al)
+            PdfName = "VBFsignal_TempHistFunc_Down_AC{3:.0f}_{0:.0f}_{1:.0f}_{2:.0f}".format(self.channel, self.sqrts, iCatScheme, al)
             if self.dimensions > 1:
                 TempDataHist = ROOT.RooDataHist(TemplateName, TemplateName, ROOT.RooArgList(CMS_zz4l_widthMass, CMS_zz4l_widthKD), signal_VBF_RawHistDownList[al])
                 signal_VBF_DataHistDownList.append(TempDataHist)
@@ -2321,8 +1034,8 @@ class SignalTemplateHelper:
                 signal_VBF_HistFuncDownList.append(TempHistFunc)
 
         for al in range(0,anomalousLoops_interf) :
-            TemplateName = "VBFinterf_TempDataHist_AC{3:.0f}_{0:.0f}_{1:.0f}_{2:.0f}".format(self.channel, self.sqrts, useDjet, al)
-            PdfName = "VBFinterf_TempHistFunc_AC{3:.0f}_{0:.0f}_{1:.0f}_{2:.0f}".format(self.channel, self.sqrts, useDjet, al)
+            TemplateName = "VBFinterf_TempDataHist_AC{3:.0f}_{0:.0f}_{1:.0f}_{2:.0f}".format(self.channel, self.sqrts, iCatScheme, al)
+            PdfName = "VBFinterf_TempHistFunc_AC{3:.0f}_{0:.0f}_{1:.0f}_{2:.0f}".format(self.channel, self.sqrts, iCatScheme, al)
             if self.dimensions > 1:
                 TempDataHist = ROOT.RooDataHist(TemplateName, TemplateName, ROOT.RooArgList(CMS_zz4l_widthMass, CMS_zz4l_widthKD), interf_VBF_RawHistList[al])
                 interf_VBF_DataHistList.append(TempDataHist)
@@ -2338,8 +1051,8 @@ class SignalTemplateHelper:
                 interf_VBF_DataHistList.append(TempDataHist)
                 TempHistFunc = ROOT.RooHistFunc(PdfName, PdfName, ROOT.RooArgSet(CMS_zz4l_widthKD), TempDataHist)
                 interf_VBF_HistFuncList.append(TempHistFunc)
-            TemplateName = "VBFinterf_TempDataHist_Up_AC{3:.0f}_{0:.0f}_{1:.0f}_{2:.0f}".format(self.channel, self.sqrts, useDjet, al)
-            PdfName = "VBFinterf_TempHistFunc_Up_AC{3:.0f}_{0:.0f}_{1:.0f}_{2:.0f}".format(self.channel, self.sqrts, useDjet, al)
+            TemplateName = "VBFinterf_TempDataHist_Up_AC{3:.0f}_{0:.0f}_{1:.0f}_{2:.0f}".format(self.channel, self.sqrts, iCatScheme, al)
+            PdfName = "VBFinterf_TempHistFunc_Up_AC{3:.0f}_{0:.0f}_{1:.0f}_{2:.0f}".format(self.channel, self.sqrts, iCatScheme, al)
             if self.dimensions > 1:
                 TempDataHist = ROOT.RooDataHist(TemplateName, TemplateName, ROOT.RooArgList(CMS_zz4l_widthMass, CMS_zz4l_widthKD), interf_VBF_RawHistUpList[al])
                 interf_VBF_DataHistUpList.append(TempDataHist)
@@ -2355,8 +1068,8 @@ class SignalTemplateHelper:
                 interf_VBF_DataHistUpList.append(TempDataHist)
                 TempHistFunc = ROOT.RooHistFunc(PdfName, PdfName, ROOT.RooArgSet(CMS_zz4l_widthKD), TempDataHist)
                 interf_VBF_HistFuncUpList.append(TempHistFunc)
-            TemplateName = "VBFinterf_TempDataHist_Down_AC{3:.0f}_{0:.0f}_{1:.0f}_{2:.0f}".format(self.channel, self.sqrts, useDjet, al)
-            PdfName = "VBFinterf_TempHistFunc_Down_AC{3:.0f}_{0:.0f}_{1:.0f}_{2:.0f}".format(self.channel, self.sqrts, useDjet, al)
+            TemplateName = "VBFinterf_TempDataHist_Down_AC{3:.0f}_{0:.0f}_{1:.0f}_{2:.0f}".format(self.channel, self.sqrts, iCatScheme, al)
+            PdfName = "VBFinterf_TempHistFunc_Down_AC{3:.0f}_{0:.0f}_{1:.0f}_{2:.0f}".format(self.channel, self.sqrts, iCatScheme, al)
             if self.dimensions > 1:
                 TempDataHist = ROOT.RooDataHist(TemplateName, TemplateName, ROOT.RooArgList(CMS_zz4l_widthMass, CMS_zz4l_widthKD), interf_VBF_RawHistDownList[al])
                 interf_VBF_DataHistDownList.append(TempDataHist)
@@ -2431,17 +1144,17 @@ class SignalTemplateHelper:
             VBF_Up_histfuncs.add(bkg_VBF_HistFuncUpList[al])
             VBF_Down_histfuncs.add(bkg_VBF_HistFuncDownList[al])
 
-        VBFpdfName = "VBF_RooWidth_Nominal_{0:.0f}_{1:.0f}_{2:.0f}".format(self.channel, self.sqrts, useDjet)
+        VBFpdfName = "VBF_RooWidth_Nominal_{0:.0f}_{1:.0f}_{2:.0f}".format(self.channel, self.sqrts, iCatScheme)
         VBFpdf_Nominal = ROOT.RooRealFlooredSumPdf(
             VBFpdfName, VBFpdfName,
             VBF_Nominal_histfuncs,VBF_funcficients
         )
-        VBFpdfName = "VBF_RooWidth_Up_{0:.0f}_{1:.0f}_{2:.0f}".format(self.channel, self.sqrts, useDjet)
+        VBFpdfName = "VBF_RooWidth_Up_{0:.0f}_{1:.0f}_{2:.0f}".format(self.channel, self.sqrts, iCatScheme)
         VBFpdf_Up = ROOT.RooRealFlooredSumPdf(
             VBFpdfName, VBFpdfName,
             VBF_Up_histfuncs,VBF_funcficients
         )
-        VBFpdfName = "VBF_RooWidth_Down_{0:.0f}_{1:.0f}_{2:.0f}".format(self.channel, self.sqrts, useDjet)
+        VBFpdfName = "VBF_RooWidth_Down_{0:.0f}_{1:.0f}_{2:.0f}".format(self.channel, self.sqrts, iCatScheme)
         VBFpdf_Down = ROOT.RooRealFlooredSumPdf(
             VBFpdfName, VBFpdfName,
             VBF_Down_histfuncs,VBF_funcficients
@@ -2489,23 +1202,23 @@ class SignalTemplateHelper:
         MorphNormList_VBF.add(VBFUp_norm)
         MorphNormList_VBF.add(VBFDown_norm)
 
-#        asympowname = "kappalow_VBF_{0:.0f}_{1:.0f}_{2:.0f}".format(self.channel, self.sqrts, useDjet)
+#        asympowname = "kappalow_VBF_{0:.0f}_{1:.0f}_{2:.0f}".format(self.channel, self.sqrts, iCatScheme)
 #        kappalowVBF = ROOT.RooFormulaVar(asympowname, "@0/@1", ROOT.RooArgList(VBFDown_norm, VBFNominal_norm))
-#        asympowname = "kappahigh_VBF_{0:.0f}_{1:.0f}_{2:.0f}".format(self.channel, self.sqrts, useDjet)
+#        asympowname = "kappahigh_VBF_{0:.0f}_{1:.0f}_{2:.0f}".format(self.channel, self.sqrts, iCatScheme)
 #        kappahighVBF = ROOT.RooFormulaVar(asympowname, "@0/@1", ROOT.RooArgList(VBFUp_norm, VBFNominal_norm))
-#        asympowname = "Asympow_VBF_{0:.0f}_{1:.0f}_{2:.0f}".format(self.channel, self.sqrts, useDjet)
+#        asympowname = "Asympow_VBF_{0:.0f}_{1:.0f}_{2:.0f}".format(self.channel, self.sqrts, iCatScheme)
 #        thetaSyst_VBF = AsymPow(asympowname, asympowname, kappalowVBF, kappahighVBF, CMS_zz4l_VBFscale_syst)
-        asympowname = "Asymquad_VBF_{0:.0f}_{1:.0f}_{2:.0f}".format(self.channel, self.sqrts, useDjet)
+        asympowname = "Asymquad_VBF_{0:.0f}_{1:.0f}_{2:.0f}".format(self.channel, self.sqrts, iCatScheme)
         thetaSyst_VBF_norm = ROOT.AsymQuad(asympowname, asympowname, MorphNormList_VBF, morphVarListVBF, 1.0) # THIS IS THE ggZZ PDF!!!
 
 
 #------------------ SIGNAL PDF NORM VARIABLES -------------------------
 
-        ggZZpdfNormName = "ggZZ_RooWidth_{0:.0f}_{1:.0f}_{2:.0f}_norm".format(self.channel, self.sqrts, useDjet)
+        ggZZpdfNormName = "ggZZ_RooWidth_{0:.0f}_{1:.0f}_{2:.0f}_norm".format(self.channel, self.sqrts, iCatScheme)
 #        ggZZpdf_norm = ROOT.RooFormulaVar(ggZZpdfNormName, "@0*@1*@2*@3", ROOT.RooArgList(ggZZNominal_norm, self.LUMI, thetaSyst_ggZZ, thetaSyst_ggZZ_pdf))
         ggZZpdf_norm = ROOT.RooFormulaVar(ggZZpdfNormName, "TMath::Max(@0*@1,1e-10)", ROOT.RooArgList(thetaSyst_ggZZ_norm, self.LUMI))
         ggZZpdf_norm.SetNameTitle("ggzz_norm", "ggzz_norm")
-        VBFpdfNormName = "VBF_RooWidth_{0:.0f}_{1:.0f}_{2:.0f}_norm".format(self.channel, self.sqrts, useDjet)
+        VBFpdfNormName = "VBF_RooWidth_{0:.0f}_{1:.0f}_{2:.0f}_norm".format(self.channel, self.sqrts, iCatScheme)
 #        VBFpdf_norm = ROOT.RooFormulaVar(VBFpdfNormName, "@0*@1*@2", ROOT.RooArgList(VBFNominal_norm, self.LUMI, thetaSyst_VBF))
         VBFpdf_norm = ROOT.RooFormulaVar(VBFpdfNormName, "TMath::Max(@0*@1,1e-10)", ROOT.RooArgList(thetaSyst_VBF_norm, self.LUMI))
         VBFpdf_norm.SetNameTitle("vbf_offshell_norm", "vbf_offshell_norm")
@@ -2520,33 +1233,33 @@ class SignalTemplateHelper:
         bkgRate_zjets_Shape = bkgRate_zjets * self.lumi
 
         # qqZZ contribution
-        name = "CMS_widthqqzzbkg_a0_{0:.0f}_{1:.0f}_{2:.0f}".format(self.channel, self.sqrts, useDjet)
+        name = "CMS_widthqqzzbkg_a0_{0:.0f}_{1:.0f}_{2:.0f}".format(self.channel, self.sqrts, iCatScheme)
         CMS_qqzzbkg_a0 = ROOT.RooRealVar(name, "CMS_widthqqzzbkg_a0", theInputs['qqZZshape_a0'])
-        name = "CMS_widthqqzzbkg_a1_{0:.0f}_{1:.0f}_{2:.0f}".format(self.channel, self.sqrts, useDjet)
+        name = "CMS_widthqqzzbkg_a1_{0:.0f}_{1:.0f}_{2:.0f}".format(self.channel, self.sqrts, iCatScheme)
         CMS_qqzzbkg_a1 = ROOT.RooRealVar(name, "CMS_widthqqzzbkg_a1", theInputs['qqZZshape_a1'])
-        name = "CMS_widthqqzzbkg_a2_{0:.0f}_{1:.0f}_{2:.0f}".format(self.channel, self.sqrts, useDjet)
+        name = "CMS_widthqqzzbkg_a2_{0:.0f}_{1:.0f}_{2:.0f}".format(self.channel, self.sqrts, iCatScheme)
         CMS_qqzzbkg_a2 = ROOT.RooRealVar(name, "CMS_widthqqzzbkg_a2", theInputs['qqZZshape_a2'])
-        name = "CMS_widthqqzzbkg_a3_{0:.0f}_{1:.0f}_{2:.0f}".format(self.channel, self.sqrts, useDjet)
+        name = "CMS_widthqqzzbkg_a3_{0:.0f}_{1:.0f}_{2:.0f}".format(self.channel, self.sqrts, iCatScheme)
         CMS_qqzzbkg_a3 = ROOT.RooRealVar(name, "CMS_widthqqzzbkg_a3", theInputs['qqZZshape_a3'])
-        name = "CMS_widthqqzzbkg_a4_{0:.0f}_{1:.0f}_{2:.0f}".format(self.channel, self.sqrts, useDjet)
+        name = "CMS_widthqqzzbkg_a4_{0:.0f}_{1:.0f}_{2:.0f}".format(self.channel, self.sqrts, iCatScheme)
         CMS_qqzzbkg_a4 = ROOT.RooRealVar(name, "CMS_widthqqzzbkg_a4", theInputs['qqZZshape_a4'])
-        name = "CMS_widthqqzzbkg_a5_{0:.0f}_{1:.0f}_{2:.0f}".format(self.channel, self.sqrts, useDjet)
+        name = "CMS_widthqqzzbkg_a5_{0:.0f}_{1:.0f}_{2:.0f}".format(self.channel, self.sqrts, iCatScheme)
         CMS_qqzzbkg_a5 = ROOT.RooRealVar(name, "CMS_widthqqzzbkg_a5", theInputs['qqZZshape_a5'])
-        name = "CMS_widthqqzzbkg_a6_{0:.0f}_{1:.0f}_{2:.0f}".format(self.channel, self.sqrts, useDjet)
+        name = "CMS_widthqqzzbkg_a6_{0:.0f}_{1:.0f}_{2:.0f}".format(self.channel, self.sqrts, iCatScheme)
         CMS_qqzzbkg_a6 = ROOT.RooRealVar(name, "CMS_widthqqzzbkg_a6", theInputs['qqZZshape_a6'])
-        name = "CMS_widthqqzzbkg_a7_{0:.0f}_{1:.0f}_{2:.0f}".format(self.channel, self.sqrts, useDjet)
+        name = "CMS_widthqqzzbkg_a7_{0:.0f}_{1:.0f}_{2:.0f}".format(self.channel, self.sqrts, iCatScheme)
         CMS_qqzzbkg_a7 = ROOT.RooRealVar(name, "CMS_widthqqzzbkg_a7", theInputs['qqZZshape_a7'])
-        name = "CMS_widthqqzzbkg_a8_{0:.0f}_{1:.0f}_{2:.0f}".format(self.channel, self.sqrts, useDjet)
+        name = "CMS_widthqqzzbkg_a8_{0:.0f}_{1:.0f}_{2:.0f}".format(self.channel, self.sqrts, iCatScheme)
         CMS_qqzzbkg_a8 = ROOT.RooRealVar(name, "CMS_widthqqzzbkg_a8", theInputs['qqZZshape_a8'])
-        name = "CMS_widthqqzzbkg_a9_{0:.0f}_{1:.0f}_{2:.0f}".format(self.channel, self.sqrts, useDjet)
+        name = "CMS_widthqqzzbkg_a9_{0:.0f}_{1:.0f}_{2:.0f}".format(self.channel, self.sqrts, iCatScheme)
         CMS_qqzzbkg_a9 = ROOT.RooRealVar(name, "CMS_widthqqzzbkg_a9", theInputs['qqZZshape_a9'])
-        name = "CMS_widthqqzzbkg_a10_{0:.0f}_{1:.0f}_{2:.0f}".format(self.channel, self.sqrts, useDjet)
+        name = "CMS_widthqqzzbkg_a10_{0:.0f}_{1:.0f}_{2:.0f}".format(self.channel, self.sqrts, iCatScheme)
         CMS_qqzzbkg_a10 = ROOT.RooRealVar(name, "CMS_widthqqzzbkg_a10", theInputs['qqZZshape_a10'])
-        name = "CMS_widthqqzzbkg_a11_{0:.0f}_{1:.0f}_{2:.0f}".format(self.channel, self.sqrts, useDjet)
+        name = "CMS_widthqqzzbkg_a11_{0:.0f}_{1:.0f}_{2:.0f}".format(self.channel, self.sqrts, iCatScheme)
         CMS_qqzzbkg_a11 = ROOT.RooRealVar(name, "CMS_widthqqzzbkg_a11", theInputs['qqZZshape_a11'])
-        name = "CMS_widthqqzzbkg_a12_{0:.0f}_{1:.0f}_{2:.0f}".format(self.channel, self.sqrts, useDjet)
+        name = "CMS_widthqqzzbkg_a12_{0:.0f}_{1:.0f}_{2:.0f}".format(self.channel, self.sqrts, iCatScheme)
         CMS_qqzzbkg_a12 = ROOT.RooRealVar(name, "CMS_widthqqzzbkg_a12", theInputs['qqZZshape_a12'])
-        name = "CMS_widthqqzzbkg_a13_{0:.0f}_{1:.0f}_{2:.0f}".format(self.channel, self.sqrts, useDjet)
+        name = "CMS_widthqqzzbkg_a13_{0:.0f}_{1:.0f}_{2:.0f}".format(self.channel, self.sqrts, iCatScheme)
         CMS_qqzzbkg_a13 = ROOT.RooRealVar(name, "CMS_widthqqzzbkg_a13", theInputs['qqZZshape_a13'])
 
         CMS_qqzzbkg_a0.setConstant(True)
@@ -2591,7 +1304,7 @@ class SignalTemplateHelper:
         CMS_qqzzbkg_EWK_p5.setConstant(True)
 
         bkg_qqzz_mass_temp = ROOT.RooqqZZPdf_v2(
-            "bkg_qqzz_widthmass_temp_{0:.0f}_{1:.0f}_{2:.0f}".format(self.channel, self.sqrts, useDjet),
+            "bkg_qqzz_widthmass_temp_{0:.0f}_{1:.0f}_{2:.0f}".format(self.channel, self.sqrts, iCatScheme),
             "bkg_qqzz_widthmass_temp", CMS_zz4l_widthMass,
             CMS_qqzzbkg_a0, CMS_qqzzbkg_a1, CMS_qqzzbkg_a2, CMS_qqzzbkg_a3,
             CMS_qqzzbkg_a4, CMS_qqzzbkg_a5, CMS_qqzzbkg_a6, CMS_qqzzbkg_a7,
@@ -2599,17 +1312,17 @@ class SignalTemplateHelper:
             CMS_qqzzbkg_a12, CMS_qqzzbkg_a13
         )
 
-        name = "qqzz_djetcut_p0_{0:.0f}_{1:.0f}".format(self.sqrts, useDjet)
+        name = "qqzz_djetcut_p0_{0:.0f}_{1:.0f}".format(self.sqrts, iCatScheme)
         qqzz_djetcut_p0 = ROOT.RooRealVar(name, name, 1,-1e5,1e5)
-        name = "qqzz_djetcut_p1_{0:.0f}_{1:.0f}".format(self.sqrts, useDjet)
+        name = "qqzz_djetcut_p1_{0:.0f}_{1:.0f}".format(self.sqrts, iCatScheme)
         qqzz_djetcut_p1 = ROOT.RooRealVar(name, name, 0,-1e5,1e5)
-        name = "qqzz_djetcut_p2_{0:.0f}_{1:.0f}".format(self.sqrts, useDjet)
+        name = "qqzz_djetcut_p2_{0:.0f}_{1:.0f}".format(self.sqrts, iCatScheme)
         qqzz_djetcut_p2 = ROOT.RooRealVar(name, name, 0,-1e5,1e5)
-        name = "qqzz_djetcut_p3_{0:.0f}_{1:.0f}".format(self.sqrts, useDjet)
+        name = "qqzz_djetcut_p3_{0:.0f}_{1:.0f}".format(self.sqrts, iCatScheme)
         qqzz_djetcut_p3 = ROOT.RooRealVar(name, name, 1,-1e5,1e5)
 
-        if useDjet != 0:
-            # code for analytic form of Djet > 0.5 cut, useDjet == 2; useDjet == 1 is 1-(useDjet == 2)
+        if iCatScheme != 0:
+            # code for analytic form of Djet > 0.5 cut, iCatScheme == 2; iCatScheme == 1 is 1-(iCatScheme == 2)
             if self.sqrts == 7 :
                 qqzz_djetcut_p0.setVal(3.98058e-03)
                 qqzz_djetcut_p1.setVal(1.04364e-03)
@@ -2629,10 +1342,10 @@ class SignalTemplateHelper:
             CMS_zz4l_widthMass,
             qqzz_djetcut_p0, qqzz_djetcut_p1, qqzz_djetcut_p2, qqzz_djetcut_p3
         )
-        bkg_qqzz_mass_Djet_shape_Name = "bkg_qqzz_widthmass_Djet_shape_{0:.0f}_{1:.0f}".format(self.sqrts, useDjet)
+        bkg_qqzz_mass_Djet_shape_Name = "bkg_qqzz_widthmass_Djet_shape_{0:.0f}_{1:.0f}".format(self.sqrts, iCatScheme)
         bkg_qqzz_mass_Djet_shape_FormulaCore = "(@1+@2*TMath::Erf((@0-@3)/@4))"
         bkg_qqzz_mass_Djet_shape_Formula = "1"
-        if useDjet!=0:
+        if iCatScheme!=0:
             bkg_qqzz_mass_Djet_shape_Formula = bkg_qqzz_mass_Djet_shape_FormulaCore
         bkg_qqzz_mass_Djet_shape = ROOT.RooFormulaVar(
             bkg_qqzz_mass_Djet_shape_Name, bkg_qqzz_mass_Djet_shape_Name,
@@ -2659,37 +1372,37 @@ class SignalTemplateHelper:
         qqzzarglist.add(CMS_qqzzbkg_p2)
 #        bkg_qqzz_mass_shape = ROOT.RooFormulaVar(
         bkg_qqzz_mass_shape = ROOT.RooGenericPdf(
-            "bkg_qqzz_widthmass_shape_{0:.0f}_{1:.0f}_{2:.0f}".format(self.channel, self.sqrts, useDjet), "bkg_qqzz_mass_shape",
+            "bkg_qqzz_widthmass_shape_{0:.0f}_{1:.0f}_{2:.0f}".format(self.channel, self.sqrts, iCatScheme), "bkg_qqzz_mass_shape",
             "TMath::Max( 1 + @0*( @1-1 +@2*@5 +@3*@5*@5 +@4*@5*@5*@5 ) + @6*( @7-1 +@8*@5 +@9*@5*@5 ) , 1e-15 )",
             qqzzarglist
         )
-        if useDjet != 0:
+        if iCatScheme != 0:
             qqzzarglist.add(bkg_qqzz_mass_Djet_shape)
             qqzzarglist.add(thetaSyst_djet_qqZZ_norm)
-            if useDjet == 2:
+            if iCatScheme == 2:
 #                bkg_qqzz_mass_shape = ROOT.RooFormulaVar(
                 bkg_qqzz_mass_shape = ROOT.RooGenericPdf(
-                    "bkg_qqzz_widthmass_shape_{0:.0f}_{1:.0f}_{2:.0f}".format(self.channel, self.sqrts, useDjet), "bkg_qqzz_mass_shape",
+                    "bkg_qqzz_widthmass_shape_{0:.0f}_{1:.0f}_{2:.0f}".format(self.channel, self.sqrts, iCatScheme), "bkg_qqzz_mass_shape",
                     "TMath::Max( ( TMath::Max(@11,0) + @0*( @1-1 +@2*@5 +@3*@5*@5 +@4*@5*@5*@5 ) + @6*( @7-1 +@8*@5 +@9*@5*@5 ) )*@10, 1e-15 )",
                     qqzzarglist
                 )
-            elif useDjet == 1:
+            elif iCatScheme == 1:
 #                bkg_qqzz_mass_shape = ROOT.RooFormulaVar(
                 bkg_qqzz_mass_shape = ROOT.RooGenericPdf(
-                    "bkg_qqzz_widthmass_shape_{0:.0f}_{1:.0f}_{2:.0f}".format(self.channel, self.sqrts, useDjet), "bkg_qqzz_mass_shape",
+                    "bkg_qqzz_widthmass_shape_{0:.0f}_{1:.0f}_{2:.0f}".format(self.channel, self.sqrts, iCatScheme), "bkg_qqzz_mass_shape",
                     "TMath::Max( ( 1 + @0*( @1-1 +@2*@5 +@3*@5*@5 +@4*@5*@5*@5 ) + @6*( @7-1 +@8*@5 +@9*@5*@5 ) )*(1.-@10) + @10*(1-TMath::Max(@11,0)), 1e-15 )",
                     qqzzarglist
                 )
 
         bkg_qqzz_mass = ROOT.RooProdPdf(
-            "bkg_qqzz_widthmass_{0:.0f}_{1:.0f}_{2:.0f}".format(self.channel, self.sqrts, useDjet), "bkg_qqzz_mass",
+            "bkg_qqzz_widthmass_{0:.0f}_{1:.0f}_{2:.0f}".format(self.channel, self.sqrts, iCatScheme), "bkg_qqzz_mass",
             ROOT.RooArgList(
                 bkg_qqzz_mass_temp,
                 bkg_qqzz_mass_shape
             )
         )
 #        bkg_qqzz_mass = ROOT.RooGenericPdf(
-#            "bkg_qqzz_widthmass_{0:.0f}_{1:.0f}_{2:.0f}".format(self.channel, self.sqrts, useDjet), "bkg_qqzz_mass","@0*@1",
+#            "bkg_qqzz_widthmass_{0:.0f}_{1:.0f}_{2:.0f}".format(self.channel, self.sqrts, iCatScheme), "bkg_qqzz_mass","@0*@1",
 #            ROOT.RooArgList(
 #                bkg_qqzz_mass_temp,
 #                bkg_qqzz_mass_shape
@@ -2703,12 +1416,12 @@ class SignalTemplateHelper:
             bkg_qqzz_mass.Print("v")
 
         bkg_qqzz_Nominal_NormVal = bkg_qqzz_mass.createIntegral(ROOT.RooArgSet(CMS_zz4l_widthMass)).getVal()
-        bkg_qqzz_Nominal_Norm_Name = "bkg_qqzz_widthmass_NominalNorm_{0:.0f}_{1:.0f}_{2:.0f}".format(self.channel, self.sqrts, useDjet)
+        bkg_qqzz_Nominal_Norm_Name = "bkg_qqzz_widthmass_NominalNorm_{0:.0f}_{1:.0f}_{2:.0f}".format(self.channel, self.sqrts, iCatScheme)
         bkg_qqzz_Nominal_Norm = ROOT.RooRealVar(bkg_qqzz_Nominal_Norm_Name, bkg_qqzz_Nominal_Norm_Name, 1.)
 
         bkg_qqzz_DjetUp_NormVal = bkg_qqzz_Nominal_NormVal
         bkg_qqzz_DjetDown_NormVal = bkg_qqzz_Nominal_NormVal
-        if useDjet!=0:
+        if iCatScheme!=0:
             CMS_zz4l_qqzz_djet_syst.setVal(1)
             bkg_qqzz_DjetUp_NormVal = bkg_qqzz_mass.createIntegral(ROOT.RooArgSet(CMS_zz4l_widthMass)).getVal()
             CMS_zz4l_qqzz_djet_syst.setVal(-1)
@@ -2716,9 +1429,9 @@ class SignalTemplateHelper:
             CMS_zz4l_qqzz_djet_syst.setVal(0)
         bkg_qqzz_DjetUp_NormVal = bkg_qqzz_DjetUp_NormVal/bkg_qqzz_Nominal_NormVal
         bkg_qqzz_DjetDown_NormVal = bkg_qqzz_DjetDown_NormVal/bkg_qqzz_Nominal_NormVal
-        bkg_qqzz_DjetUp_Norm_Name = "bkg_qqzz_widthmass_DjetUpNorm_{0:.0f}_{1:.0f}_{2:.0f}".format(self.channel, self.sqrts, useDjet)
+        bkg_qqzz_DjetUp_Norm_Name = "bkg_qqzz_widthmass_DjetUpNorm_{0:.0f}_{1:.0f}_{2:.0f}".format(self.channel, self.sqrts, iCatScheme)
         bkg_qqzz_DjetUp_Norm = ROOT.RooRealVar(bkg_qqzz_DjetUp_Norm_Name, bkg_qqzz_DjetUp_Norm_Name, bkg_qqzz_DjetUp_NormVal)
-        bkg_qqzz_DjetDown_Norm_Name = "bkg_qqzz_widthmass_DjetDownNorm_{0:.0f}_{1:.0f}_{2:.0f}".format(self.channel, self.sqrts, useDjet)
+        bkg_qqzz_DjetDown_Norm_Name = "bkg_qqzz_widthmass_DjetDownNorm_{0:.0f}_{1:.0f}_{2:.0f}".format(self.channel, self.sqrts, iCatScheme)
         bkg_qqzz_DjetDown_Norm = ROOT.RooRealVar(bkg_qqzz_DjetDown_Norm_Name, bkg_qqzz_DjetDown_Norm_Name, bkg_qqzz_DjetDown_NormVal)
 
         qqZZ_Scale_Syst.setVal(1)
@@ -2728,9 +1441,9 @@ class SignalTemplateHelper:
         qqZZ_Scale_Syst.setVal(0)
         bkg_qqzz_QCDScaleUp_NormVal = bkg_qqzz_QCDScaleUp_NormVal/bkg_qqzz_Nominal_NormVal
         bkg_qqzz_QCDScaleDown_NormVal = bkg_qqzz_QCDScaleDown_NormVal/bkg_qqzz_Nominal_NormVal
-        bkg_qqzz_QCDScaleUp_Norm_Name = "bkg_qqzz_widthmass_QCDScaleUpNorm_{0:.0f}_{1:.0f}_{2:.0f}".format(self.channel, self.sqrts, useDjet)
+        bkg_qqzz_QCDScaleUp_Norm_Name = "bkg_qqzz_widthmass_QCDScaleUpNorm_{0:.0f}_{1:.0f}_{2:.0f}".format(self.channel, self.sqrts, iCatScheme)
         bkg_qqzz_QCDScaleUp_Norm = ROOT.RooRealVar(bkg_qqzz_QCDScaleUp_Norm_Name, bkg_qqzz_QCDScaleUp_Norm_Name, bkg_qqzz_QCDScaleUp_NormVal)
-        bkg_qqzz_QCDScaleDown_Norm_Name = "bkg_qqzz_widthmass_QCDScaleDownNorm_{0:.0f}_{1:.0f}_{2:.0f}".format(self.channel, self.sqrts, useDjet)
+        bkg_qqzz_QCDScaleDown_Norm_Name = "bkg_qqzz_widthmass_QCDScaleDownNorm_{0:.0f}_{1:.0f}_{2:.0f}".format(self.channel, self.sqrts, iCatScheme)
         bkg_qqzz_QCDScaleDown_Norm = ROOT.RooRealVar(bkg_qqzz_QCDScaleDown_Norm_Name, bkg_qqzz_QCDScaleDown_Norm_Name, bkg_qqzz_QCDScaleDown_NormVal)
 
         qqZZ_EWK_Syst.setVal(1)
@@ -2740,9 +1453,9 @@ class SignalTemplateHelper:
         qqZZ_EWK_Syst.setVal(0)
         bkg_qqzz_EWKcorrUp_NormVal = bkg_qqzz_EWKcorrUp_NormVal/bkg_qqzz_Nominal_NormVal
         bkg_qqzz_EWKcorrDown_NormVal = bkg_qqzz_EWKcorrDown_NormVal/bkg_qqzz_Nominal_NormVal
-        bkg_qqzz_EWKcorrUp_Norm_Name = "bkg_qqzz_widthmass_EWKcorrUpNorm_{0:.0f}_{1:.0f}_{2:.0f}".format(self.channel, self.sqrts, useDjet)
+        bkg_qqzz_EWKcorrUp_Norm_Name = "bkg_qqzz_widthmass_EWKcorrUpNorm_{0:.0f}_{1:.0f}_{2:.0f}".format(self.channel, self.sqrts, iCatScheme)
         bkg_qqzz_EWKcorrUp_Norm = ROOT.RooRealVar(bkg_qqzz_EWKcorrUp_Norm_Name, bkg_qqzz_EWKcorrUp_Norm_Name, bkg_qqzz_EWKcorrUp_NormVal)
-        bkg_qqzz_EWKcorrDown_Norm_Name = "bkg_qqzz_widthmass_EWKcorrDownNorm_{0:.0f}_{1:.0f}_{2:.0f}".format(self.channel, self.sqrts, useDjet)
+        bkg_qqzz_EWKcorrDown_Norm_Name = "bkg_qqzz_widthmass_EWKcorrDownNorm_{0:.0f}_{1:.0f}_{2:.0f}".format(self.channel, self.sqrts, iCatScheme)
         bkg_qqzz_EWKcorrDown_Norm = ROOT.RooRealVar(bkg_qqzz_EWKcorrDown_Norm_Name, bkg_qqzz_EWKcorrDown_Norm_Name, bkg_qqzz_EWKcorrDown_NormVal)
 
         morphVarListqqZZ_norm = ROOT.RooArgList()
@@ -2754,12 +1467,12 @@ class SignalTemplateHelper:
         MorphNormList_qqZZ_norm.add(bkg_qqzz_QCDScaleDown_Norm)
         MorphNormList_qqZZ_norm.add(bkg_qqzz_EWKcorrUp_Norm)
         MorphNormList_qqZZ_norm.add(bkg_qqzz_EWKcorrDown_Norm)
-        asympowname = "Asymquad_qqZZ_QCD_EWK_{0:.0f}_{1:.0f}_{2:.0f}".format(self.channel, self.sqrts, useDjet)
-        if useDjet!=0:
+        asympowname = "Asymquad_qqZZ_QCD_EWK_{0:.0f}_{1:.0f}_{2:.0f}".format(self.channel, self.sqrts, iCatScheme)
+        if iCatScheme!=0:
             morphVarListqqZZ_norm.add(CMS_zz4l_qqzz_djet_syst)
             MorphNormList_qqZZ_norm.add(bkg_qqzz_DjetUp_Norm)
             MorphNormList_qqZZ_norm.add(bkg_qqzz_DjetDown_Norm)
-            asympowname = "Asymquad_qqZZ_Djet_QCD_EWK_{0:.0f}_{1:.0f}_{2:.0f}".format(self.channel, self.sqrts, useDjet)
+            asympowname = "Asymquad_qqZZ_Djet_QCD_EWK_{0:.0f}_{1:.0f}_{2:.0f}".format(self.channel, self.sqrts, iCatScheme)
         thetaSyst_combined_qqZZ_norm = ROOT.AsymQuad(asympowname, asympowname, MorphNormList_qqZZ_norm, morphVarListqqZZ_norm, 1.0)
         bkg_qqzz_norm = ROOT.RooFormulaVar("bkg_qqzz_norm", "TMath::Max(@0,1e-15)", ROOT.RooArgList(thetaSyst_combined_qqZZ_norm))
 
@@ -2774,7 +1487,7 @@ class SignalTemplateHelper:
 
 
 
-        TemplateName = "qqzz_TempDataHist_{0:.0f}_{1:.0f}_{2:.0f}".format(self.channel, self.sqrts, useDjet)
+        TemplateName = "qqzz_TempDataHist_{0:.0f}_{1:.0f}_{2:.0f}".format(self.channel, self.sqrts, iCatScheme)
         qqzz_TempDataHist = ROOT.RooDataHist(
             TemplateName, TemplateName,
             ROOT.RooArgList(
@@ -2783,7 +1496,7 @@ class SignalTemplateHelper:
             ),
             Bkg_T
         )
-        PdfName = "qqzz_TemplatePdf_{0:.0f}_{1:.0f}_{2:.0f}".format(self.channel, self.sqrts, useDjet)
+        PdfName = "qqzz_TemplatePdf_{0:.0f}_{1:.0f}_{2:.0f}".format(self.channel, self.sqrts, iCatScheme)
         qqzz_TemplatePdf = ROOT.RooHistPdf(
             PdfName, PdfName,
             ROOT.RooArgSet(
@@ -2843,56 +1556,56 @@ class SignalTemplateHelper:
         val_normL_2P2F_2 = float(theInputs['zjetsShape_norm_2P2F_2e2mu'])
 
         TemplateName = "zjet_TempDataHist_{0:.0f}_{1:.0f}_{2:.0f}".format(
-            self.channel, self.sqrts, useDjet)
+            self.channel, self.sqrts, iCatScheme)
         zjet_TempDataHist = ROOT.RooDataHist(
             TemplateName, TemplateName, ROOT.RooArgList(CMS_zz4l_widthMass, CMS_zz4l_widthKD), Bkg_ZX)
         PdfName = "zjet_TemplatePdf_{0:.0f}_{1:.0f}_{2:.0f}".format(
-            self.channel, self.sqrts, useDjet)
+            self.channel, self.sqrts, iCatScheme)
         zjet_TemplatePdfNominal = ROOT.RooHistPdf(
             PdfName, PdfName, ROOT.RooArgSet(CMS_zz4l_widthMass, CMS_zz4l_widthKD), zjet_TempDataHist)
 
         TemplateName = "zjet_TempDataHist_Up_{0:.0f}_{1:.0f}_{2:.0f}".format(
-            self.channel, self.sqrts, useDjet)
+            self.channel, self.sqrts, iCatScheme)
         zjet_TempDataHistUp = ROOT.RooDataHist(
             TemplateName, TemplateName, ROOT.RooArgList(CMS_zz4l_widthMass, CMS_zz4l_widthKD), Bkg_ZX_Up)
         PdfName = "zjet_TemplatePdf_Up_{0:.0f}_{1:.0f}_{2:.0f}".format(
-            self.channel, self.sqrts, useDjet)
+            self.channel, self.sqrts, iCatScheme)
         zjet_TemplatePdfUp = ROOT.RooHistPdf(PdfName, PdfName, ROOT.RooArgSet(
             CMS_zz4l_widthMass, CMS_zz4l_widthKD), zjet_TempDataHistUp)
 
         TemplateName = "zjet_TempDataHist_Down_{0:.0f}_{1:.0f}_{2:.0f}".format(
-            self.channel, self.sqrts, useDjet)
+            self.channel, self.sqrts, iCatScheme)
         zjet_TempDataHistDown = ROOT.RooDataHist(
             TemplateName, TemplateName, ROOT.RooArgList(CMS_zz4l_widthMass, CMS_zz4l_widthKD), Bkg_ZX_Down)
         PdfName = "zjet_TemplatePdf_Down_{0:.0f}_{1:.0f}_{2:.0f}".format(
-            self.channel, self.sqrts, useDjet)
+            self.channel, self.sqrts, iCatScheme)
         zjet_TemplatePdfDown = ROOT.RooHistPdf(PdfName, PdfName, ROOT.RooArgSet(
             CMS_zz4l_widthMass, CMS_zz4l_widthKD), zjet_TempDataHistDown)
 
         # Add a RooProdPDF after each iteration of bkg_zjets_mass with
         # bkg_zjets_mass = Prod(bkg_zjets_mass,analytic form)
 
-        bkg_zjets_mass_Djet_ratio_Name = "bkg_zjets_mass_Djet_ratio_{0:.0f}_{1:.0f}_{2:.0f}".format(self.sqrts, self.channel, useDjet)
-        bkg_zjets_mass_Djet_shape_Name = "bkg_zjets_mass_Djet_shape_{0:.0f}_{1:.0f}_{2:.0f}".format(self.sqrts, self.channel, useDjet)
+        bkg_zjets_mass_Djet_ratio_Name = "bkg_zjets_mass_Djet_ratio_{0:.0f}_{1:.0f}_{2:.0f}".format(self.sqrts, self.channel, iCatScheme)
+        bkg_zjets_mass_Djet_shape_Name = "bkg_zjets_mass_Djet_shape_{0:.0f}_{1:.0f}_{2:.0f}".format(self.sqrts, self.channel, iCatScheme)
         bkg_zjets_mass_Djet_shape_FormulaCore = "@0"
         bkg_zjets_mass_Djet_shape_Formula = "1"
         bkg_zjets_mass_Djet_ratio = ROOT.RooRealVar(bkg_zjets_mass_Djet_ratio_Name, "bkg_zjets_mass_Djet_ratio", 1,0,1)
-        if useDjet != 0:
+        if iCatScheme != 0:
             # code for analytic form of Djet > 0.5 cut
             if(self.sqrts == 7):
                 bkg_zjets_mass_Djet_ratio.setVal(9.94527e-03)
             if(self.sqrts == 8):
                 bkg_zjets_mass_Djet_ratio.setVal(1.00038e-02)
-            if useDjet==1:
+            if iCatScheme==1:
                 bkg_zjets_mass_Djet_shape_FormulaCore = "(1 + (@1/(1.-@1))*(1-TMath::Max(@0,0)))"
             bkg_zjets_mass_Djet_shape_Formula = bkg_zjets_mass_Djet_shape_FormulaCore
         bkg_zjets_mass_Djet_ratio.setConstant(True)
         bkg_zjets_djet_arglist = ROOT.RooArgList(
             thetaSyst_djet_zjets_norm
         )
-        if useDjet==0:
+        if iCatScheme==0:
             bkg_zjets_djet_arglist.removeAll()
-        elif useDjet==1:
+        elif iCatScheme==1:
             bkg_zjets_djet_arglist.add(bkg_zjets_mass_Djet_ratio)
         bkg_zjets_norm = ROOT.RooFormulaVar("bkg_zjets_norm", bkg_zjets_mass_Djet_shape_Formula, bkg_zjets_djet_arglist)
 
@@ -2900,22 +1613,22 @@ class SignalTemplateHelper:
 
 
         if (self.channel == self.ID_4mu):
-            name = "mlZjet_width_{0:.0f}_{1:.0f}_{2:.0f}".format(self.channel, self.sqrts, useDjet)
+            name = "mlZjet_width_{0:.0f}_{1:.0f}_{2:.0f}".format(self.channel, self.sqrts, iCatScheme)
             mlZjet = ROOT.RooRealVar(name, "mean landau Zjet", val_meanL_2P2F)
-            name = "slZjet_width_{0:.0f}_{1:.0f}_{2:.0f}".format(self.channel, self.sqrts, useDjet)
+            name = "slZjet_width_{0:.0f}_{1:.0f}_{2:.0f}".format(self.channel, self.sqrts, iCatScheme)
             slZjet = ROOT.RooRealVar(
                 name, "sigma landau Zjet", val_sigmaL_2P2F)
             print "mean 4mu: ", mlZjet.getVal()
             print "sigma 4mu: ", slZjet.getVal()
 
             bkg_zjets_mass = ROOT.RooLandau(
-                "bkg_zjetsTmp_width_{0:.0f}_{1:.0f}_{2:.0f}".format(self.channel, self.sqrts, useDjet), "bkg_zjetsTmp", CMS_zz4l_widthMass, mlZjet, slZjet)
+                "bkg_zjetsTmp_width_{0:.0f}_{1:.0f}_{2:.0f}".format(self.channel, self.sqrts, iCatScheme), "bkg_zjetsTmp", CMS_zz4l_widthMass, mlZjet, slZjet)
 
-            bkg_zjets_Nominal = ROOT.RooProdPdf("bkg_zjets_Nominal_{0:.0f}_{1:.0f}_{2:.0f}".format(self.channel, self.sqrts, useDjet), "bkg_zjets_Nominal", ROOT.RooArgSet(
+            bkg_zjets_Nominal = ROOT.RooProdPdf("bkg_zjets_Nominal_{0:.0f}_{1:.0f}_{2:.0f}".format(self.channel, self.sqrts, iCatScheme), "bkg_zjets_Nominal", ROOT.RooArgSet(
                 bkg_zjets_mass), ROOT.RooFit.Conditional(ROOT.RooArgSet(zjet_TemplatePdfNominal), ROOT.RooArgSet(CMS_zz4l_widthKD)))
-            bkg_zjets_Up = ROOT.RooProdPdf("bkg_zjets_Up_{0:.0f}_{1:.0f}_{2:.0f}".format(self.channel, self.sqrts, useDjet), "bkg_zjets_Up", ROOT.RooArgSet(
+            bkg_zjets_Up = ROOT.RooProdPdf("bkg_zjets_Up_{0:.0f}_{1:.0f}_{2:.0f}".format(self.channel, self.sqrts, iCatScheme), "bkg_zjets_Up", ROOT.RooArgSet(
                 bkg_zjets_mass), ROOT.RooFit.Conditional(ROOT.RooArgSet(zjet_TemplatePdfUp), ROOT.RooArgSet(CMS_zz4l_widthKD)))
-            bkg_zjets_Down = ROOT.RooProdPdf("bkg_zjets_Down_{0:.0f}_{1:.0f}_{2:.0f}".format(self.channel, self.sqrts, useDjet), "bkg_zjets_Down", ROOT.RooArgSet(
+            bkg_zjets_Down = ROOT.RooProdPdf("bkg_zjets_Down_{0:.0f}_{1:.0f}_{2:.0f}".format(self.channel, self.sqrts, iCatScheme), "bkg_zjets_Down", ROOT.RooArgSet(
                 bkg_zjets_mass), ROOT.RooFit.Conditional(ROOT.RooArgSet(zjet_TemplatePdfDown), ROOT.RooArgSet(CMS_zz4l_widthKD)))
 
         elif (self.channel == self.ID_4e):
@@ -2923,41 +1636,41 @@ class SignalTemplateHelper:
             summa = val_normL_2P2F + val_normL_3P1F
 
             name = "mlZjet_width_2p2f_{0:.0f}_{1:.0f}_{2:.0f}".format(
-                self.channel, self.sqrts, useDjet)
+                self.channel, self.sqrts, iCatScheme)
             mlZjet_2p2f = ROOT.RooRealVar(
                 name, "mean landau Zjet 2p2f", val_meanL_2P2F)
             name = "slZjet_width_2p2f_{0:.0f}_{1:.0f}_{2:.0f}".format(
-                self.channel, self.sqrts, useDjet)
+                self.channel, self.sqrts, iCatScheme)
             slZjet_2p2f = ROOT.RooRealVar(
                 name, "sigma landau Zjet 2p2f", val_sigmaL_2P2F)
             name = "nlZjet_width_2p2f_{0:.0f}_{1:.0f}_{2:.0f}".format(
-                self.channel, self.sqrts, useDjet)
+                self.channel, self.sqrts, iCatScheme)
             nlZjet_2p2f = ROOT.RooRealVar(
                 name, "norm landau Zjet 2p2f", val_normL_2P2F / summa)
             name = "p0Zjet_width_2p2f_{0:.0f}_{1:.0f}_{2:.0f}".format(
-                self.channel, self.sqrts, useDjet)
+                self.channel, self.sqrts, iCatScheme)
             p0Zjet_2p2f = ROOT.RooRealVar(name, "p0 Zjet 2p2f", val_pol0_2P2F)
             name = "p1Zjet_width_2p2f_{0:.0f}_{1:.0f}_{2:.0f}".format(
-                self.channel, self.sqrts, useDjet)
+                self.channel, self.sqrts, iCatScheme)
             p1Zjet_2p2f = ROOT.RooRealVar(name, "p1 Zjet 2p2f", val_pol1_2P2F)
             print "mean 2p2f 4e: ", mlZjet_2p2f.getVal()
             print "sigma 2p2f 4e: ", slZjet_2p2f.getVal()
             print "norm 2p2f 4e: ", nlZjet_2p2f.getVal()
             print "pol0 2p2f 4e: ", p0Zjet_2p2f.getVal()
             print "pol1 2p2f 4e: ", p1Zjet_2p2f.getVal()
-            bkg_zjets_2p2f = ROOT.RooGenericPdf("bkg_zjetsTmp_width_2p2f_{0:.0f}_{1:.0f}_{2:.0f}".format(self.channel, self.sqrts, useDjet), "bkg_zjetsTmp_2p2f", "(TMath::Landau(@0,@1,@2))*(1.+ TMath::Exp(@3+@4*@0))", RooArgList(
+            bkg_zjets_2p2f = ROOT.RooGenericPdf("bkg_zjetsTmp_width_2p2f_{0:.0f}_{1:.0f}_{2:.0f}".format(self.channel, self.sqrts, iCatScheme), "bkg_zjetsTmp_2p2f", "(TMath::Landau(@0,@1,@2))*(1.+ TMath::Exp(@3+@4*@0))", RooArgList(
                 CMS_zz4l_widthMass, mlZjet_2p2f, slZjet_2p2f, p0Zjet_2p2f, p1Zjet_2p2f))
 
             name = "mlZjet_width_3p1f_{0:.0f}_{1:.0f}_{2:.0f}".format(
-                self.channel, self.sqrts, useDjet)
+                self.channel, self.sqrts, iCatScheme)
             mlZjet_3p1f = ROOT.RooRealVar(
                 name, "mean landau Zjet 3p1f", val_meanL_3P1F)
             name = "slZjet_width_3p1f_{0:.0f}_{1:.0f}_{2:.0f}".format(
-                self.channel, self.sqrts, useDjet)
+                self.channel, self.sqrts, iCatScheme)
             slZjet_3p1f = ROOT.RooRealVar(
                 name, "sigma landau Zjet 3p1f", val_sigmaL_3P1F)
             name = "nlZjet_width_3p1f_{0:.0f}_{1:.0f}_{2:.0f}".format(
-                self.channel, self.sqrts, useDjet)
+                self.channel, self.sqrts, iCatScheme)
             nlZjet_3p1f = ROOT.RooRealVar(
                 name, "norm landau Zjet 3p1f", val_normL_3P1F / summa)
             print "mean 3p1f 4e: ", mlZjet_3p1f.getVal()
@@ -2965,16 +1678,16 @@ class SignalTemplateHelper:
             print "norm 3p1f 4e: ", nlZjet_3p1f.getVal()
 
             bkg_zjets_3p1f = ROOT.RooLandau(
-                "bkg_zjetsTmp_width_3p1f_{0:.0f}_{1:.0f}_{2:.0f}".format(self.channel, self.sqrts, useDjet), "bkg_zjetsTmp_3p1f", CMS_zz4l_widthMass, mlZjet_3p1f, slZjet_3p1f)
+                "bkg_zjetsTmp_width_3p1f_{0:.0f}_{1:.0f}_{2:.0f}".format(self.channel, self.sqrts, iCatScheme), "bkg_zjetsTmp_3p1f", CMS_zz4l_widthMass, mlZjet_3p1f, slZjet_3p1f)
 
-            bkg_zjets_mass = ROOT.RooAddPdf("bkg_zjetsTmp_width_{0:.0f}_{1:.0f}_{2:.0f}".format(self.channel, self.sqrts, useDjet), "bkg_zjetsTmp", ROOT.RooArgList(
+            bkg_zjets_mass = ROOT.RooAddPdf("bkg_zjetsTmp_width_{0:.0f}_{1:.0f}_{2:.0f}".format(self.channel, self.sqrts, iCatScheme), "bkg_zjetsTmp", ROOT.RooArgList(
                 bkg_zjets_2p2f, bkg_zjets_3p1f), ROOT.RooArgList(nlZjet_2p2f, nlZjet_3p1f))
 
-            bkg_zjets_Nominal = ROOT.RooProdPdf("bkg_zjets_Nominal_{0:.0f}_{1:.0f}_{2:.0f}".format(self.channel, self.sqrts, useDjet), "bkg_zjets_Nominal", ROOT.RooArgSet(
+            bkg_zjets_Nominal = ROOT.RooProdPdf("bkg_zjets_Nominal_{0:.0f}_{1:.0f}_{2:.0f}".format(self.channel, self.sqrts, iCatScheme), "bkg_zjets_Nominal", ROOT.RooArgSet(
                 bkg_zjets_mass), ROOT.RooFit.Conditional(ROOT.RooArgSet(zjet_TemplatePdfNominal), ROOT.RooArgSet(CMS_zz4l_widthKD)))
-            bkg_zjets_Up = ROOT.RooProdPdf("bkg_zjets_Up_{0:.0f}_{1:.0f}_{2:.0f}".format(self.channel, self.sqrts, useDjet), "bkg_zjets_Up", ROOT.RooArgSet(
+            bkg_zjets_Up = ROOT.RooProdPdf("bkg_zjets_Up_{0:.0f}_{1:.0f}_{2:.0f}".format(self.channel, self.sqrts, iCatScheme), "bkg_zjets_Up", ROOT.RooArgSet(
                 bkg_zjets_mass), ROOT.RooFit.Conditional(ROOT.RooArgSet(zjet_TemplatePdfUp), ROOT.RooArgSet(CMS_zz4l_widthKD)))
-            bkg_zjets_Down = ROOT.RooProdPdf("bkg_zjets_Down_{0:.0f}_{1:.0f}_{2:.0f}".format(self.channel, self.sqrts, useDjet), "bkg_zjets_Down", ROOT.RooArgSet(
+            bkg_zjets_Down = ROOT.RooProdPdf("bkg_zjets_Down_{0:.0f}_{1:.0f}_{2:.0f}".format(self.channel, self.sqrts, iCatScheme), "bkg_zjets_Down", ROOT.RooArgSet(
                 bkg_zjets_mass), ROOT.RooFit.Conditional(ROOT.RooArgSet(zjet_TemplatePdfDown), ROOT.RooArgSet(CMS_zz4l_widthKD)))
 
         elif (self.channel == self.ID_2e2mu):
@@ -2982,15 +1695,15 @@ class SignalTemplateHelper:
             summa = val_normL_2P2F + val_normL_2P2F_2 + val_normL_3P1F
 
             name = "mlZjet_width_2p2f_{0:.0f}_{1:.0f}_{2:.0f}".format(
-                self.channel, self.sqrts, useDjet)
+                self.channel, self.sqrts, iCatScheme)
             mlZjet_2p2f = ROOT.RooRealVar(
                 name, "mean landau Zjet 2p2f", val_meanL_2P2F)
             name = "slZjet_width_2p2f_{0:.0f}_{1:.0f}_{2:.0f}".format(
-                self.channel, self.sqrts, useDjet)
+                self.channel, self.sqrts, iCatScheme)
             slZjet_2p2f = ROOT.RooRealVar(
                 name, "sigma landau Zjet 2p2f", val_sigmaL_2P2F)
             name = "nlZjet_width_2p2f_{0:.0f}_{1:.0f}".format(
-                self.channel, self.sqrts, useDjet)
+                self.channel, self.sqrts, iCatScheme)
 
             nlZjet_2p2f = ROOT.RooRealVar(name,"norm landau Zjet 2p2f",val_normL_2P2F/summa)
             name = "p0Zjet_width_2p2f_{0:.0f}_{1:.0f}".format(self.channel,self.sqrts)
@@ -3005,55 +1718,55 @@ class SignalTemplateHelper:
             bkg_zjets_2p2f = ROOT.RooGenericPdf("bkg_zjetsTmp_width_2p2f","bkg_zjetsTmp_2p2f","(TMath::Landau(@0,@1,@2))*(1.+ TMath::Exp(@3+@4*@0))",RooArgList(CMS_zz4l_widthMass,mlZjet_2p2f,slZjet_2p2f,p0Zjet_2p2f,p1Zjet_2p2f))
 
             name = "mlZjet_width_2p2f_2_{0:.0f}_{1:.0f}_{2:.0f}".format(
-                self.channel, self.sqrts, useDjet)
+                self.channel, self.sqrts, iCatScheme)
             mlZjet_2p2f_2 = ROOT.RooRealVar(
                 name, "mean landau Zjet 2p2f 2e2mu", val_meanL_2P2F_2)
             name = "slZjet_width_2p2f_2_{0:.0f}_{1:.0f}_{2:.0f}".format(
-                self.channel, self.sqrts, useDjet)
+                self.channel, self.sqrts, iCatScheme)
             slZjet_2p2f_2 = ROOT.RooRealVar(
                 name, "sigma landau Zjet 2p2f 2e2mu", val_sigmaL_2P2F_2)
             name = "nlZjet_width_2p2f_2_{0:.0f}_{1:.0f}_{2:.0f}".format(
-                self.channel, self.sqrts, useDjet)
+                self.channel, self.sqrts, iCatScheme)
             nlZjet_2p2f_2 = ROOT.RooRealVar(
                 name, "norm landau Zjet 2p2f 2e2mu", val_normL_2P2F_2 / summa)
             print "mean 2p2f 2e2mu: ", mlZjet_2p2f_2.getVal()
             print "sigma 2p2f 2e2mu: ", slZjet_2p2f_2.getVal()
             print "norm 2p2f 2e2mu: ", nlZjet_2p2f_2.getVal()
             bkg_zjets_2p2f_2 = ROOT.RooLandau(
-                "bkg_zjetsTmp_width_2p2f_2_{0:.0f}_{1:.0f}_{2:.0f}".format(self.channel, self.sqrts, useDjet), "bkg_zjetsTmp_2p2f_2", CMS_zz4l_widthMass, mlZjet_2p2f_2, slZjet_2p2f_2)
+                "bkg_zjetsTmp_width_2p2f_2_{0:.0f}_{1:.0f}_{2:.0f}".format(self.channel, self.sqrts, iCatScheme), "bkg_zjetsTmp_2p2f_2", CMS_zz4l_widthMass, mlZjet_2p2f_2, slZjet_2p2f_2)
 
             name = "mlZjet_width_3p1f_{0:.0f}_{1:.0f}_{2:.0f}".format(
-                self.channel, self.sqrts, useDjet)
+                self.channel, self.sqrts, iCatScheme)
             mlZjet_3p1f = ROOT.RooRealVar(
                 name, "mean landau Zjet 3p1f", val_meanL_3P1F)
             name = "slZjet_width_3p1f_{0:.0f}_{1:.0f}_{2:.0f}".format(
-                self.channel, self.sqrts, useDjet)
+                self.channel, self.sqrts, iCatScheme)
             slZjet_3p1f = ROOT.RooRealVar(
                 name, "sigma landau Zjet 3p1f", val_sigmaL_3P1F)
             name = "nlZjet_width_3p1f_{0:.0f}_{1:.0f}_{2:.0f}".format(
-                self.channel, self.sqrts, useDjet)
+                self.channel, self.sqrts, iCatScheme)
             nlZjet_3p1f = ROOT.RooRealVar(
                 name, "norm landau Zjet 3p1f", val_normL_3P1F / summa)
             print "mean 3p1f 2mu2e: ", mlZjet_3p1f.getVal()
             print "sigma 3p1f 2mu2e: ", slZjet_3p1f.getVal()
             print "norm 3p1f 2mu2e: ", nlZjet_3p1f.getVal()
             bkg_zjets_3p1f = ROOT.RooLandau(
-                "bkg_zjetsTmp_width_3p1f_{0:.0f}_{1:.0f}_{2:.0f}".format(self.channel, self.sqrts, useDjet), "bkg_zjetsTmp_3p1f", CMS_zz4l_widthMass, mlZjet_3p1f, slZjet_3p1f)
+                "bkg_zjetsTmp_width_3p1f_{0:.0f}_{1:.0f}_{2:.0f}".format(self.channel, self.sqrts, iCatScheme), "bkg_zjetsTmp_3p1f", CMS_zz4l_widthMass, mlZjet_3p1f, slZjet_3p1f)
 
-            bkg_zjets_mass = ROOT.RooAddPdf("bkg_zjetsTmp_width_{0:.0f}_{1:.0f}_{2:.0f}".format(self.channel, self.sqrts, useDjet), "bkg_zjetsTmp", ROOT.RooArgList(
+            bkg_zjets_mass = ROOT.RooAddPdf("bkg_zjetsTmp_width_{0:.0f}_{1:.0f}_{2:.0f}".format(self.channel, self.sqrts, iCatScheme), "bkg_zjetsTmp", ROOT.RooArgList(
                 bkg_zjets_2p2f, bkg_zjets_3p1f, bkg_zjets_2p2f_2), ROOT.RooArgList(nlZjet_2p2f, nlZjet_3p1f, nlZjet_2p2f_2))
 
-            bkg_zjets_Nominal = ROOT.RooProdPdf("bkg_zjets_Nominal_{0:.0f}_{1:.0f}_{2:.0f}".format(self.channel, self.sqrts, useDjet), "bkg_zjets_Nominal", ROOT.RooArgSet(
+            bkg_zjets_Nominal = ROOT.RooProdPdf("bkg_zjets_Nominal_{0:.0f}_{1:.0f}_{2:.0f}".format(self.channel, self.sqrts, iCatScheme), "bkg_zjets_Nominal", ROOT.RooArgSet(
                 bkg_zjets_mass), ROOT.RooFit.Conditional(ROOT.RooArgSet(zjet_TemplatePdfNominal), ROOT.RooArgSet(CMS_zz4l_widthKD)))
-            bkg_zjets_Up = ROOT.RooProdPdf("bkg_zjets_Up_{0:.0f}_{1:.0f}_{2:.0f}".format(self.channel, self.sqrts, useDjet), "bkg_zjets_Up", ROOT.RooArgSet(
+            bkg_zjets_Up = ROOT.RooProdPdf("bkg_zjets_Up_{0:.0f}_{1:.0f}_{2:.0f}".format(self.channel, self.sqrts, iCatScheme), "bkg_zjets_Up", ROOT.RooArgSet(
                 bkg_zjets_mass), ROOT.RooFit.Conditional(ROOT.RooArgSet(zjet_TemplatePdfUp), ROOT.RooArgSet(CMS_zz4l_widthKD)))
-            bkg_zjets_Down = ROOT.RooProdPdf("bkg_zjets_Down_{0:.0f}_{1:.0f}_{2:.0f}".format(self.channel, self.sqrts, useDjet), "bkg_zjets_Down", ROOT.RooArgSet(
+            bkg_zjets_Down = ROOT.RooProdPdf("bkg_zjets_Down_{0:.0f}_{1:.0f}_{2:.0f}".format(self.channel, self.sqrts, iCatScheme), "bkg_zjets_Down", ROOT.RooArgSet(
                 bkg_zjets_mass), ROOT.RooFit.Conditional(ROOT.RooArgSet(zjet_TemplatePdfDown), ROOT.RooArgSet(CMS_zz4l_widthKD)))
 
 
         DataName = "ZX_FullDataHist_{0:.0f}_{1:.0f}_{2:.0f}".format(
-            self.channel, self.sqrts, useDjet)
-        PdfName = "ZX_FullPdf_{0:.0f}_{1:.0f}_{2:.0f}".format(self.channel, self.sqrts, useDjet)
+            self.channel, self.sqrts, iCatScheme)
+        PdfName = "ZX_FullPdf_{0:.0f}_{1:.0f}_{2:.0f}".format(self.channel, self.sqrts, iCatScheme)
         zjet_DataHistNominal = RooDataHist(
             DataName, DataName, ROOT.RooArgList(
                 CMS_zz4l_widthMass, CMS_zz4l_widthKD),
@@ -3062,9 +1775,9 @@ class SignalTemplateHelper:
             PdfName, PdfName, ROOT.RooArgSet(CMS_zz4l_widthMass, CMS_zz4l_widthKD), zjet_DataHistNominal)
 
         DataName = "ZX_FullDataHist_Up_{0:.0f}_{1:.0f}_{2:.0f}".format(
-            self.channel, self.sqrts, useDjet)
+            self.channel, self.sqrts, iCatScheme)
         PdfName = "ZX_FullPdf_Up_{0:.0f}_{1:.0f}_{2:.0f}".format(
-            self.channel, self.sqrts, useDjet)
+            self.channel, self.sqrts, iCatScheme)
         zjet_DataHistUp = RooDataHist(
             DataName, DataName, ROOT.RooArgList(
                 CMS_zz4l_widthMass, CMS_zz4l_widthKD),
@@ -3073,9 +1786,9 @@ class SignalTemplateHelper:
             PdfName, PdfName, ROOT.RooArgSet(CMS_zz4l_widthMass, CMS_zz4l_widthKD), zjet_DataHistUp)
 
         DataName = "ZX_FullDataHist_Down_{0:.0f}_{1:.0f}_{2:.0f}".format(
-            self.channel, self.sqrts, useDjet)
+            self.channel, self.sqrts, iCatScheme)
         PdfName = "ZX_FullPdf_Down_{0:.0f}_{1:.0f}_{2:.0f}".format(
-            self.channel, self.sqrts, useDjet)
+            self.channel, self.sqrts, iCatScheme)
         zjet_DataHistDown = RooDataHist(
             DataName, DataName, ROOT.RooArgList(
                 CMS_zz4l_widthMass, CMS_zz4l_widthKD),
@@ -3085,27 +1798,27 @@ class SignalTemplateHelper:
 
         if self.dimensions == 0:
             PdfName = "ZX_FullPdf_Nominal1_{0:.0f}_{1:.0f}_{2:.0f}".format(
-                self.channel, self.sqrts, useDjet)
+                self.channel, self.sqrts, iCatScheme)
             TemplateName = "zjet_TempDataHist1_{0:.0f}_{1:.0f}_{2:.0f}_Nominal".format(
-                self.channel, self.sqrts, useDjet)
+                self.channel, self.sqrts, iCatScheme)
             zjet_TempDataHist1_Nominal = ROOT.RooDataHist(TemplateName, TemplateName, ROOT.RooArgList(
                 CMS_zz4l_widthKD), bkg_zjets_Nominal.createHistogram("CMS_zz4l_widthMass,CMS_zz4l_widthKD").ProjectionY())
             zjet_HistPdfNominal = ROOT.RooHistPdf(
                 PdfName, PdfName, ROOT.RooArgSet(CMS_zz4l_widthKD), zjet_TempDataHist1_Nominal)
 
             PdfName = "ZX_FullPdf_Up1_{0:.0f}_{1:.0f}_{2:.0f}".format(
-                self.channel, self.sqrts, useDjet)
+                self.channel, self.sqrts, iCatScheme)
             TemplateName = "zjet_TempDataHist1_{0:.0f}_{1:.0f}_{2:.0f}_Up".format(
-                self.channel, self.sqrts, useDjet)
+                self.channel, self.sqrts, iCatScheme)
             zjet_TempDataHist1_Up = ROOT.RooDataHist(TemplateName, TemplateName, ROOT.RooArgList(
                 CMS_zz4l_widthKD), bkg_zjets_Up.createHistogram("CMS_zz4l_widthMass,CMS_zz4l_widthKD").ProjectionY())
             zjet_HistPdfUp = ROOT.RooHistPdf(
                 PdfName, PdfName, ROOT.RooArgSet(CMS_zz4l_widthKD), zjet_TempDataHist1_Up)
 
             PdfName = "ZX_FullPdf_Down1_{0:.0f}_{1:.0f}_{2:.0f}".format(
-                self.channel, self.sqrts, useDjet)
+                self.channel, self.sqrts, iCatScheme)
             TemplateName = "zjet_TempDataHist1_{0:.0f}_{1:.0f}_{2:.0f}_Down".format(
-                self.channel, self.sqrts, useDjet)
+                self.channel, self.sqrts, iCatScheme)
             zjet_TempDataHist1_Down = ROOT.RooDataHist(TemplateName, TemplateName, ROOT.RooArgList(
                 CMS_zz4l_widthKD), bkg_zjets_Down.createHistogram("CMS_zz4l_widthMass,CMS_zz4l_widthKD").ProjectionY())
             zjet_HistPdfDown = ROOT.RooHistPdf(
@@ -3117,9 +1830,9 @@ class SignalTemplateHelper:
             zjet_HistPdfDown = zjet_HistPdfDowntemp
         if self.dimensions == 1:
             PdfName = "ZX_FullPdf_Nominal1_{0:.0f}_{1:.0f}_{2:.0f}".format(
-                self.channel, self.sqrts, useDjet)
+                self.channel, self.sqrts, iCatScheme)
             TemplateName = "zjet_TempDataHist1_{0:.0f}_{1:.0f}_{2:.0f}_Nominal".format(
-                self.channel, self.sqrts, useDjet)
+                self.channel, self.sqrts, iCatScheme)
             zjet_TempDataHist1_Nominal = ROOT.RooDataHist(TemplateName, TemplateName, ROOT.RooArgList(
                 CMS_zz4l_widthMass), bkg_zjets_Nominal.createHistogram("CMS_zz4l_widthMass,CMS_zz4l_widthKD").ProjectionX())
             bkg_zjets = ROOT.RooHistPdf(
@@ -3140,11 +1853,11 @@ class SignalTemplateHelper:
         ## ----------------------- PLOTS FOR SANITY CHECKS -------------------------- ##
 
         if DEBUG:
-            testhandle = ROOT.TFile("{0}/figs/xcheckPlots_{2}_{1}_{3}.root".format(self.outputDir,self.appendName, self.sqrts, useDjet),"recreate")
+            testhandle = ROOT.TFile("{0}/figs/xcheckPlots_{2}_{1}_{3}.root".format(self.outputDir,self.appendName, self.sqrts, iCatScheme),"recreate")
 
             print "Starting to plot signal for sanity checks"
             print "Plot: ggZZ Norm vs GGsm"
-            canvasname = "c_{3}_vs_{4}_{1:.0f}TeV_{0}_djet{2}".format(self.appendName, self.sqrts, useDjet,ggZZpdf_norm.GetName(),x.GetName())
+            canvasname = "c_{3}_vs_{4}_{1:.0f}TeV_{0}_djet{2}".format(self.appendName, self.sqrts, iCatScheme,ggZZpdf_norm.GetName(),x.GetName())
             ctest = ROOT.TCanvas( canvasname, canvasname, 750, 700 )
             ctest.cd()
             histo = ggZZpdf_norm.createHistogram("htemp",x)
@@ -3160,7 +1873,7 @@ class SignalTemplateHelper:
             testhandle.WriteTObject(ctest)
             ctest.Close()
             print "Plot: ggZZ Norm vs fai1"
-            canvasname = "c_{3}_vs_{4}_{1:.0f}TeV_{0}_djet{2}".format(self.appendName, self.sqrts, useDjet,ggZZpdf_norm.GetName(),fai1.GetName())
+            canvasname = "c_{3}_vs_{4}_{1:.0f}TeV_{0}_djet{2}".format(self.appendName, self.sqrts, iCatScheme,ggZZpdf_norm.GetName(),fai1.GetName())
             ctest = ROOT.TCanvas( canvasname, canvasname, 750, 700 )
             ctest.cd()
             histo = ggZZpdf_norm.createHistogram("htemp",fai1)
@@ -3170,7 +1883,7 @@ class SignalTemplateHelper:
             testhandle.WriteTObject(ctest)
             ctest.Close()
             print "Plot: VBF Norm vs GGsm"
-            canvasname = "c_{3}_vs_{4}_{1:.0f}TeV_{0}_djet{2}".format(self.appendName, self.sqrts, useDjet,VBFpdf_norm.GetName(),x.GetName())
+            canvasname = "c_{3}_vs_{4}_{1:.0f}TeV_{0}_djet{2}".format(self.appendName, self.sqrts, iCatScheme,VBFpdf_norm.GetName(),x.GetName())
             ctest = ROOT.TCanvas( canvasname, canvasname, 750, 700 )
             ctest.cd()
             histo = VBFpdf_norm.createHistogram("htemp",x)
@@ -3180,7 +1893,7 @@ class SignalTemplateHelper:
             testhandle.WriteTObject(ctest)
             ctest.Close()
             print "Plot: VBF Norm vs fai1"
-            canvasname = "c_{3}_vs_{4}_{1:.0f}TeV_{0}_djet{2}".format(self.appendName, self.sqrts, useDjet,VBFpdf_norm.GetName(),fai1.GetName())
+            canvasname = "c_{3}_vs_{4}_{1:.0f}TeV_{0}_djet{2}".format(self.appendName, self.sqrts, iCatScheme,VBFpdf_norm.GetName(),fai1.GetName())
             ctest = ROOT.TCanvas( canvasname, canvasname, 750, 700 )
             ctest.cd()
             histo = VBFpdf_norm.createHistogram("htemp",fai1)
@@ -3191,7 +1904,7 @@ class SignalTemplateHelper:
             ctest.Close()
 
             print "Plot: ggZZ PDF on mZZ vs KD"
-            canvasname = "c_{3}_vs_{4}_{5}_{1:.0f}TeV_{0}_djet{2}".format(self.appendName, self.sqrts, useDjet, ggZZpdf.GetName(),CMS_zz4l_widthMass.GetName(),CMS_zz4l_widthKD.GetName())
+            canvasname = "c_{3}_vs_{4}_{5}_{1:.0f}TeV_{0}_djet{2}".format(self.appendName, self.sqrts, iCatScheme, ggZZpdf.GetName(),CMS_zz4l_widthMass.GetName(),CMS_zz4l_widthKD.GetName())
             ctest = ROOT.TCanvas( canvasname, canvasname, 750, 700 )
             ctest.cd()
             histo = ggZZpdf.createHistogram("htemp",CMS_zz4l_widthMass,ROOT.RooFit.YVar(CMS_zz4l_widthKD),ROOT.RooFit.ZVar(x))
@@ -3212,7 +1925,7 @@ class SignalTemplateHelper:
 
 
             print "Plot: qqZZ Norm vs EWK"
-            canvasname = "c_{3}_vs_{4}_{1:.0f}TeV_{0}_djet{2}".format(self.appendName, self.sqrts, useDjet,bkg_qqzz_norm.GetName(),qqZZ_EWK_Syst.GetName())
+            canvasname = "c_{3}_vs_{4}_{1:.0f}TeV_{0}_djet{2}".format(self.appendName, self.sqrts, iCatScheme,bkg_qqzz_norm.GetName(),qqZZ_EWK_Syst.GetName())
             ctest = ROOT.TCanvas( canvasname, canvasname, 750, 700 )
             ctest.cd()
             histo = bkg_qqzz_norm.createHistogram("htemp",qqZZ_EWK_Syst)
@@ -3222,7 +1935,7 @@ class SignalTemplateHelper:
             testhandle.WriteTObject(ctest)
             ctest.Close()
             print "Plot: qqZZ Norm vs QCD"
-            canvasname = "c_{3}_vs_{4}_{1:.0f}TeV_{0}_djet{2}".format(self.appendName, self.sqrts, useDjet,bkg_qqzz_norm.GetName(),qqZZ_Scale_Syst.GetName())
+            canvasname = "c_{3}_vs_{4}_{1:.0f}TeV_{0}_djet{2}".format(self.appendName, self.sqrts, iCatScheme,bkg_qqzz_norm.GetName(),qqZZ_Scale_Syst.GetName())
             ctest = ROOT.TCanvas( canvasname, canvasname, 750, 700 )
             ctest.cd()
             histo = bkg_qqzz_norm.createHistogram("htemp",qqZZ_Scale_Syst)
@@ -3233,7 +1946,7 @@ class SignalTemplateHelper:
             ctest.Close()
 
             print "Plot: ggZZ Norm vs CMS_zz4l_APscale_syst"
-            canvasname = "c_{3}_vs_{4}_{1:.0f}TeV_{0}_djet{2}".format(self.appendName, self.sqrts, useDjet,ggZZpdf_norm.GetName(),CMS_zz4l_APscale_syst.GetName())
+            canvasname = "c_{3}_vs_{4}_{1:.0f}TeV_{0}_djet{2}".format(self.appendName, self.sqrts, iCatScheme,ggZZpdf_norm.GetName(),CMS_zz4l_APscale_syst.GetName())
             ctest = ROOT.TCanvas( canvasname, canvasname, 750, 700 )
             ctest.cd()
             histo = ggZZpdf_norm.createHistogram("htemp",CMS_zz4l_APscale_syst)
@@ -3264,7 +1977,7 @@ class SignalTemplateHelper:
             ctest.Close()
 
             print "Plot: ggZZ Norm vs CMS_zz4l_pdf_gg_syst"
-            canvasname = "c_{3}_vs_{4}_{1:.0f}TeV_{0}_djet{2}".format(self.appendName, self.sqrts, useDjet,ggZZpdf_norm.GetName(),CMS_zz4l_pdf_gg_syst.GetName())
+            canvasname = "c_{3}_vs_{4}_{1:.0f}TeV_{0}_djet{2}".format(self.appendName, self.sqrts, iCatScheme,ggZZpdf_norm.GetName(),CMS_zz4l_pdf_gg_syst.GetName())
             ctest = ROOT.TCanvas( canvasname, canvasname, 750, 700 )
             ctest.cd()
             histo = ggZZpdf_norm.createHistogram("htemp",CMS_zz4l_pdf_gg_syst)
@@ -3295,7 +2008,7 @@ class SignalTemplateHelper:
             ctest.Close()
 
             print "Plot: VBF Norm vs CMS_zz4l_VBFscale_syst"
-            canvasname = "c_{3}_vs_{4}_{1:.0f}TeV_{0}_djet{2}".format(self.appendName, self.sqrts, useDjet,VBFpdf_norm.GetName(),CMS_zz4l_VBFscale_syst.GetName())
+            canvasname = "c_{3}_vs_{4}_{1:.0f}TeV_{0}_djet{2}".format(self.appendName, self.sqrts, iCatScheme,VBFpdf_norm.GetName(),CMS_zz4l_VBFscale_syst.GetName())
             ctest = ROOT.TCanvas( canvasname, canvasname, 750, 700 )
             ctest.cd()
             histo = VBFpdf_norm.createHistogram("htemp",CMS_zz4l_VBFscale_syst)
@@ -3326,7 +2039,7 @@ class SignalTemplateHelper:
             ctest.Close()
 
             print "Plot: ggZZ pdf proj (QCD Up)"
-            canvasname = "c_{3}_vs_{4}_{1:.0f}TeV_{0}_djet{2}".format(self.appendName, self.sqrts, useDjet,ggZZpdf_Up.GetName(),CMS_zz4l_widthMass.GetName())
+            canvasname = "c_{3}_vs_{4}_{1:.0f}TeV_{0}_djet{2}".format(self.appendName, self.sqrts, iCatScheme,ggZZpdf_Up.GetName(),CMS_zz4l_widthMass.GetName())
             ctest = ROOT.TCanvas( canvasname, canvasname, 750, 700 )
             ctest.cd()
             x.setVal(10)
@@ -3355,7 +2068,7 @@ class SignalTemplateHelper:
             x.setVal(1)
 
             print "Plot: ggZZ pdf proj (QCD Down)"
-            canvasname = "c_{3}_vs_{4}_{1:.0f}TeV_{0}_djet{2}".format(self.appendName, self.sqrts, useDjet,ggZZpdf_Down.GetName(),CMS_zz4l_widthMass.GetName())
+            canvasname = "c_{3}_vs_{4}_{1:.0f}TeV_{0}_djet{2}".format(self.appendName, self.sqrts, iCatScheme,ggZZpdf_Down.GetName(),CMS_zz4l_widthMass.GetName())
             ctest = ROOT.TCanvas( canvasname, canvasname, 750, 700 )
             ctest.cd()
             x.setVal(10)
@@ -3384,7 +2097,7 @@ class SignalTemplateHelper:
             x.setVal(1)
 
             print "Plot: ggZZ pdf proj (PDF Up)"
-            canvasname = "c_{3}_vs_{4}_{1:.0f}TeV_{0}_djet{2}".format(self.appendName, self.sqrts, useDjet,ggZZpdf_Up_pdf.GetName(),CMS_zz4l_widthMass.GetName())
+            canvasname = "c_{3}_vs_{4}_{1:.0f}TeV_{0}_djet{2}".format(self.appendName, self.sqrts, iCatScheme,ggZZpdf_Up_pdf.GetName(),CMS_zz4l_widthMass.GetName())
             ctest = ROOT.TCanvas( canvasname, canvasname, 750, 700 )
             ctest.cd()
             x.setVal(10)
@@ -3413,7 +2126,7 @@ class SignalTemplateHelper:
             x.setVal(1)
 
             print "Plot: ggZZ pdf proj (PDF Down)"
-            canvasname = "c_{3}_vs_{4}_{1:.0f}TeV_{0}_djet{2}".format(self.appendName, self.sqrts, useDjet,ggZZpdf_Down_pdf.GetName(),CMS_zz4l_widthMass.GetName())
+            canvasname = "c_{3}_vs_{4}_{1:.0f}TeV_{0}_djet{2}".format(self.appendName, self.sqrts, iCatScheme,ggZZpdf_Down_pdf.GetName(),CMS_zz4l_widthMass.GetName())
             ctest = ROOT.TCanvas( canvasname, canvasname, 750, 700 )
             ctest.cd()
             x.setVal(10)
@@ -3442,7 +2155,7 @@ class SignalTemplateHelper:
             x.setVal(1)
 
             print "Plot: ggZZ pdf proj (Nominal)"
-            canvasname = "c_{3}_vs_{4}_{1:.0f}TeV_{0}_djet{2}".format(self.appendName, self.sqrts, useDjet,ggZZpdf_Nominal.GetName(),CMS_zz4l_widthMass.GetName())
+            canvasname = "c_{3}_vs_{4}_{1:.0f}TeV_{0}_djet{2}".format(self.appendName, self.sqrts, iCatScheme,ggZZpdf_Nominal.GetName(),CMS_zz4l_widthMass.GetName())
             ctest = ROOT.TCanvas( canvasname, canvasname, 750, 700 )
             ctest.cd()
             x.setVal(10)
@@ -3469,7 +2182,7 @@ class SignalTemplateHelper:
             x.setVal(1)
 
             print "Plot: VBF pdf proj (Up)"
-            canvasname = "c_{3}_vs_{4}_{1:.0f}TeV_{0}_djet{2}".format(self.appendName, self.sqrts, useDjet,VBFpdf_Up.GetName(),CMS_zz4l_widthMass.GetName())
+            canvasname = "c_{3}_vs_{4}_{1:.0f}TeV_{0}_djet{2}".format(self.appendName, self.sqrts, iCatScheme,VBFpdf_Up.GetName(),CMS_zz4l_widthMass.GetName())
             ctest = ROOT.TCanvas( canvasname, canvasname, 750, 700 )
             ctest.cd()
             x.setVal(10)
@@ -3498,7 +2211,7 @@ class SignalTemplateHelper:
             x.setVal(1)
 
             print "Plot: VBF pdf proj (Down)"
-            canvasname = "c_{3}_vs_{4}_{1:.0f}TeV_{0}_djet{2}".format(self.appendName, self.sqrts, useDjet,VBFpdf_Down.GetName(),CMS_zz4l_widthMass.GetName())
+            canvasname = "c_{3}_vs_{4}_{1:.0f}TeV_{0}_djet{2}".format(self.appendName, self.sqrts, iCatScheme,VBFpdf_Down.GetName(),CMS_zz4l_widthMass.GetName())
             ctest = ROOT.TCanvas( canvasname, canvasname, 750, 700 )
             ctest.cd()
             x.setVal(10)
@@ -3527,7 +2240,7 @@ class SignalTemplateHelper:
             x.setVal(1)
 
             print "Plot: VBF pdf proj (Nominal)"
-            canvasname = "c_{3}_vs_{4}_{1:.0f}TeV_{0}_djet{2}".format(self.appendName, self.sqrts, useDjet,VBFpdf_Nominal.GetName(),CMS_zz4l_widthMass.GetName())
+            canvasname = "c_{3}_vs_{4}_{1:.0f}TeV_{0}_djet{2}".format(self.appendName, self.sqrts, iCatScheme,VBFpdf_Nominal.GetName(),CMS_zz4l_widthMass.GetName())
             ctest = ROOT.TCanvas( canvasname, canvasname, 750, 700 )
             ctest.cd()
             x.setVal(10)
@@ -3554,7 +2267,7 @@ class SignalTemplateHelper:
             x.setVal(1)
 
             print "Plot: qqZZ additional wrt QCDScale"
-            canvasname = "c_{3}_vs_{4}_wrtQCDScale_{1:.0f}TeV_{0}_djet{2}".format(self.appendName, self.sqrts, useDjet,bkg_qqzz_mass_shape.GetName(),CMS_zz4l_widthMass.GetName())
+            canvasname = "c_{3}_vs_{4}_wrtQCDScale_{1:.0f}TeV_{0}_djet{2}".format(self.appendName, self.sqrts, iCatScheme,bkg_qqzz_mass_shape.GetName(),CMS_zz4l_widthMass.GetName())
             ctest = ROOT.TCanvas( canvasname, canvasname, 750, 700 )
             ctest.cd()
             histo = bkg_qqzz_mass_shape.createHistogram("htemp",CMS_zz4l_widthMass)
@@ -3587,7 +2300,7 @@ class SignalTemplateHelper:
 
 
             print "Plot: qqZZ additional wrt EWKcorr"
-            canvasname = "c_{3}_vs_{4}_wrtEWKcorr_{1:.0f}TeV_{0}_djet{2}".format(self.appendName, self.sqrts, useDjet,bkg_qqzz_mass_shape.GetName(),CMS_zz4l_widthMass.GetName())
+            canvasname = "c_{3}_vs_{4}_wrtEWKcorr_{1:.0f}TeV_{0}_djet{2}".format(self.appendName, self.sqrts, iCatScheme,bkg_qqzz_mass_shape.GetName(),CMS_zz4l_widthMass.GetName())
             ctest = ROOT.TCanvas( canvasname, canvasname, 750, 700 )
             ctest.cd()
             histo = bkg_qqzz_mass_shape.createHistogram("htemp",CMS_zz4l_widthMass)
@@ -3619,7 +2332,7 @@ class SignalTemplateHelper:
             qqZZ_EWK_Syst.setVal(0)
 
             print "Plot: qqZZ additional wrt Djet"
-            canvasname = "c_{3}_vs_{4}_wrtDjet_{1:.0f}TeV_{0}_djet{2}".format(self.appendName, self.sqrts, useDjet,bkg_qqzz_mass_shape.GetName(),CMS_zz4l_widthMass.GetName())
+            canvasname = "c_{3}_vs_{4}_wrtDjet_{1:.0f}TeV_{0}_djet{2}".format(self.appendName, self.sqrts, iCatScheme,bkg_qqzz_mass_shape.GetName(),CMS_zz4l_widthMass.GetName())
             ctest = ROOT.TCanvas( canvasname, canvasname, 750, 700 )
             ctest.cd()
             histo = bkg_qqzz_mass_shape.createHistogram("htemp",CMS_zz4l_widthMass)
@@ -3656,7 +2369,7 @@ class SignalTemplateHelper:
 
 
             print "Plot: qqZZ PDF wrt EWKcorr"
-            canvasname = "c_{3}_vs_{4}_wrtEWKcorr_{1:.0f}TeV_{0}_djet{2}".format(self.appendName, self.sqrts, useDjet,bkg_qqzz_mass.GetName(),CMS_zz4l_widthMass.GetName())
+            canvasname = "c_{3}_vs_{4}_wrtEWKcorr_{1:.0f}TeV_{0}_djet{2}".format(self.appendName, self.sqrts, iCatScheme,bkg_qqzz_mass.GetName(),CMS_zz4l_widthMass.GetName())
             ctest = ROOT.TCanvas( canvasname, canvasname, 750, 700 )
             ctest.cd()
             histo = bkg_qqzz_mass.createHistogram("htemp",CMS_zz4l_widthMass)
@@ -3717,7 +2430,7 @@ class SignalTemplateHelper:
             ctest.Close()
 
             print "Plot: qqZZ PDF wrt QCDScale"
-            canvasname = "c_{3}_vs_{4}_wrtQCDScale_{1:.0f}TeV_{0}_djet{2}".format(self.appendName, self.sqrts, useDjet,bkg_qqzz_mass.GetName(),CMS_zz4l_widthMass.GetName())
+            canvasname = "c_{3}_vs_{4}_wrtQCDScale_{1:.0f}TeV_{0}_djet{2}".format(self.appendName, self.sqrts, iCatScheme,bkg_qqzz_mass.GetName(),CMS_zz4l_widthMass.GetName())
             ctest = ROOT.TCanvas( canvasname, canvasname, 750, 700 )
             ctest.cd()
             histo = bkg_qqzz_mass.createHistogram("htemp",CMS_zz4l_widthMass)
@@ -3772,7 +2485,7 @@ class SignalTemplateHelper:
             ctest.Close()
 
             print "Plot: Z+X Norm vs CMS_zz4l_zjets_djet_syst"
-            canvasname = "c_{3}_vs_{4}_{1:.0f}TeV_{0}_djet{2}".format(self.appendName, self.sqrts, useDjet,bkg_zjets_norm.GetName(),CMS_zz4l_zjets_djet_syst.GetName())
+            canvasname = "c_{3}_vs_{4}_{1:.0f}TeV_{0}_djet{2}".format(self.appendName, self.sqrts, iCatScheme,bkg_zjets_norm.GetName(),CMS_zz4l_zjets_djet_syst.GetName())
             ctest = ROOT.TCanvas( canvasname, canvasname, 750, 700 )
             ctest.cd()
             histo = bkg_zjets_norm.createHistogram("htemp",CMS_zz4l_zjets_djet_syst)
@@ -3795,13 +2508,13 @@ class SignalTemplateHelper:
         if (self.dataAppendDir != ''):
             dataFileDir = "{0}_{1}".format(dataFileDir,self.dataAppendDir)
         dataTreeName = "data_obs"
-        if(useDjet == 0):
+        if(iCatScheme == 0):
             dataFileName = "{0}/hzz{1}_{2}.root".format(
                 dataFileDir, self.appendName, self.inputlumi)
-        if(useDjet == 1):
+        if(iCatScheme == 1):
             dataFileName = "{0}/hzz{1}_{2}_0.root".format(
                 dataFileDir, self.appendName, self.inputlumi)
-        if(useDjet == 2):
+        if(iCatScheme == 2):
             dataFileName = "{0}/hzz{1}_{2}_1.root".format(
                 dataFileDir, self.appendName, self.inputlumi)
         # if (DEBUG):
@@ -3837,54 +2550,54 @@ class SignalTemplateHelper:
         name_ShapeWS2 = ""
 
         if (endsInP5):
-            if(useDjet == 0):
+            if(iCatScheme == 0):
                 name_Shape = "{0}/HCG/{1:.1f}/hzz4l_{2}S_{3:.0f}TeV.txt".format(
                     self.outputDir, self.low_M, self.appendName, self.sqrts)
-            if(useDjet == 1):
+            if(iCatScheme == 1):
                 name_Shape = "{0}/HCG/{1:.1f}/hzz4l_{2}S_{3:.0f}TeV_0.txt".format(
                     self.outputDir, self.low_M, self.appendName, self.sqrts)
-            if(useDjet == 2):
+            if(iCatScheme == 2):
                 name_Shape = "{0}/HCG/{1:.1f}/hzz4l_{2}S_{3:.0f}TeV_1.txt".format(
                     self.outputDir, self.low_M, self.appendName, self.sqrts)
         else:
-            if(useDjet == 0):
+            if(iCatScheme == 0):
                 name_Shape = "{0}/HCG/{1:.0f}/hzz4l_{2}S_{3:.0f}TeV.txt".format(
                     self.outputDir, self.low_M, self.appendName, self.sqrts)
-            if(useDjet == 1):
+            if(iCatScheme == 1):
                 name_Shape = "{0}/HCG/{1:.0f}/hzz4l_{2}S_{3:.0f}TeV_0.txt".format(
                     self.outputDir, self.low_M, self.appendName, self.sqrts)
-            if(useDjet == 2):
+            if(iCatScheme == 2):
                 name_Shape = "{0}/HCG/{1:.0f}/hzz4l_{2}S_{3:.0f}TeV_1.txt".format(
                     self.outputDir, self.low_M, self.appendName, self.sqrts)
 
         if (endsInP5):
-            if(useDjet == 0):
+            if(iCatScheme == 0):
                 name_ShapeWS = "{0}/HCG/{1:.1f}/hzz4l_{2}S_{3:.0f}TeV.input.root".format(
                     self.outputDir, self.low_M, self.appendName, self.sqrts)
-            if(useDjet == 1):
+            if(iCatScheme == 1):
                 name_ShapeWS = "{0}/HCG/{1:.1f}/hzz4l_{2}S_{3:.0f}TeV_0.input.root".format(
                     self.outputDir, self.low_M, self.appendName, self.sqrts)
-            if(useDjet == 2):
+            if(iCatScheme == 2):
                 name_ShapeWS = "{0}/HCG/{1:.1f}/hzz4l_{2}S_{3:.0f}TeV_1.input.root".format(
                     self.outputDir, self.low_M, self.appendName, self.sqrts)
         else:
-            if(useDjet == 0):
+            if(iCatScheme == 0):
                 name_ShapeWS = "{0}/HCG/{1:.0f}/hzz4l_{2}S_{3:.0f}TeV.input.root".format(
                     self.outputDir, self.low_M, self.appendName, self.sqrts)
-            if(useDjet == 1):
+            if(iCatScheme == 1):
                 name_ShapeWS = "{0}/HCG/{1:.0f}/hzz4l_{2}S_{3:.0f}TeV_0.input.root".format(
                     self.outputDir, self.low_M, self.appendName, self.sqrts)
-            if(useDjet == 2):
+            if(iCatScheme == 2):
                 name_ShapeWS = "{0}/HCG/{1:.0f}/hzz4l_{2}S_{3:.0f}TeV_1.input.root".format(
                     self.outputDir, self.low_M, self.appendName, self.sqrts)
 
-        if(useDjet == 0):
+        if(iCatScheme == 0):
             name_ShapeWS2 = "hzz4l_{0}S_{1:.0f}TeV.input.root".format(
                 self.appendName, self.sqrts)
-        if(useDjet == 1):
+        if(iCatScheme == 1):
             name_ShapeWS2 = "hzz4l_{0}S_{1:.0f}TeV_0.input.root".format(
                 self.appendName, self.sqrts)
-        if(useDjet == 2):
+        if(iCatScheme == 2):
             name_ShapeWS2 = "hzz4l_{0}S_{1:.0f}TeV_1.input.root".format(
                 self.appendName, self.sqrts)
 
@@ -3921,7 +2634,7 @@ class SignalTemplateHelper:
         getattr(w, 'import')(VBFpdf_norm, ROOT.RooFit.RecycleConflictNodes())
         bkg_qqzz_norm.SetNameTitle("bkg_qqzz_norm", "bkg_qqzz_norm")
         getattr(w, 'import')(bkg_qqzz_norm, ROOT.RooFit.RecycleConflictNodes())
-        if useDjet!=0:
+        if iCatScheme!=0:
             bkg_zjets_norm.SetNameTitle("bkg_zjets_norm", "bkg_zjets_norm")
             getattr(w, 'import')(bkg_zjets_norm, ROOT.RooFit.RecycleConflictNodes())
 
