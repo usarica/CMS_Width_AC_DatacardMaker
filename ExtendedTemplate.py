@@ -10,9 +10,13 @@ from array import array
 
 class ExtendedTemplate:
 
-   def __init__(self, origTemplate, nDimensions, ProjDim, varX, varY, varZ):
+   def __init__(self, origTemplate, nDimensions, ProjDim, varX, varY, varZ, condDim=None):
       self.dimensions = nDimensions
       self.ProjDim = ProjDim
+      if condDim is None:
+         self.condDim = -1
+      else if condDim<self.dimensions:
+         self.condDim = condDim
 
       self.arglist = ROOT.RooArgList()
       self.argset = ROOT.RooArgSet()
@@ -42,6 +46,48 @@ class ExtendedTemplate:
          self.argset.add(varZ)
       else:
          self.theTemplate = self.origTemplate
+         if self.condDim==0:
+            for ix in range(1,self.theTemplate.GetNbinsX()+1):
+               dbin = self.theTemplate.GetXAxis().GetBinWidth(ix)
+               if self.dimensions==3:
+                  integral = self.theTemplate.Integral(ix,ix,1,self.theTemplate.GetNbinsY(),1,self.theTemplate.GetNbinsZ(),"width")/dbin # /dbin is to divide d_condDim
+                  if integral!=0.0:
+                     for iy in range(1,self.theTemplate.GetNbinsY()+1):
+                        for iz in range(1,self.theTemplate.GetNbinsZ()+1):
+                           self.theTemplate.SetBinContent(ix,iy,iz,self.theTemplate.GetBinContent(ix,iy,iz)/integral)
+                           self.theTemplate.SetBinError(ix,iy,iz,self.theTemplate.GetBinError(ix,iy,iz)/integral)
+               elif self.dimensions==2:
+                  integral = self.theTemplate.Integral(ix,ix,1,self.theTemplate.GetNbinsY(),"width")
+                  if integral!=0.0:
+                     for iy in range(1,self.theTemplate.GetNbinsY()+1):
+                        self.theTemplate.SetBinContent(ix,iy,self.theTemplate.GetBinContent(ix,iy)/integral)
+                        self.theTemplate.SetBinError(ix,iy,self.theTemplate.GetBinError(ix,iy)/integral)
+         elif self.condDim==1:
+            for iy in range(1,self.theTemplate.GetNbinsY()+1):
+               dbin = self.theTemplate.GetYAxis().GetBinWidth(iy)
+               if self.dimensions==3:
+                  integral = self.theTemplate.Integral(1,self.theTemplate.GetNbinsX(),iy,iy,1,self.theTemplate.GetNbinsZ(),"width")/dbin # /dbin is to divide d_condDim
+                  if integral!=0.0:
+                     for ix in range(1,self.theTemplate.GetNbinsX()+1):
+                        for iz in range(1,self.theTemplate.GetNbinsZ()+1):
+                           self.theTemplate.SetBinContent(ix,iy,iz,self.theTemplate.GetBinContent(ix,iy,iz)/integral)
+                           self.theTemplate.SetBinError(ix,iy,iz,self.theTemplate.GetBinError(ix,iy,iz)/integral)
+               elif self.dimensions==2:
+                  integral = self.theTemplate.Integral(1,self.theTemplate.GetNbinsY(),iy,iy,"width")
+                  if integral!=0.0:
+                     for ix in range(1,self.theTemplate.GetNbinsX()+1):
+                        self.theTemplate.SetBinContent(ix,iy,self.theTemplate.GetBinContent(ix,iy)/integral)
+                        self.theTemplate.SetBinError(ix,iy,self.theTemplate.GetBinError(ix,iy)/integral)
+         elif self.condDim==2:
+            for iz in range(1,self.theTemplate.GetNbinsZ()+1):
+               dbin = self.theTemplate.GetZAxis().GetBinWidth(iz)
+               integral = self.theTemplate.Integral(1,self.theTemplate.GetNbinsX(),1,self.theTemplate.GetNbinsY(),iz,iz,"width")/dbin # /dbin is to divide d_condDim
+               if integral!=0.0:
+                  for ix in range(1,self.theTemplate.GetNbinsX()+1):
+                     for iy in range(1,self.theTemplate.GetNbinsY()+1):
+                        self.theTemplate.SetBinContent(ix,iy,iz,self.theTemplate.GetBinContent(ix,iy,iz)/integral)
+                        self.theTemplate.SetBinError(ix,iy,iz,self.theTemplate.GetBinError(ix,iy,iz)/integral)
+
          if self.dimensions>0:
             self.arglist.add(self.varX)
             self.argset.add(self.varX)

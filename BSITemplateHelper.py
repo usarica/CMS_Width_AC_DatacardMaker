@@ -68,6 +68,7 @@ class BSITemplateHelper:
       self.workspace.importClassCode(RooRealFlooredSumPdf.Class(),True)
       self.workspace.importClassCode(VerticalInterpPdf.Class(),True)
 
+# Close the template files
    def close(self):
       for theFile in self.templateFileList:
          theFile.Close()
