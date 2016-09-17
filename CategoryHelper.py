@@ -9,7 +9,6 @@ import ROOT
 from array import array
 
 class CategoryHelper:
-
    def __init__(
                self,
                iCatScheme#,

@@ -35,13 +35,13 @@ class InputCardReader:
       self.parameters = []
 
       # list of either
-      # [ systematics name, systematics type=lnN, [ [channel, 1+sigma] ] ]
+      # [ systematics name, systematics type=lnN, [ [channel, 1+sigma] ] ] --> e.g. systematics mySyst lnN ggH:1.02 qqH:1.04
       # or
-      # [ systematics name, systematics type=lnN, [ [channel, 1+sigma, 1-sigma] ] ]
+      # [ systematics name, systematics type=lnN, [ [channel, 1+sigma, 1-sigma] ] ] --> e.g. systematics mySyst lnN ggH:1.02:0.96 qqH:1.04:0.90
       # or
-      # [ systematics name, systematics type=param, [central value, 1 sigma error, (optional) parameter minimum, (optional) parameter maximum] ]
+      # [ systematics name, systematics type=param, [central value, 1 sigma error, (optional) parameter minimum, (optional) parameter maximum] ] --> e.g. systematics mySyst param 0:1:-3:3
       # or
-      # [ systematics name, systematics type=template, [ [ channel, systematics up appendix name, systematics dn appendix name ] ]
+      # [ systematics name, systematics type=template, [ [ channel, systematics up appendix name, systematics dn appendix name ] ] --> e.g. systematics mySyst template ggZZ_offshell:QCDUp:QCDDn VBF_offhshell:QCDUp:QCDDn
       self.systematics = []
 
 
@@ -74,7 +74,7 @@ class InputCardReader:
             elif f[1] == "4e": self.decayChan = 2
             elif f[1] == "2e2mu": self.decayChan = 3
             elif f[1] == "2mu2e": self.decayChan = 4
-            else : raise RuntimeError("Unknown decay channel {0}, choices are 4mu, 4e, 2e2mu or 2mu2e".format(f[1]))
+            else: raise RuntimeError("Unknown decay channel {0}, choices are 4mu, 4e, 2e2mu or 2mu2e".format(f[1]))
 
          if f[0].lower().startswith("channel"):
             channame = f[1]
@@ -144,7 +144,7 @@ class InputCardReader:
          raise RuntimeError("{0} is empty. Check inputs!".format("systematics"))
 
       # Make the dictionaries of each channel, parameter, systematic
-      for par in self.channel:
+      for par in self.channels:
          theDict[par[0]] = par[1:]
       for par in self.parameters:
          theDict[par[0]] = par[1:]

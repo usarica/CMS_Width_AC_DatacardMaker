@@ -17,7 +17,7 @@ class BkgTemplateHelper:
       self.sqrts = theMaker.sqrts
       self.channel = theMaker.channel
       self.workspace = theMaker.workspace
-      self.theInputs = theMaker.theInputs
+      self.theInputs = theMaker.theInputs.getInputs()
 
       # RooRealVars from the datacard maker class
       self.varm4l = theMaker.CMS_zz4l_widthMass
