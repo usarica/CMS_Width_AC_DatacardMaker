@@ -42,6 +42,7 @@ class BkgTemplateHelper:
 
       self.templateFileName = templateFileName
       self.systName = systName
+      self.templateSuffix = "{0}_{1}_{2:.0f}_{3:.0f}TeV".format(self.systName,self.catNameList[self.iCat],self.channel,self.sqrts)
 
       self.templateFile = None
 
@@ -54,15 +55,17 @@ class BkgTemplateHelper:
       self.templateFile.Close()
 
 # Get shapes for each category
-   def getTemplates(self):
+   def getTemplates(self,templatePrefix="T_2D"):
       self.templateFile = ROOT.TFile.Open(self.templateFileName, "read")
 
+      self.templatePrefix = templatePrefix
+      self.templatePrefix = "{}_{}".format(self.templatePrefix,self.strBkgType)
 
 #---------- TEMPLATES AND PDFS -------------
    # Construct the templates
       self.bkg_T_2 =
          ExtendedTemplate(
-               self.templateFile.Get("T_2D_{0}".format(self.strBkgType)).Clone("T_2D_{4}_{0}_{1}_{2}_{3}TeV".format(self.systName,self.catNameList[self.iCat],self.channel,self.sqrts,self.strBkgType)),
+               self.templateFile.Get(self.templatePrefix).Clone("{}_{}".format(self.templatePrefix,self.templateSuffix)),
                self.dimensions, self.ProjDim,
                self.varm4l, self.varKD, self.varKD2,
                self.condDim
@@ -71,16 +74,16 @@ class BkgTemplateHelper:
    # Construct the p.d.f.s
       # qq bkg
       if(self.strBkgType == "qqZZ"):
-         PdfName = "qqZZ_OffshellPdf_{0}_{1}_{2}_{3}TeV".format(self.systName,self.catNameList[self.iCat],self.channel,self.sqrts)
+         PdfName = "qqZZ_OffshellPdf_{}".format(self.templateSuffix)
          self.bkgPdf = ROOT.RooHistPdf(PdfName,PdfName,self.bkg_T_2.argset,self.bkg_T_2.theDataHist,0)
 
       # Z+X bkg
       elif(self.strBkgType == "ZX"):
-         PdfName = "zjets_OffshellPdf_{0}_{1}_{2}_{3}TeV".format(self.systName,self.catNameList[self.iCat],self.channel,self.sqrts)
+         PdfName = "zjets_OffshellPdf_{}".format(self.templateSuffix)
          if self.ProjDim==0: # If projection on dim-0 is requested, just use the (unconditional) template already projected
             self.bkgPdf = ROOT.RooHistPdf(PdfName,PdfName,self.bkg_T_2.argset,self.bkg_T_2.theDataHist,0)
          else: # If projection on dim-0 is not requested, use the product of the mass pdf with the template conditional over dim-0
-            HistPdfName = "zjets_OffshellPdf_others_{0}_{1}_{2}_{3}TeV".format(self.systName,self.catNameList[self.iCat],self.channel,self.sqrts)
+            HistPdfName = "zjets_OffshellPdf_others_{}".format(self.templateSuffix)
             bkgHistPdf = ROOT.RooHistPdf(HistPdfName,HistPdfName,self.bkg_T_2.argset,self.bkg_T_2.theDataHist,0)
             self.bkgPdf_extras.append(bkgHistPdf)
 
@@ -92,15 +95,15 @@ class BkgTemplateHelper:
             var_norm_3P1F = None
             pdf_3P1F = None
             if val_norm_3P1F>0.:
-               tmpname = "zjets_OffshellPdf_mass_3p1f_mean_{0}_{1}_{2}_{3}TeV".format(self.systName,self.catNameList[self.iCat],self.channel,self.sqrts)
+               tmpname = "zjets_OffshellPdf_mass_3p1f_mean_{}".format(self.templateSuffix)
                var_mean_3P1F = ROOT.RooRealVar(tmpname, "mean landau Zjet 3p1f", val_mean_3P1F)
-               tmpname = "zjets_OffshellPdf_mass_3p1f_sigma_{0}_{1}_{2}_{3}TeV".format(self.systName,self.catNameList[self.iCat],self.channel,self.sqrts)
+               tmpname = "zjets_OffshellPdf_mass_3p1f_sigma_{}".format(self.templateSuffix)
                var_sigma_3P1F = ROOT.RooRealVar(tmpname, "sigma landau Zjet 3p1f", val_sigma_3P1F)
-               tmpname = "zjets_OffshellPdf_mass_3p1f_norm_{0}_{1}_{2}_{3}TeV".format(self.systName,self.catNameList[self.iCat],self.channel,self.sqrts)
+               tmpname = "zjets_OffshellPdf_mass_3p1f_norm_{}".format(self.templateSuffix)
                var_norm_3P1F = ROOT.RooRealVar(tmpname, "norm landau Zjet 3p1f", val_norm_3P1F)
                pdf_3P1F = ROOT.RooLandau(
-                  "zjets_OffshellPdf_mass_3p1f_{0}_{1}_{2}_{3}TeV".format(self.systName,self.catNameList[self.iCat],self.channel,self.sqrts),
-                  "zjets_OffshellPdf_mass_3p1f_{0}_{1}_{2}_{3}TeV".format(self.systName,self.catNameList[self.iCat],self.channel,self.sqrts),
+                  "zjets_OffshellPdf_mass_3p1f_{}".format(self.templateSuffix),
+                  "zjets_OffshellPdf_mass_3p1f_{}".format(self.templateSuffix),
                   self.varm4l,
                   var_mean_3P1F, var_sigma_3P1F
                )
@@ -117,27 +120,27 @@ class BkgTemplateHelper:
             var_pol1_2P2F = None
             pdf_2P2F = None
             if val_norm_2P2F>0.:
-               tmpname = "zjets_OffshellPdf_mass_2p2f_mean_{0}_{1}_{2}_{3}TeV".format(self.systName,self.catNameList[self.iCat],self.channel,self.sqrts)
+               tmpname = "zjets_OffshellPdf_mass_2p2f_mean_{}".format(self.templateSuffix)
                var_mean_2P2F = ROOT.RooRealVar(tmpname, "mean landau Zjet 2p2f", val_mean_2P2F)
-               tmpname = "zjets_OffshellPdf_mass_2p2f_sigma_{0}_{1}_{2}_{3}TeV".format(self.systName,self.catNameList[self.iCat],self.channel,self.sqrts)
+               tmpname = "zjets_OffshellPdf_mass_2p2f_sigma_{}".format(self.templateSuffix)
                var_sigma_2P2F = ROOT.RooRealVar(tmpname, "sigma landau Zjet 2p2f", val_sigma_2P2F)
-               tmpname = "zjets_OffshellPdf_mass_2p2f_norm_{0}_{1}_{2}_{3}TeV".format(self.systName,self.catNameList[self.iCat],self.channel,self.sqrts)
+               tmpname = "zjets_OffshellPdf_mass_2p2f_norm_{}".format(self.templateSuffix)
                var_norm_2P2F = ROOT.RooRealVar(tmpname, "norm landau Zjet 2p2f", val_norm_2P2F)
                if val_pol1_2P2F==0.:
                   pdf_2P2F = ROOT.RooLandau(
-                     "zjets_OffshellPdf_mass_2p2f_{0}_{1}_{2}_{3}TeV".format(self.systName,self.catNameList[self.iCat],self.channel,self.sqrts),
-                     "zjets_OffshellPdf_mass_2p2f_{0}_{1}_{2}_{3}TeV".format(self.systName,self.catNameList[self.iCat],self.channel,self.sqrts),
+                     "zjets_OffshellPdf_mass_2p2f_{}".format(self.templateSuffix),
+                     "zjets_OffshellPdf_mass_2p2f_{}".format(self.templateSuffix),
                      self.varm4l,
                      var_mean_2P2F, var_sigma_2P2F
                   )
                else:
-                  tmpname = "zjets_OffshellPdf_mass_2p2f_pol0_{0}_{1}_{2}_{3}TeV".format(self.systName,self.catNameList[self.iCat],self.channel,self.sqrts)
+                  tmpname = "zjets_OffshellPdf_mass_2p2f_pol0_{}".format(self.templateSuffix)
                   var_pol0_2P2F = ROOT.RooRealVar(tmpname, "pol0 landau Zjet 2p2f", val_pol0_2P2F)
-                  tmpname = "zjets_OffshellPdf_mass_2p2f_pol1_{0}_{1}_{2}_{3}TeV".format(self.systName,self.catNameList[self.iCat],self.channel,self.sqrts)
+                  tmpname = "zjets_OffshellPdf_mass_2p2f_pol1_{}".format(self.templateSuffix)
                   var_pol1_2P2F = ROOT.RooRealVar(tmpname, "pol1 landau Zjet 2p2f", val_pol1_2P2F)
                   pdf_2P2F = ROOT.RooGenericPdf(
-                     "zjets_OffshellPdf_mass_2p2f_{0}_{1}_{2}_{3}TeV".format(self.systName,self.catNameList[self.iCat],self.channel,self.sqrts),
-                     "zjets_OffshellPdf_mass_2p2f_{0}_{1}_{2}_{3}TeV".format(self.systName,self.catNameList[self.iCat],self.channel,self.sqrts),
+                     "zjets_OffshellPdf_mass_2p2f_{}".format(self.templateSuffix),
+                     "zjets_OffshellPdf_mass_2p2f_{}".format(self.templateSuffix),
                      "(TMath::Landau(@0,@1,@2))*(1.+ TMath::Exp(@3+@4*@0))",
                      ROOT.RooArgList(
                         self.varm4l,
@@ -155,20 +158,20 @@ class BkgTemplateHelper:
             var_norm_2P2F_2 = None
             pdf_2P2F_2 = None
             if val_norm_2P2F_2>0.:
-               tmpname = "zjets_OffshellPdf_mass_2p2f_2_mean_{0}_{1}_{2}_{3}TeV".format(self.systName,self.catNameList[self.iCat],self.channel,self.sqrts)
+               tmpname = "zjets_OffshellPdf_mass_2p2f_2_mean_{}".format(self.templateSuffix)
                var_mean_2P2F_2 = ROOT.RooRealVar(tmpname, "mean landau Zjet 2p2f_2", val_mean_2P2F_2)
-               tmpname = "zjets_OffshellPdf_mass_2p2f_2_sigma_{0}_{1}_{2}_{3}TeV".format(self.systName,self.catNameList[self.iCat],self.channel,self.sqrts)
+               tmpname = "zjets_OffshellPdf_mass_2p2f_2_sigma_{}".format(self.templateSuffix)
                var_sigma_2P2F_2 = ROOT.RooRealVar(tmpname, "sigma landau Zjet 2p2f_2", val_sigma_2P2F_2)
-               tmpname = "zjets_OffshellPdf_mass_2p2f_2_norm_{0}_{1}_{2}_{3}TeV".format(self.systName,self.catNameList[self.iCat],self.channel,self.sqrts)
+               tmpname = "zjets_OffshellPdf_mass_2p2f_2_norm_{}".format(self.templateSuffix)
                var_norm_2P2F_2 = ROOT.RooRealVar(tmpname, "norm landau Zjet 2p2f_2", val_norm_2P2F_2)
                pdf_2P2F_2 = ROOT.RooLandau(
-                  "zjets_OffshellPdf_mass_2p2f_2_{0}_{1}_{2}_{3}TeV".format(self.systName,self.catNameList[self.iCat],self.channel,self.sqrts),
-                  "zjets_OffshellPdf_mass_2p2f_2_{0}_{1}_{2}_{3}TeV".format(self.systName,self.catNameList[self.iCat],self.channel,self.sqrts),
+                  "zjets_OffshellPdf_mass_2p2f_2_{}".format(self.templateSuffix),
+                  "zjets_OffshellPdf_mass_2p2f_2_{}".format(self.templateSuffix),
                   self.varm4l,
                   var_mean_2P2F_2, var_mean_2P2F_2
                )
 
-            MassPdfName = "zjets_OffshellPdf_mass_{0}_{1}_{2}_{3}TeV".format(self.systName,self.catNameList[self.iCat],self.channel,self.sqrts)
+            MassPdfName = "zjets_OffshellPdf_mass_{}".format(self.templateSuffix)
             pdflist = ROOT.RooArgList()
             coeflist = ROOT.RooArgList()
             if ((pdf_3P1F is not None) and (var_norm_3P1F is not None)):

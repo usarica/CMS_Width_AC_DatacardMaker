@@ -12,7 +12,7 @@ import ExtendedTemplate
 
 class BSITemplateHelper:
 
-   def __init__(self, options, theMaker, theCategorizer, templateFileName, iCat, systName):
+   def __init__(self, options, theMaker, theCategorizer, strBSIType, templateFileName, iCat, systName):
       # sqrts and channel index from the datacard maker class
       self.sqrts = theMaker.sqrts
       self.channel = theMaker.channel
@@ -49,6 +49,8 @@ class BSITemplateHelper:
 
       self.templateFileName = templateFileName
       self.systName = systName
+      self.templateSuffix = "{0}_{1}_{2:.0f}_{3:.0f}TeV".format(self.systName,self.catNameList[self.iCat],self.channel,self.sqrts)
+
 
       # To be reset later
       self.nbinsx=(self.high_M - self.low_M) / 20
@@ -64,6 +66,8 @@ class BSITemplateHelper:
       # Template file
       self.templateFile = None
 
+      self.strBSIType = strBSIType # gg-like or VVH-like couplings structure
+      self.isGGVVLikeCouplings = strBSIType.lower().startswith("gg")
    # Extended template lists
    # Bare SM
       # ggF
@@ -158,71 +162,61 @@ class BSITemplateHelper:
       self.workspace.importClassCode(RooRealFlooredSumPdf.Class(),True)
       self.workspace.importClassCode(VerticalInterpPdf.Class(),True)
 
+
 # Close the template files
    def close(self):
       self.templateFile.Close()
 
+
 # Get shapes for each category
-   def getTemplates(self):
+   def getTemplates(self,processName=None,templatePrefix="T_2D"):
       self.templateFile = ROOT.TFile.Open(self.templateFileName, "read")
 
-#---------- SM SIGNAL AND BACKGROUND TEMPLATES -------------
+      self.templatePrefix = templatePrefix
+      if processName is not None:
+         self.processName = processName
+         self.templatePrefix = "{}_{}".format(self.templatePrefix,processName)
+      elif not self.isGGVVLikeCouplings:
+         self.processName = "VBF"
+         self.templatePrefix = "{}_{}".format(self.templatePrefix,processName)
+      else:
+         self.processName = "gg"
 
+      if self.isGGVVLikeCouplings:
+         self.getTemplates_ggVVLike()
+      else:
+         self.getTemplates_vvVVLike()
+
+
+   def getTemplates_ggVVLike(self):
+#---------- SM SIGNAL AND BACKGROUND TEMPLATES -------------
 # Bare SM
       self.gg_T_1 =
          ExtendedTemplate(
-               self.templateFile.Get("T_2D_1").Clone("T_2D_gg_1_{0}_{1}_{2}_{3}TeV".format(self.systName,self.catNameList[self.iCat],self.channel,self.sqrts)),
+               self.templateFile.Get("{}_1".format(self.templatePrefix)).Clone("{}_1_{}".format(self.templatePrefix,self.templateSuffix)),
                self.dimensions, self.ProjDim,
                self.varm4l, self.varKD, self.varKD2
             )
       self.gg_T_2 =
          ExtendedTemplate(
-               self.templateFile.Get("T_2D_2").Clone("T_2D_gg_2_{0}_{1}_{2}_{3}TeV".format(self.systName,self.catNameList[self.iCat],self.channel,self.sqrts)),
+               self.templateFile.Get("{}_2".format(self.templatePrefix)).Clone("{}_2_{}".format(self.templatePrefix,self.templateSuffix)),
                self.dimensions, self.ProjDim,
                self.varm4l, self.varKD, self.varKD2
             )
       if(not(self.isBkgSigOnly)):
          self.gg_T_4_Re =
             ExtendedTemplate(
-                  self.templateFile.Get("T_2D_4_Re").Clone("T_2D_gg_4_Re_{0}_{1}_{2}_{3}TeV".format(self.systName,self.catNameList[self.iCat],self.channel,self.sqrts)),
+                  self.templateFile.Get("{}_4_Re".format(self.templatePrefix)).Clone("{}_4_Re_{}".format(self.templatePrefix,self.templateSuffix)),
                   self.dimensions, self.ProjDim,
                   self.varm4l, self.varKD, self.varKD2
                )
-
-      self.VBF_T_1 =
-         ExtendedTemplate(
-               self.templateFile.Get("T_2D_VBF_1").Clone("T_2D_VBF_1_{0}_{1}_{2}_{3}TeV".format(self.systName,self.catNameList[self.iCat],self.channel,self.sqrts)),
-               self.dimensions, self.ProjDim,
-               self.varm4l, self.varKD, self.varKD2
-            )
-      self.VBF_T_2 =
-         ExtendedTemplate(
-               self.templateFile.Get("T_2D_VBF_2").Clone("T_2D_VBF_2_{0}_{1}_{2}_{3}TeV".format(self.systName,self.catNameList[self.iCat],self.channel,self.sqrts)),
-               self.dimensions, self.ProjDim,
-               self.varm4l, self.varKD, self.varKD2
-            )
-      if(not(self.isBkgSigOnly)):
-         self.VBF_T_4_Re =
-            ExtendedTemplate(
-                  self.templateFile.Get("T_2D_VBF_4_Re").Clone("T_2D_VBF_4_Re_{0}_{1}_{2}_{3}TeV".format(self.systName,self.catNameList[self.iCat],self.channel,self.sqrts)),
-                  self.dimensions, self.ProjDim,
-                  self.varm4l, self.varKD, self.varKD2
-               )
-
-      if (self.anomCoupl==1 and not(self.isBkgSigOnly)):
-         self.gg_T_4_Im =
-            ExtendedTemplate(
-                  self.templateFile.Get("T_2D_4_Im").Clone("T_2D_gg_4_Im_{0}_{1}_{2}_{3}TeV".format(self.systName,self.catNameList[self.iCat],self.channel,self.sqrts)),
-                  self.dimensions, self.ProjDim,
-                  self.varm4l, self.varKD, self.varKD2
-               )
-         self.VBF_T_4_Im =
-            ExtendedTemplate(
-                  self.templateFile.Get("T_2D_VBF_4_Im").Clone("T_2D_VBF_4_Im_{0}_{1}_{2}_{3}TeV".format(self.systName,self.catNameList[self.iCat],self.channel,self.sqrts)),
-                  self.dimensions, self.ProjDim,
-                  self.varm4l, self.varKD, self.varKD2
-               )
-
+         if (self.anomCoupl==1):
+            self.gg_T_4_Im =
+               ExtendedTemplate(
+                     self.templateFile.Get("{}_4_Im".format(self.templatePrefix)).Clone("{}_4_Im_{}".format(self.templatePrefix,self.templateSuffix)),
+                     self.dimensions, self.ProjDim,
+                     self.varm4l, self.varKD, self.varKD2
+                  )
       # Special case: Get template properties from the gg bkg template
       if icat == 0:
          self.nbinsx=self.gg_T_2.theTemplate.GetNbinsX()
@@ -237,7 +231,6 @@ class BSITemplateHelper:
          self.blankTemplate = self.gg_T_2.theTemplate.Clone("blankTemplate")
          self.blankTemplate.Reset("M")
 
-
       if self.anomCoupl != 0:
 #-----------------------------------------------------------------------#
 #                        SIGNAL AC TERMS
@@ -245,97 +238,35 @@ class BSITemplateHelper:
 # Signal ai**1 x a1**(2/4-1) real and imaginary parts
          self.gg_T_1_AC_1_Re =
             ExtendedTemplate(
-                  self.templateFile.Get("T_2D_1_AC_1_Re").Clone("T_2D_gg_1_AC_1_Re_{0}_{1}_{2}_{3}TeV".format(self.systName,self.catNameList[self.iCat],self.channel,self.sqrts)),
+                  self.templateFile.Get("{}_1_AC_1_Re".format(self.templatePrefix)).Clone("{}_1_AC_1_Re_{}".format(self.templatePrefix,self.templateSuffix)),
                   self.dimensions, self.ProjDim,
                   self.varm4l, self.varKD, self.varKD2
                )
-         self.VBF_T_1_AC_1_Re =
-            ExtendedTemplate(
-                  self.templateFile.Get("T_2D_VBF_1_AC_1_Re").Clone("T_2D_VBF_1_AC_1_Re_{0}_{1}_{2}_{3}TeV".format(self.systName,self.catNameList[self.iCat],self.channel,self.sqrts)),
-                  self.dimensions, self.ProjDim,
-                  self.varm4l, self.varKD, self.varKD2
-               )
-
          if self.anomCoupl == 1:
             self.gg_T_1_AC_1_Im =
                ExtendedTemplate(
-                     self.templateFile.Get("T_2D_1_AC_1_Im").Clone("T_2D_gg_1_AC_1_Im_{0}_{1}_{2}_{3}TeV".format(self.systName,self.catNameList[self.iCat],self.channel,self.sqrts)),
+                     self.templateFile.Get("{}_1_AC_1_Im".format(self.templatePrefix)).Clone("{}_1_AC_1_Im_{}".format(self.templatePrefix,self.templateSuffix)),
                      self.dimensions, self.ProjDim,
                      self.varm4l, self.varKD, self.varKD2
                   )
-            self.VBF_T_1_AC_1_Im =
-               ExtendedTemplate(
-                     self.templateFile.Get("T_2D_VBF_1_AC_1_Im").Clone("T_2D_VBF_1_AC_1_Im_{0}_{1}_{2}_{3}TeV".format(self.systName,self.catNameList[self.iCat],self.channel,self.sqrts)),
-                     self.dimensions, self.ProjDim,
-                     self.varm4l, self.varKD, self.varKD2
-                  )
-
 
 # Signal ai**2 x a1**(2/4-2) real and imaginary parts
          self.gg_T_1_AC_2_Re =
             ExtendedTemplate(
-                  self.templateFile.Get("T_2D_1_AC_2_Re").Clone("T_2D_gg_1_AC_2_Re_{0}_{1}_{2}_{3}TeV".format(self.systName,self.catNameList[self.iCat],self.channel,self.sqrts)),
+                  self.templateFile.Get("{}_1_AC_2_Re".format(self.templatePrefix)).Clone("{}_1_AC_2_Re_{}".format(self.templatePrefix,self.templateSuffix)),
                   self.dimensions, self.ProjDim,
                   self.varm4l, self.varKD, self.varKD2
                )
-
          if self.anomCoupl == 1:
-            self.VBF_T_1_AC_2_PosDef =
-               ExtendedTemplate(
-                     self.templateFile.Get("T_2D_VBF_1_AC_2_PosDef").Clone("T_2D_VBF_1_AC_2_PosDef_{0}_{1}_{2}_{3}TeV".format(self.systName,self.catNameList[self.iCat],self.channel,self.sqrts)),
-                     self.dimensions, self.ProjDim,
-                     self.varm4l, self.varKD, self.varKD2
-                  )
-
-            self.VBF_T_1_AC_2_Re =
-               ExtendedTemplate(
-                     self.templateFile.Get("T_2D_VBF_1_AC_2_Re").Clone("T_2D_VBF_1_AC_2_Re_{0}_{1}_{2}_{3}TeV".format(self.systName,self.catNameList[self.iCat],self.channel,self.sqrts)),
-                     self.dimensions, self.ProjDim,
-                     self.varm4l, self.varKD, self.varKD2
-                  )
-
-            self.VBF_T_1_AC_2_Im =
-               ExtendedTemplate(
-                     self.templateFile.Get("T_2D_VBF_1_AC_2_Im").Clone("T_2D_VBF_1_AC_2_Im_{0}_{1}_{2}_{3}TeV".format(self.systName,self.catNameList[self.iCat],self.channel,self.sqrts)),
-                     self.dimensions, self.ProjDim,
-                     self.varm4l, self.varKD, self.varKD2
-                  )
+            continue # No ggF term
          elif self.anomCoupl == 2: # if self.anomCoupl == 2, PosDef = PosDef+Re
-            tmpTpl = self.templateFile.Get("T_2D_VBF_1_AC_2_PosDef").Clone("T_2D_VBF_1_AC_2_PosDef_{0}_{1}_{2}_{3}TeV".format(self.systName,self.catNameList[self.iCat],self.channel,self.sqrts))
-            tmpTpl.Add(self.templateFile.Get("T_2D_VBF_1_AC_2_Re").Clone("T_2D_VBF_1_AC_2_Re_{0}_{1}_{2}_{3}TeV".format(self.systName,self.catNameList[self.iCat],self.channel,self.sqrts)))
-            self.VBF_T_1_AC_2_PosDef =
-               ExtendedTemplate(
-                     tmpTpl,
-                     self.dimensions, self.ProjDim,
-                     self.varm4l, self.varKD, self.varKD2
-                  )
-
+            continue # No ggF term
 
 # Signal ai**3 x a1**1 real and imaginary parts
-         self.VBF_T_1_AC_3_Re =
-            ExtendedTemplate(
-                  self.templateFile.Get("T_2D_VBF_1_AC_3_Re").Clone("T_2D_VBF_1_AC_3_Re_{0}_{1}_{2}_{3}TeV".format(self.systName,self.catNameList[self.iCat],self.channel,self.sqrts)),
-                  self.dimensions, self.ProjDim,
-                  self.varm4l, self.varKD, self.varKD2
-               )
-
-         if self.anomCoupl == 1:
-            self.VBF_T_1_AC_3_Im =
-               ExtendedTemplate(
-                     self.templateFile.Get("T_2D_VBF_1_AC_3_Im").Clone("T_2D_VBF_1_AC_3_Im_{0}_{1}_{2}_{3}TeV".format(self.systName,self.catNameList[self.iCat],self.channel,self.sqrts)),
-                     self.dimensions, self.ProjDim,
-                     self.varm4l, self.varKD, self.varKD2
-                  )
-
+   # No ggF term
 
 # Signal ai**4 x a1**0 real and imaginary parts
-         self.VBF_T_1_AC_4 =
-            ExtendedTemplate(
-                  self.templateFile.Get("T_2D_VBF_1_AC_4").Clone("T_2D_VBF_1_AC_4_{0}_{1}_{2}_{3}TeV".format(self.systName,self.catNameList[self.iCat],self.channel,self.sqrts)),
-                  self.dimensions, self.ProjDim,
-                  self.varm4l, self.varKD, self.varKD2
-               )
-
+   # No ggF term
 
 #-----------------------------------------------------------------------#
 #                       INTERFERENCE AC TERMS
@@ -344,48 +275,20 @@ class BSITemplateHelper:
 # Interference ai**1 x a1**(1/2-1) real and imaginary parts
             self.gg_T_4_AC_1_Re =
                ExtendedTemplate(
-                     self.templateFile.Get("T_2D_4_AC_1_Re").Clone("T_2D_gg_4_AC_1_Re_{0}_{1}_{2}_{3}TeV".format(self.systName,self.catNameList[self.iCat],self.channel,self.sqrts)),
+                     self.templateFile.Get("{}_4_AC_1_Re".format(self.templatePrefix)).Clone("{}_4_AC_1_Re_{}".format(self.templatePrefix,self.templateSuffix)),
                      self.dimensions, self.ProjDim,
                      self.varm4l, self.varKD, self.varKD2
                   )
-            self.VBF_T_4_AC_1_Re =
-               ExtendedTemplate(
-                     self.templateFile.Get("T_2D_VBF_4_AC_1_Re").Clone("T_2D_VBF_4_AC_1_Re_{0}_{1}_{2}_{3}TeV".format(self.systName,self.catNameList[self.iCat],self.channel,self.sqrts)),
-                     self.dimensions, self.ProjDim,
-                     self.varm4l, self.varKD, self.varKD2
-                  )
-
             if self.anomCoupl == 1:
                self.gg_T_4_AC_1_Im =
                   ExtendedTemplate(
-                        self.templateFile.Get("T_2D_4_AC_1_Im").Clone("T_2D_gg_4_AC_1_Im_{0}_{1}_{2}_{3}TeV".format(self.systName,self.catNameList[self.iCat],self.channel,self.sqrts)),
+                        self.templateFile.Get("{}_4_AC_1_Im".format(self.templatePrefix)).Clone("{}_4_AC_1_Im_{}".format(self.templatePrefix,self.templateSuffix)),
                         self.dimensions, self.ProjDim,
                         self.varm4l, self.varKD, self.varKD2
                      )
-               self.VBF_T_4_AC_1_Im =
-                  ExtendedTemplate(
-                        self.templateFile.Get("T_2D_VBF_4_AC_1_Im").Clone("T_2D_VBF_4_AC_1_Im_{0}_{1}_{2}_{3}TeV".format(self.systName,self.catNameList[self.iCat],self.channel,self.sqrts)),
-                        self.dimensions, self.ProjDim,
-                        self.varm4l, self.varKD, self.varKD2
-                     )
-
 
 # Interference ai**2 x a1**(2-2) real and imaginary parts
-            self.VBF_T_4_AC_2_Re =
-               ExtendedTemplate(
-                     self.templateFile.Get("T_2D_VBF_4_AC_2_Re").Clone("T_2D_VBF_4_AC_2_Re_{0}_{1}_{2}_{3}TeV".format(self.systName,self.catNameList[self.iCat],self.channel,self.sqrts)),
-                     self.dimensions, self.ProjDim,
-                     self.varm4l, self.varKD, self.varKD2
-                  )
-
-            if self.anomCoupl == 1:
-               self.VBF_T_4_AC_2_Im =
-                  ExtendedTemplate(
-                        self.templateFile.Get("T_2D_VBF_4_AC_2_Im").Clone("T_2D_VBF_4_AC_2_Im_{0}_{1}_{2}_{3}TeV".format(self.systName,self.catNameList[self.iCat],self.channel,self.sqrts)),
-                        self.dimensions, self.ProjDim,
-                        self.varm4l, self.varKD, self.varKD2
-                     )
-
+   # No ggF term
 
 # FORMULAE
       # In signals and interferences, @0==muF/V; additionally in interferences, @1==kbkg_gg/VBF
@@ -395,63 +298,28 @@ class BSITemplateHelper:
          self.ggSigFormula_list.append("@0*sign(@1)*sqrt(abs(@1)*(1-abs(@1)))*cos(@2)")
          self.ggSigFormula_list.append("@0*sign(@1)*sqrt(abs(@1)*(1-abs(@1)))*sin(@2)")
          self.ggSigFormula_list.append("@0*abs(@1)")
-
-         # 0-8 are templates, @1==fai1, @2==phiai1
-         self.VBFSigFormula_list.append("@0*pow((1-abs(@1)),2)")
-         self.VBFSigFormula_list.append("@0*sign(@1)*sqrt(abs(@1))*pow(sqrt(1-abs(@1)),3)*cos(@2)")
-         self.VBFSigFormula_list.append("@0*sign(@1)*sqrt(abs(@1))*pow(sqrt(1-abs(@1)),3)*sin(@2)")
-         self.VBFSigFormula_list.append("@0*abs(@1)*(1-abs(@1))")
-         self.VBFSigFormula_list.append("@0*abs(@1)*(1-abs(@1))*cos(2*@2)")
-         self.VBFSigFormula_list.append("@0*abs(@1)*(1-abs(@1))*sin(2*@2)")
-         self.VBFSigFormula_list.append("@0*sign(@1)*pow(sqrt(abs(@1)),3)*sqrt(1-abs(@1))*cos(@2)")
-         self.VBFSigFormula_list.append("@0*sign(@1)*pow(sqrt(abs(@1)),3)*sqrt(1-abs(@1))*sin(@2)")
-         self.VBFSigFormula_list.append("@0*pow(@1,2)")
-
          if(not(self.isBkgSigOnly)):
             # 0-3 are templates, @2==fai1, @3==phiai1, @4==phia1 (gg)
             self.ggInterfFormula_list.append("sqrt(@0*@1)*sqrt(1-abs(@2))*cos(@4)")
             self.ggInterfFormula_list.append("sqrt(@0*@1)*sqrt(1-abs(@2))*sin(@4)")
             self.ggInterfFormula_list.append("sqrt(@0*@1)*sign(@2)*sqrt(abs(@2))*cos(@3+@4)")
             self.ggInterfFormula_list.append("sqrt(@0*@1)*sign(@2)*sqrt(abs(@2))*sin(@3+@4)")
-
-            # 0-5 are templates, @2==fai1, @3==phiai1, @4==phia1 (VBF)
-            self.VBFInterfFormula_list.append("sqrt(@0*@1)*(1-abs(@2))*cos(2*@4)")
-            self.VBFInterfFormula_list.append("sqrt(@0*@1)*(1-abs(@2))*sin(2*@4)")
-            self.VBFInterfFormula_list.append("sqrt(@0*@1)*sign(@2)*sqrt(abs(@2)*(1-abs(@2)))*cos(@3+2*@4)")
-            self.VBFInterfFormula_list.append("sqrt(@0*@1)*sign(@2)*sqrt(abs(@2)*(1-abs(@2)))*sin(@3+2*@4)")
-            self.VBFInterfFormula_list.append("sqrt(@0*@1)*abs(@2)*cos(2*(@3+@4))")
-            self.VBFInterfFormula_list.append("sqrt(@0*@1)*abs(@2)*sin(2*(@3+@4))")
       elif self.anomCoupl == 2: # No phases, just fai1=[-1, 1]
          # 0-2 are templates, @1==fai1
          self.ggSigFormula_list.append("@0*(1-abs(@1))")
          self.ggSigFormula_list.append("@0*sign(@1)*sqrt(abs(@1)*(1-abs(@1)))")
          self.ggSigFormula_list.append("@0*abs(@1)")
-
-         # 0-4 are templates, @1==fai1
-         self.VBFSigFormula_list.append("@0*pow((1-abs(@1)),2)")
-         self.VBFSigFormula_list.append("@0*sign(@1)*sqrt(abs(@1))*pow(sqrt(1-abs(@1)),3)")
-         self.VBFSigFormula_list.append("@0*abs(@1)*(1-abs(@1))")
-         self.VBFSigFormula_list.append("@0*sign(@1)*pow(sqrt(abs(@1)),3)*sqrt(1-abs(@1))")
-         self.VBFSigFormula_list.append("@0*pow(@1,2)")
-
          if(not(self.isBkgSigOnly)):
             # 0-1 are templates, @2==fai1
             self.ggInterfFormula_list.append("sqrt(@0*@1)*sqrt(1-abs(@2))")
             self.ggInterfFormula_list.append("sqrt(@0*@1)*sign(@2)*sqrt(abs(@2))")
-
-            # 0-2 are templates, @2==fai1
-            self.VBFInterfFormula_list.append("sqrt(@0*@1)*(1-abs(@2))")
-            self.VBFInterfFormula_list.append("sqrt(@0*@1)*sign(@2)*sqrt(abs(@2)*(1-abs(@2)))")
-            self.VBFInterfFormula_list.append("sqrt(@0*@1)*abs(@2)")
       else: # No ai1 dependence
          self.ggSigFormula_list.append("@0")
-         self.VBFSigFormula_list.append("@0")
          if(not(self.isBkgSigOnly)):
-         self.ggInterfFormula_list.append("sqrt(@0*@1)")
-            self.VBFInterfFormula_list.append("sqrt(@0*@1)")
+            self.ggInterfFormula_list.append("sqrt(@0*@1)")
 
       for irfv in range(0,len(self.ggSigFormula_list)):
-         rfvname = "ggSig_AC_{0:.0f}_Coef".format(irfv)
+         rfvname = "{0}Sig_AC_{1:.0f}_Coef".format(self.processName,irfv)
          rfvargs = ROOT.RooArgList()
          rfvargs.add(self.muF)
          if self.anomCoupl == 1:
@@ -466,24 +334,8 @@ class BSITemplateHelper:
             seg_rfv = ROOT.RooRealVar( rfvname , rfvname , 1.0 )
             self.ggSigRFV_list.append(seg_rfv)
 
-      for irfv in range(0,len(self.VBFSigFormula_list)):
-         rfvname = "VBFSig_AC_{0:.0f}_Coef".format(irfv)
-         rfvargs = ROOT.RooArgList()
-         rfvargs.add(self.muV)
-         if self.anomCoupl == 1:
-            rfvargs.add(self.fai1)
-            rfvargs.add(self.phiai1)
-         elif self.anomCoupl == 2:
-            rfvargs.add(self.fai1)
-         if rfvargs.getSize()>0:
-            seg_rfv = ROOT.RooFormulaVar( rfvname , self.VBFSigFormula_list[irfv] , rfvargs )
-            self.VBFSigRFV_list.append(seg_rfv)
-         else:
-            seg_rfv = ROOT.RooRealVar( rfvname , rfvname , 1.0 )
-            self.VBFSigRFV_list.append(seg_rfv)
-
       for irfv in range(0,len(self.ggInterfFormula_list)):
-         rfvname = "ggInterf_AC_{0:.0f}_Coef".format(irfv)
+         rfvname = "{0}Interf_AC_{1:.0f}_Coef".format(self.processName,irfv)
          rfvargs = ROOT.RooArgList()
          rfvargs.add(self.muF)
          rfvargs.add(self.kbkg_gg)
@@ -500,8 +352,288 @@ class BSITemplateHelper:
             seg_rfv = ROOT.RooRealVar( rfvname , rfvname , 1.0 )
             self.ggInterfRFV_list.append(seg_rfv)
 
+# Lists of template arguments
+      self.ggSigFunctions_Args.append(self.gg_T_1)
+      if self.anomCoupl == 1:
+         self.ggSigFunctions_Args.append(self.gg_T_1_AC_1_Re)
+         self.ggSigFunctions_Args.append(self.gg_T_1_AC_1_Im)
+         self.ggSigFunctions_Args.append(self.gg_T_1_AC_2_Re)
+      elif self.anomCoupl == 2:
+         self.ggSigFunctions_Args.append(self.gg_T_1_AC_1_Re)
+         self.ggSigFunctions_Args.append(self.gg_T_1_AC_2_Re)
+      if len(self.ggSigFunctions_Args)!=len(self.ggSigRFV_list):
+         sys.exit("Number of {0}Sig templates {1:.0f} is not equal to number of funcficients {2:.0f}!".format(self.processName,len(self.ggSigFunctions_Args),len(self.ggSigRFV_list)))
+
+      if(not(self.isBkgSigOnly)):
+         self.ggInterfFunctions_Args.append(self.gg_T_4_Re)
+         if self.anomCoupl == 1:
+            self.ggInterfFunctions_Args.append(self.gg_T_4_Im)
+            self.ggInterfFunctions_Args.append(self.gg_T_4_AC_1_Re)
+            self.ggInterfFunctions_Args.append(self.gg_T_4_AC_1_Im)
+         elif self.anomCoupl == 2:
+            self.ggInterfFunctions_Args.append(self.gg_T_4_AC_1_Re)
+         if len(self.ggInterfFunctions_Args)!=len(self.ggInterfRFV_list):
+            sys.exit("Number of {0}Interf templates {1:.0f} is not equal to number of funcficients {2:.0f}!".format(self.processName,len(self.ggInterfFunctions_Args),len(self.ggInterfRFV_list)))
+
+      self.ggHistFunc_Arg = ROOT.RooArgList()
+      for var in self.ggSigFunctions_Args:
+         self.ggHistFunc_Arg.add(var.theHistFunc)
+      for var in self.ggInterfFunctions_Args:
+         self.ggHistFunc_Arg.add(var.theHistFunc)
+      self.ggHistFunc_Arg.add(self.gg_T_2.theHistFunc)
+
+# Construct the p.d.f.'s
+      rfvargs = ROOT.RooArgList()
+      for var in self.ggSigRFV_list:
+         rfvargs.add(var)
+      for var in self.ggInterfRFV_list:
+         rfvargs.add(var)
+      rfvargs.add(self.kbkg_gg)
+      PdfName = "{}Pdf_{}".format(self.processName,self.templateSuffix))
+      self.ggPdf = ROOT.RooRealSumPdf(
+         PdfName, PdfName,
+         self.ggHistFunc_Arg,rfvargs
+      )
+
+# Lists of rate FormulaVars
+# Each signal, bkg and interf is constructed separately to be able to count their contributions in the end
+      rfvargs = ROOT.RooArgList()
+      strformula = ""
+      for ivar in range(0,len(self.ggSigFunctions_Args)):
+         rfvargs.add(self.ggSigRFV_list[ivar])
+         rfvargs.add(self.ggSigFunctions_Args[ivar].theRate)
+         if ivar==0:
+            strformula = "{0:.0f}*{1:,0f}".format(2*ivar,2*ivar+1)
+         else:
+            strformula = "{2} + {0:.0f}*{1:,0f}".format(2*ivar,2*ivar+1,strformula)
+      rfvname = "{}SigRate_{}".format(self.processName,self.templateSuffix)
+      self.ggSigRates_RooFormulaVar = ROOT.RooFormulaVar( rfvname , strformula , rfvargs )
+
+      if len(self.ggInterfFunctions_Args)>0:
+         rfvargs = ROOT.RooArgList()
+         strformula = ""
+         for ivar in range(0,len(self.ggInterfFunctions_Args)):
+            rfvargs.add(self.ggInterfRFV_list[ivar])
+            rfvargs.add(self.ggInterfFunctions_Args[ivar].theRate)
+            if ivar==0:
+               strformula = "{0:.0f}*{1:,0f}".format(2*ivar,2*ivar+1)
+            else:
+               strformula = "{2} + {0:.0f}*{1:,0f}".format(2*ivar,2*ivar+1,strformula)
+         rfvname = "{}InterfRate_{}".format(self.processName,self.templateSuffix)
+         self.ggInterfRates_RooFormulaVar = ROOT.RooFormulaVar( rfvname , strformula , rfvargs )
+
+      rfvargs = ROOT.RooArgList()
+      strformula = "@0*@1"
+      rfvargs.add(self.kbkg_gg)
+      rfvargs.add(self.gg_T_2.theRate)
+      rfvname = "{}BkgRate_{}".format(self.processName,self.templateSuffix)
+      self.ggBkgRates_RooFormulaVar = ROOT.RooFormulaVar( rfvname , strformula , rfvargs )
+
+# Construct total rates
+      rfvargs = ROOT.RooArgList()
+      strformula = "@0+@1"
+      rfvargs.add(self.ggSigRates_RooFormulaVar)
+      rfvargs.add(self.ggBkgRates_RooFormulaVar)
+      if(not(self.isBkgSigOnly)):
+         strformula = "@0+@1+@2"
+         rfvargs.add(self.ggInterfRates_RooFormulaVar)
+      rfvname = "{}TotalRate_{}".format(self.processName,self.templateSuffix)
+      self.ggTotalRate = ROOT.RooFormulaVar( rfvname , strformula , rfvargs )
+
+
+   def getTemplates_vvVVLike(self):
+#---------- SM SIGNAL AND BACKGROUND TEMPLATES -------------
+# Bare SM
+      self.VBF_T_1 =
+         ExtendedTemplate(
+               self.templateFile.Get("{}_1".format(self.templatePrefix)).Clone("{}_1_{}".format(self.templatePrefix,self.templateSuffix)),
+               self.dimensions, self.ProjDim,
+               self.varm4l, self.varKD, self.varKD2
+            )
+      self.VBF_T_2 =
+         ExtendedTemplate(
+               self.templateFile.Get("{}_2".format(self.templatePrefix)).Clone("{}_2_{}".format(self.templatePrefix,self.templateSuffix)),
+               self.dimensions, self.ProjDim,
+               self.varm4l, self.varKD, self.varKD2
+            )
+      if(not(self.isBkgSigOnly)):
+         self.VBF_T_4_Re =
+            ExtendedTemplate(
+                  self.templateFile.Get("{}_4_Re".format(self.templatePrefix)).Clone("{}_4_Re_{}".format(self.templatePrefix,self.templateSuffix)),
+                  self.dimensions, self.ProjDim,
+                  self.varm4l, self.varKD, self.varKD2
+               )
+         if (self.anomCoupl==1):
+            self.VBF_T_4_Im =
+               ExtendedTemplate(
+                     self.templateFile.Get("{}_4_Im".format(self.templatePrefix)).Clone("{}_4_Im_{}".format(self.templatePrefix,self.templateSuffix)),
+                     self.dimensions, self.ProjDim,
+                     self.varm4l, self.varKD, self.varKD2
+                  )
+
+      if self.anomCoupl != 0:
+#-----------------------------------------------------------------------#
+#                        SIGNAL AC TERMS
+#-----------------------------------------------------------------------#
+# Signal ai**1 x a1**(2/4-1) real and imaginary parts
+         self.VBF_T_1_AC_1_Re =
+            ExtendedTemplate(
+                  self.templateFile.Get("{}_1_AC_1_Re".format(self.templatePrefix)).Clone("{}_1_AC_1_Re_{}".format(self.templatePrefix,self.templateSuffix)),
+                  self.dimensions, self.ProjDim,
+                  self.varm4l, self.varKD, self.varKD2
+               )
+         if self.anomCoupl == 1:
+            self.VBF_T_1_AC_1_Im =
+               ExtendedTemplate(
+                     self.templateFile.Get("{}_1_AC_1_Im".format(self.templatePrefix)).Clone("{}_1_AC_1_Im_{}".format(self.templatePrefix,self.templateSuffix)),
+                     self.dimensions, self.ProjDim,
+                     self.varm4l, self.varKD, self.varKD2
+                  )
+
+# Signal ai**2 x a1**(2/4-2) real and imaginary parts
+         if self.anomCoupl == 1:
+            self.VBF_T_1_AC_2_PosDef =
+               ExtendedTemplate(
+                     self.templateFile.Get("{}_1_AC_2_PosDef".format(self.templatePrefix)).Clone("{}_1_AC_2_PosDef_{}".format(self.templatePrefix,self.templateSuffix)),
+                     self.dimensions, self.ProjDim,
+                     self.varm4l, self.varKD, self.varKD2
+                  )
+            self.VBF_T_1_AC_2_Re =
+               ExtendedTemplate(
+                     self.templateFile.Get("{}_1_AC_2_Re".format(self.templatePrefix)).Clone("{}_1_AC_2_Re_{}".format(self.templatePrefix,self.templateSuffix)),
+                     self.dimensions, self.ProjDim,
+                     self.varm4l, self.varKD, self.varKD2
+                  )
+            self.VBF_T_1_AC_2_Im =
+               ExtendedTemplate(
+                     self.templateFile.Get("{}_1_AC_2_Im".format(self.templatePrefix)).Clone("{}_1_AC_2_Im_{}".format(self.templatePrefix,self.templateSuffix)),
+                     self.dimensions, self.ProjDim,
+                     self.varm4l, self.varKD, self.varKD2
+                  )
+         elif self.anomCoupl == 2: # if self.anomCoupl == 2, PosDef = PosDef+Re
+            tmpTpl = self.templateFile.Get("{}_1_AC_2_PosDef".format(self.templatePrefix)).Clone("{}_1_AC_2_PosDef_{}".format(self.templatePrefix,self.templateSuffix))
+            tmpTpl.Add(self.templateFile.Get("{}_1_AC_2_Re".format(self.templatePrefix)).Clone("{}_1_AC_2_Re_{}".format(self.templatePrefix,self.templateSuffix)))
+            self.VBF_T_1_AC_2_PosDef =
+               ExtendedTemplate(
+                     tmpTpl,
+                     self.dimensions, self.ProjDim,
+                     self.varm4l, self.varKD, self.varKD2
+                  )
+
+# Signal ai**3 x a1**1 real and imaginary parts
+         self.VBF_T_1_AC_3_Re =
+            ExtendedTemplate(
+                  self.templateFile.Get("{}_1_AC_3_Re".format(self.templatePrefix)).Clone("{}_1_AC_3_Re_{}".format(self.templatePrefix,self.templateSuffix)),
+                  self.dimensions, self.ProjDim,
+                  self.varm4l, self.varKD, self.varKD2
+               )
+
+         if self.anomCoupl == 1:
+            self.VBF_T_1_AC_3_Im =
+               ExtendedTemplate(
+                     self.templateFile.Get("{}_1_AC_3_Im".format(self.templatePrefix)).Clone("{}_1_AC_3_Im_{}".format(self.templatePrefix,self.templateSuffix)),
+                     self.dimensions, self.ProjDim,
+                     self.varm4l, self.varKD, self.varKD2
+                  )
+
+# Signal ai**4 x a1**0 real and imaginary parts
+         self.VBF_T_1_AC_4 =
+            ExtendedTemplate(
+                  self.templateFile.Get("{}_1_AC_4".format(self.templatePrefix)).Clone("{}_1_AC_4_{}".format(self.templatePrefix,self.templateSuffix)),
+                  self.dimensions, self.ProjDim,
+                  self.varm4l, self.varKD, self.varKD2
+               )
+
+#-----------------------------------------------------------------------#
+#                       INTERFERENCE AC TERMS
+#-----------------------------------------------------------------------#
+         if(not(self.isBkgSigOnly)):
+# Interference ai**1 x a1**(1/2-1) real and imaginary parts
+            self.VBF_T_4_AC_1_Re =
+               ExtendedTemplate(
+                     self.templateFile.Get("{}_4_AC_1_Re".format(self.templatePrefix)).Clone("{}_4_AC_1_Re_{}".format(self.templatePrefix,self.templateSuffix)),
+                     self.dimensions, self.ProjDim,
+                     self.varm4l, self.varKD, self.varKD2
+                  )
+            if self.anomCoupl == 1:
+               self.VBF_T_4_AC_1_Im =
+                  ExtendedTemplate(
+                        self.templateFile.Get("{}_4_AC_1_Im".format(self.templatePrefix)).Clone("{}_4_AC_1_Im_{}".format(self.templatePrefix,self.templateSuffix)),
+                        self.dimensions, self.ProjDim,
+                        self.varm4l, self.varKD, self.varKD2
+                     )
+
+# Interference ai**2 x a1**(2-2) real and imaginary parts
+            self.VBF_T_4_AC_2_Re =
+               ExtendedTemplate(
+                     self.templateFile.Get("{}_4_AC_2_Re".format(self.templatePrefix)).Clone("{}_4_AC_2_Re_{}".format(self.templatePrefix,self.templateSuffix)),
+                     self.dimensions, self.ProjDim,
+                     self.varm4l, self.varKD, self.varKD2
+                  )
+            if self.anomCoupl == 1:
+               self.VBF_T_4_AC_2_Im =
+                  ExtendedTemplate(
+                        self.templateFile.Get("{}_4_AC_2_Im".format(self.templatePrefix)).Clone("{}_4_AC_2_Im_{}".format(self.templatePrefix,self.templateSuffix)),
+                        self.dimensions, self.ProjDim,
+                        self.varm4l, self.varKD, self.varKD2
+                     )
+
+# FORMULAE
+      # In signals and interferences, @0==muV; additionally in interferences, @1==kbkg_VBF
+      if self.anomCoupl == 1: # Full parameterization with fai1=[-1, 1], and phases phiai1 and phia1_gg, phia1_VBF (phia1 are different since the bkg phase could be different)
+         # 0-8 are templates, @1==fai1, @2==phiai1
+         self.VBFSigFormula_list.append("@0*pow((1-abs(@1)),2)")
+         self.VBFSigFormula_list.append("@0*sign(@1)*sqrt(abs(@1))*pow(sqrt(1-abs(@1)),3)*cos(@2)")
+         self.VBFSigFormula_list.append("@0*sign(@1)*sqrt(abs(@1))*pow(sqrt(1-abs(@1)),3)*sin(@2)")
+         self.VBFSigFormula_list.append("@0*abs(@1)*(1-abs(@1))")
+         self.VBFSigFormula_list.append("@0*abs(@1)*(1-abs(@1))*cos(2*@2)")
+         self.VBFSigFormula_list.append("@0*abs(@1)*(1-abs(@1))*sin(2*@2)")
+         self.VBFSigFormula_list.append("@0*sign(@1)*pow(sqrt(abs(@1)),3)*sqrt(1-abs(@1))*cos(@2)")
+         self.VBFSigFormula_list.append("@0*sign(@1)*pow(sqrt(abs(@1)),3)*sqrt(1-abs(@1))*sin(@2)")
+         self.VBFSigFormula_list.append("@0*pow(@1,2)")
+         if(not(self.isBkgSigOnly)):
+            # 0-5 are templates, @2==fai1, @3==phiai1, @4==phia1 (VBF)
+            self.VBFInterfFormula_list.append("sqrt(@0*@1)*(1-abs(@2))*cos(2*@4)")
+            self.VBFInterfFormula_list.append("sqrt(@0*@1)*(1-abs(@2))*sin(2*@4)")
+            self.VBFInterfFormula_list.append("sqrt(@0*@1)*sign(@2)*sqrt(abs(@2)*(1-abs(@2)))*cos(@3+2*@4)")
+            self.VBFInterfFormula_list.append("sqrt(@0*@1)*sign(@2)*sqrt(abs(@2)*(1-abs(@2)))*sin(@3+2*@4)")
+            self.VBFInterfFormula_list.append("sqrt(@0*@1)*abs(@2)*cos(2*(@3+@4))")
+            self.VBFInterfFormula_list.append("sqrt(@0*@1)*abs(@2)*sin(2*(@3+@4))")
+      elif self.anomCoupl == 2: # No phases, just fai1=[-1, 1]
+         # 0-4 are templates, @1==fai1
+         self.VBFSigFormula_list.append("@0*pow((1-abs(@1)),2)")
+         self.VBFSigFormula_list.append("@0*sign(@1)*sqrt(abs(@1))*pow(sqrt(1-abs(@1)),3)")
+         self.VBFSigFormula_list.append("@0*abs(@1)*(1-abs(@1))")
+         self.VBFSigFormula_list.append("@0*sign(@1)*pow(sqrt(abs(@1)),3)*sqrt(1-abs(@1))")
+         self.VBFSigFormula_list.append("@0*pow(@1,2)")
+         if(not(self.isBkgSigOnly)):
+            # 0-2 are templates, @2==fai1
+            self.VBFInterfFormula_list.append("sqrt(@0*@1)*(1-abs(@2))")
+            self.VBFInterfFormula_list.append("sqrt(@0*@1)*sign(@2)*sqrt(abs(@2)*(1-abs(@2)))")
+            self.VBFInterfFormula_list.append("sqrt(@0*@1)*abs(@2)")
+      else: # No ai1 dependence
+         self.VBFSigFormula_list.append("@0")
+         if(not(self.isBkgSigOnly)):
+            self.VBFInterfFormula_list.append("sqrt(@0*@1)")
+
+      for irfv in range(0,len(self.VBFSigFormula_list)):
+         rfvname = "{0}Sig_AC_{1:.0f}_Coef".format(self.processName,irfv)
+         rfvargs = ROOT.RooArgList()
+         rfvargs.add(self.muV)
+         if self.anomCoupl == 1:
+            rfvargs.add(self.fai1)
+            rfvargs.add(self.phiai1)
+         elif self.anomCoupl == 2:
+            rfvargs.add(self.fai1)
+         if rfvargs.getSize()>0:
+            seg_rfv = ROOT.RooFormulaVar( rfvname , self.VBFSigFormula_list[irfv] , rfvargs )
+            self.VBFSigRFV_list.append(seg_rfv)
+         else:
+            seg_rfv = ROOT.RooRealVar( rfvname , rfvname , 1.0 )
+            self.VBFSigRFV_list.append(seg_rfv)
+
       for irfv in range(0,len(self.VBFInterfFormula_list)):
-         rfvname = "VBFInterf_AC_{0:.0f}_Coef".format(irfv)
+         rfvname = "{0}Interf_AC_{1:.0f}_Coef".format(self.processName,irfv)
          rfvargs = ROOT.RooArgList()
          rfvargs.add(self.muV)
          rfvargs.add(self.kbkg_VBF)
@@ -518,19 +650,7 @@ class BSITemplateHelper:
             seg_rfv = ROOT.RooRealVar( rfvname , rfvname , 1.0 )
             self.VBFInterfRFV_list.append(seg_rfv)
 
-
 # Lists of template arguments
-      self.ggSigFunctions_Args.append(self.gg_T_1)
-      if self.anomCoupl == 1:
-         self.ggSigFunctions_Args.append(self.gg_T_1_AC_1_Re)
-         self.ggSigFunctions_Args.append(self.gg_T_1_AC_1_Im)
-         self.ggSigFunctions_Args.append(self.gg_T_1_AC_2_Re)
-      elif self.anomCoupl == 2:
-         self.ggSigFunctions_Args.append(self.gg_T_1_AC_1_Re)
-         self.ggSigFunctions_Args.append(self.gg_T_1_AC_2_Re)
-      if len(self.ggSigFunctions_Args)!=len(self.ggSigRFV_list):
-         sys.exit("Number of ggSig templates {0:.0f} is not equal to number of funcficients {1:.0f}!".format(len(self.ggSigFunctions_Args),len(self.ggSigRFV_list)))
-
       self.VBFSigFunctions_Args.append(self.VBF_T_1)
       if self.anomCoupl == 1:
          self.VBFSigFunctions_Args.append(self.VBF_T_1_AC_1_Re)
@@ -547,19 +667,9 @@ class BSITemplateHelper:
          self.VBFSigFunctions_Args.append(self.VBF_T_1_AC_3_Re)
          self.VBFSigFunctions_Args.append(self.VBF_T_1_AC_4)
       if len(self.VBFSigFunctions_Args)!=len(self.VBFSigRFV_list):
-         sys.exit("Number of VBFSig templates {0:.0f} is not equal to number of funcficients {1:.0f}!".format(len(self.VBFSigFunctions_Args),len(self.VBFSigRFV_list)))
+         sys.exit("Number of {0}Sig templates {1:.0f} is not equal to number of funcficients {2:.0f}!".format(self.processName,len(self.VBFSigFunctions_Args),len(self.VBFSigRFV_list)))
 
       if(not(self.isBkgSigOnly)):
-         self.ggInterfFunctions_Args.append(self.gg_T_4_Re)
-         if self.anomCoupl == 1:
-            self.ggInterfFunctions_Args.append(self.gg_T_4_Im)
-            self.ggInterfFunctions_Args.append(self.gg_T_4_AC_1_Re)
-            self.ggInterfFunctions_Args.append(self.gg_T_4_AC_1_Im)
-         elif self.anomCoupl == 2:
-            self.ggInterfFunctions_Args.append(self.gg_T_4_AC_1_Re)
-         if len(self.ggInterfFunctions_Args)!=len(self.ggInterfRFV_list):
-            sys.exit("Number of ggInterf templates {0:.0f} is not equal to number of funcficients {1:.0f}!".format(len(self.ggInterfFunctions_Args),len(self.ggInterfRFV_list)))
-
          self.VBFInterfFunctions_Args.append(self.VBF_T_4_Re)
          if self.anomCoupl == 1:
             self.VBFInterfFunctions_Args.append(self.VBF_T_4_Im)
@@ -571,15 +681,7 @@ class BSITemplateHelper:
             self.VBFInterfFunctions_Args.append(self.VBF_T_4_AC_1_Re)
             self.VBFInterfFunctions_Args.append(self.VBF_T_4_AC_2_Re)
          if len(self.VBFInterfFunctions_Args)!=len(self.VBFInterfRFV_list):
-            sys.exit("Number of VBFInterf templates {0:.0f} is not equal to number of funcficients {1:.0f}!".format(len(self.VBFInterfFunctions_Args),len(self.VBFInterfRFV_list)))
-
-
-      self.ggHistFunc_Arg = ROOT.RooArgList()
-      for var in self.ggSigFunctions_Args:
-         self.ggHistFunc_Arg.add(var.theHistFunc)
-      for var in self.ggInterfFunctions_Args:
-         self.ggHistFunc_Arg.add(var.theHistFunc)
-      self.ggHistFunc_Arg.add(self.gg_T_2.theHistFunc)
+            sys.exit("Number of {0}Interf templates {1:.0f} is not equal to number of funcficients {2:.0f}!".format(self.processName,len(self.VBFInterfFunctions_Args),len(self.VBFInterfRFV_list)))
 
       self.VBFHistFunc_Arg = ROOT.RooArgList()
       for var in self.VBFSigFunctions_Args:
@@ -589,66 +691,20 @@ class BSITemplateHelper:
       self.VBFHistFunc_Arg.add(self.VBF_T_2.theHistFunc)
 
 # Construct the p.d.f.'s
-
-      rfvargs = ROOT.RooArgList()
-      for var in self.ggSigRFV_list:
-         rfvargs.add(var)
-      for var in self.ggInterfRFV_list:
-         rfvargs.add(var)
-      rfvargs.add(self.kbkg_gg)
-      PdfName = "ggPdf_{0}_{1}_{2}_{3}TeV".format(self.systName,self.catNameList[self.iCat],self.channel,self.sqrts))
-      self.ggPdf = ROOT.RooRealSumPdf(
-         PdfName, PdfName,
-         self.ggHistFunc_Arg,rfvargs
-      )
-
       rfvargs = ROOT.RooArgList()
       for var in self.VBFSigRFV_list:
          rfvargs.add(var)
       for var in self.VBFInterfRFV_list:
          rfvargs.add(var)
       rfvargs.add(self.kbkg_VBF)
-      PdfName = "VBFPdf_{0}_{1}_{2}_{3}TeV".format(self.systName,self.catNameList[self.iCat],self.channel,self.sqrts))
+      PdfName = "{}Pdf_{}".format(self.processName,self.templateSuffix))
       self.VBFPdf = ROOT.RooRealSumPdf(
          PdfName, PdfName,
          self.VBFHistFunc_Arg,rfvargs
       )
 
-
 # Lists of rate FormulaVars
 # Each signal, bkg and interf is constructed separately to be able to count their contributions in the end
-      rfvargs = ROOT.RooArgList()
-      strformula = ""
-      for ivar in range(0,len(self.ggSigFunctions_Args)):
-         rfvargs.add(self.ggSigRFV_list[ivar])
-         rfvargs.add(self.ggSigFunctions_Args[ivar].theRate)
-         if ivar==0:
-            strformula = "{0:.0f}*{1:,0f}".format(2*ivar,2*ivar+1)
-         else:
-            strformula = "{2} + {0:.0f}*{1:,0f}".format(2*ivar,2*ivar+1,strformula)
-      rfvname = "ggSigRate_{0}_{1}_{2}_{3}TeV".format(self.systName,self.catNameList[self.iCat],self.channel,self.sqrts)
-      self.ggSigRates_RooFormulaVar = ROOT.RooFormulaVar( rfvname , strformula , rfvargs )
-
-      if len(self.ggInterfFunctions_Args)>0:
-         rfvargs = ROOT.RooArgList()
-         strformula = ""
-         for ivar in range(0,len(self.ggInterfFunctions_Args)):
-            rfvargs.add(self.ggInterfRFV_list[ivar])
-            rfvargs.add(self.ggInterfFunctions_Args[ivar].theRate)
-            if ivar==0:
-               strformula = "{0:.0f}*{1:,0f}".format(2*ivar,2*ivar+1)
-            else:
-               strformula = "{2} + {0:.0f}*{1:,0f}".format(2*ivar,2*ivar+1,strformula)
-         rfvname = "ggInterfRate_{0}_{1}_{2}_{3}TeV".format(self.systName,self.catNameList[self.iCat],self.channel,self.sqrts)
-         self.ggInterfRates_RooFormulaVar = ROOT.RooFormulaVar( rfvname , strformula , rfvargs )
-
-      rfvargs = ROOT.RooArgList()
-      strformula = "@0*@1"
-      rfvargs.add(self.kbkg_gg)
-      rfvargs.add(self.gg_T_2.theRate)
-      rfvname = "ggBkgRate_{0}_{1}_{2}_{3}TeV".format(self.systName,self.catNameList[self.iCat],self.channel,self.sqrts)
-      self.ggBkgRates_RooFormulaVar = ROOT.RooFormulaVar( rfvname , strformula , rfvargs )
-
       rfvargs = ROOT.RooArgList()
       strformula = ""
       for ivar in range(0,len(self.VBFSigFunctions_Args)):
@@ -658,7 +714,7 @@ class BSITemplateHelper:
             strformula = "{0:.0f}*{1:,0f}".format(2*ivar,2*ivar+1)
          else:
             strformula = "{2} + {0:.0f}*{1:,0f}".format(2*ivar,2*ivar+1,strformula)
-      rfvname = "VBFSigRate_{0}_{1}_{2}_{3}TeV".format(self.systName,self.catNameList[self.iCat],self.channel,self.sqrts)
+      rfvname = "{}SigRate_{}".format(self.processName,self.templateSuffix)
       self.VBFSigRates_RooFormulaVar = ROOT.RooFormulaVar( rfvname , strformula , rfvargs )
 
       if len(self.VBFInterfFunctions_Args)>0:
@@ -671,28 +727,17 @@ class BSITemplateHelper:
                strformula = "{0:.0f}*{1:,0f}".format(2*ivar,2*ivar+1)
             else:
                strformula = "{2} + {0:.0f}*{1:,0f}".format(2*ivar,2*ivar+1,strformula)
-         rfvname = "VBFInterfRate_{0}_{1}_{2}_{3}TeV".format(self.systName,self.catNameList[self.iCat],self.channel,self.sqrts)
+         rfvname = "{}InterfRate_{}".format(self.processName,self.templateSuffix)
          self.VBFInterfRates_RooFormulaVar = ROOT.RooFormulaVar( rfvname , strformula , rfvargs )
 
       rfvargs = ROOT.RooArgList()
       strformula = "@0*@1"
       rfvargs.add(self.kbkg_VBF)
       rfvargs.add(self.VBF_T_2.theRate)
-      rfvname = "VBFBkgRate_{0}_{1}_{2}_{3}TeV".format(self.systName,self.catNameList[self.iCat],self.channel,self.sqrts)
+      rfvname = "{}BkgRate_{}".format(self.processName,self.templateSuffix)
       self.VBFBkgRates_RooFormulaVar = ROOT.RooFormulaVar( rfvname , strformula , rfvargs )
 
-
 # Construct total rates
-      rfvargs = ROOT.RooArgList()
-      strformula = "@0+@1"
-      rfvargs.add(self.ggSigRates_RooFormulaVar)
-      rfvargs.add(self.ggBkgRates_RooFormulaVar)
-      if(not(self.isBkgSigOnly)):
-         strformula = "@0+@1+@2"
-         rfvargs.add(self.ggInterfRates_RooFormulaVar)
-      rfvname = "ggTotalRate_{0}_{1}_{2}_{3}TeV".format(self.systName,self.catNameList[self.iCat],self.channel,self.sqrts)
-      self.ggTotalRate = ROOT.RooFormulaVar( rfvname , strformula , rfvargs )
-
       rfvargs = ROOT.RooArgList()
       strformula = "@0+@1"
       rfvargs.add(self.VBFSigRates_RooFormulaVar)
@@ -700,5 +745,8 @@ class BSITemplateHelper:
       if(not(self.isBkgSigOnly)):
          strformula = "@0+@1+@2"
          rfvargs.add(self.VBFInterfRates_RooFormulaVar)
-      rfvname = "VBFTotalRate_{0}_{1}_{2}_{3}TeV".format(self.systName,self.catNameList[self.iCat],self.channel,self.sqrts)
+      rfvname = "{}TotalRate_{}".format(self.processName,self.templateSuffix)
       self.VBFTotalRate = ROOT.RooFormulaVar( rfvname , strformula , rfvargs )
+
+
+
