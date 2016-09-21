@@ -11,7 +11,6 @@ import CategoryHelper
 import ExtendedTemplate
 
 class BkgTemplateHelper:
-
    def __init__(self, options, theMaker, theCategorizer, strBkgType, templateFileName, iCat, systName):
       # sqrts and channel index from the datacard maker class
       self.sqrts = theMaker.sqrts
@@ -37,7 +36,7 @@ class BkgTemplateHelper:
 
       self.strBkgType = strBkgType
       self.condDim = None
-      if(self.strBkgType == "ZX"):
+      if((self.strBkgType.lower().startswith() == "zx") or (self.strBkgType.lower().startswith() == "zjets")):
          self.condDim = 0
 
       self.templateFileName = templateFileName
@@ -50,9 +49,27 @@ class BkgTemplateHelper:
       self.bkgPdf = None
       self.bkgPdf_extras = []
 
+
+# Import the pdf
+   def importToWorkspace(self):
+      if bkg_T_2 is not None:
+         getattr(self.workspace, 'import')(self.bkg_T_2, ROOT.RooFit.RecycleConflictNodes())
+      for xpdf in self.bkgPdf_extras:
+         getattr(self.workspace, 'import')(xpdf, ROOT.RooFit.RecycleConflictNodes())
+      if self.bkgPdf is not None:
+         getattr(self.workspace, 'import')(self.bkgPdf, ROOT.RooFit.RecycleConflictNodes())
+
+
 # Close the template files
    def close(self):
       self.templateFile.Close()
+
+
+   def getThePdf(self):
+      return self.bkgPdf
+   def getTheRate(self):
+      return self.bkg_T_2.theRate
+
 
 # Get shapes for each category
    def getTemplates(self,templatePrefix="T_2D"):
@@ -73,12 +90,12 @@ class BkgTemplateHelper:
 
    # Construct the p.d.f.s
       # qq bkg
-      if(self.strBkgType == "qqZZ"):
+      if(self.strBkgType.lower().startswith() == "qq"):
          PdfName = "qqZZ_OffshellPdf_{}".format(self.templateSuffix)
          self.bkgPdf = ROOT.RooHistPdf(PdfName,PdfName,self.bkg_T_2.argset,self.bkg_T_2.theDataHist,0)
 
       # Z+X bkg
-      elif(self.strBkgType == "ZX"):
+      elif((self.strBkgType.lower().startswith() == "zx") or (self.strBkgType.lower().startswith() == "zjets")):
          PdfName = "zjets_OffshellPdf_{}".format(self.templateSuffix)
          if self.ProjDim==0: # If projection on dim-0 is requested, just use the (unconditional) template already projected
             self.bkgPdf = ROOT.RooHistPdf(PdfName,PdfName,self.bkg_T_2.argset,self.bkg_T_2.theDataHist,0)

@@ -50,7 +50,9 @@ class SystematicsHelper:
    def writeSystematics(self, theFile):
       for syst in self.systematics:
          systname = syst[0]
-         systtpye = syst[1]
+         systtype = syst[1]
+         systtype_ALT = systtype
+         if systtype == "template": systtype_ALT = "param"
          systconfig = syst[2]
          systline = ""
          if (systtype == "param"):
@@ -81,7 +83,7 @@ class SystematicsHelper:
                systline = "{0}{1}".format(systline,addLine)
          else:
             raise RuntimeError("SystematicsHelper::writeSystematics does not support systematics variable type {} in variable {}.".format(systtype,systname))
-         systline = "{0} {1} {2}\n".format(systname,systtype,systline)
+         systline = "{0} {1} {2}\n".format(systname,systtype_ALT,systline)
          theFile.write(systline)
 
 

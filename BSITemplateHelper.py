@@ -11,7 +11,6 @@ import CategoryHelper
 import ExtendedTemplate
 
 class BSITemplateHelper:
-
    def __init__(self, options, theMaker, theEqnsMaker, theCategorizer, strBSIType, templateFileName, iCat, systName):
       # sqrts and channel index from the datacard maker class
       self.sqrts = theMaker.sqrts
@@ -153,18 +152,33 @@ class BSITemplateHelper:
       self.VBFTotalRate = None
 
 
-      # Need to import these only once FIXME: to be moved to the maker
-      self.workspace.importClassCode(AsymPow.Class(),True)
-      self.workspace.importClassCode(AsymQuad.Class(),True)
-      self.workspace.importClassCode(RooqqZZPdf_v2.Class(), True)
-      self.workspace.importClassCode(RooFormulaVar.Class(), True)
-      self.workspace.importClassCode(RooRealFlooredSumPdf.Class(),True)
-      self.workspace.importClassCode(VerticalInterpPdf.Class(),True)
+# Import the pdf
+   def importToWorkspace(self):
+      if self.ggPdf is not None:
+         getattr(self.workspace, 'import')(self.ggPdf, ROOT.RooFit.RecycleConflictNodes())
+      if self.ggTotalRate is not None:
+         getattr(self.workspace, 'import')(self.ggTotalRate, ROOT.RooFit.RecycleConflictNodes())
+      if self.VBFPdf is not None:
+         getattr(self.workspace, 'import')(self.VBFPdf, ROOT.RooFit.RecycleConflictNodes())
+      if self.VBFTotalRate is not None:
+         getattr(self.workspace, 'import')(self.VBFTotalRate, ROOT.RooFit.RecycleConflictNodes())
 
 
 # Close the template files
    def close(self):
       self.templateFile.Close()
+
+
+   def getThePdf(self):
+      if self.ggPdf is not None:
+         return self.ggPdf
+      else:
+         return self.VBFPdf
+   def getTheRate(self):
+      if self.ggTotalRate is not None:
+         return self.ggTotalRate
+      else:
+         return self.VBFTotalRate
 
 
 # Get shapes for each category
