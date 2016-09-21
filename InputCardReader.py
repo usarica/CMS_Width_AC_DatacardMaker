@@ -13,7 +13,6 @@ from array import array
 class InputCardReader:
 
    def __init__(self, inputPath):
-
       if not os.path.exists(inputPath):
          raise RuntimeError("File {0} does not exist!!!".format(inputPath))
 

@@ -11,15 +11,14 @@ from array import array
 class CategoryHelper:
    def __init__(
                self,
-               iCatScheme#,
-               #workspace
+               iCatScheme
                ):
       self.iCatScheme = iCatScheme
       self.catNameList = []
 
-      if(self.iCatScheme == 1): # icat==0: VBF, ==1: Non-VBF
-         self.catNameList.append("Djet")
-         self.catNameList.append("nonDjet")
+      if(self.iCatScheme == 1): # icat==0: VBF, ==1: Untagged
+         self.catNameList.append("VBFTagged")
+         self.catNameList.append("Untagged")
       elif(self.iCatScheme == 2): # icat==0: VBF, ==1: VH, ==3: Untagged
          self.catNameList.append("VBFTagged")
          self.catNameList.append("VHTagged")

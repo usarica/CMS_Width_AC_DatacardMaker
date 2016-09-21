@@ -20,12 +20,12 @@ class BkgTemplateHelper:
       self.theInputs = theMaker.theInputs.getInputs()
 
       # RooRealVars from the datacard maker class
-      self.varm4l = theMaker.CMS_zz4l_widthMass
-      self.varKD = theMaker.CMS_zz4l_widthKD
-      self.varKD2 = theMaker.CMS_zz4l_widthKD2
+      self.varm4l = theEqnsMaker.varm4l
+      self.varKD = theEqnsMaker.varKD
+      self.varKD2 = theEqnsMaker.varKD2
 
       self.templateDir = options.templateDir
-      self.dimensions = optionds.dimensions # Number of template dimensions>0
+      self.dimensions = options.dimensions # Number of template dimensions>0
       self.ProjDim = options.ProjDim # The projected variable, -1 means do not project
 
       self.iCatScheme = theCategorizer.iCatScheme
