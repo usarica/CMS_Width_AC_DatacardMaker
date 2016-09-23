@@ -28,6 +28,7 @@ class WidthDatacardMaker:
       self.theInputs = self.theInputCard.getInputs()
       self.sqrts = self.theInputCard.sqrts
       self.channel = self.theInputCard.decayChan
+      self.theChannelName = self.theInputCard.decayChan
 
       self.theCategorizer = theCategorizer
       self.iCat = iCat
@@ -62,6 +63,21 @@ class WidthDatacardMaker:
       self.pdfList = []
       self.rateList = []
       self.normList = []
+
+      self.dataFileDir = "CMSdata"
+      if (self.dataAppendDir != ''):
+         self.dataFileDir = "{0}_{1}".format(self.dataFileDir,self.dataAppendDir)
+      self.dataTreeName = "data_obs"
+      self.dataFileName = "{0}/hzz{1}_{2}_{3:.0f}TeV.root".format(
+         self.dataFileDir, self.theChannelName, self.theCategorizer.catNameList[self.iCat], self.sqrts
+      )
+      self.datacardName = "{0}/HCG/hzz{1}_{2}_{3:.0f}TeV_{4}.txt".format(
+         self.outputDir, self.theChannelName, self.theCategorizer.catNameList[self.iCat], self.sqrts, self.appendName
+      )
+      self.workspaceFileName = "{0}/HCG/hzz{1}_{2}_{3:.0f}TeV_{4}.root".format(
+         self.outputDir, self.theChannelName, self.theCategorizer.catNameList[self.iCat], self.sqrts, self.appendName
+      )
+
       for proc in self.theInputCard.channels:
          procname = proc[0]
          proctype = proc[3]
@@ -73,7 +89,7 @@ class WidthDatacardMaker:
          procNorm = None # procRate*theLumi
 
          # Template file name core piece
-         templateFileNameMain = "HtoZZ4l_ModifiedSmoothTemplates_"
+         templateFileNameMain = "HtoZZ{}_{}_ModifiedSmoothTemplates_".format(self.theChannelName, self.theCategorizer.catNameList[self.iCat])
 
          # Nominal pdf and rate
          systName = "Nominal"
@@ -137,113 +153,106 @@ class WidthDatacardMaker:
          self.rateList.append(procRate)
          self.normList.append(procNorm)
 
-      # LEFT HERE: Now handle writing of systematics and importing of the data tree
+      # Get the data
+      self.theDataFile = ROOT.TFile.Open(self.dataFileName,"read")
+      self.theDataTree = self.theDataFile.Get(self.dataTreeName)
+      if not self.theDataTree:
+         print "File, \"", self.dataFileName, "\" or tree \"", self.dataTreeName, "\" is not found."
+      else:
+        data_obs = ROOT.RooDataSet()
+        datasetName = "data_obs_full"
+        data_obs = ROOT.RooDataSet(datasetName, datasetName, self.theDataTree, ROOT.RooArgSet(self.varm4l, self.varKD, self.varKD2))
+        self.theDataRDS = data_obs.reduce("{0}>={1:.2f} && {0}<{1:.2f}".format(self.varm4l.GetName(), self.low_M, self.high_M))
+        self.theDataRDS.SetName("data_obs")
+        getattr(self.workspace, 'import')(self.theDataRDS, ROOT.RooFit.Rename("data_obs"))
+
+      # Write datacards
+      self.WriteDatacard()
+
+      # Write the workspace
+      #self.workspace.writeToFile(self.workspaceFileName)
+      self.theWorkspaceFile = ROOT.TFile.Open(self.workspaceFileName,"recreate")
+      self.theWorkspaceFile.cd()
+      self.theWorkspaceFile.WriteTObject(self.workspace)
+      self.theWorkspaceFile.Close()
+
+      # Garbage collection
+      for bunch in self.theBunches:
+         if bunch.templateFile is not None:
+            if bunch.templateFile.IsOpen():
+               bunch.templateFile.Close()
 
 
-      # Write Datacards
-      fo = open(name_Shape, "wb")
-      self.WriteDatacard(
-      fo, self.theInputs, name_ShapeWS2, rates, data_obs_red.numEntries())
+   def WriteDatacard(self, theFile, self.theInputs, nameWS, theRates, obsEvents):
+      self.theDatacardFile = open(self.datacardName, "wb")
+      tmplist = self.workspaceFileName.split('/')
+      nameWS = tmplist[len(tmplist)-1]
 
-      systematics.WriteSystematics(fo, self.theInputs)
-      systematics.WriteShapeSystematics(fo, self.theInputs)
+      nSigProcs = self.theInputCard.getNSigProcs()
+      nBkgProcs = self.theInputCard.getNBkgProcs()
 
-      fo.close()
+      self.theDatacardFile.write("imax {0:.0f}\n".format(nSigProcs))
+      self.theDatacardFile.write("jmax {0:.0f}\n".format(nBkgProcs))
+      self.theDatacardFile.write("kmax *\n")
 
-   def WriteDatacard(self, file, self.theInputs, nameWS, theRates, obsEvents):
+      self.theDatacardFile.write("------------\n")
+      self.theDatacardFile.write("shapes * * {0} w:$PROCESS w:$PROCESS_$SYSTEMATIC\n".format(nameWS))
+      self.theDatacardFile.write("------------\n")
 
-      numberSig = self.numberOfSigChan(self.theInputs)
-      numberBg = self.numberOfBgChan(self.theInputs)
+      binname = "a{0:.0f}".format(self.channel)
 
-      file.write("imax 1\n")
-      file.write("jmax {0}\n".format(numberSig + numberBg - 1))
-      file.write("kmax *\n")
+      self.theDatacardFile.write("bin {} \n".format(binname))
+      self.theDatacardFile.write("observation {0:.0f} \n".format(int(self.theDataRDS.numEntries())))
 
-      file.write("------------\n")
-      file.write(
-      "shapes * * {0} w:$PROCESS w:$PROCESS_$SYSTEMATIC\n".format(nameWS))
-      file.write("------------\n")
+      self.theDatacardFile.write("------------\n")
+      self.theDatacardFile.write("##########################################################################################################################\n")
+      self.theDatacardFile.write("## Combine manual:                       https://twiki.cern.ch/twiki/bin/view/CMS/SWGuideHiggsAnalysisCombinedLimit     ##\n")
+      self.theDatacardFile.write("## Non-standard combine use cases:       https://twiki.cern.ch/twiki/bin/view/CMS/HiggsWG/SWGuideNonStandardCombineUses ##\n")
+      self.theDatacardFile.write("## Latest Higgs combination conventions: https://twiki.cern.ch/twiki/bin/view/CMS/HiggsWG/HiggsCombinationConventions   ##\n")
+      self.theDatacardFile.write("## CMS StatCom twiki:                    https://twiki.cern.ch/twiki/bin/view/CMS/StatisticsCommittee                   ##\n")
+      self.theDatacardFile.write("##########################################################################################################################\n")
+      self.theDatacardFile.write("## Mass window [{0:.1f},{1:.1f}] \n".format(self.low_M, self.high_M))
+      #self.theDatacardFile.write("## signal,bkg,interf,tot rates [{0:.4f}, {1:.4f}, {2:.4f}, {3:.4f}] \n".format(
+      #   theRates["ggZZ_signal"], theRates["ggZZbkg"], theRates["ggZZ_interf"], theRates["ggZZ_tot"])
+      #)
+      #self.theDatacardFile.write("## vbfsig,vbfbkg,vbfinterf,vbftot rates [{0:.4f}, {1:.4f}, {2:.4f}, {3:.4f}] \n".format(
+      #   theRates["VBF_offshell_signal"], theRates["VBF_offshell_bkg"], theRates["VBF_offshell_interf"], theRates["VBF_offshell_tot"])
+      #)
 
-      file.write("bin a{0} \n".format(self.channel))
-      file.write("observation {0} \n".format(obsEvents))
+      self.theDatacardFile.write("bin ")
+      for proc in self.theInputCard.channels:
+         self.theDatacardFile.write("{} ".format(binname))
+      self.theDatacardFile.write("\n")
 
-      file.write("------------\n")
-      file.write(
-      "## mass window [{0},{1}] \n".format(self.low_M, self.high_M))
-      file.write("## signal,bkg,interf,tot rates [{0:.4f}, {1:.4f}, {2:.4f}, {3:.4f}] \n".format(
-      theRates["ggZZ_signal"], theRates["ggZZbkg"], theRates["ggZZ_interf"], theRates["ggZZ_tot"]))
-      file.write("## vbfsig,vbfbkg,vbfinterf,vbftot rates [{0:.4f}, {1:.4f}, {2:.4f}, {3:.4f}] \n".format(
-      theRates["VBF_offshell_signal"], theRates["VBF_offshell_bkg"], theRates["VBF_offshell_interf"], theRates["VBF_offshell_tot"]))
-      file.write("bin ")
+      self.theDatacardFile.write("process ")
+      for proc in self.theInputCard.channels:
+         self.theDatacardFile.write("{} ".format(proc[0]))
+      self.theDatacardFile.write("\n")
 
-      # channelList=['ggZZ_signal','ggZZ_interf','ggZZbkg','qqZZ','zjets']
-      channelList = ['ggZZ', 'VBF_offshell', 'qqZZ', 'zjets']
+      self.theDatacardFile.write("process ")
+      ctr_bkg = 0
+      ctr_sig = -nSigProcs
+      for proc in self.theInputCard.channels:
+         if proc[3]>0:
+            self.theDatacardFile.write("{0:.0f} ".format(ctr_bkg))
+            ctr_bkg += 1
+         else:
+            self.theDatacardFile.write("{0:.0f} ".format(ctr_sig))
+            ctr_sig += 1
+      self.theDatacardFile.write("\n")
 
-      # channelName=['ggsignalzz','gginterfzz','ggZZbkg','bkg_qqzz','bkg_zjets']
-      channelName = ['ggzz', 'vbf_offshell', 'bkg_qqzz', 'bkg_zjets']
+      self.theDatacardFile.write("rate ")
+      for proc in self.theInputCard.channels:
+         deflumi = proc[2]
+         defrate = proc[1]
+         if deflumi>0.:
+            defrate = defrate/deflumi*self.theInputCard.lumi
+         self.theDatacardFile.write("{0:.5f} ".format(defrate))
+      self.theDatacardFile.write("\n")
 
-      for chan in channelList:
-      if self.theInputs[chan]:
-      file.write("a{0} ".format(self.channel))
-      file.write("\n")
+      self.theDatacardFile.write("------------\n")
+      self.theSystematizer.writeSystematics(self.theDatacardFile)
+      self.theDatacardFile.close()
 
-      file.write("process ")
 
-      i = 0
 
-      for chan in channelList:
-      if self.theInputs[chan]:
-      file.write("{0} ".format(channelName[i]))
-      i += 1
-
-      file.write("\n")
-
-      processLine = "process "
-
-      for x in range(-numberSig + 1, 1):
-      processLine += "{0} ".format(x)
-
-      for y in range(1, numberBg + 1):
-      processLine += "{0} ".format(y)
-
-      file.write(processLine)
-      file.write("\n")
-
-      file.write("rate ")
-      for chan in channelList:
-      if self.theInputs[chan]:
-      file.write("{0:.4f} ".format(theRates[chan]))
-      file.write("\n")
-      file.write("------------\n")
-
-   def numberOfSigChan(self, inputs):
-
-      counter = 0
-
-      if inputs['ggZZ']:
-      counter += 1
-      if inputs['ggZZ_signal']:
-      counter += 1
-      if inputs['ggZZ_interf']:
-      counter += 1
-      if inputs['VBF_offshell']:
-      counter += 1
-
-      return counter
-
-   def numberOfBgChan(self, inputs):
-
-      counter = 0
-
-      if inputs['qqZZ']:
-      counter += 1
-      if inputs['ggZZbkg']:
-      counter += 1
-      if inputs['zjets']:
-      counter += 1
-      if inputs['ttbar']:
-      counter += 1
-      if inputs['zbb']:
-      counter += 1
-
-      return counter

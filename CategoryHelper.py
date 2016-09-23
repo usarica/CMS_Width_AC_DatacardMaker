@@ -24,7 +24,7 @@ class CategoryHelper:
          self.catNameList.append("VHTagged")
          self.catNameList.append("Untagged")
       else: # No categorization
-         self.catNameList.append("")
+         self.catNameList.append("Inclusive")
       self.nCategories = len(self.catNameList)
 
 

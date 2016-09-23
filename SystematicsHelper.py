@@ -52,7 +52,8 @@ class SystematicsHelper:
          systname = syst[0]
          systtype = syst[1]
          systtype_ALT = systtype
-         if systtype == "template": systtype_ALT = "param"
+         if systtype == "template":
+            systtype_ALT = "param"
          systconfig = syst[2]
          systline = ""
          if (systtype == "param"):

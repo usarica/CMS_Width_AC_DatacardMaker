@@ -19,6 +19,7 @@ class InputCardReader:
       # input file
       self.theInput = inputPath
       # decay channel
+      self.decayChanName = ""
       self.decayChan = None
       # lumi
       self.lumi = None
@@ -74,16 +75,19 @@ class InputCardReader:
             elif f[1] == "2e2mu": self.decayChan = 3
             elif f[1] == "2mu2e": self.decayChan = 4
             else: raise RuntimeError("Unknown decay channel {0}, choices are 4mu, 4e, 2e2mu or 2mu2e".format(f[1]))
+            self.decayChanName = f[1]
 
          if f[0].lower().startswith("channel"):
             channame = f[1]
             chanrate = 1.0
             chanlumi = -1.0
-            iBkg = 0
+            iBkg = 0 # 0 for sig or BSI, 1 for bkg-only
             if len(f)>2:
                chanrate = float(f[2])
                if len(f)>3:
                   chanlumi = float(f[3])
+                  if len(f)>4:
+                     iBkg = int(f[4])
             chanlist = [ channame, chanrate, chanlumi, iBkg ]
             self.channels.append(chanlist)
 
@@ -151,3 +155,19 @@ class InputCardReader:
          theDict[par[0]] = par[1:]
 
       return theDict
+
+   def getNSigProcs(self):
+      ctr = 0
+      for proc in self.channels:
+         if proc[3]==0:
+            ctr += 1
+      return ctr
+
+   def getNBkgProcs(self):
+      ctr = 0
+      for proc in self.channels:
+         if proc[3]>0:
+            ctr += 1
+      return ctr
+
+
