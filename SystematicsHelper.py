@@ -21,6 +21,7 @@ class SystematicsHelper:
       self.channels = theInputs.channels
       self.systematics = theInputs.systematics
       self.systVars = []
+
       self.buildParamSystVars()
 
    def buildParamSystVars(self):

@@ -9,14 +9,14 @@ import ROOT
 from array import array
 
 class CategoryHelper:
-   def __init__(
-               self,
-               iCatScheme
-               ):
+   def __init__(self, iCatScheme):
       self.iCatScheme = iCatScheme
       self.catNameList = []
 
-      if(self.iCatScheme == 1): # icat==0: VBF, ==1: Untagged
+   # NOTE: Add as many categorization schemes as necessary
+      if(self.iCatScheme == 0): # No categorization
+         self.catNameList.append("Inclusive")
+      elif(self.iCatScheme == 1): # icat==0: VBF, ==1: Untagged
          self.catNameList.append("VBFTagged")
          self.catNameList.append("Untagged")
       elif(self.iCatScheme == 2): # icat==0: VBF, ==1: VH, ==3: Untagged
@@ -24,7 +24,11 @@ class CategoryHelper:
          self.catNameList.append("VHTagged")
          self.catNameList.append("Untagged")
       else: # No categorization
-         self.catNameList.append("Inclusive")
+         raise RuntimeError(
+            "CategoryHelper::init: Categorization scheme {} is not defined.\n".format(self.iCatScheme)
+            +
+            " - If you want to use the inclusive categroy, pass iCatScheme=0."
+         )
       self.nCategories = len(self.catNameList)
 
 

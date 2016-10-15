@@ -27,6 +27,7 @@ class WidthDatacardMaker:
       self.theInputCard = theInputCard
       self.theInputs = self.theInputCard.getInputs()
       self.sqrts = self.theInputCard.sqrts
+      self.lumi = self.theInputCard.lumi
       self.channel = self.theInputCard.decayChan
       self.theChannelName = self.theInputCard.decayChan
 
@@ -44,8 +45,11 @@ class WidthDatacardMaker:
       self.workspace.importClassCode(RooRealFlooredSumPdf.Class(),True)
       self.workspace.importClassCode(VerticalInterpPdf.Class(),True)
 
+      # Luminosity is created from sqrts and lumi as specified in the input, so it has to be created outside the equations maker class.
+      self.theLumi = ROOT.RooRealVar("LUMI_{0:.0f}".format(self.sqrts), "LUMI_{0:.0f}".format(self.sqrts), self.lumi)
+      self.theLumi.setConstant(True)
+      # Other input-independent RooRealVars are taken from the equations maker class.
       self.theEqnsMaker = theEqnsMaker
-      # RooRealVars from the equations maker class
       self.theLumi = self.theEqnsMaker.theLumi
       self.muF = self.theEqnsMaker.muF
       self.muV = self.theEqnsMaker.muV

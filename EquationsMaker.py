@@ -9,16 +9,16 @@ import ROOT
 from array import array
 
 
+# Container class for the equations pertaining to different datacard models
+# Note: This class is independent of the input card, so luminosity and other variables common per-sqrts have to be created somewhere else.
 class EquationsMaker:
-   def __init__(self,options,theInputCard):
+   def __init__(self, options):
       self.low_M = options.mLow
       self.high_M = options.mHigh
       self.anomCoupl = options.anomCouplIndex
       self.isBkgSigOnly = options.isBkgSigOnly
       self.GHmodel = options.GHmodel
       self.GHrefval = options.GHrefval
-      self.sqrts = theInputCard.sqrts
-      self.lumi = theInputCard.lumi
 
    # Variables for the template dimensions
       varname = "CMS_zz4l_widthMass"
@@ -33,10 +33,6 @@ class EquationsMaker:
       varname = "CMS_zz4l_widthKDint"
       self.varKDint = ROOT.RooRealVar(varname, varname, -1., 1.)
       self.varKDint.setBins(30) # To be reset later
-
-   # Luminosity
-      self.theLumi = ROOT.RooRealVar("LUMI_{0:.0f}".format(self.sqrts), "LUMI_{0:.0f}".format(self.sqrts), self.lumi)
-      self.theLumi.setConstant(True)
 
    # Variables for signal and bkg strength
       self.muF = None

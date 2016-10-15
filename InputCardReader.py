@@ -14,7 +14,7 @@ class InputCardReader:
 
    def __init__(self, inputPath):
       if not os.path.exists(inputPath):
-         raise RuntimeError("File {0} does not exist!!!".format(inputPath))
+         raise RuntimeError("File {0} does not exist.".format(inputPath))
 
       # input file
       self.theInput = inputPath
@@ -43,6 +43,8 @@ class InputCardReader:
       # or
       # [ systematics name, systematics type=template, [ [ channel, systematics up appendix name, systematics dn appendix name ] ] --> e.g. systematics mySyst template ggZZ_offshell:QCDUp:QCDDn VBF_offhshell:QCDUp:QCDDn
       self.systematics = []
+
+      self.readInputs()
 
 
    def parseBoolString(self,theString):

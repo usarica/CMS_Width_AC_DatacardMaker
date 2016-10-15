@@ -120,74 +120,15 @@ def creationLoop(theOutputDir):
    global opt, args
 
    CatHelper = CategoryHelper(opt.iCatScheme)
+   theEqnsMaker = EquationsMaker(opt)
 
    for iCat in range(0,self.CatHelper.nCategories):
       finalstates = [ "4mu","4e","2e2mu"]
       for ifs in finalstates:
          inputCardDir = opt.inputDir + "/inputs_" + ifs + "_" + CatHelper.catNameList[iCat] + ".txt"
          theInputCard = InputCardReader(inputCardDir)
-         theInputCard.readInputs()
-
          SystHelper = SystematicsHelper(theInputCard)
-
-         theMaker = WidthDatacardClass(opt,theInputCard,CatHelper,SystHelper,iCat,theOutputDir)
-
-
-
-   if (opt.useDjet == 0):
-      myReader4e = inputReader(opt.inputDir + "/inputs_4e.txt")
-      myReader4e.readInputs()
-      theInputs4e = myReader4e.getInputs()
-
-      myReader4mu = inputReader(opt.inputDir + "/inputs_4mu.txt")
-      myReader4mu.readInputs()
-      theInputs4mu = myReader4mu.getInputs()
-
-      myReader2e2mu = inputReader(opt.inputDir + "/inputs_2e2mu.txt")
-      myReader2e2mu.readInputs()
-      theInputs2e2mu = myReader2e2mu.getInputs()
-
-   if (opt.useDjet == 1):
-      myReader4e_0 = inputReader(opt.inputDir + "_tagged/inputs_4e_0.txt")
-      myReader4e_0.readInputs()
-      theInputs4e_0 = myReader4e_0.getInputs()
-
-      myReader4mu_0 = inputReader(opt.inputDir + "_tagged/inputs_4mu_0.txt")
-      myReader4mu_0.readInputs()
-      theInputs4mu_0 = myReader4mu_0.getInputs()
-
-      myReader2e2mu_0 = inputReader(opt.inputDir + "_tagged/inputs_2e2mu_0.txt")
-      myReader2e2mu_0.readInputs()
-      theInputs2e2mu_0 = myReader2e2mu_0.getInputs()
-
-      myReader4e_1 = inputReader(opt.inputDir + "_tagged/inputs_4e_1.txt")
-      myReader4e_1.readInputs()
-      theInputs4e_1 = myReader4e_1.getInputs()
-
-      myReader4mu_1 = inputReader(opt.inputDir + "_tagged/inputs_4mu_1.txt")
-      myReader4mu_1.readInputs()
-      theInputs4mu_1 = myReader4mu_1.getInputs()
-
-      myReader2e2mu_1 = inputReader(
-      opt.inputDir + "_tagged/inputs_2e2mu_1.txt")
-      myReader2e2mu_1.readInputs()
-      theInputs2e2mu_1 = myReader2e2mu_1.getInputs()
-
-
-   if (opt.useDjet == 0):
-      makeDirectory(directory + '/HCG')
-      myClass.makeCardsWorkspaces(opt, directory, theInputs4e, 0)
-      myClass.makeCardsWorkspaces(opt, directory, theInputs4mu, 0)
-      myClass.makeCardsWorkspaces(opt, directory, theInputs2e2mu, 0)
-   if (opt.useDjet == 1):
-      makeDirectory(directory + '_tagged/HCG')
-      myClass.makeCardsWorkspaces(opt, directory + '_tagged', theInputs4e_0, 1)
-      myClass.makeCardsWorkspaces(opt, directory + '_tagged', theInputs4mu_0, 1)
-      myClass.makeCardsWorkspaces(opt, directory + '_tagged', theInputs2e2mu_0, 1)
-      myClass.makeCardsWorkspaces(opt, directory + '_tagged', theInputs4e_1, 2)
-      myClass.makeCardsWorkspaces(opt, directory + '_tagged', theInputs4mu_1, 2)
-      myClass.makeCardsWorkspaces(opt, directory + '_tagged', theInputs2e2mu_1, 2)
-
+         theMaker = WidthDatacardClass(opt,theInputCard,theEqnsMaker,CatHelper,SystHelper,iCat,theOutputDir)
 
 
 # the main procedure
