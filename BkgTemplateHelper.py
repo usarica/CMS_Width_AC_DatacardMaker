@@ -19,9 +19,9 @@ class BkgTemplateHelper:
       self.theInputs = theMaker.theInputs.getInputs()
 
       # RooRealVars from the datacard maker class
-      self.varm4l = theEqnsMaker.varm4l
-      self.varKD = theEqnsMaker.varKD
-      self.varKD2 = theEqnsMaker.varKD2
+      self.mass = theEqnsMaker.varm4l
+      self.KD1 = theEqnsMaker.varKD
+      self.KD2 = theEqnsMaker.varKD2
 
       self.templateDir = options.templateDir
       self.dimensions = options.dimensions # Number of template dimensions>0
@@ -45,15 +45,15 @@ class BkgTemplateHelper:
 
       self.templateFile = None
 
-      self.bkg_T_2 = None
+      self.bkgTpl = None
       self.bkgPdf = None
       self.bkgPdf_extras = []
 
 
 # Import the pdf
    def importToWorkspace(self):
-      if bkg_T_2 is not None:
-         getattr(self.workspace, 'import')(self.bkg_T_2, ROOT.RooFit.RecycleConflictNodes())
+      if self.bkgTpl is not None:
+         getattr(self.workspace, 'import')(self.bkgTpl, ROOT.RooFit.RecycleConflictNodes())
       for xpdf in self.bkgPdf_extras:
          getattr(self.workspace, 'import')(xpdf, ROOT.RooFit.RecycleConflictNodes())
       if self.bkgPdf is not None:
@@ -68,7 +68,7 @@ class BkgTemplateHelper:
    def getThePdf(self):
       return self.bkgPdf
    def getTheRate(self):
-      return self.bkg_T_2.theRate
+      return self.bkgTpl.theRate
 
 
 # Get shapes for each category
@@ -80,11 +80,11 @@ class BkgTemplateHelper:
 
 #---------- TEMPLATES AND PDFS -------------
    # Construct the templates
-      self.bkg_T_2 =
+      self.bkgTpl =
          ExtendedTemplate(
                self.templateFile.Get(self.templatePrefix).Clone("{}_{}".format(self.templatePrefix,self.templateSuffix)),
                self.dimensions, self.ProjDim,
-               self.varm4l, self.varKD, self.varKD2,
+               self.mass, self.KD1, self.KD2,
                self.condDim
             )
 
@@ -92,16 +92,25 @@ class BkgTemplateHelper:
       # qq bkg
       if(self.strBkgType.lower().startswith() == "qq"):
          PdfName = "qqZZ_OffshellPdf_{}".format(self.templateSuffix)
-         self.bkgPdf = ROOT.RooHistPdf(PdfName,PdfName,self.bkg_T_2.argset,self.bkg_T_2.theDataHist,0)
+         self.bkgPdf = RooRealFlooredSumPdf(
+            PdfName, PdfName,
+            ROOT.RooArgList(self.bkgTpl.theHistFunc),ROOT.RooArgList()
+         )
 
       # Z+X bkg
       elif((self.strBkgType.lower().startswith() == "zx") or (self.strBkgType.lower().startswith() == "zjets")):
          PdfName = "zjets_OffshellPdf_{}".format(self.templateSuffix)
          if self.ProjDim==0: # If projection on dim-0 is requested, just use the (unconditional) template already projected
-            self.bkgPdf = ROOT.RooHistPdf(PdfName,PdfName,self.bkg_T_2.argset,self.bkg_T_2.theDataHist,0)
+            self.bkgPdf = RooRealFlooredSumPdf(
+               PdfName, PdfName,
+               ROOT.RooArgList(self.bkgTpl.theHistFunc),ROOT.RooArgList()
+            )
          else: # If projection on dim-0 is not requested, use the product of the mass pdf with the template conditional over dim-0
             HistPdfName = "zjets_OffshellPdf_others_{}".format(self.templateSuffix)
-            bkgHistPdf = ROOT.RooHistPdf(HistPdfName,HistPdfName,self.bkg_T_2.argset,self.bkg_T_2.theDataHist,0)
+            self.bkgHistPdf = RooRealFlooredSumPdf(
+               HistPdfName, HistPdfName,
+               ROOT.RooArgList(self.bkgTpl.theHistFunc),ROOT.RooArgList()
+            )
             self.bkgPdf_extras.append(bkgHistPdf)
 
             val_mean_3P1F = float(self.theInputs['zjetsShape_mean_3P1F'])
@@ -121,7 +130,7 @@ class BkgTemplateHelper:
                pdf_3P1F = ROOT.RooLandau(
                   "zjets_OffshellPdf_mass_3p1f_{}".format(self.templateSuffix),
                   "zjets_OffshellPdf_mass_3p1f_{}".format(self.templateSuffix),
-                  self.varm4l,
+                  self.mass,
                   var_mean_3P1F, var_sigma_3P1F
                )
 
@@ -147,7 +156,7 @@ class BkgTemplateHelper:
                   pdf_2P2F = ROOT.RooLandau(
                      "zjets_OffshellPdf_mass_2p2f_{}".format(self.templateSuffix),
                      "zjets_OffshellPdf_mass_2p2f_{}".format(self.templateSuffix),
-                     self.varm4l,
+                     self.mass,
                      var_mean_2P2F, var_sigma_2P2F
                   )
                else:
@@ -160,7 +169,7 @@ class BkgTemplateHelper:
                      "zjets_OffshellPdf_mass_2p2f_{}".format(self.templateSuffix),
                      "(TMath::Landau(@0,@1,@2))*(1.+ TMath::Exp(@3+@4*@0))",
                      ROOT.RooArgList(
-                        self.varm4l,
+                        self.mass,
                         var_mean_2P2F, var_sigma_2P2F,
                         var_pol0_2P2F, var_pol1_2P2F
                      )
@@ -184,7 +193,7 @@ class BkgTemplateHelper:
                pdf_2P2F_2 = ROOT.RooLandau(
                   "zjets_OffshellPdf_mass_2p2f_2_{}".format(self.templateSuffix),
                   "zjets_OffshellPdf_mass_2p2f_2_{}".format(self.templateSuffix),
-                  self.varm4l,
+                  self.mass,
                   var_mean_2P2F_2, var_mean_2P2F_2
                )
 
@@ -211,7 +220,7 @@ class BkgTemplateHelper:
                ROOT.RooArgSet( bkgMassPdf ),
                ROOT.RooFit.Conditional(
                    ROOT.RooArgSet( bkgHistPdf ),
-                   ROOT.RooArgSet( self.varm4l )
+                   ROOT.RooArgSet( self.mass )
                )
             )
 

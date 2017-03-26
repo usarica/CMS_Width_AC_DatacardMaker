@@ -30,17 +30,17 @@ def parseOptions():
                       dest='noX', default=True, help='no X11 windows')
 
    parser.add_option('-i', '--input', dest='inputDir',
-                      type='string', default="",    help='inputs directory')
+                      type='string', default="",    help='Inputs directory')
    parser.add_option('-t', '--templates', dest='templateDir',
-                      type='string', default="", help='directory for templates')
+                      type='string', default="", help='Directory of templates')
    parser.add_option('-a', '--append', dest='appendName',
-                      type='string', default="",    help='append name for cards dir')
+                      type='string', default="",    help='Append name for cards directory')
 
    parser.add_option('-d', '--dimension', type='int', dest='dimensions',
                       default="3", help='Template dimensions>0')
    parser.add_option('-p', '--projDim', type='int', dest='ProjDim',
                       default="-1", help='-1->2D/3D(m4l,KD,KD2), 0->1D(m4l), 1->1D(KD), 2->1D(KD2)')
-   parser.add_option('--NoBkgSigInterf', type='int', dest='iBkgSigOnly', default=0,
+   parser.add_option('--NoBkgSigInterf', '--NoBSI', type='int', dest='iBkgSigOnly', default=0,
                       help='Bkg-sig interference. 0: No interference, 1: Add interference terms')
    parser.add_option('--GHmodel', type='int', dest='GHmodel', default=1,
                       help='GH model. 0: No GH in muF or muV, 1: Add GH/GHSM as a multiplicative factor, 2: Add GH as a multiplicative factor, -1: Add GH/GHSM as a divisive factor, -2: Add GH as a divisive factor')
@@ -120,14 +120,14 @@ def creationLoop(theOutputDir):
    global opt, args
 
    CatHelper = CategoryHelper(opt.iCatScheme)
-   theEqnsMaker = EquationsMaker(opt)
 
    for iCat in range(0,self.CatHelper.nCategories):
-      finalstates = [ "4mu","4e","2e2mu"]
+      finalstates = [ "4mu","4e","2e2mu" ]
       for ifs in finalstates:
          inputCardDir = opt.inputDir + "/inputs_" + ifs + "_" + CatHelper.catNameList[iCat] + ".txt"
          theInputCard = InputCardReader(inputCardDir)
          SystHelper = SystematicsHelper(theInputCard)
+         theEqnsMaker = EquationsMaker(opt,theInputCard)
          theMaker = WidthDatacardClass(opt,theInputCard,theEqnsMaker,CatHelper,SystHelper,iCat,theOutputDir)
 
 
@@ -140,7 +140,6 @@ def makeWidthDatacards():
    parseOptions()
 
    dirName = 'cards_' + opt.appendName
-   if (opt.iCatScheme != 0): dirName = dirName + '_tagged'
    subdir = ['HCG', 'figs']
    for d in subdir:
       makeDirectory(dirName + '/' + d)

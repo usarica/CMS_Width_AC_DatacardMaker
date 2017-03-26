@@ -99,7 +99,7 @@ class InputCardReader:
             parlist = [ parname, parvalue ]
             self.parameters.append(parlist)
 
-         if f[0].lower().startswith("systematics"):
+         if f[0].lower().startswith("systematic"):
             parname = f[1]
             partype = f[2]
             parconfig = []
@@ -108,13 +108,13 @@ class InputCardReader:
                   raise RuntimeError("{0} uncertainty for systematic {1} is not given any process!".format(partype, parname))
                for ic in range(3,len(f)):
                   tmpconfig = f[ic].split(":")
-                  for itc in range(1,len(tmpconfig)): # convert strings to floats
+                  for itc in range(1,len(tmpconfig)): # convert strings to floats, tmpconfig[0] is the process name
                      tmpconfig[itc] = float(tmpconfig[itc])
                   parconfig.append(tmpconfig)
             elif partype == "param":
                if len(f)!=4:
-                  raise RuntimeError("{0} uncertainty for systematic {1} has to consist of 4 whitespace-separated string!".format(partype, parname))
-               tmpconfig = f[4].split(":")
+                  raise RuntimeError("{0} uncertainty for systematic {1} has to consist of 4 whitespace-separated strings!".format(partype, parname))
+               tmpconfig = f[3].split(":")
                for itc in range(0,len(tmpconfig)): # convert strings to floats
                   tmpconfig[itc] = float(tmpconfig[itc])
                parconfig = tmpconfig

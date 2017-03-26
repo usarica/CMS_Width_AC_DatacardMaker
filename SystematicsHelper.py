@@ -33,7 +33,7 @@ class SystematicsHelper:
          if (systtype == "param"):
             if len(systconfig)==2:
                theSystVar = ROOT.RooRealVar( systname, systname, systconfig[0], -7, 7)
-            else if len(systconfig)==4:
+            elif len(systconfig)==4:
                theSystVar = ROOT.RooRealVar( systname, systname, systconfig[0], systconfig[2], systconfig[3])
             else:
                raise RuntimeError("Systematics variable {} configuration does not have size 2 or 4!".format(systname))
@@ -59,7 +59,7 @@ class SystematicsHelper:
          systline = ""
          if (systtype == "param"):
             if len(systconfig)==4:
-               systline = "{0} {1} [{2},{3}]".format(FloatToString(systconfig[0]), FloatToString(systconfig[1], FloatToString(systconfig[2]), FloatToString(systconfig[3]))
+               systline = "{0} {1} [{2},{3}]".format(FloatToString(systconfig[0]), FloatToString(systconfig[1]), FloatToString(systconfig[2]), FloatToString(systconfig[3]))
             elif len(systconfig)==2:
                systline = "{0} {1} [-7,7]".format(FloatToString(systconfig[0]), FloatToString(systconfig[1]))
             else:

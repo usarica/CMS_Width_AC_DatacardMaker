@@ -16,26 +16,27 @@ from BkgTemplateHelper import *
 
 class WidthDatacardMaker:
    def __init__(self,options,theInputCard,theEqnsMaker,theCategorizer,theSystematizer,iCat,theOutputDir):
+      self.iCat = iCat
+      self.theOutputDir = theOutputDir
+
       self.options = options
+      self.theInputCard = theInputCard
+      self.theEqnsMaker = theEqnsMaker
+      self.theCategorizer = theCategorizer
+      self.theSystematizer = theSystematizer
+
       self.templateDir = self.options.templateDir
       self.dataAppendDir = self.options.dataDirAppend
       self.iCatScheme = self.options.iCatScheme
       self.mH = self.options.mPOLE
-      self.low_M = self.options.mLow
-      self.high_M = self.options.mHigh
+      self.mLow = self.options.mLow
+      self.mHigh = self.options.mHigh
 
-      self.theInputCard = theInputCard
-      self.theInputs = self.theInputCard.getInputs()
       self.sqrts = self.theInputCard.sqrts
-      self.lumi = self.theInputCard.lumi
       self.channel = self.theInputCard.decayChan
-      self.theChannelName = self.theInputCard.decayChan
+      self.theChannelName = self.theInputCard.decayChanName
 
-      self.theCategorizer = theCategorizer
-      self.iCat = iCat
-      self.theSystematizer = theSystematizer
       self.theSystVarsDict = self.theSystematizer.getVariableDict()
-      self.theOutputDir = theOutputDir
 
       self.workspace = ROOT.RooWorkspace("w", "w")
       self.workspace.importClassCode(AsymPow.Class(),True)
@@ -45,23 +46,11 @@ class WidthDatacardMaker:
       self.workspace.importClassCode(RooRealFlooredSumPdf.Class(),True)
       self.workspace.importClassCode(VerticalInterpPdf.Class(),True)
 
-      # Luminosity is created from sqrts and lumi as specified in the input, so it has to be created outside the equations maker class.
-      self.theLumi = ROOT.RooRealVar("LUMI_{0:.0f}".format(self.sqrts), "LUMI_{0:.0f}".format(self.sqrts), self.lumi)
-      self.theLumi.setConstant(True)
       # Other input-independent RooRealVars are taken from the equations maker class.
-      self.theEqnsMaker = theEqnsMaker
       self.theLumi = self.theEqnsMaker.theLumi
-      self.muF = self.theEqnsMaker.muF
-      self.muV = self.theEqnsMaker.muV
-      self.kbkg_gg = self.theEqnsMaker.kbkg_gg
-      self.kbkg_VBF = self.theEqnsMaker.kbkg_VBF
-      self.fai1 = self.theEqnsMaker.fai1
-      self.phiai1 = self.theEqnsMaker.phiai1
-      self.phia1_gg = self.theEqnsMaker.phia1_gg
-      self.phia1_VBF = self.theEqnsMaker.phia1_VBF
-      self.varm4l = self.theEqnsMaker.varm4l
-      self.varKD = self.theEqnsMaker.varKD
-      self.varKD2 = self.theEqnsMaker.varKD2
+      self.mass = self.theEqnsMaker.rrvars["mass"]
+      self.KD1 = self.theEqnsMaker.rrvars["KD1"]
+      self.KD2 = self.theEqnsMaker.rrvars["KD2"]
 
       self.theBunches = [] # To keep track of which files are open
       self.pdfList = []
@@ -75,11 +64,11 @@ class WidthDatacardMaker:
       self.dataFileName = "{0}/hzz{1}_{2}_{3:.0f}TeV.root".format(
          self.dataFileDir, self.theChannelName, self.theCategorizer.catNameList[self.iCat], self.sqrts
       )
-      self.datacardName = "{0}/HCG/hzz{1}_{2}_{3:.0f}TeV_{4}.txt".format(
-         self.outputDir, self.theChannelName, self.theCategorizer.catNameList[self.iCat], self.sqrts, self.appendName
+      self.datacardName = "{0}/HCG/{3:.0f}TeV/hzz{1}_{2}.txt".format(
+         self.outputDir, self.theChannelName, self.theCategorizer.catNameList[self.iCat], self.sqrts
       )
-      self.workspaceFileName = "{0}/HCG/hzz{1}_{2}_{3:.0f}TeV_{4}.root".format(
-         self.outputDir, self.theChannelName, self.theCategorizer.catNameList[self.iCat], self.sqrts, self.appendName
+      self.workspaceFileName = "{0}/HCG/{3:.0f}TeV/hzz{1}_{2}.input.root".format(
+         self.outputDir, self.theChannelName, self.theCategorizer.catNameList[self.iCat], self.sqrts
       )
 
       for proc in self.theInputCard.channels:
@@ -97,7 +86,7 @@ class WidthDatacardMaker:
 
          # Nominal pdf and rate
          systName = "Nominal"
-         templateFileName = "{0}/{1}{2}_{3}{4}".format(self.templateDir,templateFileNameMain,procname,systName,".root")
+         templateFileName = "{0}/{1:.0f}TeV/{2}{3}_{4}{5}".format(self.templateDir,self.sqrts,templateFileNameMain,procname,systName,".root")
          if proctype>0:
             bunchNominal = BkgTemplateHelper(self.options,self,self.theCategorizer,procname,templateFileName,self.iCat,systName)
             bunchNominal.getTemplates()
@@ -116,7 +105,7 @@ class WidthDatacardMaker:
                      tmplist = []
                      for isyst in range(1,3): # Up/Dn variations
                         systName = systchan[isyst]
-                        templateFileName = "{0}/{1}{2}_{3}{4}".format(self.templateDir,templateFileNameMain,procname,systName,".root")
+                        templateFileName = "{0}/{1:.0f}TeV/{2}{3}_{4}{5}".format(self.templateDir,self.sqrts,templateFileNameMain,procname,systName,".root")
                         bunchVar = None
                         if proctype>0:
                            bunchVar = BkgTemplateHelper(self.options,self,self.theCategorizer,procname,templateFileName,self.iCat,systName)
@@ -165,8 +154,8 @@ class WidthDatacardMaker:
       else:
         data_obs = ROOT.RooDataSet()
         datasetName = "data_obs_full"
-        data_obs = ROOT.RooDataSet(datasetName, datasetName, self.theDataTree, ROOT.RooArgSet(self.varm4l, self.varKD, self.varKD2))
-        self.theDataRDS = data_obs.reduce("{0}>={1:.2f} && {0}<{1:.2f}".format(self.varm4l.GetName(), self.low_M, self.high_M))
+        data_obs = ROOT.RooDataSet(datasetName, datasetName, self.theDataTree, ROOT.RooArgSet(self.mass, self.KD1, self.KD2))
+        self.theDataRDS = data_obs.reduce("{0}>={1:.2f} && {0}<{1:.2f}".format(self.mass.GetName(), self.mLow, self.mHigh))
         self.theDataRDS.SetName("data_obs")
         getattr(self.workspace, 'import')(self.theDataRDS, ROOT.RooFit.Rename("data_obs"))
 
@@ -187,7 +176,7 @@ class WidthDatacardMaker:
                bunch.templateFile.Close()
 
 
-   def WriteDatacard(self, theFile, self.theInputs, nameWS, theRates, obsEvents):
+   def WriteDatacard(self):
       self.theDatacardFile = open(self.datacardName, "wb")
       tmplist = self.workspaceFileName.split('/')
       nameWS = tmplist[len(tmplist)-1]
@@ -215,7 +204,7 @@ class WidthDatacardMaker:
       self.theDatacardFile.write("## Latest Higgs combination conventions: https://twiki.cern.ch/twiki/bin/view/CMS/HiggsWG/HiggsCombinationConventions   ##\n")
       self.theDatacardFile.write("## CMS StatCom twiki:                    https://twiki.cern.ch/twiki/bin/view/CMS/StatisticsCommittee                   ##\n")
       self.theDatacardFile.write("##########################################################################################################################\n")
-      self.theDatacardFile.write("## Mass window [{0:.1f},{1:.1f}] \n".format(self.low_M, self.high_M))
+      self.theDatacardFile.write("## Mass window [{0:.1f},{1:.1f}] \n".format(self.mLow, self.mHigh))
       #self.theDatacardFile.write("## signal,bkg,interf,tot rates [{0:.4f}, {1:.4f}, {2:.4f}, {3:.4f}] \n".format(
       #   theRates["ggZZ_signal"], theRates["ggZZbkg"], theRates["ggZZ_interf"], theRates["ggZZ_tot"])
       #)

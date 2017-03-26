@@ -12,81 +12,99 @@ from array import array
 # Container class for the equations pertaining to different datacard models
 # Note: This class is independent of the input card, so luminosity and other variables common per-sqrts have to be created somewhere else.
 class EquationsMaker:
-   def __init__(self, options):
-      self.low_M = options.mLow
-      self.high_M = options.mHigh
+   def __init__(self, options, theInputCard):
+      self.mLow = options.mLow
+      self.mHigh = options.mHigh
       self.anomCoupl = options.anomCouplIndex
       self.isBkgSigOnly = options.isBkgSigOnly
       self.GHmodel = options.GHmodel
       self.GHrefval = options.GHrefval
+      self.sqrts = theInputCard.sqrts
+      self.lumi = theInputCard.lumi
+
+      self.rrvars = dict()
+
+      # LUMI
+      var = ROOT.RooConstVar("LUMI_{0:.0f}".format(self.sqrts), "LUMI_{0:.0f}".format(self.sqrts), self.lumi)
+      self.rrvars["lumi"]=var
 
    # Variables for the template dimensions
       varname = "CMS_zz4l_widthMass"
-      self.varm4l = ROOT.RooRealVar(varname, varname, self.low_M, self.high_M)
-      self.varm4l.setBins(69) # To be reset later
-      varname = "CMS_zz4l_widthKD"
-      self.varKD = ROOT.RooRealVar(varname, varname, 0., 1.)
-      self.varKD.setBins(30) # To be reset later
+      var = ROOT.RooRealVar(varname, varname, self.mLow, self.mHigh)
+      var.setBins(69) # To be reset later
+      self.rrvars["mass"]=var
+      varname = "CMS_zz4l_widthKD1"
+      var = ROOT.RooRealVar(varname, varname, 0., 1.)
+      var.setBins(30) # To be reset later
+      self.rrvars["KD1"]=var
       varname = "CMS_zz4l_widthKD2"
-      self.varKD2 = ROOT.RooRealVar(varname, varname, 0., 1.)
-      self.varKD2.setBins(30) # To be reset later
+      var = ROOT.RooRealVar(varname, varname, 0., 1.)
+      var.setBins(30) # To be reset later
+      self.rrvars["KD2"]=var
       varname = "CMS_zz4l_widthKDint"
-      self.varKDint = ROOT.RooRealVar(varname, varname, -1., 1.)
-      self.varKDint.setBins(30) # To be reset later
+      var = ROOT.RooRealVar(varname, varname, -1., 1.)
+      var.setBins(30) # To be reset later
+      self.rrvars["KDint"]=var
 
    # Variables for signal and bkg strength
-      self.muF = None
-      self.muV = None
+      muF = None
+      muV = None
+      phia1_gg = None # Could itself be a RooFormulaVar (e.g. phia1_gg = phia1+phi_SB_gg)
+      phia1_VBF = None # Could itself be a RooFormulaVar (e.g. phia1_VBF = phia1+phi_SB_VBF/2)
 
-      varname = "R"
-      self.R = ROOT.RooRealVar(varname, varname, 1, 0, 100)
-      self.R.setVal(1)
-      self.R.setBins(100)
-      varname = "RF"
-      self.RF = ROOT.RooRealVar(varname, varname, 1, 0, 100)
-      self.RF.setVal(1)
-      self.RF.setBins(100)
-      varname = "RV"
-      self.RV = ROOT.RooRealVar(varname, varname, 1, 0, 100)
-      self.RV.setVal(1)
-      self.RV.setBins(100)
-      varname = "GHratio"
-      self.GHratio = ROOT.RooRealVar(varname, varname, 1., 0., 50.)
-      self.GHratio.setBins(500)
+      Rnames = [ "R", "RV", "RF", "R_{0:.0f}TeV".format(self.sqrts), "RV_{0:.0f}TeV".format(self.sqrts), "RF_{0:.0f}TeV".format(self.sqrts) ]
+      Rlabels = [ "R", "RV", "RF", "Rsqrts", "RVsqrts", "RFsqrts" ]
+      for varname,varlabel in zip(Rnames,Rlabels):
+         var = ROOT.RooRealVar(varname, varname, 1., 0., 400.)
+         var.setVal(1)
+         var.setBins(100)
+         self.rrvars[varlabel]=var
+
+      varname = "GGsm"
+      var = ROOT.RooRealVar(varname, varname, 1., 0., 50.)
+      var.setBins(500)
+      self.rrvars[varname]=var
       varname = "GHrefval"
-      self.GH = ROOT.RooRealVar(varname, varname, self.GHrefval)
-      self.GH.setConstant(True)
+      var = ROOT.RooConstVar(varname, varname, self.GHrefval)
+      self.rrvars[varname]=var
       varname = "kbkg_gg"
-      self.kbkg_gg = ROOT.RooRealVar(varname, varname, 1., 0., 2.)
-      self.kbkg_gg.setBins(200)
+      var = ROOT.RooRealVar(varname, varname, 1., 0., 2.)
+      var.setBins(200)
+      self.rrvars[varname]=var
       varname = "kbkg_VBF"
-      self.kbkg_VBF = ROOT.RooRealVar(varname, varname, 1., 0., 2.)
-      self.kbkg_VBF.setBins(200)
+      var = ROOT.RooRealVar(varname, varname, 1., 0., 2.)
+      var.setBins(200)
+      self.rrvars[varname]=var
 
       varname = "fai1"
-      self.fai1 = ROOT.RooRealVar(varname, varname, 0., -1., 1.)
-      self.fai1.setBins(200)
+      var = ROOT.RooRealVar(varname, varname, 0., -1., 1.)
+      var.setBins(200)
+      self.rrvars[varname]=var
       varname = "phiai1"
-      self.phiai1 = ROOT.RooRealVar(varname, varname, 0., -math.pi, math.pi)
-      self.phiai1.setBins(200)
+      var = ROOT.RooRealVar(varname, varname, 0., -math.pi, math.pi)
+      var.setBins(200)
+      self.rrvars[varname]=var
       varname = "fai2"
-      self.fai2 = ROOT.RooRealVar(varname, varname, 0., -1., 1.)
-      self.fai2.setBins(200)
+      var = ROOT.RooRealVar(varname, varname, 0., -1., 1.)
+      var.setBins(200)
+      self.rrvars[varname]=var
       varname = "phiai2"
-      self.phiai2 = ROOT.RooRealVar(varname, varname, 0., -math.pi, math.pi)
-      self.phiai2.setBins(200)
+      var = ROOT.RooRealVar(varname, varname, 0., -math.pi, math.pi)
+      var.setBins(200)
+      self.rrvars[varname]=var
 
-      self.phia1_gg = None # Could itself be a RooFormulaVar (e.g. phia1_gg = phia1+phi_SB_gg)
-      self.phia1_VBF = None # Could itself be a RooFormulaVar (e.g. phia1_VBF = phia1+phi_SB_VBF/2)
       varname = "phia1"
-      self.phia1 = ROOT.RooRealVar(varname, varname, 0., -math.pi, math.pi)
-      self.phia1.setBins(200)
+      var = ROOT.RooRealVar(varname, varname, 0., -math.pi, math.pi)
+      var.setBins(200)
+      self.rrvars[varname]=var
       varname = "phia1_SB_gg"
-      self.phia1_SB_gg = ROOT.RooRealVar(varname, varname, 0., -math.pi, math.pi)
-      self.phia1_SB_gg.setBins(200)
+      var = ROOT.RooRealVar(varname, varname, 0., -math.pi, math.pi)
+      var.setBins(200)
+      self.rrvars[varname]=var
       varname = "phia1_SB_VBF"
-      self.phia1_SB_VBF = ROOT.RooRealVar(varname, varname, 0., -math.pi, math.pi)
-      self.phia1_SB_VBF.setBins(200)
+      var = ROOT.RooRealVar(varname, varname, 0., -math.pi, math.pi)
+      var.setBins(200)
+      self.rrvars[varname]=var
 
    # BSI+AC FORMULAE
       # Bare formula strings
@@ -104,25 +122,29 @@ class EquationsMaker:
    def makeRFVs_BSI(self):
    # Construct muF/V
       if self.GHmodel==1:
-         self.muF = ROOT.RooFormulaVar("muF", "@0*@1*@2", ROOT.RooArgList(self.R,self.RF,self.GHratio))
-         self.muV = ROOT.RooFormulaVar("muV", "@0*@1*@2", ROOT.RooArgList(self.R,self.RV,self.GHratio))
+         muF = ROOT.RooFormulaVar("muF_{0:.0f}TeV".format(self.sqrts), "@0*@1*@2", ROOT.RooArgList(self.rrvars["R"],self.rrvars["RF"], self.rrvars["Rsqrts"],self.rrvars["RFsqrts"], self.rrvars["GHratio"]))
+         muV = ROOT.RooFormulaVar("muV_{0:.0f}TeV".format(self.sqrts), "@0*@1*@2*@3*@4", ROOT.RooArgList(self.rrvars["R"],self.rrvars["RV"], self.rrvars["Rsqrts"],self.rrvars["RVsqrts"], self.rrvars["GHratio"]))
       elif self.GHmodel==-1:
-         self.muF = ROOT.RooFormulaVar("muF", "@0*@1/@2", ROOT.RooArgList(self.R,self.RF,self.GHratio))
-         self.muV = ROOT.RooFormulaVar("muV", "@0*@1/@2", ROOT.RooArgList(self.R,self.RV,self.GHratio))
+         muF = ROOT.RooFormulaVar("muF_{0:.0f}TeV".format(self.sqrts), "@0*@1*@2*@3/@4", ROOT.RooArgList(self.rrvars["R"],self.rrvars["RF"], self.rrvars["Rsqrts"],self.rrvars["RFsqrts"], self.rrvars["GHratio"]))
+         muV = ROOT.RooFormulaVar("muV_{0:.0f}TeV".format(self.sqrts), "@0*@1*@2*@3/@4", ROOT.RooArgList(self.rrvars["R"],self.rrvars["RV"], self.rrvars["Rsqrts"],self.rrvars["RVsqrts"], self.rrvars["GHratio"]))
       elif self.GHmodel==2:
-         self.muF = ROOT.RooFormulaVar("muF", "@0*@1*@2*@3", ROOT.RooArgList(self.R,self.RF,self.GHratio,self.GH))
-         self.muV = ROOT.RooFormulaVar("muV", "@0*@1*@2*@3", ROOT.RooArgList(self.R,self.RV,self.GHratio,self.GH))
+         muF = ROOT.RooFormulaVar("muF_{0:.0f}TeV".format(self.sqrts), "@0*@1*@2*@3*@4*@5", ROOT.RooArgList(self.rrvars["R"],self.rrvars["RF"], self.rrvars["Rsqrts"],self.rrvars["RFsqrts"], self.rrvars["GHratio"],self.rrvars["GHrefval"]))
+         muV = ROOT.RooFormulaVar("muV_{0:.0f}TeV".format(self.sqrts), "@0*@1*@2*@3*@4*@5", ROOT.RooArgList(self.rrvars["R"],self.rrvars["RV"], self.rrvars["Rsqrts"],self.rrvars["RVsqrts"], self.rrvars["GHratio"],self.rrvars["GHrefval"]))
       elif self.GHmodel==-2:
-         self.muF = ROOT.RooFormulaVar("muF", "@0*@1/(@2*@3)", ROOT.RooArgList(self.R,self.RF,self.GHratio,self.GH))
-         self.muV = ROOT.RooFormulaVar("muV", "@0*@1/(@2*@3)", ROOT.RooArgList(self.R,self.RV,self.GHratio,self.GH))
+         muF = ROOT.RooFormulaVar("muF_{0:.0f}TeV".format(self.sqrts), "@0*@1*@2*@3/(@4*@5)", ROOT.RooArgList(self.rrvars["R"],self.rrvars["RF"], self.rrvars["Rsqrts"],self.rrvars["RFsqrts"], self.rrvars["GHratio"],self.rrvars["GHrefval"]))
+         muV = ROOT.RooFormulaVar("muV_{0:.0f}TeV".format(self.sqrts), "@0*@1*@2*@3/(@4*@5)", ROOT.RooArgList(self.rrvars["R"],self.rrvars["RV"], self.rrvars["Rsqrts"],self.rrvars["RVsqrts"], self.rrvars["GHratio"],self.rrvars["GHrefval"]))
       else:
-         self.muF = ROOT.RooFormulaVar("muF", "@0*@1", ROOT.RooArgList(self.R,self.RF))
-         self.muV = ROOT.RooFormulaVar("muV", "@0*@1", ROOT.RooArgList(self.R,self.RV))
+         muF = ROOT.RooFormulaVar("muF_{0:.0f}TeV".format(self.sqrts), "@0*@1*@2*@3", ROOT.RooArgList(self.rrvars["R"],self.rrvars["RF"], self.rrvars["Rsqrts"],self.rrvars["RFsqrts"]))
+         muV = ROOT.RooFormulaVar("muV_{0:.0f}TeV".format(self.sqrts), "@0*@1*@2*@3", ROOT.RooArgList(self.rrvars["R"],self.rrvars["RV"], self.rrvars["Rsqrts"],self.rrvars["RVsqrts"]))
+      self.rrvars["muF"]=muF
+      self.rrvars["muV"]=muV
 
-      self.phia1_gg = ROOT.RooFormulaVar("phia1_gg", "@0+@1", ROOT.RooArgList(self.phia1,self.phia1_SB_gg))
-      self.phia1_VBF = ROOT.RooFormulaVar("phia1_VBF", "@0+@1/2.", ROOT.RooArgList(self.phia1,self.phia1_SB_VBF))
+      phia1_gg = ROOT.RooFormulaVar("phia1_gg", "@0+@1", ROOT.RooArgList(self.rrvars["phia1"],self.rrvars["phia1_SB_gg"]))
+      phia1_VBF = ROOT.RooFormulaVar("phia1_VBF", "@0+@1/2.", ROOT.RooArgList(self.rrvars["phia1"],self.rrvars["phia1_SB_VBF"]))
+      self.rrvars["phia1_gg"]=phia1_gg
+      self.rrvars["phia1_VBF"]=phia1_VBF
 
-   # ggVV FORMULAE
+      # ggVV FORMULAE
       # In signals and interferences, @0==muF/V; additionally in interferences, @1==kbkg_gg/VBF
       if self.anomCoupl == 1: # Full parameterization with fai1=[-1, 1], and phases phiai1 and phia1_gg, phia1_VBF (phia1 are different since the bkg phase could be different)
          # 0-3 are templates, @1==fai1, @2==phiai1
@@ -153,38 +175,31 @@ class EquationsMaker:
       for irfv in range(0,len(self.ggSigFormula_list)):
          rfvname = "{0}Sig_AC_{1:.0f}_Coef".format(self.processName,irfv)
          rfvargs = ROOT.RooArgList()
-         rfvargs.add(self.muF)
+         rfvargs.add(self.rrvars["muF"])
          if self.anomCoupl == 1:
-            rfvargs.add(self.fai1)
-            rfvargs.add(self.phiai1)
+            rfvargs.add(self.rrvars["fai1"])
+            rfvargs.add(self.rrvars["phiai1"])
          elif self.anomCoupl == 2:
-            rfvargs.add(self.fai1)
-         if rfvargs.getSize()>0:
-            seg_rfv = ROOT.RooFormulaVar( rfvname , self.ggSigFormula_list[irfv] , rfvargs )
-            self.ggSigRFV_list.append(seg_rfv)
-         else:
-            seg_rfv = ROOT.RooRealVar( rfvname , rfvname , 1.0 )
-            self.ggSigRFV_list.append(seg_rfv)
+            rfvargs.add(self.rrvars["fai1"])
+         seg_rfv = ROOT.RooFormulaVar( rfvname , self.ggSigFormula_list[irfv] , rfvargs )
+         self.ggSigRFV_list.append(seg_rfv)
 
       for irfv in range(0,len(self.ggInterfFormula_list)):
          rfvname = "{0}Interf_AC_{1:.0f}_Coef".format(self.processName,irfv)
          rfvargs = ROOT.RooArgList()
-         rfvargs.add(self.muF)
-         rfvargs.add(self.kbkg_gg)
+         rfvargs.add(self.rrvars["muF"])
+         rfvargs.add(self.rrvars["kbkg_gg"])
          if self.anomCoupl == 1:
-            rfvargs.add(self.fai1)
-            rfvargs.add(self.phiai1)
-            rfvargs.add(self.phia1_gg)
+            rfvargs.add(self.rrvars["fai1"])
+            rfvargs.add(self.rrvars["phiai1"])
+            rfvargs.add(self.rrvars["phia1_gg"])
          elif self.anomCoupl == 2:
-            rfvargs.add(self.fai1)
-         if rfvargs.getSize()>0:
-            seg_rfv = ROOT.RooFormulaVar( rfvname , self.ggInterfFormula_list[irfv] , rfvargs )
-            self.ggInterfRFV_list.append(seg_rfv)
-         else:
-            seg_rfv = ROOT.RooRealVar( rfvname , rfvname , 1.0 )
-            self.ggInterfRFV_list.append(seg_rfv)
+            rfvargs.add(self.rrvars["fai1"])
+         seg_rfv = ROOT.RooFormulaVar( rfvname , self.ggInterfFormula_list[irfv] , rfvargs )
+         self.ggInterfRFV_list.append(seg_rfv)
 
-   # vvVV FORMULAE
+
+      # vvVV FORMULAE
       # In signals and interferences, @0==muV; additionally in interferences, @1==kbkg_VBF
       if self.anomCoupl == 1: # Full parameterization with fai1=[-1, 1], and phases phiai1 and phia1_gg, phia1_VBF (phia1 are different since the bkg phase could be different)
          # 0-8 are templates, @1==fai1, @2==phiai1
@@ -225,35 +240,27 @@ class EquationsMaker:
       for irfv in range(0,len(self.VBFSigFormula_list)):
          rfvname = "{0}Sig_AC_{1:.0f}_Coef".format(self.processName,irfv)
          rfvargs = ROOT.RooArgList()
-         rfvargs.add(self.muV)
+         rfvargs.add(self.rrvars["muV"])
          if self.anomCoupl == 1:
-            rfvargs.add(self.fai1)
-            rfvargs.add(self.phiai1)
+            rfvargs.add(self.rrvars["fai1"])
+            rfvargs.add(self.rrvars["phiai1"])
          elif self.anomCoupl == 2:
-            rfvargs.add(self.fai1)
-         if rfvargs.getSize()>0:
-            seg_rfv = ROOT.RooFormulaVar( rfvname , self.VBFSigFormula_list[irfv] , rfvargs )
-            self.VBFSigRFV_list.append(seg_rfv)
-         else:
-            seg_rfv = ROOT.RooRealVar( rfvname , rfvname , 1.0 )
-            self.VBFSigRFV_list.append(seg_rfv)
+            rfvargs.add(self.rrvars["fai1"])
+         seg_rfv = ROOT.RooFormulaVar( rfvname , self.VBFSigFormula_list[irfv] , rfvargs )
+         self.VBFSigRFV_list.append(seg_rfv)
 
       for irfv in range(0,len(self.VBFInterfFormula_list)):
          rfvname = "{0}Interf_AC_{1:.0f}_Coef".format(self.processName,irfv)
          rfvargs = ROOT.RooArgList()
-         rfvargs.add(self.muV)
-         rfvargs.add(self.kbkg_VBF)
+         rfvargs.add(self.rrvars["muV"])
+         rfvargs.add(self.rrvars["kbkg_VBF"])
          if self.anomCoupl == 1:
-            rfvargs.add(self.fai1)
-            rfvargs.add(self.phiai1)
-            rfvargs.add(self.phia1_VBF)
+            rfvargs.add(self.rrvars["fai1"])
+            rfvargs.add(self.rrvars["phiai1"])
+            rfvargs.add(self.rrvars["phia1_VBF"])
          elif self.anomCoupl == 2:
-            rfvargs.add(self.fai1)
-         if rfvargs.getSize()>0:
-            seg_rfv = ROOT.RooFormulaVar( rfvname , self.VBFInterfFormula_list[irfv] , rfvargs )
-            self.VBFInterfRFV_list.append(seg_rfv)
-         else:
-            seg_rfv = ROOT.RooRealVar( rfvname , rfvname , 1.0 )
-            self.VBFInterfRFV_list.append(seg_rfv)
+            rfvargs.add(self.rrvars["fai1"])
+         seg_rfv = ROOT.RooFormulaVar( rfvname , self.VBFInterfFormula_list[irfv] , rfvargs )
+         self.VBFInterfRFV_list.append(seg_rfv)
 
 
