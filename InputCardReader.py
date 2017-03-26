@@ -25,6 +25,8 @@ class InputCardReader:
       self.lumi = None
       # sqrts
       self.sqrts = None
+      # Category
+      self.catName = ""
 
       # list of
       # [ channel name, rate, lumi, (int) iBkg ]
@@ -79,6 +81,9 @@ class InputCardReader:
             else: raise RuntimeError("Unknown decay channel {0}, choices are 4mu, 4e, 2e2mu or 2mu2e".format(f[1]))
             self.decayChanName = f[1]
 
+         if f[0].lower().startswith("category"):
+            self.catName = f[1]
+
          if f[0].lower().startswith("channel"):
             channame = f[1]
             chanrate = 1.0
@@ -118,6 +123,14 @@ class InputCardReader:
                for itc in range(0,len(tmpconfig)): # convert strings to floats
                   tmpconfig[itc] = float(tmpconfig[itc])
                parconfig = tmpconfig
+            elif partype == "quadN":
+               if len(f)<4:
+                  raise RuntimeError("{0} uncertainty for systematic {1} is not given any process!".format(partype, parname))
+               for ic in range(3,len(f)):
+                  tmpconfig = f[ic].split(":")
+                  for itc in range(1,len(tmpconfig)): # convert strings to floats, tmpconfig[0] is the process name or range specification
+                     tmpconfig[itc] = float(tmpconfig[itc])
+                  parconfig.append(tmpconfig)
             elif partype.lower() == "template":
                if len(f)<4:
                   raise RuntimeError("{0} uncertainty name strings for systematic {1} is not given any process!".format(partype, parname))
@@ -128,7 +141,7 @@ class InputCardReader:
                   parconfig.append(tmpconfig)
 
             parlist = [ parname, partype, parconfig ]
-            self.parameters.append(parlist)
+            self.systematics.append(parlist)
 
    def getInputs(self):
 

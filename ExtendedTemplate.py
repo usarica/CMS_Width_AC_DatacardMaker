@@ -28,7 +28,7 @@ class ExtendedTemplate:
 
 
       self.origTemplate = origTemplate # Just to store
-      TemplateName = self.origTemplate.GetName()
+      TemplateName = self.origTemplate.GetName() # Template name contains extra suffix if already cloned
       HistFuncName = "{}_HistFunc".format(TemplateName)
       self.getHistFunc(HistFuncName)
 

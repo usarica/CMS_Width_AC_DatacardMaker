@@ -15,6 +15,7 @@ class BkgTemplateHelper:
       # sqrts and channel index from the datacard maker class
       self.sqrts = theMaker.sqrts
       self.channel = theMaker.channel
+      self.theChannelName = theMaker.theChannelName
       self.workspace = theMaker.workspace
       self.theInputs = theMaker.theInputs.getInputs()
 
@@ -41,7 +42,7 @@ class BkgTemplateHelper:
 
       self.templateFileName = templateFileName
       self.systName = systName
-      self.templateSuffix = "{0}_{1}_{2:.0f}_{3:.0f}TeV".format(self.systName,self.catNameList[self.iCat],self.channel,self.sqrts)
+      self.templateSuffix = "{0}_{1}_{2}_{3:.0f}TeV".format(self.systName,self.catNameList[self.iCat],self.theChannelName,self.sqrts)
 
       self.templateFile = None
 
@@ -60,9 +61,16 @@ class BkgTemplateHelper:
          getattr(self.workspace, 'import')(self.bkgPdf, ROOT.RooFit.RecycleConflictNodes())
 
 
+# Open the template files
+   def openFile(self):
+      self.templateFile = ROOT.TFile.Open(self.templateFileName, "read")
+      if self.templateFile is None or self.templateFile.IsZombie():
+         raise RuntimeError("BkgTemplateHelper could not open file {}!".format(self.templateFileName))
 # Close the template files
    def close(self):
-      self.templateFile.Close()
+      if self.templateFile is not None:
+         if self.templateFile.IsOpen():
+            self.templateFile.Close()
 
 
    def getThePdf(self):
@@ -72,8 +80,8 @@ class BkgTemplateHelper:
 
 
 # Get shapes for each category
-   def getTemplates(self,templatePrefix="T_2D"):
-      self.templateFile = ROOT.TFile.Open(self.templateFileName, "read")
+   def getTemplates(self,templatePrefix="T"):
+      self.openFile()
 
       self.templatePrefix = templatePrefix
       self.templatePrefix = "{}_{}".format(self.templatePrefix,self.strBkgType)
@@ -92,7 +100,7 @@ class BkgTemplateHelper:
       # qq bkg
       if(self.strBkgType.lower().startswith() == "qq"):
          PdfName = "qqZZ_OffshellPdf_{}".format(self.templateSuffix)
-         self.bkgPdf = RooRealFlooredSumPdf(
+         self.bkgPdf = ROOT.RooRealFlooredSumPdf(
             PdfName, PdfName,
             ROOT.RooArgList(self.bkgTpl.theHistFunc),ROOT.RooArgList()
          )
@@ -101,13 +109,13 @@ class BkgTemplateHelper:
       elif((self.strBkgType.lower().startswith() == "zx") or (self.strBkgType.lower().startswith() == "zjets")):
          PdfName = "zjets_OffshellPdf_{}".format(self.templateSuffix)
          if self.ProjDim==0: # If projection on dim-0 is requested, just use the (unconditional) template already projected
-            self.bkgPdf = RooRealFlooredSumPdf(
+            self.bkgPdf = ROOT.RooRealFlooredSumPdf(
                PdfName, PdfName,
                ROOT.RooArgList(self.bkgTpl.theHistFunc),ROOT.RooArgList()
             )
          else: # If projection on dim-0 is not requested, use the product of the mass pdf with the template conditional over dim-0
             HistPdfName = "zjets_OffshellPdf_others_{}".format(self.templateSuffix)
-            self.bkgHistPdf = RooRealFlooredSumPdf(
+            self.bkgHistPdf = ROOT.RooRealFlooredSumPdf(
                HistPdfName, HistPdfName,
                ROOT.RooArgList(self.bkgTpl.theHistFunc),ROOT.RooArgList()
             )

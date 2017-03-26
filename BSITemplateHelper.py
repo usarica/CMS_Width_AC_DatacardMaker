@@ -15,6 +15,7 @@ class BSITemplateHelper:
       # sqrts and channel index from the datacard maker class
       self.sqrts = theMaker.sqrts
       self.channel = theMaker.channel
+      self.theChannelName = theMaker.theChannelName
       self.workspace = theMaker.workspace
 
       # RooRealVars from the equations maker class
@@ -48,7 +49,7 @@ class BSITemplateHelper:
 
       self.templateFileName = templateFileName
       self.systName = systName
-      self.templateSuffix = "{0}_{1}_{2:.0f}_{3:.0f}TeV".format(self.systName,self.catNameList[self.iCat],self.channel,self.sqrts)
+      self.templateSuffix = "{0}_{1}_{2}_{3:.0f}TeV".format(self.systName,self.catNameList[self.iCat],self.theChannelName,self.sqrts)
 
       # To be reset later
       self.nbinsx=(self.mHigh - self.mLow) / 20
@@ -164,9 +165,16 @@ class BSITemplateHelper:
          getattr(self.workspace, 'import')(self.VBFTotalRate, ROOT.RooFit.RecycleConflictNodes())
 
 
+# Open the template files
+   def openFile(self):
+      self.templateFile = ROOT.TFile.Open(self.templateFileName, "read")
+      if self.templateFile is None or self.templateFile.IsZombie():
+         raise RuntimeError("BkgTemplateHelper could not open file {}!".format(self.templateFileName))
 # Close the template files
    def close(self):
-      self.templateFile.Close()
+      if self.templateFile is not None:
+         if self.templateFile.IsOpen():
+            self.templateFile.Close()
 
 
    def getThePdf(self):
@@ -182,8 +190,8 @@ class BSITemplateHelper:
 
 
 # Get shapes for each category
-   def getTemplates(self,processName=None,templatePrefix="T_2D"):
-      self.templateFile = ROOT.TFile.Open(self.templateFileName, "read")
+   def getTemplates(self,processName=None,templatePrefix="T"):
+      self.openFile()
 
       self.templatePrefix = templatePrefix
       if processName is not None:
@@ -341,7 +349,7 @@ class BSITemplateHelper:
          rfvargs.add(var)
       rfvargs.add(self.kbkg_gg)
       PdfName = "{}Pdf_{}".format(self.processName,self.templateSuffix))
-      self.ggPdf = RooRealFlooredSumPdf(
+      self.ggPdf = ROOT.RooRealFlooredSumPdf(
          PdfName, PdfName,
          self.ggHistFunc_Arg,rfvargs
       )
@@ -577,7 +585,7 @@ class BSITemplateHelper:
          rfvargs.add(var)
       rfvargs.add(self.kbkg_VBF)
       PdfName = "{}Pdf_{}".format(self.processName,self.templateSuffix))
-      self.VBFPdf = RooRealFlooredSumPdf(
+      self.VBFPdf = ROOT.RooRealFlooredSumPdf(
          PdfName, PdfName,
          self.VBFHistFunc_Arg,rfvargs
       )

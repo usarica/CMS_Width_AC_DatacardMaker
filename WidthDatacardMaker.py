@@ -35,6 +35,7 @@ class WidthDatacardMaker:
       self.sqrts = self.theInputCard.sqrts
       self.channel = self.theInputCard.decayChan
       self.theChannelName = self.theInputCard.decayChanName
+      self.catName = self.theCategorizer.catNameList[self.iCat]
 
       self.theSystVarsDict = self.theSystematizer.getVariableDict()
 
@@ -55,20 +56,22 @@ class WidthDatacardMaker:
       self.theBunches = [] # To keep track of which files are open
       self.pdfList = []
       self.rateList = []
+      self.extraRateList = []
       self.normList = []
+      self.extraVars = [] # To keep track of which variables are created on the fly
 
       self.dataFileDir = "CMSdata"
       if (self.dataAppendDir != ''):
          self.dataFileDir = "{0}_{1}".format(self.dataFileDir,self.dataAppendDir)
       self.dataTreeName = "data_obs"
       self.dataFileName = "{0}/hzz{1}_{2}_{3:.0f}TeV.root".format(
-         self.dataFileDir, self.theChannelName, self.theCategorizer.catNameList[self.iCat], self.sqrts
+         self.dataFileDir, self.theChannelName, self.catName, self.sqrts
       )
       self.datacardName = "{0}/HCG/{3:.0f}TeV/hzz{1}_{2}.txt".format(
-         self.outputDir, self.theChannelName, self.theCategorizer.catNameList[self.iCat], self.sqrts
+         self.outputDir, self.theChannelName, self.catName, self.sqrts
       )
       self.workspaceFileName = "{0}/HCG/{3:.0f}TeV/hzz{1}_{2}.input.root".format(
-         self.outputDir, self.theChannelName, self.theCategorizer.catNameList[self.iCat], self.sqrts
+         self.outputDir, self.theChannelName, self.catName, self.sqrts
       )
 
       for proc in self.theInputCard.channels:
@@ -81,8 +84,10 @@ class WidthDatacardMaker:
          procRate = None # Using AsymQuad
          procNorm = None # procRate*theLumi
 
+         quadNVars = []
+
          # Template file name core piece
-         templateFileNameMain = "HtoZZ{}_{}_ModifiedSmoothTemplates_".format(self.theChannelName, self.theCategorizer.catNameList[self.iCat])
+         templateFileNameMain = "HtoZZ{}_{}_ModifiedSmoothTemplates_".format(self.theChannelName, self.catName)
 
          # Nominal pdf and rate
          systName = "Nominal"
@@ -113,15 +118,54 @@ class WidthDatacardMaker:
                         else:
                            bunchVar = BSITemplateHelper(self.options,self,self.theEqnsMaker,self.theCategorizer,procname,templateFileName,self.iCat,systName)
                            bunchVar.getTemplates(processName=procname)
-                        if bunchVar is not None:
-                           tmplist.append(bunchVar)
-                           self.theBunches.append(bunchVar)
+                        tmplist.append(bunchVar)
+                        self.theBunches.append(bunchVar)
                      if len(tmplist)==2: # Expect exactly two templates
                         if self.theSystVarsDict[systVariableName] is not None:
-                           tmplist.append(self.theSystVarsDict[systVariableName])
+                           tmplist.append(self.theSystVarsDict[systVariableName]) # Append the systematic control RooRealVar as the last element
                            bunchVariations.append(tmplist)
-                        else: raise RuntimeError("{} does not exist in the systematic template variables dictionary!".format(systVariableName))
+                        else: raise RuntimeError("The RooRealVar {} does not exist in the systematic template variables dictionary!".format(systVariableName))
                      else: raise RuntimeError("{} does not have exactly 2 template variations!".format(systVariableName))
+                     break
+            elif systType.lower() == "quadn":
+               systVariableName = syst[0] # The name of variable that is supposed to exist for the variation
+               for systchan in syst[2]: # Loop over channels that are relevant for this systematic variation
+                  if systchan[0] == procname: # Make sure to pick the correct channel
+                     if(len(systchan)!=3):
+                        raise RuntimeError("{} variation for {} needs to have 2 variations!".format(systVariableName, procname))
+                     tmplist = []
+                     for isyst in range(1,3): # Up/Dn variations
+                        systName = ""
+                        if (isyst==1):
+                           systName = "{0}UpConst_{1}_{2}_{3}_{4:.0f}TeV".format(systVariableName,procname,self.catName,self.theChannelName,self.sqrts)
+                        else:
+                           systName = "{0}DownConst_{1}_{2}_{3}_{4:.0f}TeV".format(systVariableName,procname,self.catName,self.theChannelName,self.sqrts)
+                        tmpvar = ROOT.RooConstVar(systName,systName,float(systchan[isyst]))
+                        tmplist.append(tmpvar)
+                        self.extraVars.append(tmpvar)
+                     if len(tmplist)==2: # Expect exactly two templates
+                        if self.theSystVarsDict[systVariableName] is not None:
+                           tmplist.append(self.theSystVarsDict[systVariableName]) # Append the systematic control RooRealVar as the last element
+                           quadNVars.append(tmplist)
+                        else: raise RuntimeError("The RooRealVar {} does not exist in the systematic quadN variables dictionary!".format(systVariableName))
+                     else: raise RuntimeError("{} does not have exactly 2 quadN variations!".format(systVariableName))
+                     break
+
+         procRateExtra = None
+         if len(quadNVars)>0:
+            extraMorphVarList = ROOT.RooArgList()
+            extraMorphRateList = ROOT.RooArgList()
+            tmpname = "one_{0}_{1}_{2}_{3:.0f}TeV".format(procname,self.catName,self.theChannelName,self.sqrts)
+            onevar = ROOT.RooConstVar(one,one,1.0)
+            self.extraVars.append(onevar)
+            extraMorphRateList.add(onevar)
+            for systvar in quadNVars:
+               for isyst in range(0,2):
+                  extraMorphRateList.add(systvar[isyst])
+               extraMorphVarList.add(systvar[2])
+            ratename = bunchNominal.getTheRate().GetName() + "_ExtraAsymQuad"
+            procRateExtra = ROOT.AsymQuad(ratename, ratename, extraMorphRateList, extraMorphVarList, 1.0)
+            self.extraRateList.append(procRateExtra)
 
          # Construct the ultimate pdf and rate for the process
          morphVarList = ROOT.RooArgList()
@@ -134,17 +178,24 @@ class WidthDatacardMaker:
                morphPdfList.add(systvar[isyst].getThePdf())
                morphRateList.add(systvar[isyst].getTheRate())
             morphVarList.add(systvar[2])
+
          procPdf = ROOT.VerticalInterpPdf(procname, procname, morphPdfList, morphVarList,1.0)
+         self.pdfList.append(procPdf)
+
          ratename = bunchNominal.getTheRate().GetName() + "_AsymQuad"
-         procRate = ROOT.AsymQuad(procname, procname, morphRateList, morphVarList, 1.0)
+         procRate = ROOT.AsymQuad(ratename, ratename, morphRateList, morphVarList, 1.0)
+         self.rateList.append(procRate)
+
          normname = procname + "_norm"
-         procNorm = ROOT.RooFormulaVar(normname, "TMath::Max(@0*@1,1e-15)", ROOT.RooArgList(procRate, self.theLumi))
+         procNorm = None
+         if procRateExtra is None:
+            procNorm = ROOT.RooFormulaVar(normname, "TMath::Max(@0*@1,1e-15)", ROOT.RooArgList(procRate, self.theLumi))
+         else:
+            procNorm = ROOT.RooFormulaVar(normname, "TMath::Max(@0*@1*@2,1e-15)", ROOT.RooArgList(procRate, procRateExtra, self.theLumi))
+         self.normList.append(procNorm)
 
          getattr(self.workspace, 'import')(procPdf,ROOT.RooFit.RecycleConflictNodes())
-         self.pdfList.append(procPdf)
          getattr(self.workspace, 'import')(procNorm,ROOT.RooFit.RecycleConflictNodes())
-         self.rateList.append(procRate)
-         self.normList.append(procNorm)
 
       # Get the data
       self.theDataFile = ROOT.TFile.Open(self.dataFileName,"read")
@@ -171,9 +222,7 @@ class WidthDatacardMaker:
 
       # Garbage collection
       for bunch in self.theBunches:
-         if bunch.templateFile is not None:
-            if bunch.templateFile.IsOpen():
-               bunch.templateFile.Close()
+         bunch.close()
 
 
    def WriteDatacard(self):
