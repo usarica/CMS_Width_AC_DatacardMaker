@@ -54,11 +54,15 @@ class WidthDatacardMaker:
       self.KD1=None
       self.KD2=None
       self.KD3=None
+      self.dataVars = ROOT.RooArgSet()
+      self.dataVars.add(self.mass)
       for coord in self.coordList:
          if self.KD3 is not None:
             sys.exit("There are >3 KDs in the list of coordinates, which is nt cupported."
          for key,value in self.theEqnsMaker.rrvars.iteritems():
             if key==coord:
+               if key!="mass":
+                  self.dataVars.add(value)
                if self.KD1 is None:
                   self.KD1=value
                elif self.KD2 is None:
@@ -220,8 +224,8 @@ class WidthDatacardMaker:
       else:
         data_obs = ROOT.RooDataSet()
         datasetName = "data_obs_full"
-        data_obs = ROOT.RooDataSet(datasetName, datasetName, self.theDataTree, ROOT.RooArgSet(self.mass, self.KD1, self.KD2))
-        self.theDataRDS = data_obs.reduce("{0}>={1:.2f} && {0}<{1:.2f}".format(self.mass.GetName(), self.mLow, self.mHigh))
+        data_obs = ROOT.RooDataSet(datasetName, datasetName, self.theDataTree, self.dataVars)
+        self.theDataRDS = data_obs.reduce("{0}>={1} && {0}<{2}".format(self.mass.GetName(), FloatToString(self.mLow), FloatToString(self.mHigh)))
         self.theDataRDS.SetName("data_obs")
         getattr(self.workspace, 'import')(self.theDataRDS, ROOT.RooFit.Rename("data_obs"))
 
