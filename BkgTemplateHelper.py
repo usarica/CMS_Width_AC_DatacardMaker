@@ -20,10 +20,10 @@ class BkgTemplateHelper:
       self.theInputs = theMaker.theInputs.getInputs()
 
       # RooRealVars from the datacard maker class
-      self.mass = theEqnsMaker.rrvars["mass"]
-      self.KD1 = theEqnsMaker.rrvars["KD1"]
-      self.KD2 = theEqnsMaker.rrvars["KD2"]
-      self.KD3 = theEqnsMaker.rrvars["KD3"]
+      self.mass = theMaker.mass
+      self.KD1 = theMaker.KD1
+      self.KD2 = theMaker.KD2
+      self.KD3 = theMaker.KD3
 
       self.templateDir = options.templateDir
       self.dimensions = options.dimensions # Number of template dimensions>0

@@ -28,10 +28,10 @@ class BSITemplateHelper:
       self.phia1_gg = theEqnsMaker.rrvars["phia1_gg"] # Could itself be a RooFormulaVar (e.g. phia1_gg = phia1+phi_SB_gg)
       self.phia1_VBF = theEqnsMaker.rrvars["phia1_VBF"] # Could itself be a RooFormulaVar (e.g. phia1_VBF = phia1+phi_SB_VBF/2)
 
-      self.mass = theEqnsMaker.rrvars["mass"]
-      self.KD1 = theEqnsMaker.rrvars["KD1"]
-      self.KD2 = theEqnsMaker.rrvars["KD2"]
-      self.KD3 = theEqnsMaker.rrvars["KD3"]
+      self.mass = theMaker.mass
+      self.KD1 = theMaker.KD1
+      self.KD2 = theMaker.KD2
+      self.KD3 = theMaker.KD3
 
       self.mLow = options.mLow
       self.mHigh = options.mHigh
