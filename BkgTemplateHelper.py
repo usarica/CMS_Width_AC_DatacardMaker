@@ -20,13 +20,13 @@ class BkgTemplateHelper:
       self.theInputs = theMaker.theInputs.getInputs()
 
       # RooRealVars from the datacard maker class
-      self.mass = theEqnsMaker.varm4l
-      self.KD1 = theEqnsMaker.varKD
-      self.KD2 = theEqnsMaker.varKD2
+      self.mass = theEqnsMaker.rrvars["mass"]
+      self.KD1 = theEqnsMaker.rrvars["KD1"]
+      self.KD2 = theEqnsMaker.rrvars["KD2"]
+      self.KD3 = theEqnsMaker.rrvars["KD3"]
 
       self.templateDir = options.templateDir
       self.dimensions = options.dimensions # Number of template dimensions>0
-      self.ProjDim = options.ProjDim # The projected variable, -1 means do not project
 
       self.iCatScheme = theCategorizer.iCatScheme
       self.catNameList = theCategorizer.catNameList
@@ -36,9 +36,6 @@ class BkgTemplateHelper:
          sys.exit("self.iCat={} >= self.nCategories={}!".format(self.iCat,self.nCategories))
 
       self.strBkgType = strBkgType
-      self.condDim = None
-      if((self.strBkgType.lower().startswith() == "zx") or (self.strBkgType.lower().startswith() == "zjets")):
-         self.condDim = 0
 
       self.templateFileName = templateFileName
       self.systName = systName
@@ -87,18 +84,16 @@ class BkgTemplateHelper:
       self.templatePrefix = "{}_{}".format(self.templatePrefix,self.strBkgType)
 
 #---------- TEMPLATES AND PDFS -------------
-   # Construct the templates
-      self.bkgTpl =
-         ExtendedTemplate(
-               self.templateFile.Get(self.templatePrefix).Clone("{}_{}".format(self.templatePrefix,self.templateSuffix)),
-               self.dimensions, self.ProjDim,
-               self.mass, self.KD1, self.KD2,
-               self.condDim
-            )
-
    # Construct the p.d.f.s
       # qq bkg
       if(self.strBkgType.lower().startswith() == "qq"):
+         # Construct the templates
+         self.bkgTpl =
+            ExtendedTemplate(
+                  self.templateFile.Get(self.templatePrefix).Clone("{}_{}".format(self.templatePrefix,self.templateSuffix)),
+                  self.dimensions,
+                  self.KD1, self.KD2, self.KD3
+               )
          PdfName = "qqZZ_OffshellPdf_{}".format(self.templateSuffix)
          self.bkgPdf = ROOT.RooRealFlooredSumPdf(
             PdfName, PdfName,
@@ -107,13 +102,18 @@ class BkgTemplateHelper:
 
       # Z+X bkg
       elif((self.strBkgType.lower().startswith() == "zx") or (self.strBkgType.lower().startswith() == "zjets")):
+         condDim = (self.KD1==self.mass)*2 + (self.KD2==self.mass)*3 + (self.KD3==self.mass)*5
+         print "Zjets template is conditional. condDim=",condDim
+         # Construct the templates
+         self.bkgTpl =
+            ExtendedTemplate(
+                  self.templateFile.Get(self.templatePrefix).Clone("{}_{}".format(self.templatePrefix,self.templateSuffix)),
+                  self.dimensions,
+                  self.KD1, self.KD2, self.KD3,
+                  condDim
+               )
          PdfName = "zjets_OffshellPdf_{}".format(self.templateSuffix)
-         if self.ProjDim==0: # If projection on dim-0 is requested, just use the (unconditional) template already projected
-            self.bkgPdf = ROOT.RooRealFlooredSumPdf(
-               PdfName, PdfName,
-               ROOT.RooArgList(self.bkgTpl.theHistFunc),ROOT.RooArgList()
-            )
-         else: # If projection on dim-0 is not requested, use the product of the mass pdf with the template conditional over dim-0
+         if condDim>0:
             HistPdfName = "zjets_OffshellPdf_others_{}".format(self.templateSuffix)
             self.bkgHistPdf = ROOT.RooRealFlooredSumPdf(
                HistPdfName, HistPdfName,
@@ -230,6 +230,11 @@ class BkgTemplateHelper:
                    ROOT.RooArgSet( bkgHistPdf ),
                    ROOT.RooArgSet( self.mass )
                )
+            )
+         else:
+            self.bkgPdf = ROOT.RooRealFlooredSumPdf(
+               PdfName, PdfName,
+               ROOT.RooArgList(self.bkgTpl.theHistFunc),ROOT.RooArgList()
             )
 
 

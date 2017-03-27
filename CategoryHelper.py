@@ -27,7 +27,7 @@ class CategoryHelper:
          raise RuntimeError(
             "CategoryHelper::init: Categorization scheme {} is not defined.\n".format(self.iCatScheme)
             +
-            " - If you want to use the inclusive categroy, pass iCatScheme=0."
+            " - If you want to use the inclusive category, pass iCatScheme=0."
          )
       self.nCategories = len(self.catNameList)
 

@@ -41,6 +41,10 @@ class EquationsMaker:
       var = ROOT.RooRealVar(varname, varname, 0., 1.)
       var.setBins(30) # To be reset later
       self.rrvars["KD2"]=var
+      varname = "CMS_zz4l_widthKD3"
+      var = ROOT.RooRealVar(varname, varname, 0., 1.)
+      var.setBins(30) # To be reset later
+      self.rrvars["KD3"]=var
       varname = "CMS_zz4l_widthKDint"
       var = ROOT.RooRealVar(varname, varname, -1., 1.)
       var.setBins(30) # To be reset later

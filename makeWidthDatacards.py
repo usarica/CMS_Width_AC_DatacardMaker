@@ -36,10 +36,9 @@ def parseOptions():
    parser.add_option('-a', '--append', dest='appendName',
                       type='string', default="",    help='Append name for cards directory')
 
-   parser.add_option('-d', '--dimension', type='int', dest='dimensions',
-                      default="3", help='Template dimensions>0')
-   parser.add_option('-p', '--projDim', type='int', dest='ProjDim',
-                      default="-1", help='-1->2D/3D(m4l,KD,KD2), 0->1D(m4l), 1->1D(KD), 2->1D(KD2)')
+   parser.add_option('--coord', dest='coordinates',
+                      type='string', default="KD1:KD2:KD3",    help='Template dimensions (mass:KD1:KD2/3/int etc. Ignore CMS_zz4l_ prefix.)')
+
    parser.add_option('--NoBkgSigInterf', '--NoBSI', type='int', dest='iBkgSigOnly', default=0,
                       help='Bkg-sig interference. 0: No interference, 1: Add interference terms')
    parser.add_option('--GHmodel', type='int', dest='GHmodel', default=1,
@@ -69,6 +68,13 @@ def parseOptions():
 
    # Make a boolean flag out of the int version
    opt.isBkgSigOnly = (opt.iBkgSigOnly!=0)
+
+   if (opt.coordinates == ''):
+      print 'Please pass template dimensions! Exiting...'
+      sys.exit()
+   else:
+      opt.coordList = opt.coordinates.split(":")
+      opt.dimensions = len(opt.coordList)
 
    if (opt.appendName == ''):
       print 'Please pass an append name for the cards directory! Exiting...'

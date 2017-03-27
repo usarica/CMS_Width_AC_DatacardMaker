@@ -31,6 +31,7 @@ class WidthDatacardMaker:
       self.mH = self.options.mPOLE
       self.mLow = self.options.mLow
       self.mHigh = self.options.mHigh
+      self.coordList = options.coordList
 
       self.sqrts = self.theInputCard.sqrts
       self.channel = self.theInputCard.decayChan
@@ -50,8 +51,22 @@ class WidthDatacardMaker:
       # Other input-independent RooRealVars are taken from the equations maker class.
       self.theLumi = self.theEqnsMaker.theLumi
       self.mass = self.theEqnsMaker.rrvars["mass"]
-      self.KD1 = self.theEqnsMaker.rrvars["KD1"]
-      self.KD2 = self.theEqnsMaker.rrvars["KD2"]
+      self.KD1=None
+      self.KD2=None
+      self.KD3=None
+      for coord in self.coordList:
+         if self.KD3 is not None:
+            sys.exit("There are >3 KDs in the list of coordinates, which is nt cupported."
+         for key,value in self.theEqnsMaker.rrvars.iteritems():
+            if key==coord:
+               if self.KD1 is None:
+                  self.KD1=value
+               elif self.KD2 is None:
+                  self.KD2=value
+               elif self.KD3 is None:
+                  self.KD3=value
+               else:
+                  sys.exit("Too many KDs!")
 
       self.theBunches = [] # To keep track of which files are open
       self.pdfList = []
