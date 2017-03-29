@@ -106,11 +106,11 @@ class WidthDatacardMaker:
          quadNVars = []
 
          # Template file name core piece
-         templateFileNameMain = "HtoZZ{}_{}_ModifiedSmoothTemplates_".format(self.theChannelName, self.catName)
+         templateFileNameMain = "HtoZZ{}_{}_FinalTemplates_".format(self.theChannelName, self.catName)
 
          # Nominal pdf and rate
          systName = "Nominal"
-         templateFileName = "{0}/{1:.0f}TeV/{2}{3}_{4}{5}".format(self.templateDir,self.sqrts,templateFileNameMain,procname,systName,".root")
+         templateFileName = "{0}/{1:.0f}TeV/{2}{3}_{4}_{5}".format(self.templateDir,self.sqrts,templateFileNameMain,procname,systName,".root")
          if proctype>0:
             bunchNominal = BkgTemplateHelper(self.options,self,self.theCategorizer,procname,templateFileName,self.iCat,systName)
             bunchNominal.getTemplates()
@@ -129,7 +129,7 @@ class WidthDatacardMaker:
                      tmplist = []
                      for isyst in range(1,3): # Up/Dn variations
                         systName = systchan[isyst]
-                        templateFileName = "{0}/{1:.0f}TeV/{2}{3}_{4}{5}".format(self.templateDir,self.sqrts,templateFileNameMain,procname,systName,".root")
+                        templateFileName = "{0}/{1:.0f}TeV/{2}{3}_{4}_{5}".format(self.templateDir,self.sqrts,templateFileNameMain,procname,systName,".root")
                         bunchVar = None
                         if proctype>0:
                            bunchVar = BkgTemplateHelper(self.options,self,self.theCategorizer,procname,templateFileName,self.iCat,systName)

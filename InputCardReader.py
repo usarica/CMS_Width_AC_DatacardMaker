@@ -63,8 +63,8 @@ class InputCardReader:
    def readInputs(self):
       for line in open(self.theInput,'r'):
          f = line.split()
-
          if len(f) < 1: continue
+
          if f[0].startswith("#"): continue
 
          if f[0].lower().startswith("lumi"):

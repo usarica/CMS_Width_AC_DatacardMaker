@@ -129,7 +129,7 @@ class SystematicsHelper:
                   if len(chanConfig)==2:
                      addLine = "{0} ".format(FloatToString(chanConfig[1]))
                   elif len(chanConfig)==3:
-                     addLine = "{0}/{1} ".format(FloatToString(chanConfig[1],chanConfig[2]))
+                     addLine = "{0}/{1} ".format(FloatToString(chanConfig[1]),FloatToString(chanConfig[2]))
                   else:
                      raise RuntimeError("Systematics variable {} configuration for channel {} does not have size 2 or 3!".format(systname,channameToFind))
                systline = "{0}{1}".format(systline,addLine)
