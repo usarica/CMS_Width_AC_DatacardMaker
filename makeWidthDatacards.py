@@ -1,8 +1,4 @@
 #!/usr/bin/python
-#-----------------------------------------------
-# Latest update: 2012.08.30
-# by Matt Snowball
-#-----------------------------------------------
 import sys
 import os
 import pwd
@@ -11,11 +7,11 @@ import optparse
 import shlex
 import re
 import math
-from ROOT import *
 import ROOT
 from array import array
 from InputCardReader import *
 from CategoryHelper import *
+from EquationsMaker import *
 from SystematicsHelper import *
 from WidthDatacardMaker import *
 
@@ -127,14 +123,14 @@ def creationLoop(theOutputDir):
 
    CatHelper = CategoryHelper(opt.iCatScheme)
 
-   for iCat in range(0,self.CatHelper.nCategories):
+   for iCat in range(0,CatHelper.nCategories):
       finalstates = [ "4mu","4e","2e2mu" ]
       for ifs in finalstates:
          inputCardDir = opt.inputDir + "/inputs_" + ifs + "_" + CatHelper.catNameList[iCat] + ".txt"
          theInputCard = InputCardReader(inputCardDir)
          SystHelper = SystematicsHelper(theInputCard)
          theEqnsMaker = EquationsMaker(opt,theInputCard)
-         theMaker = WidthDatacardClass(opt,theInputCard,theEqnsMaker,CatHelper,SystHelper,iCat,theOutputDir)
+         theMaker = WidthDatacardMaker(opt,theInputCard,theEqnsMaker,CatHelper,SystHelper,iCat,theOutputDir)
 
 
 # the main procedure

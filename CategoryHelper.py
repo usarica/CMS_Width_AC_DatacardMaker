@@ -4,8 +4,6 @@ import os
 import re
 import math
 from scipy.special import erf
-from ROOT import *
-import ROOT
 from array import array
 
 class CategoryHelper:
@@ -17,11 +15,11 @@ class CategoryHelper:
       if(self.iCatScheme == 0): # No categorization
          self.catNameList.append("Inclusive")
       elif(self.iCatScheme == 1): # icat==0: VBF, ==1: Untagged
-         self.catNameList.append("VBFTagged")
+         self.catNameList.append("VBFtagged")
          self.catNameList.append("Untagged")
       elif(self.iCatScheme == 2): # icat==0: VBF, ==1: VH, ==3: Untagged
-         self.catNameList.append("VBFTagged")
-         self.catNameList.append("VHTagged")
+         self.catNameList.append("VBFtagged")
+         self.catNameList.append("VHHadrtagged")
          self.catNameList.append("Untagged")
       else: # No categorization
          raise RuntimeError(

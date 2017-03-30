@@ -4,7 +4,6 @@ import os
 import re
 import math
 from scipy.special import erf
-from ROOT import *
 import ROOT
 from array import array
 import CategoryHelper
@@ -213,28 +212,24 @@ class BSITemplateHelper:
    def getTemplates_ggVVLike(self):
 #---------- SM SIGNAL AND BACKGROUND TEMPLATES -------------
 # Bare SM
-      self.gg_T_Sig =
-         ExtendedTemplate(
+      self.gg_T_Sig = ExtendedTemplate(
                self.templateFile.Get("{}_Sig".format(self.templatePrefix)).Clone("{}_Sig_{}".format(self.templatePrefix,self.templateSuffix)),
                self.dimensions,
                self.KD1, self.KD2, self.KD3
             )
-      self.gg_T_Bkg =
-         ExtendedTemplate(
+      self.gg_T_Bkg = ExtendedTemplate(
                self.templateFile.Get("{}_Bkg".format(self.templatePrefix)).Clone("{}_Bkg_{}".format(self.templatePrefix,self.templateSuffix)),
                self.dimensions,
                self.KD1, self.KD2, self.KD3
             )
       if(not(self.isBkgSigOnly)):
-         self.gg_T_Int_Re =
-            ExtendedTemplate(
+         self.gg_T_Int_Re = ExtendedTemplate(
                   self.templateFile.Get("{}_Int_Re".format(self.templatePrefix)).Clone("{}_Int_Re_{}".format(self.templatePrefix,self.templateSuffix)),
                   self.dimensions,
                   self.KD1, self.KD2, self.KD3
                )
          if (self.anomCoupl==1):
-            self.gg_T_Int_Im =
-               ExtendedTemplate(
+            self.gg_T_Int_Im = ExtendedTemplate(
                      self.templateFile.Get("{}_Int_Im".format(self.templatePrefix)).Clone("{}_Int_Im_{}".format(self.templatePrefix,self.templateSuffix)),
                      self.dimensions,
                      self.KD1, self.KD2, self.KD3
@@ -258,31 +253,28 @@ class BSITemplateHelper:
 #                        SIGNAL AC TERMS
 #-----------------------------------------------------------------------#
 # Signal ai**1 x a1**(2/4-1) real and imaginary parts
-         self.gg_T_Sig_ai1_1_Re =
-            ExtendedTemplate(
+         self.gg_T_Sig_ai1_1_Re = ExtendedTemplate(
                   self.templateFile.Get("{}_Sig_ai1_1_Re".format(self.templatePrefix)).Clone("{}_Sig_ai1_1_Re_{}".format(self.templatePrefix,self.templateSuffix)),
                   self.dimensions,
                   self.KD1, self.KD2, self.KD3
                )
          if self.anomCoupl == 1:
-            self.gg_T_Sig_ai1_1_Im =
-               ExtendedTemplate(
+            self.gg_T_Sig_ai1_1_Im = ExtendedTemplate(
                      self.templateFile.Get("{}_Sig_ai1_1_Im".format(self.templatePrefix)).Clone("{}_Sig_ai1_1_Im_{}".format(self.templatePrefix,self.templateSuffix)),
                      self.dimensions,
                      self.KD1, self.KD2, self.KD3
                   )
 
 # Signal ai**2 x a1**(2/4-2) real and imaginary parts
-         self.gg_T_Sig_ai1_2_Re =
-            ExtendedTemplate(
+         self.gg_T_Sig_ai1_2_Re = ExtendedTemplate(
                   self.templateFile.Get("{}_Sig_ai1_2_Re".format(self.templatePrefix)).Clone("{}_Sig_ai1_2_Re_{}".format(self.templatePrefix,self.templateSuffix)),
                   self.dimensions,
                   self.KD1, self.KD2, self.KD3
                )
-         if self.anomCoupl == 1:
-            continue # No ggF term
-         elif self.anomCoupl == 2: # if self.anomCoupl == 2, PosDef = PosDef+Re
-            continue # No ggF term
+         #if self.anomCoupl == 1:
+         #   continue # No ggF term
+         #elif self.anomCoupl == 2: # if self.anomCoupl == 2, PosDef = PosDef+Re
+         #   continue # No ggF term
 
 # Signal ai**3 x a1**1 real and imaginary parts
    # No ggF term
@@ -295,15 +287,13 @@ class BSITemplateHelper:
 #-----------------------------------------------------------------------#
          if(not(self.isBkgSigOnly)):
 # Interference ai**1 x a1**(1/2-1) real and imaginary parts
-            self.gg_T_Int_ai1_1_Re =
-               ExtendedTemplate(
+            self.gg_T_Int_ai1_1_Re = ExtendedTemplate(
                      self.templateFile.Get("{}_Int_ai1_1_Re".format(self.templatePrefix)).Clone("{}_Int_ai1_1_Re_{}".format(self.templatePrefix,self.templateSuffix)),
                      self.dimensions,
                      self.KD1, self.KD2, self.KD3
                   )
             if self.anomCoupl == 1:
-               self.gg_T_Int_ai1_1_Im =
-                  ExtendedTemplate(
+               self.gg_T_Int_ai1_1_Im = ExtendedTemplate(
                         self.templateFile.Get("{}_Int_ai1_1_Im".format(self.templatePrefix)).Clone("{}_Int_ai1_1_Im_{}".format(self.templatePrefix,self.templateSuffix)),
                         self.dimensions,
                         self.KD1, self.KD2, self.KD3
@@ -349,7 +339,7 @@ class BSITemplateHelper:
       for var in self.ggInterfRFV_list:
          rfvargs.add(var)
       rfvargs.add(self.kbkg_gg)
-      PdfName = "{}Pdf_{}".format(self.processName,self.templateSuffix))
+      PdfName = "{}Pdf_{}".format(self.processName,self.templateSuffix)
       self.ggPdf = ROOT.RooRealFlooredSumPdf(
          PdfName, PdfName,
          self.ggHistFunc_Arg,rfvargs
@@ -404,28 +394,24 @@ class BSITemplateHelper:
    def getTemplates_vvVVLike(self):
 #---------- SM SIGNAL AND BACKGROUND TEMPLATES -------------
 # Bare SM
-      self.VBF_T_Sig =
-         ExtendedTemplate(
+      self.VBF_T_Sig = ExtendedTemplate(
                self.templateFile.Get("{}_Sig".format(self.templatePrefix)).Clone("{}_Sig_{}".format(self.templatePrefix,self.templateSuffix)),
                self.dimensions,
                self.KD1, self.KD2, self.KD3
             )
-      self.VBF_T_Bkg =
-         ExtendedTemplate(
+      self.VBF_T_Bkg = ExtendedTemplate(
                self.templateFile.Get("{}_Bkg".format(self.templatePrefix)).Clone("{}_Bkg_{}".format(self.templatePrefix,self.templateSuffix)),
                self.dimensions,
                self.KD1, self.KD2, self.KD3
             )
       if(not(self.isBkgSigOnly)):
-         self.VBF_T_Int_Re =
-            ExtendedTemplate(
+         self.VBF_T_Int_Re = ExtendedTemplate(
                   self.templateFile.Get("{}_Int_Re".format(self.templatePrefix)).Clone("{}_Int_Re_{}".format(self.templatePrefix,self.templateSuffix)),
                   self.dimensions,
                   self.KD1, self.KD2, self.KD3
                )
          if (self.anomCoupl==1):
-            self.VBF_T_Int_Im =
-               ExtendedTemplate(
+            self.VBF_T_Int_Im = ExtendedTemplate(
                      self.templateFile.Get("{}_Int_Im".format(self.templatePrefix)).Clone("{}_Int_Im_{}".format(self.templatePrefix,self.templateSuffix)),
                      self.dimensions,
                      self.KD1, self.KD2, self.KD3
@@ -436,15 +422,13 @@ class BSITemplateHelper:
 #                        SIGNAL AC TERMS
 #-----------------------------------------------------------------------#
 # Signal ai**1 x a1**(2/4-1) real and imaginary parts
-         self.VBF_T_Sig_ai1_1_Re =
-            ExtendedTemplate(
+         self.VBF_T_Sig_ai1_1_Re = ExtendedTemplate(
                   self.templateFile.Get("{}_Sig_ai1_1_Re".format(self.templatePrefix)).Clone("{}_Sig_ai1_1_Re_{}".format(self.templatePrefix,self.templateSuffix)),
                   self.dimensions,
                   self.KD1, self.KD2, self.KD3
                )
          if self.anomCoupl == 1:
-            self.VBF_T_Sig_ai1_1_Im =
-               ExtendedTemplate(
+            self.VBF_T_Sig_ai1_1_Im = ExtendedTemplate(
                      self.templateFile.Get("{}_Sig_ai1_1_Im".format(self.templatePrefix)).Clone("{}_Sig_ai1_1_Im_{}".format(self.templatePrefix,self.templateSuffix)),
                      self.dimensions,
                      self.KD1, self.KD2, self.KD3
@@ -452,20 +436,17 @@ class BSITemplateHelper:
 
 # Signal ai**2 x a1**(2/4-2) real and imaginary parts
          if self.anomCoupl == 1:
-            self.VBF_T_Sig_ai1_2_PosDef =
-               ExtendedTemplate(
+            self.VBF_T_Sig_ai1_2_PosDef = ExtendedTemplate(
                      self.templateFile.Get("{}_Sig_ai1_2_PosDef".format(self.templatePrefix)).Clone("{}_Sig_ai1_2_PosDef_{}".format(self.templatePrefix,self.templateSuffix)),
                      self.dimensions,
                      self.KD1, self.KD2, self.KD3
                   )
-            self.VBF_T_Sig_ai1_2_Re =
-               ExtendedTemplate(
+            self.VBF_T_Sig_ai1_2_Re = ExtendedTemplate(
                      self.templateFile.Get("{}_Sig_ai1_2_Re".format(self.templatePrefix)).Clone("{}_Sig_ai1_2_Re_{}".format(self.templatePrefix,self.templateSuffix)),
                      self.dimensions,
                      self.KD1, self.KD2, self.KD3
                   )
-            self.VBF_T_Sig_ai1_2_Im =
-               ExtendedTemplate(
+            self.VBF_T_Sig_ai1_2_Im = ExtendedTemplate(
                      self.templateFile.Get("{}_Sig_ai1_2_Im".format(self.templatePrefix)).Clone("{}_Sig_ai1_2_Im_{}".format(self.templatePrefix,self.templateSuffix)),
                      self.dimensions,
                      self.KD1, self.KD2, self.KD3
@@ -480,32 +461,28 @@ class BSITemplateHelper:
                   tmpTpl3.Add(tmpTpl2)
             elif tmpTpl2 is not None:
                tmpTpl3 = tmpTpl2.Clone("{}_Sig_ai1_2_PosDef_{}".format(self.templatePrefix,self.templateSuffix))
-            self.VBF_T_Sig_ai1_2_PosDef =
-               ExtendedTemplate(
+            self.VBF_T_Sig_ai1_2_PosDef = ExtendedTemplate(
                      tmpTpl3,
                      self.dimensions,
                      self.KD1, self.KD2, self.KD3
                   )
 
 # Signal ai**3 x a1**1 real and imaginary parts
-         self.VBF_T_Sig_ai1_3_Re =
-            ExtendedTemplate(
+         self.VBF_T_Sig_ai1_3_Re = ExtendedTemplate(
                   self.templateFile.Get("{}_Sig_ai1_3_Re".format(self.templatePrefix)).Clone("{}_Sig_ai1_3_Re_{}".format(self.templatePrefix,self.templateSuffix)),
                   self.dimensions,
                   self.KD1, self.KD2, self.KD3
                )
 
          if self.anomCoupl == 1:
-            self.VBF_T_Sig_ai1_3_Im =
-               ExtendedTemplate(
+            self.VBF_T_Sig_ai1_3_Im = ExtendedTemplate(
                      self.templateFile.Get("{}_Sig_ai1_3_Im".format(self.templatePrefix)).Clone("{}_Sig_ai1_3_Im_{}".format(self.templatePrefix,self.templateSuffix)),
                      self.dimensions,
                      self.KD1, self.KD2, self.KD3
                   )
 
 # Signal ai**4 x a1**0 real and imaginary parts
-         self.VBF_T_Sig_ai1_4 =
-            ExtendedTemplate(
+         self.VBF_T_Sig_ai1_4 = ExtendedTemplate(
                   self.templateFile.Get("{}_Sig_ai1_4".format(self.templatePrefix)).Clone("{}_Sig_ai1_4_{}".format(self.templatePrefix,self.templateSuffix)),
                   self.dimensions,
                   self.KD1, self.KD2, self.KD3
@@ -516,30 +493,26 @@ class BSITemplateHelper:
 #-----------------------------------------------------------------------#
          if(not(self.isBkgSigOnly)):
 # Interference ai**1 x a1**(1/2-1) real and imaginary parts
-            self.VBF_T_Int_ai1_1_Re =
-               ExtendedTemplate(
+            self.VBF_T_Int_ai1_1_Re = ExtendedTemplate(
                      self.templateFile.Get("{}_Int_ai1_1_Re".format(self.templatePrefix)).Clone("{}_Int_ai1_1_Re_{}".format(self.templatePrefix,self.templateSuffix)),
                      self.dimensions,
                      self.KD1, self.KD2, self.KD3
                   )
             if self.anomCoupl == 1:
-               self.VBF_T_Int_ai1_1_Im =
-                  ExtendedTemplate(
+               self.VBF_T_Int_ai1_1_Im = ExtendedTemplate(
                         self.templateFile.Get("{}_Int_ai1_1_Im".format(self.templatePrefix)).Clone("{}_Int_ai1_1_Im_{}".format(self.templatePrefix,self.templateSuffix)),
                         self.dimensions,
                         self.KD1, self.KD2, self.KD3
                      )
 
 # Interference ai**2 x a1**(2-2) real and imaginary parts
-            self.VBF_T_Int_ai1_2_Re =
-               ExtendedTemplate(
+            self.VBF_T_Int_ai1_2_Re = ExtendedTemplate(
                      self.templateFile.Get("{}_Int_ai1_2_Re".format(self.templatePrefix)).Clone("{}_Int_ai1_2_Re_{}".format(self.templatePrefix,self.templateSuffix)),
                      self.dimensions,
                      self.KD1, self.KD2, self.KD3
                   )
             if self.anomCoupl == 1:
-               self.VBF_T_Int_ai1_2_Im =
-                  ExtendedTemplate(
+               self.VBF_T_Int_ai1_2_Im = ExtendedTemplate(
                         self.templateFile.Get("{}_Int_ai1_2_Im".format(self.templatePrefix)).Clone("{}_Int_ai1_2_Im_{}".format(self.templatePrefix,self.templateSuffix)),
                         self.dimensions,
                         self.KD1, self.KD2, self.KD3
@@ -592,7 +565,7 @@ class BSITemplateHelper:
       for var in self.VBFInterfRFV_list:
          rfvargs.add(var)
       rfvargs.add(self.kbkg_VBF)
-      PdfName = "{}Pdf_{}".format(self.processName,self.templateSuffix))
+      PdfName = "{}Pdf_{}".format(self.processName,self.templateSuffix)
       self.VBFPdf = ROOT.RooRealFlooredSumPdf(
          PdfName, PdfName,
          self.VBFHistFunc_Arg,rfvargs

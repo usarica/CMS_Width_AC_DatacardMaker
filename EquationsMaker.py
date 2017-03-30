@@ -4,7 +4,6 @@ import os
 import re
 import math
 from scipy.special import erf
-from ROOT import *
 import ROOT
 from array import array
 
@@ -122,6 +121,8 @@ class EquationsMaker:
       self.VBFSigRFV_list = []
       self.VBFInterfRFV_list = []
 
+      self.makeRFVs_BSI()
+
 
    def makeRFVs_BSI(self):
    # Construct muF/V
@@ -177,7 +178,7 @@ class EquationsMaker:
             self.ggInterfFormula_list.append("sqrt(@0*@1)")
 
       for irfv in range(0,len(self.ggSigFormula_list)):
-         rfvname = "{0}Sig_AC_{1:.0f}_Coef".format(self.processName,irfv)
+         rfvname = "HVV_Sig_AC_{0:.0f}_Coef".format(irfv)
          rfvargs = ROOT.RooArgList()
          rfvargs.add(self.rrvars["muF"])
          if self.anomCoupl == 1:
@@ -189,7 +190,7 @@ class EquationsMaker:
          self.ggSigRFV_list.append(seg_rfv)
 
       for irfv in range(0,len(self.ggInterfFormula_list)):
-         rfvname = "{0}Interf_AC_{1:.0f}_Coef".format(self.processName,irfv)
+         rfvname = "HVV_Interf_AC_{0:.0f}_Coef".format(irfv)
          rfvargs = ROOT.RooArgList()
          rfvargs.add(self.rrvars["muF"])
          rfvargs.add(self.rrvars["kbkg_gg"])
@@ -242,7 +243,7 @@ class EquationsMaker:
             self.VBFInterfFormula_list.append("sqrt(@0*@1)")
 
       for irfv in range(0,len(self.VBFSigFormula_list)):
-         rfvname = "{0}Sig_AC_{1:.0f}_Coef".format(self.processName,irfv)
+         rfvname = "vvHVV_Sig_AC_{0:.0f}_Coef".format(irfv)
          rfvargs = ROOT.RooArgList()
          rfvargs.add(self.rrvars["muV"])
          if self.anomCoupl == 1:
@@ -254,7 +255,7 @@ class EquationsMaker:
          self.VBFSigRFV_list.append(seg_rfv)
 
       for irfv in range(0,len(self.VBFInterfFormula_list)):
-         rfvname = "{0}Interf_AC_{1:.0f}_Coef".format(self.processName,irfv)
+         rfvname = "vvHVV_Interf_AC_{0:.0f}_Coef".format(irfv)
          rfvargs = ROOT.RooArgList()
          rfvargs.add(self.rrvars["muV"])
          rfvargs.add(self.rrvars["kbkg_VBF"])

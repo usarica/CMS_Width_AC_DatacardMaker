@@ -3,7 +3,6 @@ import os
 import re
 import math
 import collections
-#from ROOT import *
 from array import array
 
 ## ---------------------------------------------------------------

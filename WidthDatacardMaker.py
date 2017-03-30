@@ -4,18 +4,18 @@ import os
 import re
 import math
 from scipy.special import erf
-from ROOT import *
 import ROOT
 from array import array
 from InputCardReader import *
 from CategoryHelper import *
+from EquationsMaker import *
 from SystematicsHelper import *
 from BSITemplateHelper import *
 from BkgTemplateHelper import *
 
 
 class WidthDatacardMaker:
-   def __init__(self,options,theInputCard,theEqnsMaker,theCategorizer,theSystematizer,iCat,theOutputDir):
+   def __init__(self, options, theInputCard, theEqnsMaker, theCategorizer, theSystematizer, iCat, theOutputDir):
       self.iCat = iCat
       self.theOutputDir = theOutputDir
 
@@ -45,12 +45,17 @@ class WidthDatacardMaker:
       self.workspace.importClassCode(AsymQuad.Class(),True)
       self.workspace.importClassCode(RooqqZZPdf_v2.Class(), True)
       self.workspace.importClassCode(RooFormulaVar.Class(), True)
+      self.workspace.importClassCode(FastHistoFunc_f.Class(),True)
+      self.workspace.importClassCode(FastHisto2DFunc_f.Class(),True)
+      self.workspace.importClassCode(FastHisto3DFunc_f.Class(),True)
       self.workspace.importClassCode(RooRealFlooredSumPdf.Class(),True)
       self.workspace.importClassCode(VerticalInterpPdf.Class(),True)
 
-      # Other input-independent RooRealVars are taken from the equations maker class.
+      # Other input-independent RooRealVars are taken from the equations maker class
+      eqnrrvars = dict(self.theEqnsMaker.rrvars)
       self.theLumi = self.theEqnsMaker.theLumi
-      self.mass = self.theEqnsMaker.rrvars["mass"]
+      self.mass = eqnrrvars["mass"]
+      print "mass = ",self.mass.GetName()
       self.KD1=None
       self.KD2=None
       self.KD3=None
@@ -59,7 +64,8 @@ class WidthDatacardMaker:
       for coord in self.coordList:
          if self.KD3 is not None:
             sys.exit("There are >3 KDs in the list of coordinates, which is nt cupported."
-         for key,value in self.theEqnsMaker.rrvars.iteritems():
+         print eqnrrvars
+         for key, value in eqnrrvars.iteritems():
             if key==coord:
                if key!="mass":
                   self.dataVars.add(value)

@@ -2,7 +2,6 @@
 import os
 import re
 import math
-from ROOT import *
 import ROOT
 from array import array
 
@@ -43,7 +42,7 @@ class SystematicsHelper:
          elif (systtype == "quadN" or systtype == "template"):
             centralval = float(0.0)
             maxval = float(3.0)
-            minval = -minval
+            minval = -maxval
             for ic in systconfig:
                if ic[0].lower() == "range":
                   if len(ic)==3:

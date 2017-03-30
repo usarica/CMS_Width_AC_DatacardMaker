@@ -38,6 +38,8 @@ using namespace std;
 
 struct process_spec{
   RooAbsPdf* pdf;
+  unordered_map<string, RooAbsPdf*> pdf_shape;
+
   RooAbsReal* norm;
   double rate;
   TString name;
@@ -50,6 +52,7 @@ struct process_spec{
   process_spec(const process_spec& other) : pdf(other.pdf), norm(other.norm), rate(other.rate), templates(other.templates){}
 
   void setSystematic(string systname, string systtype, string systline){ systematics[systname] = pair<string, string>(systtype, systline); }
+  void setShapePdf(string systname, RooAbsPdf* pdf_){ if (pdf_!=0)pdf_shape[systname] = pdf_; else cout << name << "_" << systname << " pdf does not exist!" << endl; }
   void writeTemplates(TFile* fin){ for (unsigned int it=0; it<templates.size(); it++) fin->WriteTObject(templates.at(it)); }
   void deleteTemplates(){ for (unsigned int it=0; it<templates.size(); it++) delete templates.at(it); }
   //~process_spec(){ for (unsigned int it=0; it<templates.size(); it++) delete templates.at(it); }
@@ -59,7 +62,7 @@ struct process_spec{
 void splitOption(const string rawoption, string& wish, string& value, char delimiter);
 void splitOptionRecursive(const string rawoption, vector<string>& splitoptions, char delimiter);
 Bool_t checkListVariable(const vector<string>& list, const string& var);
-void extractTemplates(process_spec& proc, RooDataSet* data);
+void extractTemplates(process_spec& proc, RooDataSet* data, string shapename="");
 void extractTemplates_ggLike_fai1(const TString& newname, const vector<TH3F*>& intpl, vector<TH3F*>& outtpl);
 void extractTemplates_VVLike_fai1(const TString& newname, const vector<TH3F*>& intpl, vector<TH3F*>& outtpl);
 
@@ -86,7 +89,7 @@ void getTemplates(TString cinput, double lumiScale=1){
 
   //TString coutput = splitinput.at(splitinput.size()-1);
   //ofstream tout((coutput+".input.txt").Data());
-  TString coutput_txt = Form("input_%s_%s%s", channame.c_str(), catname.c_str(), ".txt");
+  TString coutput_txt = Form("inputs_%s_%s%s", channame.c_str(), catname.c_str(), ".txt");
   ofstream tout(coutput_txt.Data());
 
   TFile* finput = TFile::Open(cinput+".input.root", "read");
@@ -161,6 +164,12 @@ void getTemplates(TString cinput, double lumiScale=1){
           if (systline.find("-")==string::npos && systline!=""){
             std::replace(systline.begin(), systline.end(), '/', ':');
             procSpecs[procname.at(ip).Data()].setSystematic(systname, systtype, systline);
+            if (isShape){
+              RooAbsPdf* up_ = ws->pdf(procname.at(ip)+"_"+systname.c_str()+"Up");
+              RooAbsPdf* dn_ = ws->pdf(procname.at(ip)+"_"+systname.c_str()+"Down");
+              procSpecs[procname.at(ip).Data()].setShapePdf(systname+"Up", up_);
+              procSpecs[procname.at(ip).Data()].setShapePdf(systname+"Down", dn_);
+            }
             accumulate += string(procname.at(ip).Data()) + ":" + systline + " ";
           }
         }
@@ -175,13 +184,15 @@ void getTemplates(TString cinput, double lumiScale=1){
   tout << "decay " << channame << endl;
   tout << "lumi " << lumiScale << endl;
   tout << "category " << catname << endl;
+
+  // Write channels
+  for (unsigned int ip=0; ip<procname.size(); ip++) tout << "channel " << procname.at(ip) << " 1 -1 " << (procSpecs[procname.at(ip).Data()].name.Contains("bkg") ? 1 : 0) << endl;
+
+  // Write systemtics
   for (unsigned int ip=0; ip<procname.size(); ip++){
-    tout << "channel " << procname.at(ip) << " 1 -1 " << (procSpecs[procname.at(ip).Data()].name.Contains("bkg") ? 1 : 0) << endl;
-    // Write systemtics
     for (auto syst = procSpecs[procname.at(ip).Data()].systematics.begin(); syst != procSpecs[procname.at(ip).Data()].systematics.end(); ++syst){
-      if (syst->second.first=="param"){
-        tout << "systematic " << syst->first << " ";
-        //tout << syst->second.first << " " << syst->second.second << endl;
+      if (syst->second.first=="param" || syst->second.first=="shape1"){
+        tout << "systematic " << syst->first << " template ";
         tout << procname.at(ip) << ":0:1" << endl;
       }
     }
@@ -218,6 +229,20 @@ void getTemplates(TString cinput, double lumiScale=1){
           foutput->Close();
         }
       }
+      else if (syst->second.first=="shape1"){
+        for (unsigned int is=0; is<2; is++){
+          string syst_du = syst->first + (is==0 ? "Down" : "Up");
+          coutput_root = Form("HtoZZ%s_%s_FinalTemplates_%s_%s%s", channame.c_str(), catname.c_str(), procname.at(ip).Data(), syst_du.c_str(), ".root");
+          foutput = TFile::Open(coutput_root, "recreate");
+          extractTemplates(procSpecs[procname.at(ip).Data()], data, syst_du);
+          for (unsigned int it=0; it<procSpecs[procname.at(ip).Data()].templates.size(); it++) procSpecs[procname.at(ip).Data()].templates.at(it)->Scale(1./lumiScale);
+          procSpecs[procname.at(ip).Data()].writeTemplates(foutput);
+          procSpecs[procname.at(ip).Data()].deleteTemplates();
+          foutput->Close();
+        }
+      }
+
+
     }
   }
 
@@ -226,7 +251,7 @@ void getTemplates(TString cinput, double lumiScale=1){
   tout.close();
 }
 
-void extractTemplates(process_spec& proc, RooDataSet* data){
+void extractTemplates(process_spec& proc, RooDataSet* data, string shapename){
   vector<TH3F*> templates;
 
   vector<RooRealVar*> deps;
@@ -263,10 +288,15 @@ void extractTemplates(process_spec& proc, RooDataSet* data){
 
   if (proc.name.Contains("bkg")){
     TH3F* tpl=(TH3F*)proc.pdf->createHistogram(tplname, *(deps.at(0)), ycmd, zcmd);
-    tpl->SetName(tplname); tpl->SetTitle("");
     double normval = proc.rate; if (proc.norm!=0) normval *= proc.norm->getVal();
     double scale = normval/tpl->Integral();
     cout << "Scaling template " << tplname << " by " << normval << " / " << tpl->Integral() << endl;
+    if (shapename!=""){
+      delete tpl;
+      tpl=(TH3F*)proc.pdf_shape[shapename]->createHistogram(tplname, *(deps.at(0)), ycmd, zcmd);
+    }
+    tpl->SetName(tplname);
+    tpl->SetTitle("");
     tpl->Scale(scale);
     templates.push_back(tpl);
   }
@@ -278,11 +308,16 @@ void extractTemplates(process_spec& proc, RooDataSet* data){
         else if (ifv==1) fai1->setVal(1);
         else if (ifv==2) fai1->setVal(0.5);
 
-        TH3F* tpl = (TH3F*)proc.pdf->createHistogram(Form("%s_%i", tplname.Data(), ifv), *(deps.at(0)), ycmd, zcmd);
-        tpl->SetTitle("");
+        TString theName = Form("%s_%i", tplname.Data(), ifv);
+        TH3F* tpl = (TH3F*)proc.pdf->createHistogram(theName, *(deps.at(0)), ycmd, zcmd);
         double normval = proc.rate; if (proc.norm!=0) normval *= proc.norm->getVal();
         double scale = normval/tpl->Integral();
         cout << "Scaling template " << tpl->GetName() << " by " << normval << " / " << tpl->Integral() << endl;
+        if (shapename!=""){
+          delete tpl;
+          tpl=(TH3F*)proc.pdf_shape[shapename]->createHistogram(theName, *(deps.at(0)), ycmd, zcmd);
+        }
+        tpl->SetTitle("");
         tpl->Scale(scale);
         intpl.push_back(tpl);
       }
@@ -301,11 +336,16 @@ void extractTemplates(process_spec& proc, RooDataSet* data){
         else if (ifv==3) fai1->setVal(0.5);
         else if (ifv==4) fai1->setVal(0.75);
 
-        TH3F* tpl = (TH3F*)proc.pdf->createHistogram(Form("%s_%i", tplname.Data(), ifv), *(deps.at(0)), ycmd, zcmd);
-        tpl->SetTitle("");
+        TString theName = Form("%s_%i", tplname.Data(), ifv);
+        TH3F* tpl = (TH3F*)proc.pdf->createHistogram(theName, *(deps.at(0)), ycmd, zcmd);
         double normval = proc.rate; if (proc.norm!=0) normval *= proc.norm->getVal();
         double scale = normval/tpl->Integral();
         cout << "Scaling template " << tpl->GetName() << " by " << normval << " / " << tpl->Integral() << endl;
+        if (shapename!=""){
+          delete tpl;
+          tpl=(TH3F*)proc.pdf_shape[shapename]->createHistogram(theName, *(deps.at(0)), ycmd, zcmd);
+        }
+        tpl->SetTitle("");
         tpl->Scale(scale);
         intpl.push_back(tpl);
       }

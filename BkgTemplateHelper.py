@@ -4,7 +4,6 @@ import os
 import re
 import math
 from scipy.special import erf
-from ROOT import *
 import ROOT
 from array import array
 import CategoryHelper
@@ -88,8 +87,7 @@ class BkgTemplateHelper:
       # qq bkg
       if(self.strBkgType.lower().startswith() == "qq"):
          # Construct the templates
-         self.bkgTpl =
-            ExtendedTemplate(
+         self.bkgTpl = ExtendedTemplate(
                   self.templateFile.Get(self.templatePrefix).Clone("{}_{}".format(self.templatePrefix,self.templateSuffix)),
                   self.dimensions,
                   self.KD1, self.KD2, self.KD3
@@ -105,8 +103,7 @@ class BkgTemplateHelper:
          condDim = (self.KD1==self.mass)*2 + (self.KD2==self.mass)*3 + (self.KD3==self.mass)*5
          print "Zjets template is conditional. condDim=",condDim
          # Construct the templates
-         self.bkgTpl =
-            ExtendedTemplate(
+         self.bkgTpl = ExtendedTemplate(
                   self.templateFile.Get(self.templatePrefix).Clone("{}_{}".format(self.templatePrefix,self.templateSuffix)),
                   self.dimensions,
                   self.KD1, self.KD2, self.KD3,
