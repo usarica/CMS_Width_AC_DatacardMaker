@@ -6,12 +6,13 @@ import math
 from scipy.special import erf
 import ROOT
 from array import array
-from InputCardReader import *
-from CategoryHelper import *
-from EquationsMaker import *
-from SystematicsHelper import *
-from BSITemplateHelper import *
-from BkgTemplateHelper import *
+from InputCardReader import InputCardReader
+from CategoryHelper import CategoryHelper
+from EquationsMaker import EquationsMaker
+from SystematicsHelper import SystematicsHelper
+from SystematicsHelper import FloatToString
+from BSITemplateHelper import BSITemplateHelper
+from BkgTemplateHelper import BkgTemplateHelper
 
 
 class WidthDatacardMaker:
@@ -41,21 +42,23 @@ class WidthDatacardMaker:
       self.theSystVarsDict = self.theSystematizer.getVariableDict()
 
       self.workspace = ROOT.RooWorkspace("w", "w")
-      self.workspace.importClassCode(AsymPow.Class(),True)
-      self.workspace.importClassCode(AsymQuad.Class(),True)
-      self.workspace.importClassCode(RooqqZZPdf_v2.Class(), True)
-      self.workspace.importClassCode(RooFormulaVar.Class(), True)
-      self.workspace.importClassCode(FastHistoFunc_f.Class(),True)
-      self.workspace.importClassCode(FastHisto2DFunc_f.Class(),True)
-      self.workspace.importClassCode(FastHisto3DFunc_f.Class(),True)
-      self.workspace.importClassCode(RooRealFlooredSumPdf.Class(),True)
-      self.workspace.importClassCode(VerticalInterpPdf.Class(),True)
+      self.workspace.importClassCode(ROOT.AsymPow.Class(),True)
+      self.workspace.importClassCode(ROOT.AsymQuad.Class(),True)
+      self.workspace.importClassCode(ROOT.RooqqZZPdf_v2.Class(), True)
+      self.workspace.importClassCode(ROOT.RooFormulaVar.Class(), True)
+      self.workspace.importClassCode(ROOT.FastHistoFunc_f.Class(),True)
+      self.workspace.importClassCode(ROOT.FastHisto2DFunc_f.Class(),True)
+      self.workspace.importClassCode(ROOT.FastHisto3DFunc_f.Class(),True)
+      self.workspace.importClassCode(ROOT.RooRealFlooredSumPdf.Class(),True)
+      self.workspace.importClassCode(ROOT.VerticalInterpPdf.Class(),True)
 
       # Other input-independent RooRealVars are taken from the equations maker class
       eqnrrvars = dict(self.theEqnsMaker.rrvars)
-      self.theLumi = self.theEqnsMaker.theLumi
+      self.theLumi = eqnrrvars["lumi"]
       self.mass = eqnrrvars["mass"]
-      print "mass = ",self.mass.GetName()
+
+      self.onevar = ROOT.RooConstVar("VarOne","VarOne",1.0)
+
       self.KD1=None
       self.KD2=None
       self.KD3=None
@@ -63,8 +66,7 @@ class WidthDatacardMaker:
       self.dataVars.add(self.mass)
       for coord in self.coordList:
          if self.KD3 is not None:
-            sys.exit("There are >3 KDs in the list of coordinates, which is nt cupported."
-         print eqnrrvars
+            raise RuntimeError("There are >3 KDs in the list of coordinates, which is nt cupported.")
          for key, value in eqnrrvars.iteritems():
             if key==coord:
                if key!="mass":
@@ -93,10 +95,10 @@ class WidthDatacardMaker:
          self.dataFileDir, self.theChannelName, self.catName, self.sqrts
       )
       self.datacardName = "{0}/HCG/{3:.0f}TeV/hzz{1}_{2}.txt".format(
-         self.outputDir, self.theChannelName, self.catName, self.sqrts
+         self.theOutputDir, self.theChannelName, self.catName, self.sqrts
       )
       self.workspaceFileName = "{0}/HCG/{3:.0f}TeV/hzz{1}_{2}.input.root".format(
-         self.outputDir, self.theChannelName, self.catName, self.sqrts
+         self.theOutputDir, self.theChannelName, self.catName, self.sqrts
       )
 
       for proc in self.theInputCard.channels:
@@ -116,17 +118,17 @@ class WidthDatacardMaker:
 
          # Nominal pdf and rate
          systName = "Nominal"
-         templateFileName = "{0}/{1:.0f}TeV/{2}{3}_{4}_{5}".format(self.templateDir,self.sqrts,templateFileNameMain,procname,systName,".root")
-         if proctype>0:
+         templateFileName = "{0}/{1:.0f}TeV/{2}{3}_{4}{5}".format(self.templateDir, self.sqrts, templateFileNameMain, procname, systName, ".root")
+         if proctype==0:
             bunchNominal = BkgTemplateHelper(self.options,self,self.theCategorizer,procname,templateFileName,self.iCat,systName)
             bunchNominal.getTemplates()
          else:
-            bunchNominal = BSITemplateHelper(self.options,self,self.theEqnsMaker,self.theCategorizer,procname,templateFileName,self.iCat,systName)
+            bunchNominal = BSITemplateHelper(self.options,self,self.theEqnsMaker,self.theCategorizer,procname,proctype,templateFileName,self.iCat,systName)
             bunchNominal.getTemplates(processName=procname)
          self.theBunches.append(bunchNominal)
 
          # Systematic "template" variations
-         for syst in self.theInpurCard.systematics:
+         for syst in self.theInputCard.systematics:
             systType = syst[1]
             if systType.lower() == "template":
                systVariableName = syst[0] # The name of variable that is supposed to exist for the variation
@@ -134,14 +136,18 @@ class WidthDatacardMaker:
                   if systchan[0] == procname: # Make sure to pick the correct channel
                      tmplist = []
                      for isyst in range(1,3): # Up/Dn variations
-                        systName = systchan[isyst]
-                        templateFileName = "{0}/{1:.0f}TeV/{2}{3}_{4}_{5}".format(self.templateDir,self.sqrts,templateFileNameMain,procname,systName,".root")
+                        systName = systVariableName
+                        if isyst==1:
+                           systName = "{}Up".format(systName)
+                        else:
+                           systName = "{}Down".format(systName)
+                        templateFileName = "{0}/{1:.0f}TeV/{2}{3}_{4}{5}".format(self.templateDir,self.sqrts,templateFileNameMain,procname,systName,".root")
                         bunchVar = None
-                        if proctype>0:
+                        if proctype==0:
                            bunchVar = BkgTemplateHelper(self.options,self,self.theCategorizer,procname,templateFileName,self.iCat,systName)
                            bunchVar.getTemplates()
                         else:
-                           bunchVar = BSITemplateHelper(self.options,self,self.theEqnsMaker,self.theCategorizer,procname,templateFileName,self.iCat,systName)
+                           bunchVar = BSITemplateHelper(self.options,self,self.theEqnsMaker,self.theCategorizer,procname,proctype,templateFileName,self.iCat,systName)
                            bunchVar.getTemplates(processName=procname)
                         tmplist.append(bunchVar)
                         self.theBunches.append(bunchVar)
@@ -180,10 +186,8 @@ class WidthDatacardMaker:
          if len(quadNVars)>0:
             extraMorphVarList = ROOT.RooArgList()
             extraMorphRateList = ROOT.RooArgList()
-            tmpname = "one_{0}_{1}_{2}_{3:.0f}TeV".format(procname,self.catName,self.theChannelName,self.sqrts)
-            onevar = ROOT.RooConstVar(one,one,1.0)
-            self.extraVars.append(onevar)
-            extraMorphRateList.add(onevar)
+            self.extraVars.append(self.onevar)
+            extraMorphRateList.add(self.onevar)
             for systvar in quadNVars:
                for isyst in range(0,2):
                   extraMorphRateList.add(systvar[isyst])
@@ -193,22 +197,32 @@ class WidthDatacardMaker:
             self.extraRateList.append(procRateExtra)
 
          # Construct the ultimate pdf and rate for the process
-         morphVarList = ROOT.RooArgList()
-         morphPdfList = ROOT.RooArgList()
-         morphRateList = ROOT.RooArgList()
-         morphPdfList.add(bunchNominal.getThePdf())
-         morphRateList.add(bunchNominal.getTheRate())
-         for systvar in bunchVariations:
-            for isyst in range(0,2):
-               morphPdfList.add(systvar[isyst].getThePdf())
-               morphRateList.add(systvar[isyst].getTheRate())
-            morphVarList.add(systvar[2])
+         procPdf = None
+         procRate = None
+         if len(bunchVariations)>0:
+            print "Bunch variations are found. Constructing VerticalInterpPdf pdf and AsymQuad rate..."
+            morphVarList = ROOT.RooArgList()
+            morphPdfList = ROOT.RooArgList()
+            morphRateList = ROOT.RooArgList()
+            morphPdfList.add(bunchNominal.getThePdf())
+            morphRateList.add(bunchNominal.getTheRate())
+            for systvar in bunchVariations:
+               for isyst in range(0,2):
+                  morphPdfList.add(systvar[isyst].getThePdf())
+                  morphRateList.add(systvar[isyst].getTheRate())
+               morphVarList.add(systvar[2])
+            procPdf = ROOT.VerticalInterpPdf(procname, procname, morphPdfList, morphVarList,1.0)
 
-         procPdf = ROOT.VerticalInterpPdf(procname, procname, morphPdfList, morphVarList,1.0)
+            ratename = bunchNominal.getTheRate().GetName() + "_AsymQuad"
+            procRate = ROOT.AsymQuad(ratename, ratename, morphRateList, morphVarList, 1.0)
+         else:
+            print "Bunch variations do not exist. Constructing pdf and rate from nominal bunch..."
+            procPdf = bunchNominal.getThePdf()
+            procPdf.SetName(procname)
+            procPdf.SetTitle(procname)
+            procRate = bunchNominal.getTheRate()
+
          self.pdfList.append(procPdf)
-
-         ratename = bunchNominal.getTheRate().GetName() + "_AsymQuad"
-         procRate = ROOT.AsymQuad(ratename, ratename, morphRateList, morphVarList, 1.0)
          self.rateList.append(procRate)
 
          normname = procname + "_norm"
@@ -219,31 +233,52 @@ class WidthDatacardMaker:
             procNorm = ROOT.RooFormulaVar(normname, "TMath::Max(@0*@1*@2,1e-15)", ROOT.RooArgList(procRate, procRateExtra, self.theLumi))
          self.normList.append(procNorm)
 
+         print "Last check on pdf value:",procPdf.getVal(),"at"
+         if self.KD1 is not None:
+            print "\t- KD1 =",self.KD1.getVal()
+         if self.KD2 is not None:
+            print "\t- KD2 =",self.KD2.getVal()
+         if self.KD3 is not None:
+            print "\t- KD3 =",self.KD3.getVal()
+         print "Last check on pdf norm:",procNorm.getVal()
          getattr(self.workspace, 'import')(procPdf,ROOT.RooFit.RecycleConflictNodes())
          getattr(self.workspace, 'import')(procNorm,ROOT.RooFit.RecycleConflictNodes())
 
       # Get the data
+      data_obs = ROOT.RooDataSet("dummy", "dummy", self.dataVars)
       self.theDataFile = ROOT.TFile.Open(self.dataFileName,"read")
-      self.theDataTree = self.theDataFile.Get(self.dataTreeName)
-      if not self.theDataTree:
-         print "File, \"", self.dataFileName, "\" or tree \"", self.dataTreeName, "\" is not found."
+      if not self.theDataFile:
+         print "Data tree is not found!"
+         self.theDataRDS = data_obs
       else:
-        data_obs = ROOT.RooDataSet()
-        datasetName = "data_obs_full"
-        data_obs = ROOT.RooDataSet(datasetName, datasetName, self.theDataTree, self.dataVars)
-        self.theDataRDS = data_obs.reduce("{0}>={1} && {0}<{2}".format(self.mass.GetName(), FloatToString(self.mLow), FloatToString(self.mHigh)))
-        self.theDataRDS.SetName("data_obs")
-        getattr(self.workspace, 'import')(self.theDataRDS, ROOT.RooFit.Rename("data_obs"))
+         self.theDataTree = self.theDataFile.Get(self.dataTreeName)
+         if not self.theDataTree:
+            print "File, \"", self.dataFileName, "\" or tree \"", self.dataTreeName, "\" is not found."
+            self.theDataRDS = data_obs
+         else:
+            datasetName = "data_obs_full"
+            data_obs = ROOT.RooDataSet(datasetName, datasetName, self.theDataTree, self.dataVars)
+            self.theDataRDS = data_obs.reduce("{0}>={1} && {0}<{2}".format(self.mass.GetName(), FloatToString(self.mLow), FloatToString(self.mHigh)))
+      self.theDataRDS.SetName("data_obs")
+      getattr(self.workspace, 'import')(self.theDataRDS, ROOT.RooFit.Rename("data_obs"))
+
+      self.workspace.Print("v")
+      print "Now writing workspace"
+      # Write the workspace
+      self.theWorkspaceFile = ROOT.TFile.Open(self.workspaceFileName,"recreate")
+      self.theWorkspaceFile.WriteTObject(self.workspace)
+      self.theWorkspaceFile.Close()
+
+      print "Testing the workspace"
+      ftmp = ROOT.TFile.Open(self.workspaceFileName,"read")
+      wtmp = ftmp.Get("w")
+      wtmp.Print("v")
+      ftmp.Close()
+
+      print "Now writing datacards"
 
       # Write datacards
       self.WriteDatacard()
-
-      # Write the workspace
-      #self.workspace.writeToFile(self.workspaceFileName)
-      self.theWorkspaceFile = ROOT.TFile.Open(self.workspaceFileName,"recreate")
-      self.theWorkspaceFile.cd()
-      self.theWorkspaceFile.WriteTObject(self.workspace)
-      self.theWorkspaceFile.Close()
 
       # Garbage collection
       for bunch in self.theBunches:
@@ -300,7 +335,7 @@ class WidthDatacardMaker:
       ctr_bkg = 0
       ctr_sig = -nSigProcs
       for proc in self.theInputCard.channels:
-         if proc[3]>0:
+         if proc[3]==0:
             self.theDatacardFile.write("{0:.0f} ".format(ctr_bkg))
             ctr_bkg += 1
          else:

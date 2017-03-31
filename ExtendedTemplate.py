@@ -4,7 +4,6 @@ import os
 import re
 import math
 from scipy.special import erf
-from ROOT import *
 import ROOT
 from array import array
 
@@ -45,6 +44,7 @@ class ExtendedTemplate:
       integral = float(self.theTemplate.IntegralWidth()) # Ensure that the precision is floating-point
       RateName = "{}_Rate".format(TemplateName)
       self.theRate = ROOT.RooConstVar(RateName,RateName,integral)
+      print "Template",TemplateName,"has integral =",self.theRate.getVal()
 
 
    def getHistFunc(self,newname):
@@ -52,11 +52,11 @@ class ExtendedTemplate:
       isNormY = (self.condDim>0 and self.condDim%3==0)
       isNormZ = (self.condDim>0 and self.condDim%5==0)
       if self.dimensions==3:
-         self.theTemplate = FastHisto3D_f(self.origTemplate)
-         self.theHistFunc = FastHisto3DFunc_f(newname,"",self.obslist,self.theTemplate, isNormX, isNormY, isNormZ)
+         self.theTemplate = ROOT.FastHisto3D_f(self.origTemplate, isNormX, isNormY, isNormZ)
+         self.theHistFunc = ROOT.FastHisto3DFunc_f(newname,"",self.obslist,self.theTemplate)
       elif self.dimensions==2:
-         self.theTemplate = FastHisto2D_f(self.origTemplate)
-         self.theHistFunc = FastHisto2DFunc_f(newname,"",self.obslist,self.theTemplate, isNormX, isNormY)
+         self.theTemplate = ROOT.FastHisto2D_f(self.origTemplate, isNormX, isNormY)
+         self.theHistFunc = ROOT.FastHisto2DFunc_f(newname,"",self.obslist,self.theTemplate)
       else:
-         self.theTemplate = FastHisto_f(self.origTemplate)
-         self.theHistFunc = FastHistoFunc_f(newname,"",self.obslist,self.theTemplate, isNormX)
+         self.theTemplate = ROOT.FastHisto_f(self.origTemplate, isNormX)
+         self.theHistFunc = ROOT.FastHistoFunc_f(newname,"",self.obslist,self.theTemplate)

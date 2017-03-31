@@ -1,18 +1,8 @@
 #!/usr/bin/python
-import sys
-import os
 import pwd
 import commands
 import optparse
 import shlex
-import re
-import math
-import ROOT
-from array import array
-from InputCardReader import *
-from CategoryHelper import *
-from EquationsMaker import *
-from SystematicsHelper import *
 from WidthDatacardMaker import *
 
 
@@ -35,8 +25,6 @@ def parseOptions():
    parser.add_option('--coord', dest='coordinates',
                       type='string', default="KD1:KD2:KD3",    help='Template dimensions (mass:KD1:KD2/3/int etc. Ignore CMS_zz4l_ prefix.)')
 
-   parser.add_option('--NoBkgSigInterf', '--NoBSI', type='int', dest='iBkgSigOnly', default=0,
-                      help='Bkg-sig interference. 0: No interference, 1: Add interference terms')
    parser.add_option('--GHmodel', type='int', dest='GHmodel', default=1,
                       help='GH model. 0: No GH in muF or muV, 1: Add GH/GHSM as a multiplicative factor, 2: Add GH as a multiplicative factor, -1: Add GH/GHSM as a divisive factor, -2: Add GH as a divisive factor')
    parser.add_option('--GHrefval', type='float', dest='GHrefval', default=4.07, help='GH MC reference')
@@ -61,9 +49,6 @@ def parseOptions():
     # store options and arguments as global variables
    global opt, args
    (opt, args) = parser.parse_args()
-
-   # Make a boolean flag out of the int version
-   opt.isBkgSigOnly = (opt.iBkgSigOnly!=0)
 
    if (opt.coordinates == ''):
       print 'Please pass template dimensions! Exiting...'
@@ -91,10 +76,10 @@ def makeDirectory(subDirName):
       cmd = 'mkdir -p ' + subDirName
       status, output = commands.getstatusoutput(cmd)
       if status != 0:
-         print 'Error in creating submission dir ' + subDirName + '. Exiting...'
+         print 'Error in creating submission dir ' + subDirName + '.'
          sys.exit()
    else:
-      print 'Directory ' + subDirName + ' already exists. Exiting...'
+      print 'Directory ' + subDirName + ' already exists.'
 
 
 # define function for processing of os command
@@ -124,10 +109,15 @@ def creationLoop(theOutputDir):
    CatHelper = CategoryHelper(opt.iCatScheme)
 
    for iCat in range(0,CatHelper.nCategories):
-      finalstates = [ "4mu","4e","2e2mu" ]
+      finalstates = [ "4mu" , "4e" , "2e2mu" ]
       for ifs in finalstates:
          inputCardDir = opt.inputDir + "/inputs_" + ifs + "_" + CatHelper.catNameList[iCat] + ".txt"
          theInputCard = InputCardReader(inputCardDir)
+
+         pathToDatacards = "{0}/HCG/{1:.0f}TeV/".format(theOutputDir, theInputCard.sqrts)
+         print "Path to datacards:",pathToDatacards
+         makeDirectory(pathToDatacards)
+
          SystHelper = SystematicsHelper(theInputCard)
          theEqnsMaker = EquationsMaker(opt,theInputCard)
          theMaker = WidthDatacardMaker(opt,theInputCard,theEqnsMaker,CatHelper,SystHelper,iCat,theOutputDir)

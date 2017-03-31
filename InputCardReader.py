@@ -155,8 +155,8 @@ class InputCardReader:
 
       if not self.isGoodEntry(self.channels):
          raise RuntimeError("{0} is empty. Check inputs!".format("channels"))
-      if not self.isGoodEntry(self.parameters):
-         raise RuntimeError("{0} is empty. Check inputs!".format("parameters"))
+      #if not self.isGoodEntry(self.parameters):
+      #   raise RuntimeError("{0} is empty. Check inputs!".format("parameters"))
       if not self.isGoodEntry(self.systematics):
          raise RuntimeError("{0} is empty. Check inputs!".format("systematics"))
 

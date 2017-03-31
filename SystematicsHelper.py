@@ -95,7 +95,7 @@ class SystematicsHelper:
             centralval = float(0.0)
             deviation = float(1.0)
             maxval = float(3.0)
-            minval = -minval
+            minval = -maxval
             for ic in systconfig:
                if ic[0].lower() == "range":
                   if len(ic)==3:

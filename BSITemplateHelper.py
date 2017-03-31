@@ -6,11 +6,11 @@ import math
 from scipy.special import erf
 import ROOT
 from array import array
-import CategoryHelper
-import ExtendedTemplate
+from CategoryHelper import CategoryHelper
+from ExtendedTemplate import ExtendedTemplate
 
 class BSITemplateHelper:
-   def __init__(self, options, theMaker, theEqnsMaker, theCategorizer, strBSIType, templateFileName, iCat, systName):
+   def __init__(self, options, theMaker, theEqnsMaker, theCategorizer, procname, proctype, templateFileName, iCat, systName):
       # sqrts and channel index from the datacard maker class
       self.sqrts = theMaker.sqrts
       self.channel = theMaker.channel
@@ -35,7 +35,6 @@ class BSITemplateHelper:
       self.mLow = options.mLow
       self.mHigh = options.mHigh
       self.anomCoupl = options.anomCouplIndex
-      self.isBkgSigOnly = options.isBkgSigOnly
       self.templateDir = options.templateDir
       self.dimensions = options.dimensions # Number of template dimensions>0
 
@@ -65,8 +64,11 @@ class BSITemplateHelper:
       # Template file
       self.templateFile = None
 
-      self.strBSIType = strBSIType # gg-like or VVH-like couplings structure
-      self.isGGVVLikeCouplings = strBSIType.lower().startswith("gg")
+      self.procname = procname
+      self.proctype = proctype
+      self.isGGVVLikeCouplings = self.procname.lower().startswith("gg") or self.procname.lower().startswith("tt")
+      self.isSigOnly = self.proctype==1
+
    # Extended template lists
    # Bare SM
       # ggF
@@ -167,9 +169,12 @@ class BSITemplateHelper:
 
 # Open the template files
    def openFile(self):
+      print "Opening file ",self.templateFileName
       self.templateFile = ROOT.TFile.Open(self.templateFileName, "read")
-      if self.templateFile is None or self.templateFile.IsZombie():
-         raise RuntimeError("BkgTemplateHelper could not open file {}!".format(self.templateFileName))
+      if self.templateFile is None:
+         raise RuntimeError("BSITemplateHelper file {} is None!".format(self.templateFileName))
+      elif self.templateFile.IsZombie():
+         raise RuntimeError("BSITemplateHelper could not open file {}!".format(self.templateFileName))
 # Close the template files
    def close(self):
       if self.templateFile is not None:
@@ -217,12 +222,12 @@ class BSITemplateHelper:
                self.dimensions,
                self.KD1, self.KD2, self.KD3
             )
-      self.gg_T_Bkg = ExtendedTemplate(
-               self.templateFile.Get("{}_Bkg".format(self.templatePrefix)).Clone("{}_Bkg_{}".format(self.templatePrefix,self.templateSuffix)),
-               self.dimensions,
-               self.KD1, self.KD2, self.KD3
-            )
-      if(not(self.isBkgSigOnly)):
+      if(not(self.isSigOnly)):
+         self.gg_T_Bkg = ExtendedTemplate(
+                  self.templateFile.Get("{}_Bkg".format(self.templatePrefix)).Clone("{}_Bkg_{}".format(self.templatePrefix,self.templateSuffix)),
+                  self.dimensions,
+                  self.KD1, self.KD2, self.KD3
+               )
          self.gg_T_Int_Re = ExtendedTemplate(
                   self.templateFile.Get("{}_Int_Re".format(self.templatePrefix)).Clone("{}_Int_Re_{}".format(self.templatePrefix,self.templateSuffix)),
                   self.dimensions,
@@ -234,19 +239,6 @@ class BSITemplateHelper:
                      self.dimensions,
                      self.KD1, self.KD2, self.KD3
                   )
-      # Special case: Get template properties from the gg bkg template
-      if icat == 0:
-         self.nbinsx=self.gg_T_Bkg.theTemplate.GetNbinsX()
-         self.nbinsy=self.gg_T_Bkg.theTemplate.GetNbinsY()
-         self.nbinsz=self.gg_T_Bkg.theTemplate.GetNbinsZ()
-         self.templateXLow=self.gg_T_Bkg.theTemplate.GetXaxis().GetBinLowEdge(1)
-         self.templateYLow=self.gg_T_Bkg.theTemplate.GetYaxis().GetBinLowEdge(1)
-         self.templateZLow=self.gg_T_Bkg.theTemplate.GetZaxis().GetBinLowEdge(1)
-         self.templateXHigh=self.gg_T_Bkg.theTemplate.GetXaxis().GetBinUpEdge(self.nbinsx)
-         self.templateYHigh=self.gg_T_Bkg.theTemplate.GetYaxis().GetBinUpEdge(self.nbinsy)
-         self.templateZhigh=self.gg_T_Bkg.theTemplate.GetZaxis().GetBinUpEdge(self.nbinsz)
-         self.blankTemplate = self.gg_T_Bkg.theTemplate.Clone("blankTemplate")
-         self.blankTemplate.Reset("M")
 
       if self.anomCoupl != 0:
 #-----------------------------------------------------------------------#
@@ -267,7 +259,7 @@ class BSITemplateHelper:
 
 # Signal ai**2 x a1**(2/4-2) real and imaginary parts
          self.gg_T_Sig_ai1_2_Re = ExtendedTemplate(
-                  self.templateFile.Get("{}_Sig_ai1_2_Re".format(self.templatePrefix)).Clone("{}_Sig_ai1_2_Re_{}".format(self.templatePrefix,self.templateSuffix)),
+                  self.templateFile.Get("{}_Sig_ai1_2".format(self.templatePrefix)).Clone("{}_Sig_ai1_2_{}".format(self.templatePrefix,self.templateSuffix)),
                   self.dimensions,
                   self.KD1, self.KD2, self.KD3
                )
@@ -285,7 +277,7 @@ class BSITemplateHelper:
 #-----------------------------------------------------------------------#
 #                       INTERFERENCE AC TERMS
 #-----------------------------------------------------------------------#
-         if(not(self.isBkgSigOnly)):
+         if(not(self.isSigOnly)):
 # Interference ai**1 x a1**(1/2-1) real and imaginary parts
             self.gg_T_Int_ai1_1_Re = ExtendedTemplate(
                      self.templateFile.Get("{}_Int_ai1_1_Re".format(self.templatePrefix)).Clone("{}_Int_ai1_1_Re_{}".format(self.templatePrefix,self.templateSuffix)),
@@ -314,7 +306,7 @@ class BSITemplateHelper:
       if len(self.ggSigFunctions_Args)!=len(self.ggSigRFV_list):
          sys.exit("Number of {0}Sig templates {1:.0f} is not equal to number of funcficients {2:.0f}!".format(self.processName,len(self.ggSigFunctions_Args),len(self.ggSigRFV_list)))
 
-      if(not(self.isBkgSigOnly)):
+      if(not(self.isSigOnly)):
          self.ggInterfFunctions_Args.append(self.gg_T_Int_Re)
          if self.anomCoupl == 1:
             self.ggInterfFunctions_Args.append(self.gg_T_Int_Im)
@@ -330,20 +322,25 @@ class BSITemplateHelper:
          self.ggHistFunc_Arg.add(var.theHistFunc)
       for var in self.ggInterfFunctions_Args:
          self.ggHistFunc_Arg.add(var.theHistFunc)
-      self.ggHistFunc_Arg.add(self.gg_T_Bkg.theHistFunc)
+      if(not(self.isSigOnly)):
+         self.ggHistFunc_Arg.add(self.gg_T_Bkg.theHistFunc)
 
 # Construct the p.d.f.'s
       rfvargs = ROOT.RooArgList()
       for var in self.ggSigRFV_list:
          rfvargs.add(var)
-      for var in self.ggInterfRFV_list:
-         rfvargs.add(var)
-      rfvargs.add(self.kbkg_gg)
+      if(not(self.isSigOnly)):
+         for var in self.ggInterfRFV_list:
+            rfvargs.add(var)
+         rfvargs.add(self.kbkg_gg)
       PdfName = "{}Pdf_{}".format(self.processName,self.templateSuffix)
       self.ggPdf = ROOT.RooRealFlooredSumPdf(
          PdfName, PdfName,
-         self.ggHistFunc_Arg,rfvargs
+         self.ggHistFunc_Arg, rfvargs
       )
+      self.ggHistFunc_Arg.Print("v")
+      rfvargs.Print("v")
+      print PdfName,"value =",self.ggPdf.getVal()
 
 # Lists of rate FormulaVars
 # Each signal, bkg and interf is constructed separately to be able to count their contributions in the end
@@ -353,9 +350,9 @@ class BSITemplateHelper:
          rfvargs.add(self.ggSigRFV_list[ivar])
          rfvargs.add(self.ggSigFunctions_Args[ivar].theRate)
          if ivar==0:
-            strformula = "{0:.0f}*{1:,0f}".format(2*ivar,2*ivar+1)
+            strformula = "@{0:.0f}*@{1:.0f}".format(2*ivar,2*ivar+1)
          else:
-            strformula = "{2} + {0:.0f}*{1:,0f}".format(2*ivar,2*ivar+1,strformula)
+            strformula = "{2} + @{0:.0f}*@{1:.0f}".format(2*ivar,2*ivar+1,strformula)
       rfvname = "{}SigRate_{}".format(self.processName,self.templateSuffix)
       self.ggSigRates_RooFormulaVar = ROOT.RooFormulaVar( rfvname , strformula , rfvargs )
 
@@ -366,29 +363,32 @@ class BSITemplateHelper:
             rfvargs.add(self.ggInterfRFV_list[ivar])
             rfvargs.add(self.ggInterfFunctions_Args[ivar].theRate)
             if ivar==0:
-               strformula = "{0:.0f}*{1:,0f}".format(2*ivar,2*ivar+1)
+               strformula = "@{0:.0f}*@{1:,0f}".format(2*ivar,2*ivar+1)
             else:
-               strformula = "{2} + {0:.0f}*{1:,0f}".format(2*ivar,2*ivar+1,strformula)
+               strformula = "{2} + @{0:.0f}*@{1:,0f}".format(2*ivar,2*ivar+1,strformula)
          rfvname = "{}InterfRate_{}".format(self.processName,self.templateSuffix)
          self.ggInterfRates_RooFormulaVar = ROOT.RooFormulaVar( rfvname , strformula , rfvargs )
 
-      rfvargs = ROOT.RooArgList()
-      strformula = "@0*@1"
-      rfvargs.add(self.kbkg_gg)
-      rfvargs.add(self.gg_T_Bkg.theRate)
-      rfvname = "{}BkgRate_{}".format(self.processName,self.templateSuffix)
-      self.ggBkgRates_RooFormulaVar = ROOT.RooFormulaVar( rfvname , strformula , rfvargs )
+      self.ggBkgRates_RooFormulaVar = None
+      if(not(self.isSigOnly)):
+         rfvargs = ROOT.RooArgList()
+         strformula = "@0*@1"
+         rfvargs.add(self.kbkg_gg)
+         rfvargs.add(self.gg_T_Bkg.theRate)
+         rfvname = "{}BkgRate_{}".format(self.processName,self.templateSuffix)
+         self.ggBkgRates_RooFormulaVar = ROOT.RooFormulaVar( rfvname , strformula , rfvargs )
 
 # Construct total rates
       rfvargs = ROOT.RooArgList()
-      strformula = "@0+@1"
+      strformula = "@0"
       rfvargs.add(self.ggSigRates_RooFormulaVar)
-      rfvargs.add(self.ggBkgRates_RooFormulaVar)
-      if(not(self.isBkgSigOnly)):
+      if(not(self.isSigOnly)):
          strformula = "@0+@1+@2"
          rfvargs.add(self.ggInterfRates_RooFormulaVar)
+         rfvargs.add(self.ggBkgRates_RooFormulaVar)
       rfvname = "{}TotalRate_{}".format(self.processName,self.templateSuffix)
       self.ggTotalRate = ROOT.RooFormulaVar( rfvname , strformula , rfvargs )
+      print rfvname,"total rate =",self.ggTotalRate.getVal()
 
 
    def getTemplates_vvVVLike(self):
@@ -399,12 +399,12 @@ class BSITemplateHelper:
                self.dimensions,
                self.KD1, self.KD2, self.KD3
             )
-      self.VBF_T_Bkg = ExtendedTemplate(
-               self.templateFile.Get("{}_Bkg".format(self.templatePrefix)).Clone("{}_Bkg_{}".format(self.templatePrefix,self.templateSuffix)),
-               self.dimensions,
-               self.KD1, self.KD2, self.KD3
-            )
-      if(not(self.isBkgSigOnly)):
+      if(not(self.isSigOnly)):
+         self.VBF_T_Bkg = ExtendedTemplate(
+                  self.templateFile.Get("{}_Bkg".format(self.templatePrefix)).Clone("{}_Bkg_{}".format(self.templatePrefix,self.templateSuffix)),
+                  self.dimensions,
+                  self.KD1, self.KD2, self.KD3
+               )
          self.VBF_T_Int_Re = ExtendedTemplate(
                   self.templateFile.Get("{}_Int_Re".format(self.templatePrefix)).Clone("{}_Int_Re_{}".format(self.templatePrefix,self.templateSuffix)),
                   self.dimensions,
@@ -455,11 +455,11 @@ class BSITemplateHelper:
             tmpTpl = self.templateFile.Get("{}_Sig_ai1_2_PosDef".format(self.templatePrefix))
             tmpTpl2 = self.templateFile.Get("{}_Sig_ai1_2_Re".format(self.templatePrefix))
             tmpTpl3 = None
-            if tmpTpl is not None:
+            if tmpTpl:
                tmpTpl3 = tmpTpl.Clone("{}_Sig_ai1_2_PosDef_{}".format(self.templatePrefix,self.templateSuffix))
-               if tmpTpl2 is not None:
+               if tmpTpl2:
                   tmpTpl3.Add(tmpTpl2)
-            elif tmpTpl2 is not None:
+            elif tmpTpl2:
                tmpTpl3 = tmpTpl2.Clone("{}_Sig_ai1_2_PosDef_{}".format(self.templatePrefix,self.templateSuffix))
             self.VBF_T_Sig_ai1_2_PosDef = ExtendedTemplate(
                      tmpTpl3,
@@ -491,7 +491,7 @@ class BSITemplateHelper:
 #-----------------------------------------------------------------------#
 #                       INTERFERENCE AC TERMS
 #-----------------------------------------------------------------------#
-         if(not(self.isBkgSigOnly)):
+         if(not(self.isSigOnly)):
 # Interference ai**1 x a1**(1/2-1) real and imaginary parts
             self.VBF_T_Int_ai1_1_Re = ExtendedTemplate(
                      self.templateFile.Get("{}_Int_ai1_1_Re".format(self.templatePrefix)).Clone("{}_Int_ai1_1_Re_{}".format(self.templatePrefix,self.templateSuffix)),
@@ -537,7 +537,7 @@ class BSITemplateHelper:
       if len(self.VBFSigFunctions_Args)!=len(self.VBFSigRFV_list):
          sys.exit("Number of {0}Sig templates {1:.0f} is not equal to number of funcficients {2:.0f}!".format(self.processName,len(self.VBFSigFunctions_Args),len(self.VBFSigRFV_list)))
 
-      if(not(self.isBkgSigOnly)):
+      if(not(self.isSigOnly)):
          self.VBFInterfFunctions_Args.append(self.VBF_T_Int_Re)
          if self.anomCoupl == 1:
             self.VBFInterfFunctions_Args.append(self.VBF_T_Int_Im)
@@ -556,20 +556,25 @@ class BSITemplateHelper:
          self.VBFHistFunc_Arg.add(var.theHistFunc)
       for var in self.VBFInterfFunctions_Args:
          self.VBFHistFunc_Arg.add(var.theHistFunc)
-      self.VBFHistFunc_Arg.add(self.VBF_T_Bkg.theHistFunc)
+      if(not(self.isSigOnly)):
+         self.VBFHistFunc_Arg.add(self.VBF_T_Bkg.theHistFunc)
 
 # Construct the p.d.f.'s
       rfvargs = ROOT.RooArgList()
       for var in self.VBFSigRFV_list:
          rfvargs.add(var)
-      for var in self.VBFInterfRFV_list:
-         rfvargs.add(var)
-      rfvargs.add(self.kbkg_VBF)
+      if(not(self.isSigOnly)):
+         for var in self.VBFInterfRFV_list:
+            rfvargs.add(var)
+         rfvargs.add(self.kbkg_VBF)
       PdfName = "{}Pdf_{}".format(self.processName,self.templateSuffix)
       self.VBFPdf = ROOT.RooRealFlooredSumPdf(
          PdfName, PdfName,
-         self.VBFHistFunc_Arg,rfvargs
+         self.VBFHistFunc_Arg, rfvargs
       )
+      self.VBFHistFunc_Arg.Print("v")
+      rfvargs.Print("v")
+      print PdfName,"value =",self.VBFPdf.getVal()
 
 # Lists of rate FormulaVars
 # Each signal, bkg and interf is constructed separately to be able to count their contributions in the end
@@ -579,9 +584,9 @@ class BSITemplateHelper:
          rfvargs.add(self.VBFSigRFV_list[ivar])
          rfvargs.add(self.VBFSigFunctions_Args[ivar].theRate)
          if ivar==0:
-            strformula = "{0:.0f}*{1:,0f}".format(2*ivar,2*ivar+1)
+            strformula = "@{0:.0f}*@{1:.0f}".format(2*ivar,2*ivar+1)
          else:
-            strformula = "{2} + {0:.0f}*{1:,0f}".format(2*ivar,2*ivar+1,strformula)
+            strformula = "{2} + @{0:.0f}*@{1:.0f}".format(2*ivar,2*ivar+1,strformula)
       rfvname = "{}SigRate_{}".format(self.processName,self.templateSuffix)
       self.VBFSigRates_RooFormulaVar = ROOT.RooFormulaVar( rfvname , strformula , rfvargs )
 
@@ -592,29 +597,32 @@ class BSITemplateHelper:
             rfvargs.add(self.VBFInterfRFV_list[ivar])
             rfvargs.add(self.VBFInterfFunctions_Args[ivar].theRate)
             if ivar==0:
-               strformula = "{0:.0f}*{1:,0f}".format(2*ivar,2*ivar+1)
+               strformula = "@{0:.0f}*@{1:.0f}".format(2*ivar,2*ivar+1)
             else:
-               strformula = "{2} + {0:.0f}*{1:,0f}".format(2*ivar,2*ivar+1,strformula)
+               strformula = "{2} + @{0:.0f}*@{1:.0f}".format(2*ivar,2*ivar+1,strformula)
          rfvname = "{}InterfRate_{}".format(self.processName,self.templateSuffix)
          self.VBFInterfRates_RooFormulaVar = ROOT.RooFormulaVar( rfvname , strformula , rfvargs )
 
-      rfvargs = ROOT.RooArgList()
-      strformula = "@0*@1"
-      rfvargs.add(self.kbkg_VBF)
-      rfvargs.add(self.VBF_T_Bkg.theRate)
-      rfvname = "{}BkgRate_{}".format(self.processName,self.templateSuffix)
-      self.VBFBkgRates_RooFormulaVar = ROOT.RooFormulaVar( rfvname , strformula , rfvargs )
+      self.VBFBkgRates_RooFormulaVar = None
+      if(not(self.isSigOnly)):
+         rfvargs = ROOT.RooArgList()
+         strformula = "@0*@1"
+         rfvargs.add(self.kbkg_VBF)
+         rfvargs.add(self.VBF_T_Bkg.theRate)
+         rfvname = "{}BkgRate_{}".format(self.processName,self.templateSuffix)
+         self.VBFBkgRates_RooFormulaVar = ROOT.RooFormulaVar( rfvname , strformula , rfvargs )
 
 # Construct total rates
       rfvargs = ROOT.RooArgList()
-      strformula = "@0+@1"
+      strformula = "@0"
       rfvargs.add(self.VBFSigRates_RooFormulaVar)
-      rfvargs.add(self.VBFBkgRates_RooFormulaVar)
-      if(not(self.isBkgSigOnly)):
+      if(not(self.isSigOnly)):
          strformula = "@0+@1+@2"
          rfvargs.add(self.VBFInterfRates_RooFormulaVar)
+         rfvargs.add(self.VBFBkgRates_RooFormulaVar)
       rfvname = "{}TotalRate_{}".format(self.processName,self.templateSuffix)
       self.VBFTotalRate = ROOT.RooFormulaVar( rfvname , strformula , rfvargs )
+      print rfvname,"total rate =",self.VBFTotalRate.getVal()
 
 
 

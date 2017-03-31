@@ -15,7 +15,6 @@ class EquationsMaker:
       self.mLow = options.mLow
       self.mHigh = options.mHigh
       self.anomCoupl = options.anomCouplIndex
-      self.isBkgSigOnly = options.isBkgSigOnly
       self.GHmodel = options.GHmodel
       self.GHrefval = options.GHrefval
       self.sqrts = theInputCard.sqrts
@@ -24,7 +23,7 @@ class EquationsMaker:
       self.rrvars = dict()
 
       # LUMI
-      var = ROOT.RooConstVar("LUMI_{0:.0f}".format(self.sqrts), "LUMI_{0:.0f}".format(self.sqrts), self.lumi)
+      var = ROOT.RooConstVar("LUMI_{0:.0f}TeV".format(self.sqrts), "LUMI_{0:.0f}TeV".format(self.sqrts), self.lumi)
       self.rrvars["lumi"]=var
 
    # Variables for the template dimensions
@@ -157,25 +156,22 @@ class EquationsMaker:
          self.ggSigFormula_list.append("@0*sign(@1)*sqrt(abs(@1)*(1-abs(@1)))*cos(@2)")
          self.ggSigFormula_list.append("@0*sign(@1)*sqrt(abs(@1)*(1-abs(@1)))*sin(@2)")
          self.ggSigFormula_list.append("@0*abs(@1)")
-         if(not(self.isBkgSigOnly)):
-            # 0-3 are templates, @2==fai1, @3==phiai1, @4==phia1 (gg)
-            self.ggInterfFormula_list.append("sqrt(@0*@1)*sqrt(1-abs(@2))*cos(@4)")
-            self.ggInterfFormula_list.append("sqrt(@0*@1)*sqrt(1-abs(@2))*sin(@4)")
-            self.ggInterfFormula_list.append("sqrt(@0*@1)*sign(@2)*sqrt(abs(@2))*cos(@3+@4)")
-            self.ggInterfFormula_list.append("sqrt(@0*@1)*sign(@2)*sqrt(abs(@2))*sin(@3+@4)")
+         # 0-3 are templates, @2==fai1, @3==phiai1, @4==phia1 (gg)
+         self.ggInterfFormula_list.append("sqrt(@0*@1)*sqrt(1-abs(@2))*cos(@4)")
+         self.ggInterfFormula_list.append("sqrt(@0*@1)*sqrt(1-abs(@2))*sin(@4)")
+         self.ggInterfFormula_list.append("sqrt(@0*@1)*sign(@2)*sqrt(abs(@2))*cos(@3+@4)")
+         self.ggInterfFormula_list.append("sqrt(@0*@1)*sign(@2)*sqrt(abs(@2))*sin(@3+@4)")
       elif self.anomCoupl == 2: # No phases, just fai1=[-1, 1]
          # 0-2 are templates, @1==fai1
          self.ggSigFormula_list.append("@0*(1-abs(@1))")
          self.ggSigFormula_list.append("@0*sign(@1)*sqrt(abs(@1)*(1-abs(@1)))")
          self.ggSigFormula_list.append("@0*abs(@1)")
-         if(not(self.isBkgSigOnly)):
-            # 0-1 are templates, @2==fai1
-            self.ggInterfFormula_list.append("sqrt(@0*@1)*sqrt(1-abs(@2))")
-            self.ggInterfFormula_list.append("sqrt(@0*@1)*sign(@2)*sqrt(abs(@2))")
+         # 0-1 are templates, @2==fai1
+         self.ggInterfFormula_list.append("sqrt(@0*@1)*sqrt(1-abs(@2))")
+         self.ggInterfFormula_list.append("sqrt(@0*@1)*sign(@2)*sqrt(abs(@2))")
       else: # No ai1 dependence
          self.ggSigFormula_list.append("@0")
-         if(not(self.isBkgSigOnly)):
-            self.ggInterfFormula_list.append("sqrt(@0*@1)")
+         self.ggInterfFormula_list.append("sqrt(@0*@1)")
 
       for irfv in range(0,len(self.ggSigFormula_list)):
          rfvname = "HVV_Sig_AC_{0:.0f}_Coef".format(irfv)
@@ -217,14 +213,13 @@ class EquationsMaker:
          self.VBFSigFormula_list.append("@0*sign(@1)*pow(sqrt(abs(@1)),3)*sqrt(1-abs(@1))*cos(@2)")
          self.VBFSigFormula_list.append("@0*sign(@1)*pow(sqrt(abs(@1)),3)*sqrt(1-abs(@1))*sin(@2)")
          self.VBFSigFormula_list.append("@0*pow(@1,2)")
-         if(not(self.isBkgSigOnly)):
-            # 0-5 are templates, @2==fai1, @3==phiai1, @4==phia1 (VBF)
-            self.VBFInterfFormula_list.append("sqrt(@0*@1)*(1-abs(@2))*cos(2*@4)")
-            self.VBFInterfFormula_list.append("sqrt(@0*@1)*(1-abs(@2))*sin(2*@4)")
-            self.VBFInterfFormula_list.append("sqrt(@0*@1)*sign(@2)*sqrt(abs(@2)*(1-abs(@2)))*cos(@3+2*@4)")
-            self.VBFInterfFormula_list.append("sqrt(@0*@1)*sign(@2)*sqrt(abs(@2)*(1-abs(@2)))*sin(@3+2*@4)")
-            self.VBFInterfFormula_list.append("sqrt(@0*@1)*abs(@2)*cos(2*(@3+@4))")
-            self.VBFInterfFormula_list.append("sqrt(@0*@1)*abs(@2)*sin(2*(@3+@4))")
+         # 0-5 are templates, @2==fai1, @3==phiai1, @4==phia1 (VBF)
+         self.VBFInterfFormula_list.append("sqrt(@0*@1)*(1-abs(@2))*cos(2*@4)")
+         self.VBFInterfFormula_list.append("sqrt(@0*@1)*(1-abs(@2))*sin(2*@4)")
+         self.VBFInterfFormula_list.append("sqrt(@0*@1)*sign(@2)*sqrt(abs(@2)*(1-abs(@2)))*cos(@3+2*@4)")
+         self.VBFInterfFormula_list.append("sqrt(@0*@1)*sign(@2)*sqrt(abs(@2)*(1-abs(@2)))*sin(@3+2*@4)")
+         self.VBFInterfFormula_list.append("sqrt(@0*@1)*abs(@2)*cos(2*(@3+@4))")
+         self.VBFInterfFormula_list.append("sqrt(@0*@1)*abs(@2)*sin(2*(@3+@4))")
       elif self.anomCoupl == 2: # No phases, just fai1=[-1, 1]
          # 0-4 are templates, @1==fai1
          self.VBFSigFormula_list.append("@0*pow((1-abs(@1)),2)")
@@ -232,15 +227,13 @@ class EquationsMaker:
          self.VBFSigFormula_list.append("@0*abs(@1)*(1-abs(@1))")
          self.VBFSigFormula_list.append("@0*sign(@1)*pow(sqrt(abs(@1)),3)*sqrt(1-abs(@1))")
          self.VBFSigFormula_list.append("@0*pow(@1,2)")
-         if(not(self.isBkgSigOnly)):
-            # 0-2 are templates, @2==fai1
-            self.VBFInterfFormula_list.append("sqrt(@0*@1)*(1-abs(@2))")
-            self.VBFInterfFormula_list.append("sqrt(@0*@1)*sign(@2)*sqrt(abs(@2)*(1-abs(@2)))")
-            self.VBFInterfFormula_list.append("sqrt(@0*@1)*abs(@2)")
+         # 0-2 are templates, @2==fai1
+         self.VBFInterfFormula_list.append("sqrt(@0*@1)*(1-abs(@2))")
+         self.VBFInterfFormula_list.append("sqrt(@0*@1)*sign(@2)*sqrt(abs(@2)*(1-abs(@2)))")
+         self.VBFInterfFormula_list.append("sqrt(@0*@1)*abs(@2)")
       else: # No ai1 dependence
          self.VBFSigFormula_list.append("@0")
-         if(not(self.isBkgSigOnly)):
-            self.VBFInterfFormula_list.append("sqrt(@0*@1)")
+         self.VBFInterfFormula_list.append("sqrt(@0*@1)")
 
       for irfv in range(0,len(self.VBFSigFormula_list)):
          rfvname = "vvHVV_Sig_AC_{0:.0f}_Coef".format(irfv)
