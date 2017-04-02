@@ -35,6 +35,7 @@ class ExtendedTemplate:
             aHigh = axis.GetXmax()
             theVars[v].setBins(aBins)
             theVars[v].setRange(aLow,aHigh)
+            theVars[v].setVal((aHigh+aLow)/2.)
 
       TemplateName = self.origTemplate.GetName() # Template name contains extra suffix if already cloned
       HistFuncName = "{}_HistFunc".format(TemplateName)

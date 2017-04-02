@@ -118,6 +118,10 @@ def creationLoop(theOutputDir):
          print "Path to datacards:",pathToDatacards
          makeDirectory(pathToDatacards)
 
+         pathToPlots = "{0}/figs/{1:.0f}TeV/hzz{2}_{3}/".format(theOutputDir, theInputCard.sqrts, theInputCard.decayChanName, CatHelper.catNameList[iCat])
+         print "Path to plots:",pathToPlots
+         makeDirectory(pathToPlots)
+
          SystHelper = SystematicsHelper(theInputCard)
          theEqnsMaker = EquationsMaker(opt,theInputCard)
          theMaker = WidthDatacardMaker(opt,theInputCard,theEqnsMaker,CatHelper,SystHelper,iCat,theOutputDir)

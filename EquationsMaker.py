@@ -32,15 +32,15 @@ class EquationsMaker:
       var.setBins(69) # To be reset later
       self.rrvars["mass"]=var
       varname = "CMS_zz4l_widthKD1"
-      var = ROOT.RooRealVar(varname, varname, 0., 1.)
+      var = ROOT.RooRealVar(varname, varname, 0., 0., 1.)
       var.setBins(30) # To be reset later
       self.rrvars["KD1"]=var
       varname = "CMS_zz4l_widthKD2"
-      var = ROOT.RooRealVar(varname, varname, 0., 1.)
+      var = ROOT.RooRealVar(varname, varname, 0., 0., 1.)
       var.setBins(30) # To be reset later
       self.rrvars["KD2"]=var
       varname = "CMS_zz4l_widthKD3"
-      var = ROOT.RooRealVar(varname, varname, 0., 1.)
+      var = ROOT.RooRealVar(varname, varname, 0., 0., 1.)
       var.setBins(30) # To be reset later
       self.rrvars["KD3"]=var
       varname = "CMS_zz4l_widthKDint"
@@ -66,9 +66,9 @@ class EquationsMaker:
       var = ROOT.RooRealVar(varname, varname, 1., 0., 50.)
       var.setBins(500)
       self.rrvars[varname]=var
-      varname = "GHrefval"
+      varname = "CMS_zz4l_GHrefval"
       var = ROOT.RooConstVar(varname, varname, self.GHrefval)
-      self.rrvars[varname]=var
+      self.rrvars["GHrefval"]=var
       varname = "kbkg_gg"
       var = ROOT.RooRealVar(varname, varname, 1., 0., 2.)
       var.setBins(200)
@@ -78,22 +78,22 @@ class EquationsMaker:
       var.setBins(200)
       self.rrvars[varname]=var
 
-      varname = "fai1"
+      varname = "CMS_zz4l_fai1"
       var = ROOT.RooRealVar(varname, varname, 0., -1., 1.)
       var.setBins(200)
-      self.rrvars[varname]=var
-      varname = "phiai1"
+      self.rrvars["fai1"]=var
+      varname = "CMS_zz4l_phiai1"
       var = ROOT.RooRealVar(varname, varname, 0., -math.pi, math.pi)
       var.setBins(200)
-      self.rrvars[varname]=var
-      varname = "fai2"
+      self.rrvars["phiai1"]=var
+      varname = "CMS_zz4l_fai2"
       var = ROOT.RooRealVar(varname, varname, 0., -1., 1.)
       var.setBins(200)
-      self.rrvars[varname]=var
-      varname = "phiai2"
+      self.rrvars["fai2"]=var
+      varname = "CMS_zz4l_phiai2"
       var = ROOT.RooRealVar(varname, varname, 0., -math.pi, math.pi)
       var.setBins(200)
-      self.rrvars[varname]=var
+      self.rrvars["phiai2"]=var
 
       varname = "phia1"
       var = ROOT.RooRealVar(varname, varname, 0., -math.pi, math.pi)

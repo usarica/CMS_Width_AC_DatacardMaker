@@ -207,6 +207,7 @@ class BSITemplateHelper:
          self.templatePrefix = "{}_{}".format(self.templatePrefix,processName)
       else:
          self.processName = "gg"
+         self.templatePrefix = "{}_{}".format(self.templatePrefix,processName)
 
       if self.isGGVVLikeCouplings:
          self.getTemplates_ggVVLike()

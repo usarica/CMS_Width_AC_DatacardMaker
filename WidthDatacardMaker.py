@@ -14,6 +14,17 @@ from SystematicsHelper import FloatToString
 from BSITemplateHelper import BSITemplateHelper
 from BkgTemplateHelper import BkgTemplateHelper
 
+def PlotPdf1D(pdf,norm,xvar,path):
+   canvasname = "c_{}_{}".format(pdf.GetName(),xvar.GetName())
+   cproj = ROOT.TCanvas( canvasname, canvasname, 750, 700 )
+   histo = pdf.createHistogram("htemp",xvar)
+   histo.SetName("{}_{}".format(pdf.GetName(),xvar.GetName()))
+   histo.SetTitle("Projection of {} on {}".format(pdf.GetName(),xvar.GetName()))
+   histo.Scale(norm/histo.Integral())
+   histo.Draw("hist")
+   cproj.SaveAs("{}{}{}".format(path,canvasname,".png"))
+   cproj.Close()
+
 
 class WidthDatacardMaker:
    def __init__(self, options, theInputCard, theEqnsMaker, theCategorizer, theSystematizer, iCat, theOutputDir):
@@ -98,6 +109,9 @@ class WidthDatacardMaker:
          self.theOutputDir, self.theChannelName, self.catName, self.sqrts
       )
       self.workspaceFileName = "{0}/HCG/{3:.0f}TeV/hzz{1}_{2}.input.root".format(
+         self.theOutputDir, self.theChannelName, self.catName, self.sqrts
+      )
+      self.plotsPathName = "{0}/figs/{3:.0f}TeV/hzz{1}_{2}/".format(
          self.theOutputDir, self.theChannelName, self.catName, self.sqrts
       )
 
@@ -262,22 +276,25 @@ class WidthDatacardMaker:
       self.theDataRDS.SetName("data_obs")
       getattr(self.workspace, 'import')(self.theDataRDS, ROOT.RooFit.Rename("data_obs"))
 
-      self.workspace.Print("v")
-      print "Now writing workspace"
+      # Plot the pdfs
+      print "Now plotting the pdfs"
+      self.PlotPdfs()
+
+      #self.workspace.Print("v")
       # Write the workspace
+      print "Now writing workspace"
       self.theWorkspaceFile = ROOT.TFile.Open(self.workspaceFileName,"recreate")
       self.theWorkspaceFile.WriteTObject(self.workspace)
       self.theWorkspaceFile.Close()
 
-      print "Testing the workspace"
-      ftmp = ROOT.TFile.Open(self.workspaceFileName,"read")
-      wtmp = ftmp.Get("w")
-      wtmp.Print("v")
-      ftmp.Close()
-
-      print "Now writing datacards"
+      #print "Testing the workspace"
+      #ftmp = ROOT.TFile.Open(self.workspaceFileName,"read")
+      #wtmp = ftmp.Get("w")
+      #wtmp.Print("v")
+      #ftmp.Close()
 
       # Write datacards
+      print "Now writing datacards"
       self.WriteDatacard()
 
       # Garbage collection
@@ -293,8 +310,35 @@ class WidthDatacardMaker:
       nSigProcs = self.theInputCard.getNSigProcs()
       nBkgProcs = self.theInputCard.getNBkgProcs()
 
-      self.theDatacardFile.write("imax {0:.0f}\n".format(nSigProcs))
-      self.theDatacardFile.write("jmax {0:.0f}\n".format(nBkgProcs))
+      self.theDatacardFile.write("##########################################################################################################################\n")
+      self.theDatacardFile.write("## Combine manual:                       https://twiki.cern.ch/twiki/bin/view/CMS/SWGuideHiggsAnalysisCombinedLimit     ##\n")
+      self.theDatacardFile.write("## Non-standard combine use cases:       https://twiki.cern.ch/twiki/bin/view/CMS/HiggsWG/SWGuideNonStandardCombineUses ##\n")
+      self.theDatacardFile.write("## Latest Higgs combination conventions: https://twiki.cern.ch/twiki/bin/view/CMS/HiggsWG/HiggsCombinationConventions   ##\n")
+      self.theDatacardFile.write("## CMS StatCom twiki:                    https://twiki.cern.ch/twiki/bin/view/CMS/StatisticsCommittee                   ##\n")
+      self.theDatacardFile.write("##########################################################################################################################\n")
+      self.theDatacardFile.write("## Mass window [{0}, {1}]\n".format(FloatToString(self.mLow), FloatToString(self.mHigh)))
+      if len(self.normList)==len(self.pdfList):
+         for tmppdf, tmpnorm in zip(self.pdfList,self.normList):
+            theProcExtRate=float(1)
+            procFound=False
+            for proc in self.theInputCard.channels:
+               if proc[0]==tmppdf.GetName():
+                  procFound=True
+                  deflumi = proc[2]
+                  defrate = proc[1]
+                  if deflumi>0.:
+                     defrate = defrate/deflumi*self.theInputCard.lumi
+                  theProcExtRate = defrate
+            if procFound:
+               self.theDatacardFile.write("## {0} rate: {1} ({2} events @ {3} fb-1)\n".format(
+                     tmppdf.GetName(), FloatToString(float(tmpnorm.getVal()*theProcExtRate/self.theLumi.getVal())),
+                     FloatToString(float(tmpnorm.getVal()*theProcExtRate)), FloatToString(self.theLumi.getVal())
+                  )
+               )
+         self.theDatacardFile.write("##########################################################################################################################\n")
+
+      self.theDatacardFile.write("imax *\n")
+      self.theDatacardFile.write("jmax *\n")
       self.theDatacardFile.write("kmax *\n")
 
       self.theDatacardFile.write("------------\n")
@@ -307,19 +351,6 @@ class WidthDatacardMaker:
       self.theDatacardFile.write("observation {0:.0f} \n".format(int(self.theDataRDS.numEntries())))
 
       self.theDatacardFile.write("------------\n")
-      self.theDatacardFile.write("##########################################################################################################################\n")
-      self.theDatacardFile.write("## Combine manual:                       https://twiki.cern.ch/twiki/bin/view/CMS/SWGuideHiggsAnalysisCombinedLimit     ##\n")
-      self.theDatacardFile.write("## Non-standard combine use cases:       https://twiki.cern.ch/twiki/bin/view/CMS/HiggsWG/SWGuideNonStandardCombineUses ##\n")
-      self.theDatacardFile.write("## Latest Higgs combination conventions: https://twiki.cern.ch/twiki/bin/view/CMS/HiggsWG/HiggsCombinationConventions   ##\n")
-      self.theDatacardFile.write("## CMS StatCom twiki:                    https://twiki.cern.ch/twiki/bin/view/CMS/StatisticsCommittee                   ##\n")
-      self.theDatacardFile.write("##########################################################################################################################\n")
-      self.theDatacardFile.write("## Mass window [{0:.1f},{1:.1f}] \n".format(self.mLow, self.mHigh))
-      #self.theDatacardFile.write("## signal,bkg,interf,tot rates [{0:.4f}, {1:.4f}, {2:.4f}, {3:.4f}] \n".format(
-      #   theRates["ggZZ_signal"], theRates["ggZZbkg"], theRates["ggZZ_interf"], theRates["ggZZ_tot"])
-      #)
-      #self.theDatacardFile.write("## vbfsig,vbfbkg,vbfinterf,vbftot rates [{0:.4f}, {1:.4f}, {2:.4f}, {3:.4f}] \n".format(
-      #   theRates["VBF_offshell_signal"], theRates["VBF_offshell_bkg"], theRates["VBF_offshell_interf"], theRates["VBF_offshell_tot"])
-      #)
 
       self.theDatacardFile.write("bin ")
       for proc in self.theInputCard.channels:
@@ -336,11 +367,11 @@ class WidthDatacardMaker:
       ctr_sig = -nSigProcs
       for proc in self.theInputCard.channels:
          if proc[3]==0:
-            self.theDatacardFile.write("{0:.0f} ".format(ctr_bkg))
             ctr_bkg += 1
+            self.theDatacardFile.write("{0:.0f} ".format(ctr_bkg))
          else:
-            self.theDatacardFile.write("{0:.0f} ".format(ctr_sig))
             ctr_sig += 1
+            self.theDatacardFile.write("{0:.0f} ".format(ctr_sig))
       self.theDatacardFile.write("\n")
 
       self.theDatacardFile.write("rate ")
@@ -355,6 +386,28 @@ class WidthDatacardMaker:
       self.theDatacardFile.write("------------\n")
       self.theSystematizer.writeSystematics(self.theDatacardFile)
       self.theDatacardFile.close()
+
+
+   def PlotPdfs(self):
+      if len(self.normList)==len(self.pdfList):
+         for tmppdf, tmpnorm in zip(self.pdfList,self.normList):
+            theProcExtRate=float(1)
+            procFound=False
+            for proc in self.theInputCard.channels:
+               if proc[0]==tmppdf.GetName():
+                  procFound=True
+                  deflumi = proc[2]
+                  defrate = proc[1]
+                  if deflumi>0.:
+                     defrate = defrate/deflumi*self.theInputCard.lumi
+                  theProcExtRate = defrate
+            if procFound:
+               tmprate = tmpnorm.getVal()*theProcExtRate/self.theLumi.getVal()
+               PlotPdf1D(tmppdf,tmprate,self.KD1,self.plotsPathName)
+               if self.KD2 is not None:
+                  PlotPdf1D(tmppdf,tmprate,self.KD2,self.plotsPathName)
+               if self.KD3 is not None:
+                  PlotPdf1D(tmppdf,tmprate,self.KD3,self.plotsPathName)
 
 
 

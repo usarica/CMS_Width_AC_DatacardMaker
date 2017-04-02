@@ -173,14 +173,14 @@ class InputCardReader:
    def getNSigProcs(self):
       ctr = 0
       for proc in self.channels:
-         if proc[3]==0:
+         if proc[3]>0:
             ctr += 1
       return ctr
 
    def getNBkgProcs(self):
       ctr = 0
       for proc in self.channels:
-         if proc[3]>0:
+         if proc[3]==0:
             ctr += 1
       return ctr
 
