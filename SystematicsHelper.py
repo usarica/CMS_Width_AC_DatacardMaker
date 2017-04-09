@@ -8,6 +8,14 @@ from array import array
 # Some helper functions that don't need to belong to the systematics class
 def FloatToString(inputValue):
    return ('%.10f' % inputValue).rstrip('0').rstrip('.')
+def FloatToStringScientific(inputValue,etype='e'):
+   s = FloatToString(inputValue)
+   q = s.replace(".","").lstrip('0')
+   f = float(s)
+   nq = len(q)-1
+   strcmd = ("%%%c%i%c" % ('.',nq,etype))
+   return (strcmd % f)
+
 
 
 ## ------------------------------------

@@ -119,12 +119,11 @@ class BSITemplateHelper:
       self.VBF_T_Int_ai1_2_Im = None
 
    # BSI+AC FORMULAE
-      # Bare formula strings
-      self.ggSigFormula_list = theEqnsMaker.ggSigFormula_list
-      self.ggInterfFormula_list = theEqnsMaker.ggInterfFormula_list
-      self.VBFSigFormula_list = theEqnsMaker.VBFSigFormula_list
-      self.VBFInterfFormula_list = theEqnsMaker.VBFInterfFormula_list
       # RooFormulaVars
+      self.ggSigRFV_noMu_list = theEqnsMaker.ggSigRFV_noMu_list
+      self.ggInterfRFV_noMu_list = theEqnsMaker.ggInterfRFV_noMu_list
+      self.VBFSigRFV_noMu_list = theEqnsMaker.VBFSigRFV_noMu_list
+      self.VBFInterfRFV_noMu_list = theEqnsMaker.VBFInterfRFV_noMu_list
       self.ggSigRFV_list = theEqnsMaker.ggSigRFV_list
       self.ggInterfRFV_list = theEqnsMaker.ggInterfRFV_list
       self.VBFSigRFV_list = theEqnsMaker.VBFSigRFV_list
@@ -328,12 +327,15 @@ class BSITemplateHelper:
 
 # Construct the p.d.f.'s
       rfvargs = ROOT.RooArgList()
-      for var in self.ggSigRFV_list:
-         rfvargs.add(var)
       if(not(self.isSigOnly)):
+         for var in self.ggSigRFV_list:
+            rfvargs.add(var)
          for var in self.ggInterfRFV_list:
             rfvargs.add(var)
          rfvargs.add(self.kbkg_gg)
+      else:
+         for var in self.ggSigRFV_noMu_list:
+            rfvargs.add(var)
       PdfName = "{}Pdf_{}".format(self.processName,self.templateSuffix)
       self.ggPdf = ROOT.RooRealFlooredSumPdf(
          PdfName, PdfName,
@@ -562,12 +564,15 @@ class BSITemplateHelper:
 
 # Construct the p.d.f.'s
       rfvargs = ROOT.RooArgList()
-      for var in self.VBFSigRFV_list:
-         rfvargs.add(var)
       if(not(self.isSigOnly)):
+         for var in self.VBFSigRFV_list:
+            rfvargs.add(var)
          for var in self.VBFInterfRFV_list:
             rfvargs.add(var)
          rfvargs.add(self.kbkg_VBF)
+      else:
+         for var in self.VBFSigRFV_noMu_list:
+            rfvargs.add(var)
       PdfName = "{}Pdf_{}".format(self.processName,self.templateSuffix)
       self.VBFPdf = ROOT.RooRealFlooredSumPdf(
          PdfName, PdfName,

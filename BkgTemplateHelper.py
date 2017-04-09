@@ -119,7 +119,7 @@ class BkgTemplateHelper:
       # Z+X bkg
       elif("zx" in self.procname.lower() or "zjets" in self.procname.lower()):
          self.condDim = (self.KD1==self.mass)*2 + (self.KD2==self.mass)*3 + (self.KD3==self.mass)*5
-         print "Zjets template condDim=",self.condDim
+         print "Zjets template condDim =",self.condDim
          # Construct the templates
          self.bkgTpl = ExtendedTemplate(
                   self.templateFile.Get(self.templatePrefix).Clone("{}_{}".format(self.templatePrefix,self.templateSuffix)),

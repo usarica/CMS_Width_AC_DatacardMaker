@@ -66,6 +66,62 @@ void extractTemplates(process_spec& proc, RooDataSet* data, string shapename, bo
 void extractTemplates_ggLike_fai1(const TString& newname, const vector<TH3F*>& intpl, vector<TH3F*>& outtpl);
 void extractTemplates_VVLike_fai1(const TString& newname, const vector<TH3F*>& intpl, vector<TH3F*>& outtpl);
 
+void getDataTree(TString cinput){
+  string strinput = cinput.Data();
+  vector<string> splitinput;
+  splitOptionRecursive(strinput, splitinput, '/');
+  strinput = splitinput.at(splitinput.size()-1); splitinput.clear();
+  splitOptionRecursive(strinput, splitinput, '/');
+
+  const unsigned int nchans=3;
+  string channames[nchans]={ "4mu", "4e", "2e2mu" };
+  string channame;
+  for (unsigned int ic=0; ic<nchans; ic++){
+    if (strinput.find(channames[ic])!=string::npos) channame=channames[ic];
+  }
+
+  const unsigned int ncats=4;
+  string catnames[ncats]={ "Inclusive", "VBFtagged", "VHHadrtagged", "Untagged" };
+  string catname;
+  for (unsigned int ic=0; ic<ncats; ic++){
+    if (strinput.find(catnames[ic])!=string::npos) catname=catnames[ic];
+  }
+
+  TFile* finput = TFile::Open(cinput+".input.root", "read");
+  RooWorkspace* ws = (RooWorkspace*)finput->Get("w");
+  RooDataSet* data = (RooDataSet*)ws->data("data_obs");
+  int nevents=data->sumEntries();
+  int nvars=((const RooArgSet*)data->get())->getSize();
+  double* KD = new double[nvars];
+
+  TString coutput_root;
+  TFile* foutput;
+  coutput_root = Form("test/13TeV/CMSdata/hzz%s_%s_13TeV.root", channame.c_str(), catname.c_str());
+  foutput = TFile::Open(coutput_root, "recreate");
+
+  TTree* t = new TTree("data_obs", "");
+  for (int iv=0; iv<nvars; iv++) t->Branch(Form("CMS_zz4l_widthKD%i", iv+1), KD+iv);
+
+  for (int ev=0; ev<nevents; ev++){
+    const RooArgSet* args = (const RooArgSet*)data->get(ev);
+    TIterator* coefIter = args->createIterator();
+    const RooAbsArg* coef;
+    unsigned int ik=0;
+    while ((coef = (const RooAbsArg*)coefIter->Next())){
+      const RooAbsReal* rvar = dynamic_cast<const RooAbsReal*>(coef);
+      KD[ik]=rvar->getVal();
+      ik++;
+    }
+    delete coefIter;
+    t->Fill();
+  }
+
+  foutput->WriteTObject(t);
+  delete t;
+  delete[] KD;
+  foutput->Close();
+  finput->Close();
+}
 void getTemplates(TString cinput, double lumiScale=1, bool scale_width=true){
   string strinput = cinput.Data();
   vector<string> splitinput;
@@ -142,23 +198,25 @@ void getTemplates(TString cinput, double lumiScale=1, bool scale_width=true){
 
   // Get systemtics
   unordered_map<string, string> logSyst;
+  unordered_map<string, string> paramSyst;
   while (!tin.eof()){
     tin.getline(line, 512);
 
     string strline = line;
+    std::replace(strline.begin(), strline.end(), ',', ' ');
+    strline.erase(std::remove(strline.begin(), strline.end(), '['), strline.end());
+    strline.erase(std::remove(strline.begin(), strline.end(), ']'), strline.end());
     bool isShape = strline.find("shape1")!=string::npos;
     bool isParam = strline.find("param")!=string::npos;
     bool isLog = strline.find("lnN")!=string::npos;
     if (isShape || isLog || isParam){
 
+      vector<string> systdist;
+      splitOptionRecursive(strline, systdist, ' ');
+      string systname = systdist.at(0);
+      string systtype = systdist.at(1);
+      string accumulate="";
       if (isShape || isLog){
-        vector<string> systdist;
-        splitOptionRecursive(strline, systdist, ' ');
-
-        string systname = systdist.at(0);
-        string systtype = systdist.at(1);
-
-        string accumulate="";
         for (unsigned int ip=0; ip<procname.size(); ip++){
           string systline = systdist.at(ip+2);
           if (systline.find("-")==string::npos && systline!=""){
@@ -174,6 +232,29 @@ void getTemplates(TString cinput, double lumiScale=1, bool scale_width=true){
           }
         }
         if (isLog) logSyst[systname] = accumulate;
+      }
+      else{
+        RooAbsReal* systvar = (RooAbsReal*) ws->var(systname.c_str());
+        double defaultVal = systvar->getVal();
+        if (systvar->hasClients()){
+          TIterator* clientsIter = systvar->clientIterator();
+          RooAbsArg* client;
+          while ((client = (RooAbsArg*)clientsIter->Next())){
+            for (unsigned int ip=0; ip<procname.size(); ip++){
+              RooAbsPdf* pdf = procSpecs[procname.at(ip).Data()].pdf;
+              if (client->GetName() == pdf->GetName()){
+                string systline="";
+                for (unsigned int ip=2; ip<systdist.size(); ip++){
+                  if (ip>2)systline += ":";
+                  systline += systdist.at(ip);
+                }
+                procSpecs[procname.at(ip).Data()].setSystematic(systname, systtype, systline);
+                accumulate += string(procname.at(ip).Data()) + ":" + systline + " ";
+              }
+            }
+          }
+        }
+        paramSyst[systname] = accumulate;
       }
 
     }
@@ -191,13 +272,14 @@ void getTemplates(TString cinput, double lumiScale=1, bool scale_width=true){
   // Write systemtics
   for (unsigned int ip=0; ip<procname.size(); ip++){
     for (auto syst = procSpecs[procname.at(ip).Data()].systematics.begin(); syst != procSpecs[procname.at(ip).Data()].systematics.end(); ++syst){
-      if (syst->second.first=="param" || syst->second.first=="shape1"){
+      if (syst->second.first=="shape1"){
         tout << "systematic " << syst->first << " template ";
         tout << procname.at(ip) << ":0:1" << endl;
       }
     }
   }
   for (auto syst = logSyst.begin(); syst != logSyst.end(); ++syst) tout << "systematic " << syst->first << " lnN " << syst->second << endl;
+  for (auto syst = paramSyst.begin(); syst != paramSyst.end(); ++syst) tout << "systematic " << syst->first << " template " << syst->second << endl;
 
   for (unsigned int ip=0; ip<procname.size(); ip++){
     TFile* foutput;

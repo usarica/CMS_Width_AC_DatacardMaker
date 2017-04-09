@@ -14,8 +14,54 @@ from SystematicsHelper import FloatToString
 from BSITemplateHelper import BSITemplateHelper
 from BkgTemplateHelper import BkgTemplateHelper
 
-def PlotPdf1D(pdf,norm,xvar,path):
+
+def FindMinMax(rate,var):
+   varmin = var.getBinning().lowBound()
+   varmax = var.getBinning().highBound()
+   varval = var.getVal()
+   npoints = 101
+   ratemin = 999999999.
+   ratemax = -999999999.
+   for ix in range(0,npoints):
+      var.setVal(varmin + float(ix)*(varmax-varmin)/float(npoints-1))
+      rateval = rate.getVal()
+      if ratemin>rateval:
+         ratemin=rateval
+      if ratemax<rateval:
+         ratemax=rateval
+   var.setVal(varval)
+   return (ratemin,ratemax)
+
+def PlotRate(rate,args,path):
+   for xvar in args:
+      canvasname = "c_{}_{}".format(rate.GetName(),xvar.GetName())
+      cproj = ROOT.TCanvas( canvasname, canvasname, 750, 700 )
+      (rmin,rmax) = FindMinMax(rate,xvar)
+      plot = xvar.frame()
+      rate.plotOn(plot, ROOT.RooFit.LineWidth(2), ROOT.RooFit.LineStyle(1))
+      plot.GetXaxis().CenterTitle()
+      plot.GetYaxis().SetTitleOffset(1.2)
+      plot.GetYaxis().CenterTitle()
+      plot.GetXaxis().SetTitle(xvar.GetName())
+      plot.GetYaxis().SetTitle(rate.GetName())
+      plot.GetXaxis().SetNdivisions(510)
+      plot.SetTitle("{} along {}".format(rate.GetName(),xvar.GetName()))
+      plot.GetYaxis().SetRangeUser(
+         rmin,
+         rmax
+      )
+      if rmax>=20.*rmin and rmin>0.:
+         cproj.SetLogy()
+      plot.Draw()
+      cproj.SaveAs("{}{}{}".format(path,canvasname,".png"))
+      cproj.Close()
+
+
+
+def PlotPdf1D(pdf,norm,xvar,path,appendname=""):
    canvasname = "c_{}_{}".format(pdf.GetName(),xvar.GetName())
+   if appendname!="":
+      canvasname = canvasname+"_"+appendname
    cproj = ROOT.TCanvas( canvasname, canvasname, 750, 700 )
    histo = pdf.createHistogram("htemp",xvar)
    histo.SetName("{}_{}".format(pdf.GetName(),xvar.GetName()))
@@ -68,7 +114,7 @@ class WidthDatacardMaker:
       self.theLumi = eqnrrvars["lumi"]
       self.mass = eqnrrvars["mass"]
 
-      self.onevar = ROOT.RooConstVar("VarOne","VarOne",1.0)
+      self.onevar = eqnrrvars["one"]
 
       self.KD1=None
       self.KD2=None
@@ -207,7 +253,7 @@ class WidthDatacardMaker:
                   extraMorphRateList.add(systvar[isyst])
                extraMorphVarList.add(systvar[2])
             ratename = bunchNominal.getTheRate().GetName() + "_ExtraAsymQuad"
-            procRateExtra = ROOT.AsymQuad(ratename, ratename, extraMorphRateList, extraMorphVarList, 1.0)
+            procRateExtra = ROOT.AsymQuad(ratename, ratename, extraMorphRateList, extraMorphVarList, 1.0, 2)
             self.extraRateList.append(procRateExtra)
 
          # Construct the ultimate pdf and rate for the process
@@ -225,10 +271,10 @@ class WidthDatacardMaker:
                   morphPdfList.add(systvar[isyst].getThePdf())
                   morphRateList.add(systvar[isyst].getTheRate())
                morphVarList.add(systvar[2])
-            procPdf = ROOT.VerticalInterpPdf(procname, procname, morphPdfList, morphVarList,1.0)
+            procPdf = ROOT.VerticalInterpPdf(procname, procname, morphPdfList, morphVarList,1.0, 2)
 
             ratename = bunchNominal.getTheRate().GetName() + "_AsymQuad"
-            procRate = ROOT.AsymQuad(ratename, ratename, morphRateList, morphVarList, 1.0)
+            procRate = ROOT.AsymQuad(ratename, ratename, morphRateList, morphVarList, 1.0, 2)
          else:
             print "Bunch variations do not exist. Constructing pdf and rate from nominal bunch..."
             procPdf = bunchNominal.getThePdf()
@@ -255,6 +301,10 @@ class WidthDatacardMaker:
          if self.KD3 is not None:
             print "\t- KD3 =",self.KD3.getVal()
          print "Last check on pdf norm:",procNorm.getVal()
+         print "\t- Rate = ",procRate.getVal()
+         print "\t- Lumi = ",self.theLumi.getVal()
+         if procRateExtra is not None:
+            print "\t- Extra rate = ",procRateExtra.getVal()
          getattr(self.workspace, 'import')(procPdf,ROOT.RooFit.RecycleConflictNodes())
          getattr(self.workspace, 'import')(procNorm,ROOT.RooFit.RecycleConflictNodes())
 
@@ -277,8 +327,9 @@ class WidthDatacardMaker:
       getattr(self.workspace, 'import')(self.theDataRDS, ROOT.RooFit.Rename("data_obs"))
 
       # Plot the pdfs
-      print "Now plotting the pdfs"
+      print "Now plotting the pdfs and rates"
       self.PlotPdfs()
+      self.PlotRates()
 
       #self.workspace.Print("v")
       # Write the workspace
@@ -408,6 +459,47 @@ class WidthDatacardMaker:
                   PlotPdf1D(tmppdf,tmprate,self.KD2,self.plotsPathName)
                if self.KD3 is not None:
                   PlotPdf1D(tmppdf,tmprate,self.KD3,self.plotsPathName)
+               args = self.getProcessSystVars(tmpnorm.GetName())
+               for arg in args:
+                  defval = arg.getVal()
+                  setvals = [ -1., 1. ]
+                  vallabels = [ "Down", "Up" ]
+                  for argval,arglabel in zip(setvals,vallabels):
+                     arg.setVal(argval)
+                     applabel = arg.GetName()+arglabel
+                     PlotPdf1D(tmppdf,tmprate,self.KD1,self.plotsPathName, applabel)
+                     if self.KD2 is not None:
+                        PlotPdf1D(tmppdf,tmprate,self.KD2,self.plotsPathName, applabel)
+                     if self.KD3 is not None:
+                        PlotPdf1D(tmppdf,tmprate,self.KD3,self.plotsPathName, applabel)
+                  arg.setVal(defval)
+
+
+   def PlotRates(self):
+      for tmpnorm in self.normList:
+         isBkg=False
+         for proc in self.theInputCard.channels:
+            if proc[0] in tmpnorm.GetName():
+               procFound=True
+               isBkg = (proc[3]==0)
+         args = self.getProcessSystVars(tmpnorm.GetName())
+         if not isBkg:
+            args.append(self.theEqnsMaker.rrvars["fai1"])
+         if len(args)>0:
+            PlotRate(tmpnorm,args,self.plotsPathName)
+
+   def getProcessSystVars(self,procidname):
+      args = []
+      for name,systvar in self.theSystVarsDict.iteritems():
+         if systvar.hasClients():
+            clientsIter = systvar.clientIterator()
+            client=clientsIter.Next()
+            while client:
+               if client.GetName() in procidname:
+                  args.append(systvar)
+                  break
+               client=clientsIter.Next()
+      return args
 
 
 

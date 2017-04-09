@@ -114,7 +114,14 @@ class EquationsMaker:
       self.ggInterfFormula_list = []
       self.VBFSigFormula_list = []
       self.VBFInterfFormula_list = []
+
       # RooFormulaVars
+      # Version with no mu
+      self.ggSigRFV_noMu_list = []
+      self.ggInterfRFV_noMu_list = []
+      self.VBFSigRFV_noMu_list = []
+      self.VBFInterfRFV_noMu_list = []
+      # Version with mu
       self.ggSigRFV_list = []
       self.ggInterfRFV_list = []
       self.VBFSigRFV_list = []
@@ -124,6 +131,9 @@ class EquationsMaker:
 
 
    def makeRFVs_BSI(self):
+      onevar = ROOT.RooConstVar("VarOne","VarOne",1.0)
+      self.rrvars["one"]=onevar
+
    # Construct muF/V
       if self.GHmodel==1:
          muF = ROOT.RooFormulaVar("muF_{0:.0f}TeV".format(self.sqrts), "@0*@1*@2", ROOT.RooArgList(self.rrvars["R"],self.rrvars["RF"], self.rrvars["Rsqrts"],self.rrvars["RFsqrts"], self.rrvars["GHratio"]))
@@ -151,44 +161,52 @@ class EquationsMaker:
       # ggVV FORMULAE
       # In signals and interferences, @0==muF/V; additionally in interferences, @1==kbkg_gg/VBF
       if self.anomCoupl == 1: # Full parameterization with fai1=[-1, 1], and phases phiai1 and phia1_gg, phia1_VBF (phia1 are different since the bkg phase could be different)
-         # 0-3 are templates, @1==fai1, @2==phiai1
-         self.ggSigFormula_list.append("@0*(1-abs(@1))")
-         self.ggSigFormula_list.append("@0*sign(@1)*sqrt(abs(@1)*(1-abs(@1)))*cos(@2)")
-         self.ggSigFormula_list.append("@0*sign(@1)*sqrt(abs(@1)*(1-abs(@1)))*sin(@2)")
-         self.ggSigFormula_list.append("@0*abs(@1)")
-         # 0-3 are templates, @2==fai1, @3==phiai1, @4==phia1 (gg)
-         self.ggInterfFormula_list.append("sqrt(@0*@1)*sqrt(1-abs(@2))*cos(@4)")
-         self.ggInterfFormula_list.append("sqrt(@0*@1)*sqrt(1-abs(@2))*sin(@4)")
-         self.ggInterfFormula_list.append("sqrt(@0*@1)*sign(@2)*sqrt(abs(@2))*cos(@3+@4)")
-         self.ggInterfFormula_list.append("sqrt(@0*@1)*sign(@2)*sqrt(abs(@2))*sin(@3+@4)")
+         # 0-3 are templates, @0==fai1, @1==phiai1
+         self.ggSigFormula_list.append("(1-abs(@0))")
+         self.ggSigFormula_list.append("sign(@0)*sqrt(abs(@0)*(1-abs(@0)))*cos(@1)")
+         self.ggSigFormula_list.append("sign(@0)*sqrt(abs(@0)*(1-abs(@0)))*sin(@1)")
+         self.ggSigFormula_list.append("abs(@0)")
+         # 0-3 are templates, @1==fai1, @2==phiai1, @3==phia1 (gg)
+         self.ggInterfFormula_list.append("sqrt(@0)*sqrt(1-abs(@1))*cos(@3)")
+         self.ggInterfFormula_list.append("sqrt(@0)*sqrt(1-abs(@1))*sin(@3)")
+         self.ggInterfFormula_list.append("sqrt(@0)*sign(@1)*sqrt(abs(@1))*cos(@2+@3)")
+         self.ggInterfFormula_list.append("sqrt(@0)*sign(@1)*sqrt(abs(@1))*sin(@2+@3)")
       elif self.anomCoupl == 2: # No phases, just fai1=[-1, 1]
-         # 0-2 are templates, @1==fai1
-         self.ggSigFormula_list.append("@0*(1-abs(@1))")
-         self.ggSigFormula_list.append("@0*sign(@1)*sqrt(abs(@1)*(1-abs(@1)))")
-         self.ggSigFormula_list.append("@0*abs(@1)")
-         # 0-1 are templates, @2==fai1
-         self.ggInterfFormula_list.append("sqrt(@0*@1)*sqrt(1-abs(@2))")
-         self.ggInterfFormula_list.append("sqrt(@0*@1)*sign(@2)*sqrt(abs(@2))")
+         # 0-2 are templates, @0==fai1
+         self.ggSigFormula_list.append("(1-abs(@0))")
+         self.ggSigFormula_list.append("sign(@0)*sqrt(abs(@0)*(1-abs(@0)))")
+         self.ggSigFormula_list.append("abs(@0)")
+         # 0-1 are templates, @1==fai1
+         self.ggInterfFormula_list.append("sqrt(@0)*sqrt(1-abs(@1))")
+         self.ggInterfFormula_list.append("sqrt(@0)*sign(@1)*sqrt(abs(@1))")
       else: # No ai1 dependence
-         self.ggSigFormula_list.append("@0")
-         self.ggInterfFormula_list.append("sqrt(@0*@1)")
+         self.ggSigFormula_list.append("1")
+         self.ggInterfFormula_list.append("sqrt(@0)")
 
       for irfv in range(0,len(self.ggSigFormula_list)):
-         rfvname = "HVV_Sig_AC_{0:.0f}_Coef".format(irfv)
+         rfvname_noMu = "HVV_Sig_ai1_{0:.0f}_noMu_Coef".format(irfv)
+         rfvname = "HVV_Sig_ai1_{0:.0f}_Coef".format(irfv)
          rfvargs = ROOT.RooArgList()
-         rfvargs.add(self.rrvars["muF"])
+         #rfvargs.add(self.rrvars["muF"])
          if self.anomCoupl == 1:
             rfvargs.add(self.rrvars["fai1"])
             rfvargs.add(self.rrvars["phiai1"])
          elif self.anomCoupl == 2:
             rfvargs.add(self.rrvars["fai1"])
-         seg_rfv = ROOT.RooFormulaVar( rfvname , self.ggSigFormula_list[irfv] , rfvargs )
-         self.ggSigRFV_list.append(seg_rfv)
+         seg_rfv = None
+         if len(self.ggSigFormula_list)>1:
+            seg_rfv = ROOT.RooFormulaVar( rfvname_noMu , self.ggSigFormula_list[irfv] , rfvargs )
+         else:
+            seg_rfv = self.rrvars["one"]
+         seg_rfv2 = ROOT.RooFormulaVar( rfvname , "@0*@1" , ROOT.RooArgList(self.rrvars["muF"] , seg_rfv) )
+         self.ggSigRFV_noMu_list.append(seg_rfv)
+         self.ggSigRFV_list.append(seg_rfv2)
 
       for irfv in range(0,len(self.ggInterfFormula_list)):
-         rfvname = "HVV_Interf_AC_{0:.0f}_Coef".format(irfv)
+         rfvname_noMu = "HVV_Interf_ai1_{0:.0f}_noMu_Coef".format(irfv)
+         rfvname = "HVV_Interf_ai1_{0:.0f}_Coef".format(irfv)
          rfvargs = ROOT.RooArgList()
-         rfvargs.add(self.rrvars["muF"])
+         #rfvargs.add(self.rrvars["muF"])
          rfvargs.add(self.rrvars["kbkg_gg"])
          if self.anomCoupl == 1:
             rfvargs.add(self.rrvars["fai1"])
@@ -196,61 +214,71 @@ class EquationsMaker:
             rfvargs.add(self.rrvars["phia1_gg"])
          elif self.anomCoupl == 2:
             rfvargs.add(self.rrvars["fai1"])
-         seg_rfv = ROOT.RooFormulaVar( rfvname , self.ggInterfFormula_list[irfv] , rfvargs )
-         self.ggInterfRFV_list.append(seg_rfv)
+         seg_rfv = ROOT.RooFormulaVar( rfvname_noMu , self.ggInterfFormula_list[irfv] , rfvargs )
+         seg_rfv2 = ROOT.RooFormulaVar( rfvname , "sqrt(@0)*@1" , ROOT.RooArgList(self.rrvars["muF"] , seg_rfv) )
+         self.ggInterfRFV_noMu_list.append(seg_rfv)
+         self.ggInterfRFV_list.append(seg_rfv2)
 
 
       # vvVV FORMULAE
-      # In signals and interferences, @0==muV; additionally in interferences, @1==kbkg_VBF
+      # In signals and interferences, @0==muV; additionally in interferences, @0==kbkg_VBF
       if self.anomCoupl == 1: # Full parameterization with fai1=[-1, 1], and phases phiai1 and phia1_gg, phia1_VBF (phia1 are different since the bkg phase could be different)
-         # 0-8 are templates, @1==fai1, @2==phiai1
-         self.VBFSigFormula_list.append("@0*pow((1-abs(@1)),2)")
-         self.VBFSigFormula_list.append("@0*sign(@1)*sqrt(abs(@1))*pow(sqrt(1-abs(@1)),3)*cos(@2)")
-         self.VBFSigFormula_list.append("@0*sign(@1)*sqrt(abs(@1))*pow(sqrt(1-abs(@1)),3)*sin(@2)")
-         self.VBFSigFormula_list.append("@0*abs(@1)*(1-abs(@1))")
-         self.VBFSigFormula_list.append("@0*abs(@1)*(1-abs(@1))*cos(2*@2)")
-         self.VBFSigFormula_list.append("@0*abs(@1)*(1-abs(@1))*sin(2*@2)")
-         self.VBFSigFormula_list.append("@0*sign(@1)*pow(sqrt(abs(@1)),3)*sqrt(1-abs(@1))*cos(@2)")
-         self.VBFSigFormula_list.append("@0*sign(@1)*pow(sqrt(abs(@1)),3)*sqrt(1-abs(@1))*sin(@2)")
-         self.VBFSigFormula_list.append("@0*pow(@1,2)")
-         # 0-5 are templates, @2==fai1, @3==phiai1, @4==phia1 (VBF)
-         self.VBFInterfFormula_list.append("sqrt(@0*@1)*(1-abs(@2))*cos(2*@4)")
-         self.VBFInterfFormula_list.append("sqrt(@0*@1)*(1-abs(@2))*sin(2*@4)")
-         self.VBFInterfFormula_list.append("sqrt(@0*@1)*sign(@2)*sqrt(abs(@2)*(1-abs(@2)))*cos(@3+2*@4)")
-         self.VBFInterfFormula_list.append("sqrt(@0*@1)*sign(@2)*sqrt(abs(@2)*(1-abs(@2)))*sin(@3+2*@4)")
-         self.VBFInterfFormula_list.append("sqrt(@0*@1)*abs(@2)*cos(2*(@3+@4))")
-         self.VBFInterfFormula_list.append("sqrt(@0*@1)*abs(@2)*sin(2*(@3+@4))")
+         # 0-8 are templates, @0==fai1, @1==phiai1
+         self.VBFSigFormula_list.append("pow((1-abs(@0)),2)")
+         self.VBFSigFormula_list.append("sign(@0)*sqrt(abs(@0))*pow(sqrt(1-abs(@0)),3)*cos(@1)")
+         self.VBFSigFormula_list.append("sign(@0)*sqrt(abs(@0))*pow(sqrt(1-abs(@0)),3)*sin(@1)")
+         self.VBFSigFormula_list.append("abs(@0)*(1-abs(@0))")
+         self.VBFSigFormula_list.append("abs(@0)*(1-abs(@0))*cos(2*@1)")
+         self.VBFSigFormula_list.append("abs(@0)*(1-abs(@0))*sin(2*@1)")
+         self.VBFSigFormula_list.append("sign(@0)*pow(sqrt(abs(@0)),3)*sqrt(1-abs(@0))*cos(@1)")
+         self.VBFSigFormula_list.append("sign(@0)*pow(sqrt(abs(@0)),3)*sqrt(1-abs(@0))*sin(@1)")
+         self.VBFSigFormula_list.append("pow(@0,2)")
+         # 0-5 are templates, @1==fai1, @2==phiai1, @3==phia1 (VBF)
+         self.VBFInterfFormula_list.append("sqrt(@0)*(1-abs(@1))*cos(2*@3)")
+         self.VBFInterfFormula_list.append("sqrt(@0)*(1-abs(@1))*sin(2*@3)")
+         self.VBFInterfFormula_list.append("sqrt(@0)*sign(@1)*sqrt(abs(@1)*(1-abs(@1)))*cos(@2+2*@3)")
+         self.VBFInterfFormula_list.append("sqrt(@0)*sign(@1)*sqrt(abs(@1)*(1-abs(@1)))*sin(@2+2*@3)")
+         self.VBFInterfFormula_list.append("sqrt(@0)*abs(@1)*cos(2*(@2+@3))")
+         self.VBFInterfFormula_list.append("sqrt(@0)*abs(@1)*sin(2*(@2+@3))")
       elif self.anomCoupl == 2: # No phases, just fai1=[-1, 1]
-         # 0-4 are templates, @1==fai1
-         self.VBFSigFormula_list.append("@0*pow((1-abs(@1)),2)")
-         self.VBFSigFormula_list.append("@0*sign(@1)*sqrt(abs(@1))*pow(sqrt(1-abs(@1)),3)")
-         self.VBFSigFormula_list.append("@0*abs(@1)*(1-abs(@1))")
-         self.VBFSigFormula_list.append("@0*sign(@1)*pow(sqrt(abs(@1)),3)*sqrt(1-abs(@1))")
-         self.VBFSigFormula_list.append("@0*pow(@1,2)")
-         # 0-2 are templates, @2==fai1
-         self.VBFInterfFormula_list.append("sqrt(@0*@1)*(1-abs(@2))")
-         self.VBFInterfFormula_list.append("sqrt(@0*@1)*sign(@2)*sqrt(abs(@2)*(1-abs(@2)))")
-         self.VBFInterfFormula_list.append("sqrt(@0*@1)*abs(@2)")
+         # 0-4 are templates, @0==fai1
+         self.VBFSigFormula_list.append("pow((1-abs(@0)),2)")
+         self.VBFSigFormula_list.append("sign(@0)*sqrt(abs(@0))*pow(sqrt(1-abs(@0)),3)")
+         self.VBFSigFormula_list.append("abs(@0)*(1-abs(@0))")
+         self.VBFSigFormula_list.append("sign(@0)*pow(sqrt(abs(@0)),3)*sqrt(1-abs(@0))")
+         self.VBFSigFormula_list.append("pow(@0,2)")
+         # 0-2 are templates, @1==fai1
+         self.VBFInterfFormula_list.append("sqrt(@0)*(1-abs(@1))")
+         self.VBFInterfFormula_list.append("sqrt(@0)*sign(@1)*sqrt(abs(@1)*(1-abs(@1)))")
+         self.VBFInterfFormula_list.append("sqrt(@0)*abs(@1)")
       else: # No ai1 dependence
-         self.VBFSigFormula_list.append("@0")
-         self.VBFInterfFormula_list.append("sqrt(@0*@1)")
+         self.VBFSigFormula_list.append("1")
+         self.VBFInterfFormula_list.append("sqrt(@0)")
 
       for irfv in range(0,len(self.VBFSigFormula_list)):
-         rfvname = "vvHVV_Sig_AC_{0:.0f}_Coef".format(irfv)
+         rfvname_noMu = "vvHVV_Sig_ai1_{0:.0f}_noMu_Coef".format(irfv)
+         rfvname = "vvHVV_Sig_ai1_{0:.0f}_Coef".format(irfv)
          rfvargs = ROOT.RooArgList()
-         rfvargs.add(self.rrvars["muV"])
+         #rfvargs.add(self.rrvars["muV"])
          if self.anomCoupl == 1:
             rfvargs.add(self.rrvars["fai1"])
             rfvargs.add(self.rrvars["phiai1"])
          elif self.anomCoupl == 2:
             rfvargs.add(self.rrvars["fai1"])
-         seg_rfv = ROOT.RooFormulaVar( rfvname , self.VBFSigFormula_list[irfv] , rfvargs )
-         self.VBFSigRFV_list.append(seg_rfv)
+         if len(self.ggSigFormula_list)>1:
+            seg_rfv = ROOT.RooFormulaVar( rfvname_noMu , self.VBFSigFormula_list[irfv] , rfvargs )
+         else:
+            seg_rfv = self.rrvars["one"]
+         seg_rfv = ROOT.RooFormulaVar( rfvname_noMu , self.VBFSigFormula_list[irfv] , rfvargs )
+         seg_rfv2 = ROOT.RooFormulaVar( rfvname , "@0*@1" , ROOT.RooArgList(self.rrvars["muV"] , seg_rfv) )
+         self.VBFSigRFV_noMu_list.append(seg_rfv)
+         self.VBFSigRFV_list.append(seg_rfv2)
 
       for irfv in range(0,len(self.VBFInterfFormula_list)):
-         rfvname = "vvHVV_Interf_AC_{0:.0f}_Coef".format(irfv)
+         rfvname_noMu = "vvHVV_Interf_ai1_{0:.0f}_noMu_Coef".format(irfv)
+         rfvname = "vvHVV_Interf_ai1_{0:.0f}_Coef".format(irfv)
          rfvargs = ROOT.RooArgList()
-         rfvargs.add(self.rrvars["muV"])
+         #rfvargs.add(self.rrvars["muV"])
          rfvargs.add(self.rrvars["kbkg_VBF"])
          if self.anomCoupl == 1:
             rfvargs.add(self.rrvars["fai1"])
@@ -258,7 +286,9 @@ class EquationsMaker:
             rfvargs.add(self.rrvars["phia1_VBF"])
          elif self.anomCoupl == 2:
             rfvargs.add(self.rrvars["fai1"])
-         seg_rfv = ROOT.RooFormulaVar( rfvname , self.VBFInterfFormula_list[irfv] , rfvargs )
-         self.VBFInterfRFV_list.append(seg_rfv)
+         seg_rfv = ROOT.RooFormulaVar( rfvname_noMu , self.VBFInterfFormula_list[irfv] , rfvargs )
+         seg_rfv2 = ROOT.RooFormulaVar( rfvname , "sqrt(@0)*@1" , ROOT.RooArgList(self.rrvars["muV"] , seg_rfv) )
+         self.VBFInterfRFV_noMu_list.append(seg_rfv)
+         self.VBFInterfRFV_list.append(seg_rfv2)
 
 
