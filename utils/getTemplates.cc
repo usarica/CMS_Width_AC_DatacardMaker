@@ -93,6 +93,7 @@ void getDataTree(TString cinput){
   int nevents=data->sumEntries();
   int nvars=((const RooArgSet*)data->get())->getSize();
   double* KD = new double[nvars];
+  double mass;
 
   TString coutput_root;
   TFile* foutput;
@@ -100,7 +101,7 @@ void getDataTree(TString cinput){
   foutput = TFile::Open(coutput_root, "recreate");
 
   TTree* t = new TTree("data_obs", "");
-  for (int iv=0; iv<nvars; iv++) t->Branch(Form("CMS_zz4l_widthKD%i", iv+1), KD+iv);
+  for (int iv=0; iv<nvars; iv++) t->Branch(Form("KD%i", iv+1), KD+iv);
 
   for (int ev=0; ev<nevents; ev++){
     const RooArgSet* args = (const RooArgSet*)data->get(ev);
@@ -109,6 +110,11 @@ void getDataTree(TString cinput){
     unsigned int ik=0;
     while ((coef = (const RooAbsArg*)coefIter->Next())){
       const RooAbsReal* rvar = dynamic_cast<const RooAbsReal*>(coef);
+      TString rname = rvar->GetName();
+      if (rname.Contains("mass") || rname.Contains("Mass")){
+        mass=rvar->getVal();
+        if (t->GetBranchStatus("mass")==0) t->Branch("mass", &mass);
+      }
       KD[ik]=rvar->getVal();
       ik++;
     }

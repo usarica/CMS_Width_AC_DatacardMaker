@@ -27,26 +27,22 @@ class EquationsMaker:
       self.rrvars["lumi"]=var
 
    # Variables for the template dimensions
-      varname = "CMS_zz4l_widthMass"
+      varname = "mass"
       var = ROOT.RooRealVar(varname, varname, self.mLow, self.mHigh)
       var.setBins(69) # To be reset later
       self.rrvars["mass"]=var
-      varname = "CMS_zz4l_widthKD1"
+      varname = "KD1"
       var = ROOT.RooRealVar(varname, varname, 0., 0., 1.)
       var.setBins(30) # To be reset later
       self.rrvars["KD1"]=var
-      varname = "CMS_zz4l_widthKD2"
+      varname = "KD2"
       var = ROOT.RooRealVar(varname, varname, 0., 0., 1.)
       var.setBins(30) # To be reset later
       self.rrvars["KD2"]=var
-      varname = "CMS_zz4l_widthKD3"
+      varname = "KD3"
       var = ROOT.RooRealVar(varname, varname, 0., 0., 1.)
       var.setBins(30) # To be reset later
       self.rrvars["KD3"]=var
-      varname = "CMS_zz4l_widthKDint"
-      var = ROOT.RooRealVar(varname, varname, -1., 1.)
-      var.setBins(30) # To be reset later
-      self.rrvars["KDint"]=var
 
    # Variables for signal and bkg strength
       muF = None

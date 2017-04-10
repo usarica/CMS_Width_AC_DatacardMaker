@@ -110,24 +110,44 @@ class WidthDatacardMaker:
       self.workspace.importClassCode(ROOT.VerticalInterpPdf.Class(),True)
 
       # Other input-independent RooRealVars are taken from the equations maker class
-      eqnrrvars = dict(self.theEqnsMaker.rrvars)
+      eqnrrvars = self.theEqnsMaker.rrvars
       self.theLumi = eqnrrvars["lumi"]
       self.mass = eqnrrvars["mass"]
 
       self.onevar = eqnrrvars["one"]
 
+      # Determine all observables and rename them for mass range, final state, category and data period
+      #addVarMassName = "i{0}_e{1}_{2}_{3}_{4}TeV".format(
+      addVarMassName = "i{0}_e{1}_{2}_{3}TeV".format(
+         FloatToString(self.mLow), FloatToString(self.mHigh),
+         #self.theChannelName, self.catName, FloatToString(self.sqrts)
+         self.catName, FloatToString(self.sqrts)
+      )
+      addVarMassName.replace(".","p")
+      addVarName = "{}_{}".format("mass", addVarMassName)
+
       self.KD1=None
       self.KD2=None
       self.KD3=None
       self.dataVars = ROOT.RooArgSet()
-      self.dataVars.add(self.mass)
+      KDsHaveMass=False
       for coord in self.coordList:
          if self.KD3 is not None:
-            raise RuntimeError("There are >3 KDs in the list of coordinates, which is nt cupported.")
+            raise RuntimeError("There are >3 KDs in the list of coordinates, which is not cupported.")
          for key, value in eqnrrvars.iteritems():
             if key==coord:
-               if key!="mass":
-                  self.dataVars.add(value)
+
+               repName=addVarName
+               if "mass" in key:
+                  repName = addVarMassName
+                  KDsHaveMass=True
+               newVarName = "{}_{}".format(value.GetName(),repName)
+               if not("CMS_zz4l" in newVarName):
+                  newVarName = "CMS_zz4l_{}".format(newVarName)
+               print "Renaming",value.GetName(),"to",newVarName
+               value.SetName(newVarName)
+
+               self.dataVars.add(value)
                if self.KD1 is None:
                   self.KD1=value
                elif self.KD2 is None:
@@ -136,6 +156,13 @@ class WidthDatacardMaker:
                   self.KD3=value
                else:
                   sys.exit("Too many KDs!")
+
+      if not KDsHaveMass:
+         newVarName = "{}_{}".format(self.mass.GetName(),addVarMassName)
+         if not("CMS_zz4l" in newVarName):
+            newVarName = "CMS_zz4l_{}".format(newVarName)
+         print "Renaming",self.mass.GetName(),"to",newVarName
+         self.mass.SetName(newVarName)
 
       self.theBunches = [] # To keep track of which files are open
       self.pdfList = []
@@ -309,29 +336,13 @@ class WidthDatacardMaker:
          getattr(self.workspace, 'import')(procNorm,ROOT.RooFit.RecycleConflictNodes())
 
       # Get the data
-      data_obs = ROOT.RooDataSet("dummy", "dummy", self.dataVars)
-      self.theDataFile = ROOT.TFile.Open(self.dataFileName,"read")
-      if not self.theDataFile:
-         print "Data tree is not found!"
-         self.theDataRDS = data_obs
-      else:
-         self.theDataTree = self.theDataFile.Get(self.dataTreeName)
-         if not self.theDataTree:
-            print "File, \"", self.dataFileName, "\" or tree \"", self.dataTreeName, "\" is not found."
-            self.theDataRDS = data_obs
-         else:
-            datasetName = "data_obs_full"
-            data_obs = ROOT.RooDataSet(datasetName, datasetName, self.theDataTree, self.dataVars)
-            self.theDataRDS = data_obs.reduce("{0}>={1} && {0}<{2}".format(self.mass.GetName(), FloatToString(self.mLow), FloatToString(self.mHigh)))
-      self.theDataRDS.SetName("data_obs")
-      getattr(self.workspace, 'import')(self.theDataRDS, ROOT.RooFit.Rename("data_obs"))
+      self.GetData()
 
       # Plot the pdfs
       print "Now plotting the pdfs and rates"
       self.PlotPdfs()
       self.PlotRates()
 
-      #self.workspace.Print("v")
       # Write the workspace
       print "Now writing workspace"
       self.theWorkspaceFile = ROOT.TFile.Open(self.workspaceFileName,"recreate")
@@ -351,6 +362,52 @@ class WidthDatacardMaker:
       # Garbage collection
       for bunch in self.theBunches:
          bunch.close()
+
+
+   def GetData(self):
+      data_obs = ROOT.RooDataSet("dummy", "dummy", self.dataVars)
+      self.theDataFile = ROOT.TFile.Open(self.dataFileName,"read")
+      if not self.theDataFile:
+         print "Data tree is not found!"
+         self.theDataRDS = data_obs
+      else:
+         self.theDataTree = self.theDataFile.Get(self.dataTreeName)
+         if not self.theDataTree:
+            print "File, \"", self.dataFileName, "\" or tree \"", self.dataTreeName, "\" is not found."
+            self.theDataRDS = data_obs
+         else:
+            del(data_obs)
+
+            dataHasMass=False
+            if self.theDataTree.GetBranchStatus(self.mass.GetName()):
+               self.dataVars.add(self.mass) # If mass is already present in list of data variables, this line does nothing.
+               dataHasMass=True
+
+            datasetName = "data_obs_full"
+            data_obs = ROOT.RooDataSet(datasetName, datasetName, self.dataVars)
+
+            dataScalars = dict()
+            for coord in self.coordList:
+               dataScalars[coord] = array('d', [0])
+            if dataHasMass:
+               dataScalars["mass"] = array('d', [0])
+            for name,var in dataScalars.iteritems():
+               self.theDataTree.SetBranchAddress(name,var)
+            for ev in range(0,self.theDataTree.GetEntries()):
+               self.theDataTree.GetEntry(ev)
+               for name,var in dataScalars.iteritems():
+                  self.theEqnsMaker.rrvars[name].setVal(var[0])
+               data_obs.add(self.dataVars)
+
+            if dataHasMass:
+               data_obs_rds = data_obs.reduce("{0}>={1} && {0}<{2}".format(self.mass.GetName(), FloatToString(self.mLow), FloatToString(self.mHigh)))
+            else:
+               data_obs_rds = data_obs
+               print "Data does not have ",self.mass.GetName(),"as a variable."
+            self.theDataRDS = data_obs_rds
+      self.theDataRDS.SetName("data_obs")
+      self.theDataRDS.Print("v")
+      getattr(self.workspace, 'import')(self.theDataRDS, ROOT.RooFit.Rename("data_obs"))
 
 
    def WriteDatacard(self):
@@ -459,7 +516,7 @@ class WidthDatacardMaker:
                   PlotPdf1D(tmppdf,tmprate,self.KD2,self.plotsPathName)
                if self.KD3 is not None:
                   PlotPdf1D(tmppdf,tmprate,self.KD3,self.plotsPathName)
-               args = self.getProcessSystVars(tmpnorm.GetName())
+               args = self.GetProcessSystVars(tmpnorm.GetName())
                for arg in args:
                   defval = arg.getVal()
                   setvals = [ -1., 1. ]
@@ -482,13 +539,13 @@ class WidthDatacardMaker:
             if proc[0] in tmpnorm.GetName():
                procFound=True
                isBkg = (proc[3]==0)
-         args = self.getProcessSystVars(tmpnorm.GetName())
+         args = self.GetProcessSystVars(tmpnorm.GetName())
          if not isBkg:
             args.append(self.theEqnsMaker.rrvars["fai1"])
          if len(args)>0:
             PlotRate(tmpnorm,args,self.plotsPathName)
 
-   def getProcessSystVars(self,procidname):
+   def GetProcessSystVars(self,procidname):
       args = []
       for name,systvar in self.theSystVarsDict.iteritems():
          if systvar.hasClients():
