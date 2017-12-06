@@ -366,9 +366,9 @@ class BSITemplateHelper:
             rfvargs.add(self.ggInterfRFV_list[ivar])
             rfvargs.add(self.ggInterfFunctions_Args[ivar].theRate)
             if ivar==0:
-               strformula = "@{0:.0f}*@{1:,0f}".format(2*ivar,2*ivar+1)
+               strformula = "@{0:.0f}*@{1:.0f}".format(2*ivar,2*ivar+1)
             else:
-               strformula = "{2} + @{0:.0f}*@{1:,0f}".format(2*ivar,2*ivar+1,strformula)
+               strformula = "{2} + @{0:.0f}*@{1:.0f}".format(2*ivar,2*ivar+1,strformula)
          rfvname = "{}InterfRate_{}".format(self.processName,self.templateSuffix)
          self.ggInterfRates_RooFormulaVar = ROOT.RooFormulaVar( rfvname , strformula , rfvargs )
 

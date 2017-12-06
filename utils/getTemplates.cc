@@ -135,6 +135,8 @@ void getTemplates(TString cinput, double lumiScale=1, bool scale_width=true){
   strinput = splitinput.at(splitinput.size()-1); splitinput.clear();
   splitOptionRecursive(strinput, splitinput, '/');
 
+  gSystem->Exec("mkdir -p test/13TeV");
+
   const unsigned int nchans=3;
   string channames[nchans]={ "4mu", "4e", "2e2mu" };
   string channame;

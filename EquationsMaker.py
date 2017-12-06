@@ -61,7 +61,7 @@ class EquationsMaker:
       varname = "GGsm"
       var = ROOT.RooRealVar(varname, varname, 1., 0., 50.)
       var.setBins(500)
-      self.rrvars[varname]=var
+      self.rrvars["GHratio"]=var
       varname = "CMS_zz4l_GHrefval"
       var = ROOT.RooConstVar(varname, varname, self.GHrefval)
       self.rrvars["GHrefval"]=var
@@ -132,7 +132,7 @@ class EquationsMaker:
 
    # Construct muF/V
       if self.GHmodel==1:
-         muF = ROOT.RooFormulaVar("muF_{0:.0f}TeV".format(self.sqrts), "@0*@1*@2", ROOT.RooArgList(self.rrvars["R"],self.rrvars["RF"], self.rrvars["Rsqrts"],self.rrvars["RFsqrts"], self.rrvars["GHratio"]))
+         muF = ROOT.RooFormulaVar("muF_{0:.0f}TeV".format(self.sqrts), "@0*@1*@2*@3*@4", ROOT.RooArgList(self.rrvars["R"],self.rrvars["RF"], self.rrvars["Rsqrts"],self.rrvars["RFsqrts"], self.rrvars["GHratio"]))
          muV = ROOT.RooFormulaVar("muV_{0:.0f}TeV".format(self.sqrts), "@0*@1*@2*@3*@4", ROOT.RooArgList(self.rrvars["R"],self.rrvars["RV"], self.rrvars["Rsqrts"],self.rrvars["RVsqrts"], self.rrvars["GHratio"]))
       elif self.GHmodel==-1:
          muF = ROOT.RooFormulaVar("muF_{0:.0f}TeV".format(self.sqrts), "@0*@1*@2*@3/@4", ROOT.RooArgList(self.rrvars["R"],self.rrvars["RF"], self.rrvars["Rsqrts"],self.rrvars["RFsqrts"], self.rrvars["GHratio"]))

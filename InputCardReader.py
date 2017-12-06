@@ -87,7 +87,7 @@ class InputCardReader:
             channame = f[1]
             chanrate = 1.0
             chanlumi = -1.0
-            iBkg = 0 # 0 for sig or BSI, 1 for bkg-only
+            iBkg = 0 # 0 bkg-only, 1 for sig and 2 for BSI
             if len(f)>2:
                chanrate = float(f[2])
                if len(f)>3:
@@ -157,8 +157,8 @@ class InputCardReader:
          raise RuntimeError("{0} is empty. Check inputs!".format("channels"))
       #if not self.isGoodEntry(self.parameters):
       #   raise RuntimeError("{0} is empty. Check inputs!".format("parameters"))
-      if not self.isGoodEntry(self.systematics):
-         raise RuntimeError("{0} is empty. Check inputs!".format("systematics"))
+      #if not self.isGoodEntry(self.systematics):
+      #   raise RuntimeError("{0} is empty. Check inputs!".format("systematics"))
 
       # Make the dictionaries of each channel, parameter, systematic
       for par in self.channels:
