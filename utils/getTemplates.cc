@@ -204,7 +204,7 @@ void getTemplates(TString cinput, double lumiScale=1, bool scale_width=true){
     else procSpecs[procname.at(ip).Data()]=process_spec(pdf, norm, procrate.at(ip));
   }
 
-  // Get systemtics
+  // Get systematics
   unordered_map<string, string> logSyst;
   unordered_map<string, string> paramSyst;
   while (!tin.eof()){
@@ -277,7 +277,7 @@ void getTemplates(TString cinput, double lumiScale=1, bool scale_width=true){
   // Write channels
   for (unsigned int ip=0; ip<procname.size(); ip++) tout << "channel " << procname.at(ip) << " 1 -1 " << (procSpecs[procname.at(ip).Data()].name.Contains("bkg") ? 0 : 1) << endl;
 
-  // Write systemtics
+  // Write systematics
   for (unsigned int ip=0; ip<procname.size(); ip++){
     for (auto syst = procSpecs[procname.at(ip).Data()].systematics.begin(); syst != procSpecs[procname.at(ip).Data()].systematics.end(); ++syst){
       if (syst->second.first=="shape1"){
@@ -309,7 +309,8 @@ void getTemplates(TString cinput, double lumiScale=1, bool scale_width=true){
           continue;
         }
         for (unsigned int is=0; is<2; is++){
-          systvar->setVal(double(2*is-1));
+          systvar->setVal(double(2*is)-1);
+          cout << "Setting param systematic " << systvar->GetName() << " to " << double(2*is)-1 << endl;
           coutput_root = Form("test/13TeV/HtoZZ%s_%s_FinalTemplates_%s_%s%s%s", channame.c_str(), catname.c_str(), procname.at(ip).Data(), syst->first.c_str(), (is==0 ? "Down" : "Up"), ".root");
           foutput = TFile::Open(coutput_root, "recreate");
           extractTemplates(procSpecs[procname.at(ip).Data()], data, "", scale_width);
