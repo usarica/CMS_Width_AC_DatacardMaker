@@ -145,6 +145,7 @@ def makeWidthDatacards():
 
 
 # run the create_RM_cfg() as main()
-if __name__ == "__main__": makeWidthDatacards()
+if __name__ == "__main__":
+   makeWidthDatacards()
 
 

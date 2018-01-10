@@ -10,7 +10,7 @@ from CategoryHelper import CategoryHelper
 from ExtendedTemplate import ExtendedTemplate
 
 class BkgTemplateHelper:
-   def __init__(self, options, theMaker, theCategorizer, procname, templateFileName, iCat, systName):
+   def __init__(self, options, theMaker, theCategorizer, theProcess, templateFileName, iCat, systName):
       self.condDim = 0
       # sqrts and channel index from the datacard maker class
       self.sqrts = theMaker.sqrts
@@ -35,7 +35,22 @@ class BkgTemplateHelper:
       if self.iCat>=self.nCategories:
          sys.exit("self.iCat={} >= self.nCategories={}!".format(self.iCat,self.nCategories))
 
-      self.procname = procname
+      self.procname = theProcess[0]
+      self.procopts = theProcess[4]
+      self.condDim = 0
+      for procopt in self.procopts:
+         if "conditional" in procopt:
+            self.condDim = 2**int("kd1" in procopt) * 3**int("kd2" in procopt) * 5**int("kd3" in procopt)
+      if self.condDim==1:
+         self.condDim=0
+      if self.condDim>0:
+         self.condVars = ROOT.RooArgSet()
+         if self.condDim%2==0:
+            self.condVars.add(self.KD1)
+         if self.condDim%3==0:
+            self.condVars.add(self.KD2)
+         if self.condDim%5==0:
+            self.condVars.add(self.KD3)
 
       self.templateFileName = templateFileName
       self.systName = systName
@@ -88,169 +103,42 @@ class BkgTemplateHelper:
 
 #---------- TEMPLATES AND PDFS -------------
    # Construct the p.d.f.s
-      # qq bkg
-      if("gg" in self.procname.lower() or "vbf" in self.procname.lower() or "vbs" in self.procname.lower()):
-         # Construct the templates
-         self.bkgTpl = ExtendedTemplate(
-                  self.templateFile.Get(self.templatePrefix).Clone("{}_{}".format(self.templatePrefix,self.templateSuffix)),
-                  self.dimensions,
-                  self.KD1, self.KD2, self.KD3
-               )
-         PdfName = "{}_{}".format(self.procname, self.templateSuffix)
+      if not("gg" in self.procname.lower() or "vbf" in self.procname.lower() or "vbs" in self.procname.lower() or "qq" in self.procname.lower() or "zx" in self.procname.lower() or "zjets" in self.procname.lower()):
+         print "BkgTemplateHelper::getTemplates({}): Process might not be a background!".format(self.procname)
+
+      # Construct the templates
+      self.bkgTpl = ExtendedTemplate(
+               self.templateFile.Get(self.templatePrefix).Clone("{}_{}".format(self.templatePrefix,self.templateSuffix)),
+               self.dimensions,
+               self.KD1, self.KD2, self.KD3,
+               self.condDim
+            )
+      PdfName = "{}_{}".format(self.procname, self.templateSuffix)
+
+      if self.condDim>0:
+         HistPdfName = "{}_others_{}".format(self.procname, self.templateSuffix)
+         self.bkgHistPdf = ROOT.RooRealFlooredSumPdf(
+            HistPdfName, HistPdfName,
+            ROOT.RooArgList(self.bkgTpl.theHistFunc),ROOT.RooArgList()
+         )
+         self.bkgPdf_extras.append(bkgHistPdf)
+         MassPdfName = "{}_mass_{}".format(self.procname, self.templateSuffix)
+         MassPdfInName = "{}_mass".format(self.templatePrefix)
+         bkgMassPdf = self.templateFile.Get(MassPdfInName).Clone(MassPdfName)
+         self.bkgPdf_extras.append(bkgMassPdf)
+         self.bkgPdf = ROOT.RooProdPdf(
+            PdfName, PdfName,
+            ROOT.RooArgSet( bkgMassPdf ),
+            ROOT.RooFit.Conditional(
+               ROOT.RooArgSet( bkgHistPdf ),
+               self.condVars
+            )
+         )
+      else:
          self.bkgPdf = ROOT.RooRealFlooredSumPdf(
             PdfName, PdfName,
             ROOT.RooArgList(self.bkgTpl.theHistFunc),ROOT.RooArgList()
          )
-
-      # qq bkg
-      elif("qq" in self.procname.lower()):
-         # Construct the templates
-         self.bkgTpl = ExtendedTemplate(
-                  self.templateFile.Get(self.templatePrefix).Clone("{}_{}".format(self.templatePrefix,self.templateSuffix)),
-                  self.dimensions,
-                  self.KD1, self.KD2, self.KD3
-               )
-         PdfName = "{}_{}".format(self.procname, self.templateSuffix)
-         self.bkgPdf = ROOT.RooRealFlooredSumPdf(
-            PdfName, PdfName,
-            ROOT.RooArgList(self.bkgTpl.theHistFunc),ROOT.RooArgList()
-         )
-
-      # Z+X bkg
-      elif("zx" in self.procname.lower() or "zjets" in self.procname.lower()):
-         self.condDim = (self.KD1==self.mass)*2 + (self.KD2==self.mass)*3 + (self.KD3==self.mass)*5
-         print "Zjets template condDim =",self.condDim
-         # Construct the templates
-         self.bkgTpl = ExtendedTemplate(
-                  self.templateFile.Get(self.templatePrefix).Clone("{}_{}".format(self.templatePrefix,self.templateSuffix)),
-                  self.dimensions,
-                  self.KD1, self.KD2, self.KD3,
-                  self.condDim
-               )
-         PdfName = "{}_{}".format(self.procname, self.templateSuffix)
-         if self.condDim>0:
-            HistPdfName = "{}_others_{}".format(self.procname, self.templateSuffix)
-            self.bkgHistPdf = ROOT.RooRealFlooredSumPdf(
-               HistPdfName, HistPdfName,
-               ROOT.RooArgList(self.bkgTpl.theHistFunc),ROOT.RooArgList()
-            )
-            self.bkgPdf_extras.append(bkgHistPdf)
-
-            val_mean_3P1F = float(self.theInputs['zjetsShape_mean_3P1F'])
-            val_sigma_3P1F = float(self.theInputs['zjetsShape_sigma_3P1F'])
-            val_norm_3P1F = float(self.theInputs['zjetsShape_norm_3P1F'])
-            var_mean_3P1F = None
-            var_sigma_3P1F = None
-            var_norm_3P1F = None
-            pdf_3P1F = None
-            if val_norm_3P1F>0.:
-               tmpname = "{}_mass_3p1f_mean_{}".format(self.procname, self.templateSuffix)
-               var_mean_3P1F = ROOT.RooRealVar(tmpname, "mean landau Zjet 3p1f", val_mean_3P1F)
-               tmpname = "{}_mass_3p1f_sigma_{}".format(self.procname, self.templateSuffix)
-               var_sigma_3P1F = ROOT.RooRealVar(tmpname, "sigma landau Zjet 3p1f", val_sigma_3P1F)
-               tmpname = "{}_mass_3p1f_norm_{}".format(self.procname, self.templateSuffix)
-               var_norm_3P1F = ROOT.RooRealVar(tmpname, "norm landau Zjet 3p1f", val_norm_3P1F)
-               pdf_3P1F = ROOT.RooLandau(
-                  "{}_mass_3p1f_{}".format(self.procname, self.templateSuffix),
-                  "{}_mass_3p1f_{}".format(self.procname, self.templateSuffix),
-                  self.mass,
-                  var_mean_3P1F, var_sigma_3P1F
-               )
-
-            val_mean_2P2F = float(self.theInputs['zjetsShape_mean_2P2F'])
-            val_sigma_2P2F = float(self.theInputs['zjetsShape_sigma_2P2F'])
-            val_norm_2P2F = float(self.theInputs['zjetsShape_norm_2P2F'])
-            val_pol0_2P2F = float(self.theInputs['zjetsShape_pol0_2P2F'])
-            val_pol1_2P2F = float(self.theInputs['zjetsShape_pol1_2P2F'])
-            var_mean_2P2F = None
-            var_sigma_2P2F = None
-            var_norm_2P2F = None
-            var_pol0_2P2F = None
-            var_pol1_2P2F = None
-            pdf_2P2F = None
-            if val_norm_2P2F>0.:
-               tmpname = "{}_mass_2p2f_mean_{}".format(self.procname, self.templateSuffix)
-               var_mean_2P2F = ROOT.RooRealVar(tmpname, "mean landau Zjet 2p2f", val_mean_2P2F)
-               tmpname = "{}_mass_2p2f_sigma_{}".format(self.procname, self.templateSuffix)
-               var_sigma_2P2F = ROOT.RooRealVar(tmpname, "sigma landau Zjet 2p2f", val_sigma_2P2F)
-               tmpname = "{}_mass_2p2f_norm_{}".format(self.procname, self.templateSuffix)
-               var_norm_2P2F = ROOT.RooRealVar(tmpname, "norm landau Zjet 2p2f", val_norm_2P2F)
-               if val_pol1_2P2F==0.:
-                  pdf_2P2F = ROOT.RooLandau(
-                     "{}_mass_2p2f_{}".format(self.procname, self.templateSuffix),
-                     "{}_mass_2p2f_{}".format(self.procname, self.templateSuffix),
-                     self.mass,
-                     var_mean_2P2F, var_sigma_2P2F
-                  )
-               else:
-                  tmpname = "{}_mass_2p2f_pol0_{}".format(self.procname, self.templateSuffix)
-                  var_pol0_2P2F = ROOT.RooRealVar(tmpname, "pol0 landau Zjet 2p2f", val_pol0_2P2F)
-                  tmpname = "{}_mass_2p2f_pol1_{}".format(self.procname, self.templateSuffix)
-                  var_pol1_2P2F = ROOT.RooRealVar(tmpname, "pol1 landau Zjet 2p2f", val_pol1_2P2F)
-                  pdf_2P2F = ROOT.RooGenericPdf(
-                     "{}_mass_2p2f_{}".format(self.procname, self.templateSuffix),
-                     "{}_mass_2p2f_{}".format(self.procname, self.templateSuffix),
-                     "(TMath::Landau(@0,@1,@2))*(1.+ TMath::Exp(@3+@4*@0))",
-                     ROOT.RooArgList(
-                        self.mass,
-                        var_mean_2P2F, var_sigma_2P2F,
-                        var_pol0_2P2F, var_pol1_2P2F
-                     )
-                  )
-
-            # For 2e2mu if needed
-            val_mean_2P2F_2 = float(self.theInputs['zjetsShape_mean_2P2F_2'])
-            val_sigma_2P2F_2 = float(self.theInputs['zjetsShape_sigma_2P2F_2'])
-            val_norm_2P2F_2 = float(self.theInputs['zjetsShape_norm_2P2F_2'])
-            var_mean_2P2F_2 = None
-            var_sigma_2P2F_2 = None
-            var_norm_2P2F_2 = None
-            pdf_2P2F_2 = None
-            if val_norm_2P2F_2>0.:
-               tmpname = "{}_mass_2p2f_2_mean_{}".format(self.procname, self.templateSuffix)
-               var_mean_2P2F_2 = ROOT.RooRealVar(tmpname, "mean landau Zjet 2p2f_2", val_mean_2P2F_2)
-               tmpname = "{}_mass_2p2f_2_sigma_{}".format(self.procname, self.templateSuffix)
-               var_sigma_2P2F_2 = ROOT.RooRealVar(tmpname, "sigma landau Zjet 2p2f_2", val_sigma_2P2F_2)
-               tmpname = "{}_mass_2p2f_2_norm_{}".format(self.procname, self.templateSuffix)
-               var_norm_2P2F_2 = ROOT.RooRealVar(tmpname, "norm landau Zjet 2p2f_2", val_norm_2P2F_2)
-               pdf_2P2F_2 = ROOT.RooLandau(
-                  "{}_mass_2p2f_2_{}".format(self.procname, self.templateSuffix),
-                  "{}_mass_2p2f_2_{}".format(self.procname, self.templateSuffix),
-                  self.mass,
-                  var_mean_2P2F_2, var_mean_2P2F_2
-               )
-
-            MassPdfName = "{}_mass_{}".format(self.procname, self.templateSuffix)
-            pdflist = ROOT.RooArgList()
-            coeflist = ROOT.RooArgList()
-            if ((pdf_3P1F is not None) and (var_norm_3P1F is not None)):
-               pdflist.add(pdf_3P1F)
-               coeflist.add(var_norm_3P1F)
-               self.bkgPdf_extras.append(pdf_3P1F)
-            if ((pdf_2P2F is not None) and (var_norm_2P2F is not None)):
-               pdflist.add(pdf_2P2F)
-               coeflist.add(var_norm_2P2F)
-               self.bkgPdf_extras.append(pdf_2P2F)
-            if ((pdf_2P2F_2 is not None) and (var_norm_2P2F_2 is not None)):
-               pdflist.add(pdf_2P2F_2)
-               coeflist.add(var_norm_2P2F_2)
-               self.bkgPdf_extras.append(pdf_2P2F_2)
-            bkgMassPdf = ROOT.RooAddPdf(MassPdfName,MassPdfName,pdflist,coeflist)
-            self.bkgPdf_extras.append(bkgMassPdf)
-
-            self.bkgPdf = ROOT.RooProdPdf(
-               PdfName, PdfName,
-               ROOT.RooArgSet( bkgMassPdf ),
-               ROOT.RooFit.Conditional(
-                   ROOT.RooArgSet( bkgHistPdf ),
-                   ROOT.RooArgSet( self.mass )
-               )
-            )
-         else:
-            self.bkgPdf = ROOT.RooRealFlooredSumPdf(
-               PdfName, PdfName,
-               ROOT.RooArgList(self.bkgTpl.theHistFunc),ROOT.RooArgList()
-            )
       print self.bkgPdf.GetName(),"value =",self.bkgPdf.getVal()
       print self.bkgTpl.theRate.GetName(),"rate =",self.bkgTpl.theRate.getVal()
 

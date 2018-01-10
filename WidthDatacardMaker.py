@@ -136,7 +136,6 @@ class WidthDatacardMaker:
             raise RuntimeError("There are >3 KDs in the list of coordinates, which is not cupported.")
          for key, value in eqnrrvars.iteritems():
             if key==coord:
-
                repName=addVarName
                if "mass" in key:
                   repName = addVarMassName
@@ -207,10 +206,10 @@ class WidthDatacardMaker:
          systName = "Nominal"
          templateFileName = "{0}/{1:.0f}TeV/{2}{3}_{4}{5}".format(self.templateDir, self.sqrts, templateFileNameMain, procname, systName, ".root")
          if proctype==0:
-            bunchNominal = BkgTemplateHelper(self.options,self,self.theCategorizer,procname,templateFileName,self.iCat,systName)
+            bunchNominal = BkgTemplateHelper(self.options,self,self.theCategorizer,proc,templateFileName,self.iCat,systName)
             bunchNominal.getTemplates()
          else:
-            bunchNominal = BSITemplateHelper(self.options,self,self.theEqnsMaker,self.theCategorizer,procname,proctype,templateFileName,self.iCat,systName)
+            bunchNominal = BSITemplateHelper(self.options,self,self.theEqnsMaker,self.theCategorizer,proc,templateFileName,self.iCat,systName)
             bunchNominal.getTemplates(processName=procname)
          self.theBunches.append(bunchNominal)
 

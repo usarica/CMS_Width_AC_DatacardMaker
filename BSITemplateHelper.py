@@ -10,7 +10,7 @@ from CategoryHelper import CategoryHelper
 from ExtendedTemplate import ExtendedTemplate
 
 class BSITemplateHelper:
-   def __init__(self, options, theMaker, theEqnsMaker, theCategorizer, procname, proctype, templateFileName, iCat, systName):
+   def __init__(self, options, theMaker, theEqnsMaker, theCategorizer, theProcess, templateFileName, iCat, systName):
       # sqrts and channel index from the datacard maker class
       self.sqrts = theMaker.sqrts
       self.channel = theMaker.channel
@@ -64,8 +64,24 @@ class BSITemplateHelper:
       # Template file
       self.templateFile = None
 
-      self.procname = procname
-      self.proctype = proctype
+      self.procname = theProcess[0]
+      self.proctype = theProcess[3]
+      self.procopts = theProcess[4]
+      self.condDim = 0
+      for procopt in self.procopts:
+         if "conditional" in procopt:
+            self.condDim = 2**int("kd1" in procopt) * 3**int("kd2" in procopt) * 5**int("kd3" in procopt)
+      if self.condDim==1:
+         self.condDim=0
+      if self.condDim>0:
+         self.condVars = ROOT.RooArgSet()
+         if self.condDim%2==0:
+            self.condVars.add(self.KD1)
+         if self.condDim%3==0:
+            self.condVars.add(self.KD2)
+         if self.condDim%5==0:
+            self.condVars.add(self.KD3)
+
       self.isGGVVLikeCouplings = self.procname.lower().startswith("gg") or self.procname.lower().startswith("tt")
       self.isSigOnly = self.proctype==1
 

@@ -88,13 +88,20 @@ class InputCardReader:
             chanrate = 1.0
             chanlumi = -1.0
             iBkg = 0 # 0 bkg-only, 1 for sig and 2 for BSI
+            chanopts=[]
             if len(f)>2:
                chanrate = float(f[2])
                if len(f)>3:
                   chanlumi = float(f[3])
                   if len(f)>4:
                      iBkg = int(f[4])
-            chanlist = [ channame, chanrate, chanlumi, iBkg ]
+                     if len(f)>5:
+                        strchanopts=f[5].lower()
+                        if strchanopts.startswith("options:"):
+                           strchanopts=chanopts[8:]
+                           chanopts=strchanopts.split(';')
+
+            chanlist = [ channame, chanrate, chanlumi, iBkg, chanopts ]
             self.channels.append(chanlist)
 
          if f[0].lower().startswith("parameter"):
