@@ -230,10 +230,10 @@ class WidthDatacardMaker:
                         templateFileName = "{0}/{1:.0f}TeV/{2}{3}_{4}{5}".format(self.templateDir,self.sqrts,templateFileNameMain,procname,systName,".root")
                         bunchVar = None
                         if proctype==0:
-                           bunchVar = BkgTemplateHelper(self.options,self,self.theCategorizer,procname,templateFileName,self.iCat,systName)
+                           bunchVar = BkgTemplateHelper(self.options,self,self.theCategorizer,proc,templateFileName,self.iCat,systName)
                            bunchVar.getTemplates()
                         else:
-                           bunchVar = BSITemplateHelper(self.options,self,self.theEqnsMaker,self.theCategorizer,procname,proctype,templateFileName,self.iCat,systName)
+                           bunchVar = BSITemplateHelper(self.options,self,self.theEqnsMaker,self.theCategorizer,proc,templateFileName,self.iCat,systName)
                            bunchVar.getTemplates(processName=procname)
                         tmplist.append(bunchVar)
                         self.theBunches.append(bunchVar)

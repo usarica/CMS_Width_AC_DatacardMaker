@@ -3,6 +3,14 @@ decay 4e
 lumi 35.8671
 category Inclusive
 channel ggZZ_offshell 1 -1 2
-#channel VVZZ_offshell 1 -1 2
+channel VVZZ_offshell 1 -1 2
 channel qqZZ 1 -1 0
 #channel ZJets 1 -1 0
+# SYSTEMATICS
+systematic LepEff template ggZZ_offshell:0:1 VVZZ_offshell:0:1 qqZZ:0:1
+systematic PDFScale template ggZZ_offshell:0:1 VVZZ_offshell:0:1 qqZZ:0:1
+systematic QCDScale template ggZZ_offshell:0:1 VVZZ_offshell:0:1 qqZZ:0:1
+systematic PDFReplica template ggZZ_offshell:0:1 VVZZ_offshell:0:1 qqZZ:0:1
+systematic AsMZ template ggZZ_offshell:0:1 VVZZ_offshell:0:1 qqZZ:0:1
+systematic PDFScale template ggZZ_offshell:0:1 VVZZ_offshell:0:1 qqZZ:0:1
+systematic EWCorr template qqZZ:0:1
