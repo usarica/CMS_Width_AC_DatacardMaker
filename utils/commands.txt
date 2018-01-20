@@ -1,0 +1,22 @@
+python ../../../../HiggsAnalysis/CombinedLimit/scripts/combineCards.py \
+  ch1=13TeV/hzz2e2mu_Inclusive.txt ch2=13TeV/hzz4mu_Inclusive.txt ch3=13TeV/hzz4e_Inclusive.txt \
+  ch7=Onshell/hzz4l_4muS_Untagged_2016.lumi35.8671.txt ch8=Onshell/hzz4l_4muS_VBFtagged_2016.lumi35.8671.txt ch9=Onshell/hzz4l_4muS_VHHadrtagged_2016.lumi35.8671.txt \
+  ch10=Onshell/hzz4l_4eS_Untagged_2016.lumi35.8671.txt ch11=Onshell/hzz4l_4eS_VBFtagged_2016.lumi35.8671.txt ch12=Onshell/hzz4l_4eS_VHHadrtagged_2016.lumi35.8671.txt \
+  ch13=Onshell/hzz4l_2e2muS_Untagged_2016.lumi35.8671.txt ch14=Onshell/hzz4l_2e2muS_VBFtagged_2016.lumi35.8671.txt ch15=Onshell/hzz4l_2e2muS_VHHadrtagged_2016.lumi35.8671.txt \
+  > hzz4l_Prop_All_13_16TeV.txt
+
+python ../../../../HiggsAnalysis/CombinedLimit/scripts/text2workspace.py \
+  -m 125 hzz4l_Prop_All_13_16TeV.txt -o hzz4l_Prop_All_13_16TeV.root \
+  -P HiggsAnalysis.CombinedLimit.SpinZeroStructure:multiSignalSpinZeroHiggs \
+  --PO="offshell" --PO="allowPMF" --PO="sqrts=13"
+
+
+
+combine -M MultiDimFit hzz4l_Prop_All_13_16TeV.root --algo=grid --X-rtd OPTIMIZE_BOUNDS=0 --X-rtd TMCSO_AdaptivePseudoAsimov=0 --includePOIEdges=1 -m 125 \
+  --saveNLL --saveSpecifiedNuis=all --saveSpecifiedFunc=R,RV,RF,R_13TeV,RV_13TeV,RF_13TeV \
+  -v 3 -S 1 -t -1 --points 200 \
+  -n test \
+  --redefineSignalPOIs="GGsm" --freezeNuisances="CMS_zz4l_fai1" \
+#  --redefineSignalPOIs="CMS_zz4l_fai1" --setPhysicsModelParameterRanges "CMS_zz4l_fai1=-0.01,0.01" --freezeNuisances="GGsm" \
+  --fastScan \
+  |& tee logtest.log
