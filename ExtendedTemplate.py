@@ -31,7 +31,7 @@ class ExtendedTemplate:
             else:
                axis=self.origTemplate.GetZaxis()
             axisBinning = self.getBinningFromHistogram(axis)
-            theVars[v].setBinning(self.getBinningFromHistogram(axisBinning))
+            theVars[v].setBinning(axisBinning)
             theVars[v].setVal((axisBinning.lowBound()+axisBinning.highBound())/2.)
 
       TemplateName = self.origTemplate.GetName() # Template name contains extra suffix if already cloned
@@ -60,11 +60,11 @@ class ExtendedTemplate:
       isNormY = (self.condDim>0 and self.condDim%3==0)
       isNormZ = (self.condDim>0 and self.condDim%5==0)
       if self.dimensions==3:
-         self.theTemplate = ROOT.FastHisto3D_d(self.origTemplate, isNormX, isNormY, isNormZ)
-         self.theHistFunc = ROOT.FastHisto3DFunc_d(newname,"",self.obslist,self.theTemplate)
+         self.theTemplate = ROOT.FastHisto3D_f(self.origTemplate, isNormX, isNormY, isNormZ)
+         self.theHistFunc = ROOT.FastHisto3DFunc_f(newname,"",self.obslist,self.theTemplate)
       elif self.dimensions==2:
-         self.theTemplate = ROOT.FastHisto2D_d(self.origTemplate, isNormX, isNormY)
-         self.theHistFunc = ROOT.FastHisto2DFunc_d(newname,"",self.obslist,self.theTemplate)
+         self.theTemplate = ROOT.FastHisto2D_f(self.origTemplate, isNormX, isNormY)
+         self.theHistFunc = ROOT.FastHisto2DFunc_f(newname,"",self.obslist,self.theTemplate)
       else:
-         self.theTemplate = ROOT.FastHisto_d(self.origTemplate, isNormX)
-         self.theHistFunc = ROOT.FastHistoFunc_d(newname,"",self.obslist,self.theTemplate)
+         self.theTemplate = ROOT.FastHisto_f(self.origTemplate, isNormX)
+         self.theHistFunc = ROOT.FastHistoFunc_f(newname,"",self.obslist,self.theTemplate)
