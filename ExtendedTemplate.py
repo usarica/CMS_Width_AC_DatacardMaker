@@ -30,12 +30,9 @@ class ExtendedTemplate:
                axis=self.origTemplate.GetYaxis()
             else:
                axis=self.origTemplate.GetZaxis()
-            aBins = axis.GetNbins()
-            aLow = axis.GetXmin()
-            aHigh = axis.GetXmax()
-            theVars[v].setBins(aBins)
-            theVars[v].setRange(aLow,aHigh)
-            theVars[v].setVal((aHigh+aLow)/2.)
+            axisBinning = self.getBinningFromHistogram(axis)
+            theVars[v].setBinning(self.getBinningFromHistogram(axisBinning))
+            theVars[v].setVal((axisBinning.lowBound()+axisBinning.highBound())/2.)
 
       TemplateName = self.origTemplate.GetName() # Template name contains extra suffix if already cloned
       HistFuncName = "{}_HistFunc".format(TemplateName)
@@ -46,6 +43,16 @@ class ExtendedTemplate:
       RateName = "{}_Rate".format(TemplateName)
       self.theRate = ROOT.RooConstVar(RateName,RateName,integral)
       print "Template",TemplateName,"has integral =",self.theRate.getVal()
+
+
+   def getBinningFromHistogram(self,axis):
+      aBins = axis.GetNbins()
+      aLow = axis.GetXmin()
+      aHigh = axis.GetXmax()
+      aBinning = ROOT.RooBinning(aLow, aHigh)
+      for ix in range(1,aBins):
+         aBinning.addBoundary(axis.GetBinLowEdge(ix+1))
+      return aBinning
 
 
    def getHistFunc(self,newname):
