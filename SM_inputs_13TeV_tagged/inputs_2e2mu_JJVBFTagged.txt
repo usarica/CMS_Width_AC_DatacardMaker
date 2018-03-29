@@ -39,4 +39,4 @@ systematic CMS_eff_mu template ggZZ_offshell:0:1 VVZZ_offshell:0:1 qqZZ:0:1
 systematic CMS_scale_pythia template ggZZ_offshell:0:1 VVZZ_offshell:0:1
 systematic CMS_tune_pythia template ggZZ_offshell:0:1 VVZZ_offshell:0:1
 # JEC systematic
-#systematic CMS_scale_j_13TeV_2016 template ggZZ_offshell:0:1 VVZZ_offshell:0:1 qqZZ:0:1
+systematic CMS_scale_j_13TeV_2016 template ggZZ_offshell:0:1 VVZZ_offshell:0:1 qqZZ:0:1

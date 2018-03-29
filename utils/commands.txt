@@ -24,8 +24,8 @@ combine -M MultiDimFit hzz4l_Prop_All_13_16TeV.root --algo=grid --X-rtd OPTIMIZE
 
 
 
-for p in L1 a2 a3; do pushd "cards_180328_"$p"_test1/HCG/Scans/"; ./submitScanExp.sh fai1Floated_GGsmFixed_13_16TeV hzz4l_Prop_All_13_16TeV.root fai1 2001; popd; done
-for p in L1 a2 a3; do pushd "cards_180328_"$p"_test1/HCG/Scans/"; ./submitScanExp.sh GGsmFloated_fai1Fixed_13_16TeV hzz4l_Prop_All_13_16TeV.root GGsm 201; popd; done
+for p in L1 a2 a3; do pushd "cards_180328_"$p"_test1/HCG/Scans/"; ./submitScanExp.sh fai1Floated_GGsmFixed_13_16TeV hzz4l_Prop_All_13_16TeV.root fai1 2001 0.25; popd; done
+for p in L1 a2 a3; do pushd "cards_180328_"$p"_test1/HCG/Scans/"; ./submitScanExp.sh GGsmFloated_fai1Fixed_13_16TeV hzz4l_Prop_All_13_16TeV.root GGsm 201 50; popd; done
 
 
 combineCards.py \
