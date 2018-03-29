@@ -204,7 +204,7 @@ class WidthDatacardMaker:
 
          # Nominal pdf and rate
          systName = "Nominal"
-         templateFileName = "{0}/{1:.0f}TeV/{2}{3}_{4}{5}".format(self.templateDir, self.sqrts, templateFileNameMain, procname, systName, ".root")
+         templateFileName = "{0}/{1}{2}_{3}{4}".format(self.templateDir, templateFileNameMain, procname, systName, ".root")
          if proctype==0:
             bunchNominal = BkgTemplateHelper(self.options,self,self.theCategorizer,proc,templateFileName,self.iCat,systName)
             bunchNominal.getTemplates()
@@ -227,7 +227,7 @@ class WidthDatacardMaker:
                            systName = "{}Up".format(systName)
                         else:
                            systName = "{}Down".format(systName)
-                        templateFileName = "{0}/{1:.0f}TeV/{2}{3}_{4}{5}".format(self.templateDir,self.sqrts,templateFileNameMain,procname,systName,".root")
+                        templateFileName = "{0}/{1}{2}_{3}{4}".format(self.templateDir,templateFileNameMain,procname,systName,".root")
                         bunchVar = None
                         if proctype==0:
                            bunchVar = BkgTemplateHelper(self.options,self,self.theCategorizer,proc,templateFileName,self.iCat,systName)
@@ -283,8 +283,6 @@ class WidthDatacardMaker:
             self.extraRateList.append(procRateExtra)
 
          # Construct the ultimate pdf and rate for the process
-         procPdf = None
-         procRate = None
          if len(bunchVariations)>0:
             print "Bunch variations are found. Constructing VerticalInterpPdf pdf and AsymQuad rate..."
             morphVarList = ROOT.RooArgList()
@@ -312,11 +310,16 @@ class WidthDatacardMaker:
          self.rateList.append(procRate)
 
          normname = procname + "_norm"
-         procNorm = None
          if procRateExtra is None:
-            procNorm = ROOT.RooFormulaVar(normname, "TMath::Max(@0*@1,1e-15)", ROOT.RooArgList(procRate, self.theLumi))
+            if procname.lower() == "zjets" or procname.lower() == "zx":
+               procNorm = ROOT.RooFormulaVar(normname, "TMath::Max(@0,1e-15)", ROOT.RooArgList(procRate))
+            else:
+               procNorm = ROOT.RooFormulaVar(normname, "TMath::Max(@0*@1,1e-15)", ROOT.RooArgList(procRate, self.theLumi))
          else:
-            procNorm = ROOT.RooFormulaVar(normname, "TMath::Max(@0*@1*@2,1e-15)", ROOT.RooArgList(procRate, procRateExtra, self.theLumi))
+            if procname.lower() == "zjets" or procname.lower() == "zx":
+               procNorm = ROOT.RooFormulaVar(normname, "TMath::Max(@0*@1,1e-15)", ROOT.RooArgList(procRate, procRateExtra))
+            else:
+               procNorm = ROOT.RooFormulaVar(normname, "TMath::Max(@0*@1*@2,1e-15)", ROOT.RooArgList(procRate, procRateExtra, self.theLumi))
          self.normList.append(procNorm)
 
          print "Last check on pdf value:",procPdf.getVal(),"at"

@@ -20,9 +20,10 @@ echo $CMSSW_VERSION
 
 wname=$1
 outname=$2
-let firstpoint=$3
-let lastpoint=$4
-poi=$5
+poi=$3
+let npoints=$4
+let firstpoint=$5
+let lastpoint=$6
 
 cmdadd=""
 if [ $firstpoint -ge 0 ];then
@@ -37,14 +38,14 @@ fi
 
 if [[ "$poi" == "GGsm" ]];then
   echo "POI is GGsm"
-  cmdadd=$cmdadd" --redefineSignalPOIs=GGsm --freezeNuisances=CMS_zz4l_fai1"
+  cmdadd=$cmdadd" --redefineSignalPOIs=GGsm --freezeNuisances=CMS_zz4l_fai1,kbkg_VBF"
 elif [[ "$poi" == "fai1" ]];then
   echo "POI is fai1"
-  cmdadd=$cmdadd" --redefineSignalPOIs=CMS_zz4l_fai1 --freezeNuisances=GGsm --setPhysicsModelParameterRanges CMS_zz4l_fai1=-0.1,0.1"
+  cmdadd=$cmdadd" --redefineSignalPOIs=CMS_zz4l_fai1 --freezeNuisances=GGsm,kbkg_VBF --setPhysicsModelParameterRanges CMS_zz4l_fai1=-0.15,0.15"
 fi
 
 
-cmd="-M MultiDimFit "$wname" --algo=grid --X-rtd OPTIMIZE_BOUNDS=0 --X-rtd TMCSO_AdaptivePseudoAsimov=0 --includePOIEdges=1 -m 125 --saveNLL --saveSpecifiedNuis=all --saveSpecifiedFunc=R,RV,RF,R_13TeV,RV_13TeV,RF_13TeV -v 3 -S 1 -t -1 --points 200 -n "$outname" "$cmdadd
+cmd="-M MultiDimFit "$wname" --algo=grid --X-rtd OPTIMIZE_BOUNDS=0 --X-rtd TMCSO_AdaptivePseudoAsimov=0 --alignEdges=1 -m 125 --saveNLL --saveSpecifiedNuis=all --saveSpecifiedFunc=R,RV,RF,R_13TeV,RV_13TeV,RF_13TeV -v 3 -S 1 -t -1 --points "$npoints" -n "$outname" "$cmdadd
 
 echo "Command: combine "$cmd
 combine $cmd

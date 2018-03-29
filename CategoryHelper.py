@@ -15,11 +15,11 @@ class CategoryHelper:
       if(self.iCatScheme == 0): # No categorization
          self.catNameList.append("Inclusive")
       elif(self.iCatScheme == 1): # icat==0: VBF, ==1: Untagged
-         self.catNameList.append("VBFtagged")
+         self.catNameList.append("JJVBFTagged")
          self.catNameList.append("Untagged")
       elif(self.iCatScheme == 2): # icat==0: VBF, ==1: VH, ==3: Untagged
-         self.catNameList.append("VBFtagged")
-         self.catNameList.append("VHHadrtagged")
+         self.catNameList.append("JJVBFTagged")
+         self.catNameList.append("HadVHTagged")
          self.catNameList.append("Untagged")
       else: # No categorization
          raise RuntimeError(
