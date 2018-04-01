@@ -18,12 +18,13 @@ class EquationsMaker:
       self.GHmodel = options.GHmodel
       self.GHrefval = options.GHrefval
       self.sqrts = theInputCard.sqrts
+      self.theSqrtsPeriod = theInputCard.theSqrtsPeriod
       self.lumi = theInputCard.lumi
 
       self.rrvars = dict()
 
       # LUMI
-      var = ROOT.RooConstVar("LUMI_{0:.0f}TeV".format(self.sqrts), "LUMI_{0:.0f}TeV".format(self.sqrts), self.lumi)
+      var = ROOT.RooConstVar("LUMI_{0}".format(self.theSqrtsPeriod), "LUMI_{0}".format(self.theSqrtsPeriod), self.lumi)
       self.rrvars["lumi"]=var
 
    # Variables for the template dimensions

@@ -92,6 +92,7 @@ class WidthDatacardMaker:
       self.coordList = options.coordList
 
       self.sqrts = self.theInputCard.sqrts
+      self.theSqrtsPeriod = self.theInputCard.theSqrtsPeriod
       self.channel = self.theInputCard.decayChan
       self.theChannelName = self.theInputCard.decayChanName
       self.catName = self.theCategorizer.catNameList[self.iCat]
@@ -118,10 +119,10 @@ class WidthDatacardMaker:
 
       # Determine all observables and rename them for mass range, final state, category and data period
       #addVarMassName = "i{0}_e{1}_{2}_{3}_{4}TeV".format(
-      addVarMassName = "i{0}_e{1}_{2}_{3}TeV".format(
+      addVarMassName = "i{0}_e{1}_{2}_{3}".format(
          FloatToString(self.mLow), FloatToString(self.mHigh),
          #self.theChannelName, self.catName, FloatToString(self.sqrts)
-         self.catName, FloatToString(self.sqrts)
+         self.catName, self.theSqrtsPeriod
       )
       addVarMassName.replace(".","p")
       addVarName = "{}_{}".format("mass", addVarMassName)
@@ -174,17 +175,17 @@ class WidthDatacardMaker:
       if (self.dataAppendDir != ''):
          self.dataFileDir = "{0}_{1}".format(self.dataFileDir,self.dataAppendDir)
       self.dataTreeName = "data_obs"
-      self.dataFileName = "{0}/hzz{1}_{2}_{3:.0f}TeV.root".format(
-         self.dataFileDir, self.theChannelName, self.catName, self.sqrts
+      self.dataFileName = "{0}/hzz{1}_{2}_{3}.root".format(
+         self.dataFileDir, self.theChannelName, self.catName, self.theSqrtsPeriod
       )
-      self.datacardName = "{0}/HCG/{3:.0f}TeV/hzz{1}_{2}.txt".format(
-         self.theOutputDir, self.theChannelName, self.catName, self.sqrts
+      self.datacardName = "{0}/HCG/{3}/hzz{1}_{2}.txt".format(
+         self.theOutputDir, self.theChannelName, self.catName, self.theSqrtsPeriod
       )
-      self.workspaceFileName = "{0}/HCG/{3:.0f}TeV/hzz{1}_{2}.input.root".format(
-         self.theOutputDir, self.theChannelName, self.catName, self.sqrts
+      self.workspaceFileName = "{0}/HCG/{3}/hzz{1}_{2}.input.root".format(
+         self.theOutputDir, self.theChannelName, self.catName, self.theSqrtsPeriod
       )
-      self.plotsPathName = "{0}/figs/{3:.0f}TeV/hzz{1}_{2}/".format(
-         self.theOutputDir, self.theChannelName, self.catName, self.sqrts
+      self.plotsPathName = "{0}/figs/{3}/hzz{1}_{2}/".format(
+         self.theOutputDir, self.theChannelName, self.catName, self.theSqrtsPeriod
       )
 
       for proc in self.theInputCard.channels:
@@ -254,9 +255,9 @@ class WidthDatacardMaker:
                      for isyst in range(1,3): # Up/Dn variations
                         systName = ""
                         if (isyst==1):
-                           systName = "{0}UpConst_{1}_{2}_{3}_{4:.0f}TeV".format(systVariableName,procname,self.catName,self.theChannelName,self.sqrts)
+                           systName = "{0}UpConst_{1}_{2}_{3}_{4}".format(systVariableName,procname,self.catName,self.theChannelName,self.theSqrtsPeriod)
                         else:
-                           systName = "{0}DownConst_{1}_{2}_{3}_{4:.0f}TeV".format(systVariableName,procname,self.catName,self.theChannelName,self.sqrts)
+                           systName = "{0}DownConst_{1}_{2}_{3}_{4}".format(systVariableName,procname,self.catName,self.theChannelName,self.theSqrtsPeriod)
                         tmpvar = ROOT.RooConstVar(systName,systName,float(systchan[isyst]))
                         tmplist.append(tmpvar)
                         self.extraVars.append(tmpvar)

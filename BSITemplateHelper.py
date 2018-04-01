@@ -13,6 +13,7 @@ class BSITemplateHelper:
    def __init__(self, options, theMaker, theEqnsMaker, theCategorizer, theProcess, templateFileName, iCat, systName):
       # sqrts and channel index from the datacard maker class
       self.sqrts = theMaker.sqrts
+      self.theSqrtsPeriod = theMaker.theSqrtsPeriod
       self.channel = theMaker.channel
       self.theChannelName = theMaker.theChannelName
       self.workspace = theMaker.workspace
@@ -48,7 +49,7 @@ class BSITemplateHelper:
 
       self.templateFileName = templateFileName
       self.systName = systName
-      self.templateSuffix = "{0}_{1}_{2}_{3:.0f}TeV".format(self.systName,self.catNameList[self.iCat],self.theChannelName,self.sqrts)
+      self.templateSuffix = "{0}_{1}_{2}_{3}".format(self.systName,self.catNameList[self.iCat],self.theChannelName,self.theSqrtsPeriod)
 
       # To be reset later
       self.nbinsx=(self.mHigh - self.mLow) / 20

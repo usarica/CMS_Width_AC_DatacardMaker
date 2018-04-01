@@ -4,6 +4,7 @@ import re
 import math
 import collections
 from array import array
+from WidthHelperFunctions import GetDataPeriodString
 
 ## ---------------------------------------------------------------
 ## card reader class
@@ -24,6 +25,8 @@ class InputCardReader:
       self.lumi = None
       # sqrts
       self.sqrts = None
+      # Data period
+      self.dataperiod = None
       # Category
       self.catName = ""
 
@@ -71,6 +74,9 @@ class InputCardReader:
 
          if f[0].lower().startswith("sqrts"):
             self.sqrts = float(f[1])
+
+         if f[0].lower().startswith("period"):
+            self.dataperiod = float(f[1])
 
          if f[0].lower().startswith("decay"):
             if f[1] == "4mu": self.decayChan = 1
@@ -148,13 +154,14 @@ class InputCardReader:
 
             parlist = [ parname, partype, parconfig ]
             self.systematics.append(parlist)
-
-   def getInputs(self):
-
-      theDict = {}
-
       if not self.isGoodEntry(self.sqrts):
          raise RuntimeError("{0} is not set. Check inputs!".format("sqrts"))
+      else:
+         if self.sqrts>=13:
+            if not self.isGoodEntry(self.dataperiod):
+               raise RuntimeError("{0} is not set. Check inputs!".format("period"))
+         self.theSqrtsPeriod=GetDataPeriodString(self.sqrts,self.dataperiod)
+
       if not self.isGoodEntry(self.lumi):
          raise RuntimeError("{0} is not set. Check inputs!".format("lumi"))
       if not self.isGoodEntry(self.decayChan):
@@ -166,6 +173,10 @@ class InputCardReader:
       #   raise RuntimeError("{0} is empty. Check inputs!".format("parameters"))
       #if not self.isGoodEntry(self.systematics):
       #   raise RuntimeError("{0} is empty. Check inputs!".format("systematics"))
+
+   def getInputs(self):
+
+      theDict = {}
 
       # Make the dictionaries of each channel, parameter, systematic
       for par in self.channels:

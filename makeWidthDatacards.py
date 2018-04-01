@@ -122,11 +122,11 @@ class makeWidthDatacards:
             inputCardDir = self.opt.inputDir + "/inputs_" + ifs + "_" + CatHelper.catNameList[iCat] + ".txt"
             theInputCard = InputCardReader(inputCardDir)
 
-            pathToDatacards = "{0}/HCG/{1:.0f}TeV/".format(theOutputDir, theInputCard.sqrts)
+            pathToDatacards = "{0}/HCG/{1}/".format(theOutputDir, theInputCard.theSqrtsPeriod)
             print "Path to datacards:",pathToDatacards
             self.makeDirectory(pathToDatacards)
 
-            pathToPlots = "{0}/figs/{1:.0f}TeV/hzz{2}_{3}/".format(theOutputDir, theInputCard.sqrts, theInputCard.decayChanName, CatHelper.catNameList[iCat])
+            pathToPlots = "{0}/figs/{1}/hzz{2}_{3}/".format(theOutputDir, theInputCard.theSqrtsPeriod, theInputCard.decayChanName, CatHelper.catNameList[iCat])
             print "Path to plots:",pathToPlots
             self.makeDirectory(pathToPlots)
 

@@ -25,6 +25,7 @@ def FloatToStringScientific(inputValue,etype='e'):
 class SystematicsHelper:
    def __init__(self,theInputs):
       self.sqrts = theInputs.sqrts
+      self.theSqrtsPeriod = theInputs.theSqrtsPeriod
       self.channels = theInputs.channels
       self.systematics = theInputs.systematics
       self.systVars = []
@@ -81,7 +82,7 @@ class SystematicsHelper:
       for syst in self.systematics:
          systname = syst[0]
          if systname.lower() == "lumiunc":
-            systname = "lumi_{0:.0f}TeV".format(self.sqrts)
+            systname = "lumi_{}".format(self.theSqrtsPeriod)
          systtype = syst[1]
          systtype_ALT = systtype
          if (systtype == "template" or systtype == "quadN"):

@@ -1,15 +1,16 @@
 sqrts 13
+period 2016
 decay 2e2mu
 lumi 35.8671
 category JJVBFTagged
-channel ggZZ_offshell 1000 -1 2
-channel VVZZ_offshell 1000 -1 2
+channel ggZZ_offshell 1 -1 2
+channel VVZZ_offshell 1 -1 2
 channel qqZZ 1000 -1 0
 channel Zjets 1 -1 0
 # SYSTEMATICS
 ## COMMON
-systematic lumi_13TeV_2016 lnN ggZZ_offshell:1.026 VVZZ_offshell:1.026 qqZZ:1.026
-systematic BRhiggs_hzz4l lnN ggZZ_offshell:1.02 VVZZ_offshell:1.02 qqZZ:1.02
+systematic lumiUnc lnN ggZZ_offshell:1.026 VVZZ_offshell:1.026 qqZZ:1.026
+systematic BRhiggs_hzz4l lnN ggZZ_offshell:1.02 VVZZ_offshell:1.02
 systematic kbkg_gg param 1:0.1:0:2
 ## THEORY
 ## Systematics due to muR
@@ -33,7 +34,7 @@ systematic EWcorr_VV template qqZZ:0:1
 ## EXPERIMENT
 ## Experimental systematic due to lepton efficiency corrections
 systematic CMS_eff_e template ggZZ_offshell:0:1 VVZZ_offshell:0:1 qqZZ:0:1
-systematic CMS_eff_mu template ggZZ_offshell:0:1 VVZZ_offshell:0:1 qqZZ:0:1
+systematic CMS_eff_m template ggZZ_offshell:0:1 VVZZ_offshell:0:1 qqZZ:0:1
 ## CATEGORIZATION-SPECIFIC
 ## Pythia scale/tune systematics on signal
 systematic CMS_scale_pythia template ggZZ_offshell:0:1 VVZZ_offshell:0:1
