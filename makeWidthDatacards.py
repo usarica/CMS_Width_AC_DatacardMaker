@@ -21,8 +21,9 @@ def loadIncludes():
 class makeWidthDatacards:
    def __init__(self):
       # parse the arguments and options
-      global opt, args
       self.parseOptions()
+
+      loadIncludes()
 
       dirName = 'cards_' + self.opt.appendName
       subdir = ['HCG', 'figs']
@@ -137,7 +138,6 @@ class makeWidthDatacards:
 
 # run the create_RM_cfg() as main()
 if __name__ == "__main__":
-   loadIncludes()
    maker = makeWidthDatacards()
 
 

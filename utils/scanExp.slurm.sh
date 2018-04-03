@@ -2,8 +2,9 @@
 
 #SBATCH --time=72:0:0
 #SBATCH --nodes=1
-#SBATCH --ntasks-per-node=1
-#SBATCH --partition=shared
+#SBATCH --ntasks-per-node=2
+#SBATCH --partition=lrgmem
+#SBATCH --mem=32G
 #SBATCH --mail-type=FAIL,TIME_LIMIT_80
 #SBATCH --mail-user=usarica1@jhu.edu
 
@@ -25,6 +26,7 @@ range=$4
 let npoints=$5
 let firstpoint=$6
 let lastpoint=$7
+extarg=$8
 
 cmdadd=""
 if [ $firstpoint -ge 0 ];then
@@ -46,7 +48,7 @@ elif [[ "$poi" == "fai1" ]];then
 fi
 
 
-cmd="-M MultiDimFit "$wname" --algo=grid --X-rtd OPTIMIZE_BOUNDS=0 --X-rtd TMCSO_AdaptivePseudoAsimov=0 --alignEdges=1 -m 125 --saveNLL --saveSpecifiedNuis=all --saveSpecifiedFunc=R,RV,RF,R_13TeV,RV_13TeV,RF_13TeV -v 3 -S 1 -t -1 --points "$npoints" -n "$outname" "$cmdadd
+cmd="-M MultiDimFit "$wname" --algo=grid --X-rtd OPTIMIZE_BOUNDS=0 --X-rtd TMCSO_AdaptivePseudoAsimov=0 --alignEdges=1 -m 125 --saveNLL --saveSpecifiedNuis=all --saveSpecifiedFunc=R,RV,RF,R_13TeV,RV_13TeV,RF_13TeV -v 3 -S 1 -t -1 --points "$npoints" -n "$outname" "$cmdadd $extarg
 
 echo "Command: combine "$cmd
 combine $cmd

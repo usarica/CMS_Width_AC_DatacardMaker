@@ -24,34 +24,54 @@ combine -M MultiDimFit hzz4l_Prop_All_13_16TeV.root --algo=grid --X-rtd OPTIMIZE
 
 
 for p in L1 a2 a3; do \
-outdirname="180401_"$p"_test1"; \
-outcardsname="cards_180401_"$p"_test1"; \
+outdirname="180401_"$p"_test2"; \
+outcardsname="cards_180401_"$p"_test2"; \
 tpldir="templates2D/180317/"$p; \
 python makeWidthDatacards.py -b -i SM_inputs_13TeV_tagged -t $tpldir -a $outdirname \
 --coord "mass:KD1:KD2" --GHmodel 1 --CatScheme 2 --ac 2 --mLow 220 --mHigh 13000; \
 pushd $outcardsname"/HCG"; \
-ln -sf "/work-zfs/lhc/usarica/hep/SpinWidthPaper_2015/HIG-17-011/f"$p"/13_16TeV" Onshell; mkdir Scans; \
+ln -sf "/work-zfs/lhc/usarica/hep/SpinWidthPaper_2015/HIG-17-011/f"$p"/13_16TeV" Onshell_13TeV_2016; mkdir Scans; \
+ln -sf "/work-zfs/lhc/usarica/hep/SpinWidthPaper_2015/HIG-17-011/f"$p"/13_15TeV" Onshell_13TeV_2015; \
+ln -sf "/work-zfs/lhc/usarica/hep/SpinWidthPaper_2015/HIG-17-011/f"$p"/8TeV" Onshell_8TeV; \
+ln -sf "/work-zfs/lhc/usarica/hep/SpinWidthPaper_2015/HIG-17-011/f"$p"/7TeV" Onshell_7TeV; \
 combineCards.py \
   ch1=13TeV_2016/hzz2e2mu_Untagged.txt ch2=13TeV_2016/hzz4mu_Untagged.txt ch3=13TeV_2016/hzz4e_Untagged.txt \
   ch4=13TeV_2016/hzz2e2mu_JJVBFTagged.txt ch5=13TeV_2016/hzz4mu_JJVBFTagged.txt ch6=13TeV_2016/hzz4e_JJVBFTagged.txt \
   ch7=13TeV_2016/hzz2e2mu_HadVHTagged.txt ch8=13TeV_2016/hzz4mu_HadVHTagged.txt ch9=13TeV_2016/hzz4e_HadVHTagged.txt \
-  ch10=Onshell/hzz4l_4eS_Untagged_2016.lumi35.8671.txt ch11=Onshell/hzz4l_4eS_VBFtagged_2016.lumi35.8671.txt ch12=Onshell/hzz4l_4eS_VHHadrtagged_2016.lumi35.8671.txt \
-  ch13=Onshell/hzz4l_2e2muS_Untagged_2016.lumi35.8671.txt ch14=Onshell/hzz4l_2e2muS_VBFtagged_2016.lumi35.8671.txt ch15=Onshell/hzz4l_2e2muS_VHHadrtagged_2016.lumi35.8671.txt \
-  ch16=Onshell/hzz4l_4muS_Untagged_2016.lumi35.8671.txt ch17=Onshell/hzz4l_4muS_VBFtagged_2016.lumi35.8671.txt ch18=Onshell/hzz4l_4muS_VHHadrtagged_2016.lumi35.8671.txt \
+  ch10=Onshell_13TeV_2016/hzz4l_4eS_Untagged_2016.lumi35.8671.txt ch11=Onshell_13TeV_2016/hzz4l_4eS_VBFtagged_2016.lumi35.8671.txt ch12=Onshell_13TeV_2016/hzz4l_4eS_VHHadrtagged_2016.lumi35.8671.txt \
+  ch13=Onshell_13TeV_2016/hzz4l_2e2muS_Untagged_2016.lumi35.8671.txt ch14=Onshell_13TeV_2016/hzz4l_2e2muS_VBFtagged_2016.lumi35.8671.txt ch15=Onshell_13TeV_2016/hzz4l_2e2muS_VHHadrtagged_2016.lumi35.8671.txt \
+  ch16=Onshell_13TeV_2016/hzz4l_4muS_Untagged_2016.lumi35.8671.txt ch17=Onshell_13TeV_2016/hzz4l_4muS_VBFtagged_2016.lumi35.8671.txt ch18=Onshell_13TeV_2016/hzz4l_4muS_VHHadrtagged_2016.lumi35.8671.txt \
   > hzz4l_Prop_All_13_16TeV.txt; \
+combineCards.py \
+  ch1=13TeV_2016/hzz2e2mu_Untagged.txt ch2=13TeV_2016/hzz4mu_Untagged.txt ch3=13TeV_2016/hzz4e_Untagged.txt \
+  ch4=13TeV_2016/hzz2e2mu_JJVBFTagged.txt ch5=13TeV_2016/hzz4mu_JJVBFTagged.txt ch6=13TeV_2016/hzz4e_JJVBFTagged.txt \
+  ch7=13TeV_2016/hzz2e2mu_HadVHTagged.txt ch8=13TeV_2016/hzz4mu_HadVHTagged.txt ch9=13TeV_2016/hzz4e_HadVHTagged.txt \
+  ch10=Onshell_13TeV_2016/hzz4l_4eS_Untagged_2016.lumi35.8671.txt ch11=Onshell_13TeV_2016/hzz4l_4eS_VBFtagged_2016.lumi35.8671.txt ch12=Onshell_13TeV_2016/hzz4l_4eS_VHHadrtagged_2016.lumi35.8671.txt \
+  ch13=Onshell_13TeV_2016/hzz4l_2e2muS_Untagged_2016.lumi35.8671.txt ch14=Onshell_13TeV_2016/hzz4l_2e2muS_VBFtagged_2016.lumi35.8671.txt ch15=Onshell_13TeV_2016/hzz4l_2e2muS_VHHadrtagged_2016.lumi35.8671.txt \
+  ch16=Onshell_13TeV_2016/hzz4l_4muS_Untagged_2016.lumi35.8671.txt ch17=Onshell_13TeV_2016/hzz4l_4muS_VBFtagged_2016.lumi35.8671.txt ch18=Onshell_13TeV_2016/hzz4l_4muS_VHHadrtagged_2016.lumi35.8671.txt \
+  ch19=Onshell_13TeV_2015/hzz4l_4muS_2015.txt ch20=Onshell_13TeV_2015/hzz4l_4eS_2015.txt ch21=Onshell_13TeV_2015/hzz4l_2e2muS_2015.txt \
+  ch22=Onshell_8TeV/hzz4l_4muS_8TeV.txt ch23=Onshell_8TeV/hzz4l_4eS_8TeV.txt ch24=Onshell_8TeV/hzz4l_2e2muS_8TeV.txt \
+  ch25=Onshell_7TeV/hzz4l_4muS_7TeV.txt ch26=Onshell_7TeV/hzz4l_4eS_7TeV.txt ch27=Onshell_7TeV/hzz4l_2e2muS_7TeV.txt \
+  > hzz4l_Prop_All_7813TeV.txt; \
+head -n -2 hzz4l_Prop_All_13_16TeV.txt > hzz4l_Prop_All_13_16TeV.new.txt; mv hzz4l_Prop_All_13_16TeV.new.txt hzz4l_Prop_All_13_16TeV.txt; \
+head -n -2 hzz4l_Prop_All_7813TeV.txt > hzz4l_Prop_All_7813TeV.new.txt; mv hzz4l_Prop_All_7813TeV.new.txt hzz4l_Prop_All_7813TeV.txt; \
 text2workspace.py \
   -m 125 hzz4l_Prop_All_13_16TeV.txt -o hzz4l_Prop_All_13_16TeV.root \
   -P HiggsAnalysis.CombinedLimit.SpinZeroStructure:multiSignalSpinZeroHiggs \
   --PO="offshell" --PO="allowPMF" --PO="sqrts=13"; \
+text2workspace.py \
+  -m 125 hzz4l_Prop_All_7813TeV.txt -o hzz4l_Prop_All_7813TeV.root \
+  -P HiggsAnalysis.CombinedLimit.SpinZeroStructure:multiSignalSpinZeroHiggs \
+  --PO="offshell" --PO="allowPMF" --PO="sqrts=7,8,13"; \
 popd; \
 cp utils/submitScanExp.sh $outcardsname"/HCG/Scans/"; \
 cp utils/scanExp.slurm.sh $outcardsname"/HCG/Scans/"; \
-chmod -R 755 $outcardsname; \ 
+chmod -R 755 "$outcardsname"; \ 
 done
 
 
-for p in L1 a2 a3; do pushd "cards_180401_"$p"_test1/HCG/Scans/"; ./submitScanExp.sh fai1Floated_GGsmFixed_13_16TeV hzz4l_Prop_All_13_16TeV.root fai1 2001 0.25; popd; done
-for p in L1 a2 a3; do pushd "cards_180401_"$p"_test1/HCG/Scans/"; ./submitScanExp.sh GGsmFloated_fai1Fixed_13_16TeV hzz4l_Prop_All_13_16TeV.root GGsm 201 50; popd; done
+for p in L1 a2 a3; do pushd "cards_180401_"$p"_test2/HCG/Scans/"; ./submitScanExp.sh fai1Floated_GGsmFixed_13_16TeV hzz4l_Prop_All_13_16TeV.root fai1 2001 0.15; popd; done
+for p in L1 a2 a3; do pushd "cards_180401_"$p"_test2/HCG/Scans/"; ./submitScanExp.sh GGsmFloated_fai1Fixed_13_16TeV hzz4l_Prop_All_13_16TeV.root GGsm 201 50; popd; done
 
 
 combineCards.py \
