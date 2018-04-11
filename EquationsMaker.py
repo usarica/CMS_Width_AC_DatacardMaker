@@ -163,7 +163,7 @@ class EquationsMaker:
          self.ggSigFormula_list.append("sign(@0)*sqrt(abs(@0)*(1-abs(@0)))*cos(@1)")
          self.ggSigFormula_list.append("sign(@0)*sqrt(abs(@0)*(1-abs(@0)))*sin(@1)")
          self.ggSigFormula_list.append("abs(@0)")
-         # 0-3 are templates, @1==fai1, @2==phiai1, @3==phia1 (gg)
+         # 0-3 are templates, @0==kbkg_gg, @1==fai1, @2==phiai1, @3==phia1 (gg)
          self.ggInterfFormula_list.append("sqrt(@0)*sqrt(1-abs(@1))*cos(@3)")
          self.ggInterfFormula_list.append("sqrt(@0)*sqrt(1-abs(@1))*sin(@3)")
          self.ggInterfFormula_list.append("sqrt(@0)*sign(@1)*sqrt(abs(@1))*cos(@2+@3)")
@@ -173,18 +173,17 @@ class EquationsMaker:
          self.ggSigFormula_list.append("(1-abs(@0))")
          self.ggSigFormula_list.append("sign(@0)*sqrt(abs(@0)*(1-abs(@0)))")
          self.ggSigFormula_list.append("abs(@0)")
-         # 0-1 are templates, @1==fai1
+         # 0-1 are templates, @0==kbkg_gg, @1==fai1
          self.ggInterfFormula_list.append("sqrt(@0)*sqrt(1-abs(@1))")
          self.ggInterfFormula_list.append("sqrt(@0)*sign(@1)*sqrt(abs(@1))")
       else: # No ai1 dependence
          self.ggSigFormula_list.append("1")
-         self.ggInterfFormula_list.append("sqrt(@0)")
+         self.ggInterfFormula_list.append("sqrt(@0)") # @0==kbkg_gg
 
       for irfv in range(0,len(self.ggSigFormula_list)):
          rfvname_noMu = "HVV_Sig_ai1_{0:.0f}_noMu_Coef".format(irfv)
          rfvname = "HVV_Sig_ai1_{0:.0f}_Coef".format(irfv)
          rfvargs = ROOT.RooArgList()
-         #rfvargs.add(self.rrvars["muF"])
          if self.anomCoupl == 1:
             rfvargs.add(self.rrvars["fai1"])
             rfvargs.add(self.rrvars["phiai1"])
@@ -195,7 +194,7 @@ class EquationsMaker:
             seg_rfv = ROOT.RooFormulaVar( rfvname_noMu , self.ggSigFormula_list[irfv] , rfvargs )
          else:
             seg_rfv = self.rrvars["one"]
-         seg_rfv2 = ROOT.RooFormulaVar( rfvname , "@0*@1" , ROOT.RooArgList(self.rrvars["muF"] , seg_rfv) )
+         seg_rfv2 = ROOT.RooFormulaVar( rfvname , "abs(@0)*@1" , ROOT.RooArgList(self.rrvars["muF"] , seg_rfv) )
          self.ggSigRFV_noMu_list.append(seg_rfv)
          self.ggSigRFV_list.append(seg_rfv2)
 
@@ -203,7 +202,6 @@ class EquationsMaker:
          rfvname_noMu = "HVV_Interf_ai1_{0:.0f}_noMu_Coef".format(irfv)
          rfvname = "HVV_Interf_ai1_{0:.0f}_Coef".format(irfv)
          rfvargs = ROOT.RooArgList()
-         #rfvargs.add(self.rrvars["muF"])
          rfvargs.add(self.rrvars["kbkg_gg"])
          if self.anomCoupl == 1:
             rfvargs.add(self.rrvars["fai1"])
@@ -212,7 +210,7 @@ class EquationsMaker:
          elif self.anomCoupl == 2:
             rfvargs.add(self.rrvars["fai1"])
          seg_rfv = ROOT.RooFormulaVar( rfvname_noMu , self.ggInterfFormula_list[irfv] , rfvargs )
-         seg_rfv2 = ROOT.RooFormulaVar( rfvname , "sqrt(@0)*@1" , ROOT.RooArgList(self.rrvars["muF"] , seg_rfv) )
+         seg_rfv2 = ROOT.RooFormulaVar( rfvname , "sign(@0)*sqrt(abs(@0))*@1" , ROOT.RooArgList(self.rrvars["muF"] , seg_rfv) )
          self.ggInterfRFV_noMu_list.append(seg_rfv)
          self.ggInterfRFV_list.append(seg_rfv2)
 
@@ -230,7 +228,7 @@ class EquationsMaker:
          self.VBFSigFormula_list.append("sign(@0)*pow(sqrt(abs(@0)),3)*sqrt(1-abs(@0))*cos(@1)")
          self.VBFSigFormula_list.append("sign(@0)*pow(sqrt(abs(@0)),3)*sqrt(1-abs(@0))*sin(@1)")
          self.VBFSigFormula_list.append("pow(@0,2)")
-         # 0-5 are templates, @1==fai1, @2==phiai1, @3==phia1 (VBF)
+         # 0-5 are templates, @0==kbkg_VBF, @1==fai1, @2==phiai1, @3==phia1 (VBF)
          self.VBFInterfFormula_list.append("sqrt(@0)*(1-abs(@1))*cos(2*@3)")
          self.VBFInterfFormula_list.append("sqrt(@0)*(1-abs(@1))*sin(2*@3)")
          self.VBFInterfFormula_list.append("sqrt(@0)*sign(@1)*sqrt(abs(@1)*(1-abs(@1)))*cos(@2+2*@3)")
@@ -244,19 +242,18 @@ class EquationsMaker:
          self.VBFSigFormula_list.append("abs(@0)*(1-abs(@0))")
          self.VBFSigFormula_list.append("sign(@0)*pow(sqrt(abs(@0)),3)*sqrt(1-abs(@0))")
          self.VBFSigFormula_list.append("pow(@0,2)")
-         # 0-2 are templates, @1==fai1
+         # 0-2 are templates, @0==kbkg_VBF, @1==fai1
          self.VBFInterfFormula_list.append("sqrt(@0)*(1-abs(@1))")
          self.VBFInterfFormula_list.append("sqrt(@0)*sign(@1)*sqrt(abs(@1)*(1-abs(@1)))")
          self.VBFInterfFormula_list.append("sqrt(@0)*abs(@1)")
       else: # No ai1 dependence
          self.VBFSigFormula_list.append("1")
-         self.VBFInterfFormula_list.append("sqrt(@0)")
+         self.VBFInterfFormula_list.append("sqrt(@0)") # @0==kbkg_VBF
 
       for irfv in range(0,len(self.VBFSigFormula_list)):
          rfvname_noMu = "vvHVV_Sig_ai1_{0:.0f}_noMu_Coef".format(irfv)
          rfvname = "vvHVV_Sig_ai1_{0:.0f}_Coef".format(irfv)
          rfvargs = ROOT.RooArgList()
-         #rfvargs.add(self.rrvars["muV"])
          if self.anomCoupl == 1:
             rfvargs.add(self.rrvars["fai1"])
             rfvargs.add(self.rrvars["phiai1"])
@@ -267,7 +264,7 @@ class EquationsMaker:
          else:
             seg_rfv = self.rrvars["one"]
          seg_rfv = ROOT.RooFormulaVar( rfvname_noMu , self.VBFSigFormula_list[irfv] , rfvargs )
-         seg_rfv2 = ROOT.RooFormulaVar( rfvname , "@0*@1" , ROOT.RooArgList(self.rrvars["muV"] , seg_rfv) )
+         seg_rfv2 = ROOT.RooFormulaVar( rfvname , "abs(@0)*@1" , ROOT.RooArgList(self.rrvars["muV"] , seg_rfv) )
          self.VBFSigRFV_noMu_list.append(seg_rfv)
          self.VBFSigRFV_list.append(seg_rfv2)
 
@@ -275,7 +272,6 @@ class EquationsMaker:
          rfvname_noMu = "vvHVV_Interf_ai1_{0:.0f}_noMu_Coef".format(irfv)
          rfvname = "vvHVV_Interf_ai1_{0:.0f}_Coef".format(irfv)
          rfvargs = ROOT.RooArgList()
-         #rfvargs.add(self.rrvars["muV"])
          rfvargs.add(self.rrvars["kbkg_VBF"])
          if self.anomCoupl == 1:
             rfvargs.add(self.rrvars["fai1"])
@@ -284,7 +280,7 @@ class EquationsMaker:
          elif self.anomCoupl == 2:
             rfvargs.add(self.rrvars["fai1"])
          seg_rfv = ROOT.RooFormulaVar( rfvname_noMu , self.VBFInterfFormula_list[irfv] , rfvargs )
-         seg_rfv2 = ROOT.RooFormulaVar( rfvname , "sqrt(@0)*@1" , ROOT.RooArgList(self.rrvars["muV"] , seg_rfv) )
+         seg_rfv2 = ROOT.RooFormulaVar( rfvname , "sign(@0)*sqrt(abs(@0))*@1" , ROOT.RooArgList(self.rrvars["muV"] , seg_rfv) )
          self.VBFInterfRFV_noMu_list.append(seg_rfv)
          self.VBFInterfRFV_list.append(seg_rfv2)
 
