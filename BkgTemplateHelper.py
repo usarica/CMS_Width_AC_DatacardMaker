@@ -114,7 +114,10 @@ class BkgTemplateHelper:
                self.KD1, self.KD2, self.KD3,
                self.condDim
             )
-      PdfName = "{}_{}".format(self.procname, self.templateSuffix)
+      PdfName = "{}Pdf_{}".format(self.procname, self.templateSuffix)
+      RateName = "{}TotalRate_{}".format(self.procname, self.templateSuffix)
+      # Rename the rate
+      self.bkgTpl.theRate.SetName(RateName)
 
       if self.condDim>0:
          HistPdfName = "{}_others_{}".format(self.procname, self.templateSuffix)

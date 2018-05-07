@@ -158,6 +158,8 @@ class InputCardReader:
                         paroptslist = tmpconfig[1].split(';')
                         for paroptraw in paroptslist:
                            paroptpair = paroptraw.split('=')
+                           if len(paroptpair)==1:
+                              paroptpair.append("all")
                            paropts.append(paroptpair)
                   else:
                      if ((tmpconfig[1] == "") or (tmpconfig[2] == "")):

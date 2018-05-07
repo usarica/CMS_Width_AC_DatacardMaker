@@ -245,7 +245,7 @@ class WidthDatacardMaker:
                            # Check for possible options and append to the list
                            tmpSystOptList=[]
                            for tmpoptpair in systOpts:
-                              if procname in tmpoptpair[1]:
+                              if procname in tmpoptpair[1] or "all" in tmpoptpair[1].lower():
                                  tmpSystOptList.append(tmpoptpair[0])
                            tmplist.append(tmpSystOptList)
                            bunchVariations.append(tmplist)
@@ -302,12 +302,13 @@ class WidthDatacardMaker:
             morphRateList.add(bunchNominal.getTheRate())
             for systvar in bunchVariations:
                tmpBunchOpts = systvar[3]
+               print "\t- Including bunch variation {}".format(systvar[2].GetName())
                normOnly=False
                for tmpBunchOpt in tmpBunchOpts:
-                  if "normonly" in tmpBunchOpt:
+                  if "normonly" in tmpBunchOpt.lower():
                      normOnly=True
                if normOnly:
-                  print "{} is a norm-only systematic.".format(systvar[2].GetName())
+                  print "\t=> {} is a norm-only systematic in process {}.".format(systvar[2].GetName(), procname)
                for isyst in range(0,2):
                   if not normOnly:
                      morphPdfList.add(systvar[isyst].getThePdf())
@@ -318,6 +319,7 @@ class WidthDatacardMaker:
             procPdf = ROOT.VerticalInterpPdf(procname, procname, morphPdfList, morphPdfVarList,1.0, 2)
 
             ratename = bunchNominal.getTheRate().GetName() + "_AsymQuad"
+            ratename = ratename.replace("_Nominal","")
             procRate = ROOT.AsymQuad(ratename, ratename, morphRateList, morphRateVarList, 1.0, 2)
          else:
             print "Bunch variations do not exist. Constructing pdf and rate from nominal bunch..."
@@ -574,7 +576,10 @@ class WidthDatacardMaker:
             clientsIter = systvar.clientIterator()
             client=clientsIter.Next()
             while client:
-               if client.GetName() in procidname:
+               procidnameALT=procidname
+               if "_norm" in procidname:
+                  procidnameALT=procidname.replace("_norm", "")+"TotalRate"
+               if client.GetName() in procidname or ("_norm" in procidname and procidnameALT in client.GetName()):
                   args.append(systvar)
                   break
                client=clientsIter.Next()

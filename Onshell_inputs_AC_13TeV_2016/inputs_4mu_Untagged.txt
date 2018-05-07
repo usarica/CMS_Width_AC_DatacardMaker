@@ -1,0 +1,50 @@
+sqrts 13
+period 2016
+decay 4mu
+lumi 35.8671
+category Untagged
+channel ggZZ 1 -1 1
+channel VBF 1 -1 1
+channel ZH 1 -1 1
+channel WH 1 -1 1
+channel bkg_qqzz 1 -1 0
+channel zjets 1 -1 0
+# SYSTEMATICS
+## COMMON
+systematic lumiUnc lnN ggZZ:1.026 VBF:1.026 ZH:1.026 WH:1.026 bkg_qqzz:1.026
+systematic BRhiggs_hzz4l lnN ggZZ:1.02 VBF:1.02 ZH:1.02 WH:1.02
+systematic kbkg_gg param 1:0.1:0:2
+## THEORY
+## Systematics due to muR
+systematic QCDscale_ren_ggH template ggZZ:0:1 Options:normonly
+systematic QCDscale_ren_qqH template VBF:0:1 Options:normonly
+systematic QCDscale_ren_VH template ZH:0:1 Options:normonly
+systematic QCDscale_ren_VH template WH:0:1 Options:normonly
+systematic QCDscale_ren_VV template bkg_qqzz:0:1 Options:normonly
+## Systematics due to muF
+systematic QCDscale_fac_ggH template ggZZ:0:1 Options:normonly
+systematic QCDscale_fac_qqH template VBF:0:1 Options:normonly
+systematic QCDscale_fac_VH template ZH:0:1 Options:normonly
+systematic QCDscale_fac_VH template WH:0:1 Options:normonly
+systematic QCDscale_fac_VV template bkg_qqzz:0:1 Options:normonly
+## Systematics due to PDF variations
+systematic pdf_variation_Higgs_gg template ggZZ:0:1 Options:normonly
+systematic pdf_variation_Higgs_qqbar template VBF:0:1 ZH:0:1 WH:0:1 Options:normonly
+systematic pdf_variation_qqbar template bkg_qqzz:0:1 Options:normonly
+## Systematics due to PDF alpha_s choice
+systematic pdf_asmz_Higgs_gg template ggZZ:0:1 Options:normonly
+systematic pdf_asmz_Higgs_qqbar template VBF:0:1 ZH:0:1 WH:0:1 Options:normonly
+systematic pdf_asmz_qqbar template bkg_qqzz:0:1 Options:normonly
+## Systematic for qq bkg. NLO EW correction
+systematic EWcorr_VV template bkg_qqzz:0:1 Options:normonly
+## EXPERIMENT
+## Experimental systematic due to lepton efficiency corrections
+systematic CMS_eff_m template ggZZ:0:1 VBF:0:1 ZH:0:1 WH:0:1 bkg_qqzz:0:1 Options:normonly
+## CATEGORIZATION-SPECIFIC
+## Pythia scale/tune systematics on signal
+systematic CMS_scale_pythia template ggZZ:0:1 VBF:0:1 ZH:0:1 WH:0:1 Options:normonly
+systematic CMS_tune_pythia template ggZZ:0:1 VBF:0:1 ZH:0:1 WH:0:1 Options:normonly
+## MINLO systematic on gluon fusion
+systematic QCDscale_ggH2in template ggZZ:0:1 Options:normonly
+# JEC systematic
+systematic CMS_scale_j_13TeV_2016 template ggZZ:0:1 VBF:0:1 ZH:0:1 WH:0:1 bkg_qqzz:0:1 Options:normonly
