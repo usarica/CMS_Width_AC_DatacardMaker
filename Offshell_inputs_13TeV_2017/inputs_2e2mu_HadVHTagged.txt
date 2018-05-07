@@ -11,6 +11,7 @@ channel Zjets 1 -1 0
 ## COMMON
 systematic lumiUnc lnN ggZZ_offshell:1.023 VVZZ_offshell:1.023 qqZZ:1.023
 systematic BRhiggs_hzz4l lnN ggZZ_offshell:1.02 VVZZ_offshell:1.02
+systematic CMS_hzz4l_zz2e2mu_zjets lnN Zjets:1.13
 systematic kbkg_gg param 1:0.1:0:2
 ## THEORY
 ## Systematics due to muR
@@ -35,6 +36,8 @@ systematic EWcorr_VV template qqZZ:0:1
 ## Experimental systematic due to lepton efficiency corrections
 systematic CMS_eff_e template ggZZ_offshell:0:1 VVZZ_offshell:0:1 qqZZ:0:1
 systematic CMS_eff_m template ggZZ_offshell:0:1 VVZZ_offshell:0:1 qqZZ:0:1
+## Z+X fake rate estimation
+systematic CMS_fake_2e2mu Zjets:0:1
 ## CATEGORIZATION-SPECIFIC
 ## Pythia scale/tune systematics on signal
 systematic CMS_scale_pythia template ggZZ_offshell:0:1 VVZZ_offshell:0:1

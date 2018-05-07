@@ -1,8 +1,8 @@
 sqrts 13
-period 2016
+period 2017
 decay 2e2mu
-lumi 35.8671
-category HadVHTagged
+lumi 41.37
+category JJVBFTagged
 channel ggZZ 1 -1 1
 channel VBF 1 -1 1
 channel ZH 1 -1 1
@@ -11,9 +11,9 @@ channel bkg_qqzz 1 -1 0
 channel zjets 1 -1 0
 # SYSTEMATICS
 ## COMMON
-systematic lumiUnc lnN ggZZ:1.026 VBF:1.026 ZH:1.026 WH:1.026 bkg_qqzz:1.026
+systematic lumiUnc lnN ggZZ:1.023 VBF:1.023 ZH:1.023 WH:1.023 bkg_qqzz:1.023
 systematic BRhiggs_hzz4l lnN ggZZ:1.02 VBF:1.02 ZH:1.02 WH:1.02
-systematic CMS_hzz4l_zz2e2mu_zjets lnN zjets:1.15
+systematic CMS_hzz4l_zz2e2mu_zjets lnN zjets:1.13
 systematic kbkg_gg param 1:0.1:0:2
 ## THEORY
 ## Systematics due to muR
@@ -45,8 +45,10 @@ systematic CMS_fake_2e2mu zjets:0:1
 ## CATEGORIZATION-SPECIFIC
 ## Pythia scale/tune systematics on signal
 systematic CMS_scale_pythia template ggZZ:0:1 VBF:0:1 ZH:0:1 WH:0:1
-systematic CMS_tune_pythia template ggZZ:0:1 VBF:0:1 ZH:0:1 WH:0:1
+# FIXME WHEN NEW SAMPLES ARRIVE
+#systematic CMS_tune_pythia template ggZZ:0:1 VBF:0:1 ZH:0:1 WH:0:1
+systematic CMS_tune_pythia template ggZZ:0:1 VBF:0:1 WH:0:1
 ## MINLO systematic on gluon fusion
 systematic QCDscale_ggH2in template ggZZ:0:1
 # JEC systematic
-systematic CMS_scale_j_13TeV_2016 template ggZZ:0:1 VBF:0:1 ZH:0:1 WH:0:1 bkg_qqzz:0:1
+systematic CMS_scale_j_13TeV_2017 template ggZZ:0:1 VBF:0:1 ZH:0:1 WH:0:1 bkg_qqzz:0:1

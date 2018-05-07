@@ -13,6 +13,7 @@ channel zjets 1 -1 0
 ## COMMON
 systematic lumiUnc lnN ggZZ:1.026 VBF:1.026 ZH:1.026 WH:1.026 bkg_qqzz:1.026
 systematic BRhiggs_hzz4l lnN ggZZ:1.02 VBF:1.02 ZH:1.02 WH:1.02
+systematic CMS_hzz4l_zz2e2mu_zjets lnN zjets:1.15
 systematic kbkg_gg param 1:0.1:0:2
 ## THEORY
 ## Systematics due to muR
@@ -39,6 +40,8 @@ systematic pdf_asmz_qqbar template bkg_qqzz:0:1 Options:normonly
 ## Experimental systematic due to lepton efficiency corrections
 systematic CMS_eff_e template ggZZ:0:1 VBF:0:1 ZH:0:1 WH:0:1 bkg_qqzz:0:1 Options:normonly
 systematic CMS_eff_m template ggZZ:0:1 VBF:0:1 ZH:0:1 WH:0:1 bkg_qqzz:0:1 Options:normonly
+## Z+X fake rate estimation
+systematic CMS_fake_2e2mu zjets:0:1
 ## CATEGORIZATION-SPECIFIC
 ## Pythia scale/tune systematics on signal
 systematic CMS_scale_pythia template ggZZ:0:1 VBF:0:1 ZH:0:1 WH:0:1
