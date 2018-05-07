@@ -217,6 +217,7 @@ class WidthDatacardMaker:
          # Systematic "template" variations
          for syst in self.theInputCard.systematics:
             systType = syst[1]
+            systOpts = syst[3]
             if systType.lower() == "template":
                systVariableName = syst[0] # The name of variable that is supposed to exist for the variation
                for systchan in syst[2]: # Loop over channels that are relevant for this systematic variation
@@ -241,7 +242,14 @@ class WidthDatacardMaker:
                      if len(tmplist)==2: # Expect exactly two templates
                         if self.theSystVarsDict[systVariableName] is not None:
                            tmplist.append(self.theSystVarsDict[systVariableName]) # Append the systematic control RooRealVar as the last element
+                           # Check for possible options and append to the list
+                           tmpSystOptList=[]
+                           for tmpoptpair in systOpts:
+                              if procname in tmpoptpair[1]:
+                                 tmpSystOptList.append(tmpoptpair[0])
+                           tmplist.append(tmpSystOptList)
                            bunchVariations.append(tmplist)
+
                         else: raise RuntimeError("The RooRealVar {} does not exist in the systematic template variables dictionary!".format(systVariableName))
                      else: raise RuntimeError("{} does not have exactly 2 template variations!".format(systVariableName))
                      break
@@ -286,20 +294,31 @@ class WidthDatacardMaker:
          # Construct the ultimate pdf and rate for the process
          if len(bunchVariations)>0:
             print "Bunch variations are found. Constructing VerticalInterpPdf pdf and AsymQuad rate..."
-            morphVarList = ROOT.RooArgList()
+            morphPdfVarList = ROOT.RooArgList()
             morphPdfList = ROOT.RooArgList()
+            morphRateVarList = ROOT.RooArgList()
             morphRateList = ROOT.RooArgList()
             morphPdfList.add(bunchNominal.getThePdf())
             morphRateList.add(bunchNominal.getTheRate())
             for systvar in bunchVariations:
+               tmpBunchOpts = systvar[3]
+               normOnly=False
+               for tmpBunchOpt in tmpBunchOpts:
+                  if "normonly" in tmpBunchOpt:
+                     normOnly=True
+               if normOnly:
+                  print "{} is a norm-only systematic.".format(systvar[2].GetName())
                for isyst in range(0,2):
-                  morphPdfList.add(systvar[isyst].getThePdf())
+                  if not normOnly:
+                     morphPdfList.add(systvar[isyst].getThePdf())
                   morphRateList.add(systvar[isyst].getTheRate())
-               morphVarList.add(systvar[2])
-            procPdf = ROOT.VerticalInterpPdf(procname, procname, morphPdfList, morphVarList,1.0, 2)
+               if not normOnly:
+                  morphPdfVarList.add(systvar[2])
+               morphRateVarList.add(systvar[2])
+            procPdf = ROOT.VerticalInterpPdf(procname, procname, morphPdfList, morphPdfVarList,1.0, 2)
 
             ratename = bunchNominal.getTheRate().GetName() + "_AsymQuad"
-            procRate = ROOT.AsymQuad(ratename, ratename, morphRateList, morphVarList, 1.0, 2)
+            procRate = ROOT.AsymQuad(ratename, ratename, morphRateList, morphRateVarList, 1.0, 2)
          else:
             print "Bunch variations do not exist. Constructing pdf and rate from nominal bunch..."
             procPdf = bunchNominal.getThePdf()

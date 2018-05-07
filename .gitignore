@@ -1,1 +1,3 @@
+**/*.pyc
 templates2D/**
+cards_*

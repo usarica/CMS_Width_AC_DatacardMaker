@@ -23,14 +23,21 @@ combine -M MultiDimFit hzz4l_Prop_All_13_16TeV.root --algo=grid --X-rtd OPTIMIZE
 
 
 
-for p in L1 a2 a3; do \
-outdirname="180401_"$p"_test2"; \
-outcardsname="cards_180401_"$p"_test2"; \
-tpldir="templates2D/180317/"$p; \
-python makeWidthDatacards.py -b -i SM_inputs_13TeV_tagged -t $tpldir -a $outdirname \
+for p in SM L1 a2 a3; do \
+for data in 13TeV_2016 13TeV_2017; do \
+outdirname="180506_"$p"_"$data"_test1"; \
+outcardsname="cards_"$outdirname; \
+tpldir="templates2D/"$data"/"$p; \
+if [[ "$p" == "SM" ]];then \
+python makeWidthDatacards.py -b -i SM_inputs_"$data" -t $tpldir -a $outdirname \
+--coord "mass:KD1:KD2" --GHmodel 1 --CatScheme 2 --ac 0 --mLow 220 --mHigh 13000; \
+else \
+python makeWidthDatacards.py -b -i SM_inputs_"$data" -t $tpldir -a $outdirname \
 --coord "mass:KD1:KD2" --GHmodel 1 --CatScheme 2 --ac 2 --mLow 220 --mHigh 13000; \
+fi; \
+mkdir $outcardsname"/HCG/Scans/"; \
 pushd $outcardsname"/HCG"; \
-ln -sf "/work-zfs/lhc/usarica/hep/SpinWidthPaper_2015/HIG-17-011/f"$p"/13_16TeV" Onshell_13TeV_2016; mkdir Scans; \
+ln -sf "/work-zfs/lhc/usarica/hep/SpinWidthPaper_2015/HIG-17-011/f"$p"/13_16TeV" Onshell_13TeV_2016; \
 ln -sf "/work-zfs/lhc/usarica/hep/SpinWidthPaper_2015/HIG-17-011/f"$p"/13_15TeV" Onshell_13TeV_2015; \
 ln -sf "/work-zfs/lhc/usarica/hep/SpinWidthPaper_2015/HIG-17-011/f"$p"/8TeV" Onshell_8TeV; \
 ln -sf "/work-zfs/lhc/usarica/hep/SpinWidthPaper_2015/HIG-17-011/f"$p"/7TeV" Onshell_7TeV; \
@@ -67,7 +74,8 @@ popd; \
 cp utils/submitScanExp.sh $outcardsname"/HCG/Scans/"; \
 cp utils/scanExp.slurm.sh $outcardsname"/HCG/Scans/"; \
 chmod -R 755 "$outcardsname"; \ 
-done
+done; \
+done;
 
 
 for p in L1 a2 a3; do pushd "cards_180401_"$p"_test2/HCG/Scans/"; ./submitScanExp.sh fai1Floated_GGsmFixed_13_16TeV hzz4l_Prop_All_13_16TeV.root fai1 2001 0.15; popd; done

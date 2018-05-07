@@ -120,6 +120,7 @@ class InputCardReader:
             parname = f[1]
             partype = f[2]
             parconfig = []
+            paropts = []
             if partype == "lnN":
                if len(f)<4:
                   raise RuntimeError("{0} uncertainty for systematic {1} is not given any process!".format(partype, parname))
@@ -148,11 +149,22 @@ class InputCardReader:
                   raise RuntimeError("{0} uncertainty name strings for systematic {1} is not given any process!".format(partype, parname))
                for ic in range(3,len(f)):
                   tmpconfig = f[ic].split(":") # Leave strings as strings
-                  if ((tmpconfig[0] == "") or (tmpconfig[1] == "") or (tmpconfig[2] == "")):
-                     raise RuntimeError("{0} uncertainty does not specify any process or template appendix names!".format(parname, tmpconfig[0]))
-                  parconfig.append(tmpconfig)
+                  if (tmpconfig[0] == ""):
+                     raise RuntimeError("{0} uncertainty does not specify any process or option flag!".format(parname))
+                  if (tmpconfig[0].lower() == "options"): # Can specify something like options:normonly=ggZZ_offshell,VVZZ_offshell etc.
+                     if len(tmpconfig)!=2:
+                        raise RuntimeError("{0} uncertainty options cannot be split by ':'!".format(parname))
+                     else:
+                        paroptslist = tmpconfig[1].split(';')
+                        for paroptraw in paroptslist:
+                           paroptpair = paroptraw.split('=')
+                           paropts.append(paroptpair)
+                  else:
+                     if ((tmpconfig[1] == "") or (tmpconfig[2] == "")):
+                        raise RuntimeError("{0} uncertainty does not specify any central value or 1-sigma range!".format(parname))
+                     parconfig.append(tmpconfig)
 
-            parlist = [ parname, partype, parconfig ]
+            parlist = [ parname, partype, parconfig, paropts ]
             self.systematics.append(parlist)
       if not self.isGoodEntry(self.sqrts):
          raise RuntimeError("{0} is not set. Check inputs!".format("sqrts"))
