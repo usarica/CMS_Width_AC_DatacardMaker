@@ -40,7 +40,7 @@ systematic pdf_asmz_qqbar template bkg_qqzz:0:1 Options:normonly
 ## Experimental systematic due to lepton efficiency corrections
 systematic CMS_eff_e template ggZZ:0:1 VBF:0:1 ZH:0:1 WH:0:1 bkg_qqzz:0:1 Options:normonly
 ## Z+X fake rate estimation
-systematic CMS_fake_4e zjets:0:1
+systematic CMS_fake_4e template zjets:0:1
 ## CATEGORIZATION-SPECIFIC
 ## Pythia scale/tune systematics on signal
 systematic CMS_scale_pythia template ggZZ:0:1 VBF:0:1 ZH:0:1 WH:0:1

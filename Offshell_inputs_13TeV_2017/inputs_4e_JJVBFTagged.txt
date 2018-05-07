@@ -36,7 +36,7 @@ systematic EWcorr_VV template qqZZ:0:1
 ## Experimental systematic due to lepton efficiency corrections
 systematic CMS_eff_e template ggZZ_offshell:0:1 VVZZ_offshell:0:1 qqZZ:0:1
 ## Z+X fake rate estimation
-systematic CMS_fake_4e Zjets:0:1
+systematic CMS_fake_4e template Zjets:0:1
 ## CATEGORIZATION-SPECIFIC
 ## Pythia scale/tune systematics on signal
 systematic CMS_scale_pythia template ggZZ_offshell:0:1 VVZZ_offshell:0:1
