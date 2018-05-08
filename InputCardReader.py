@@ -104,7 +104,7 @@ class InputCardReader:
                      if len(f)>5:
                         strchanopts=f[5].lower()
                         if strchanopts.startswith("options:"):
-                           strchanopts=chanopts[8:]
+                           strchanopts=strchanopts[8:]
                            chanopts=strchanopts.split(';')
 
             chanlist = [ channame, chanrate, chanlumi, iBkg, chanopts ]
