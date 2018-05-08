@@ -68,10 +68,21 @@ class BSITemplateHelper:
       self.procname = theProcess[0]
       self.proctype = theProcess[3]
       self.procopts = theProcess[4]
+      # Set how process functions
+      self.isGGVVLikeCouplings = self.procname.lower().startswith("gg") or self.procname.lower().startswith("tt")
+      self.isSigOnly = self.proctype==1
+      self.useNoBSInt = self.isSigOnly # To be changed later
       self.condDim = 0
-      for procopt in self.procopts:
-         if "conditional" in procopt:
-            self.condDim = 2**int("kd1" in procopt) * 3**int("kd2" in procopt) * 5**int("kd3" in procopt)
+
+      for procopt in self.procopts: # Loop over the options
+         procoptl=procopt.lower()
+         if "conditional" in procoptl: # Use templates conditional on some dimension
+            # Note: kd1/2/3 here refer only to self.KD1/2/3, so KD1 could actually be mass in the EquationMaker.
+            self.condDim = 2**int("kd1" in procoptl) * 3**int("kd2" in procoptl) * 5**int("kd3" in procoptl)
+         if "nobsint" in procoptl and not self.isSigOnly: # For BSI, do not use interference terms
+            self.useNoBSInt = True
+
+      # Set conditional dimensions
       if self.condDim==1:
          self.condDim=0
       if self.condDim>0:
@@ -82,9 +93,6 @@ class BSITemplateHelper:
             self.condVars.add(self.KD2)
          if self.condDim%5==0:
             self.condVars.add(self.KD3)
-
-      self.isGGVVLikeCouplings = self.procname.lower().startswith("gg") or self.procname.lower().startswith("tt")
-      self.isSigOnly = self.proctype==1
 
    # Extended template lists
    # Bare SM
@@ -245,6 +253,7 @@ class BSITemplateHelper:
                   self.dimensions,
                   self.KD1, self.KD2, self.KD3
                )
+      if(not(self.useNoBSInt)):
          self.gg_T_Int_Re = ExtendedTemplate(
                   self.templateFile.Get("{}_Int_Re".format(self.templatePrefix)).Clone("{}_Int_Re_{}".format(self.templatePrefix,self.templateSuffix)),
                   self.dimensions,
@@ -294,7 +303,7 @@ class BSITemplateHelper:
 #-----------------------------------------------------------------------#
 #                       INTERFERENCE AC TERMS
 #-----------------------------------------------------------------------#
-         if(not(self.isSigOnly)):
+         if(not(self.useNoBSInt)):
 # Interference ai**1 x a1**(1/2-1) real and imaginary parts
             self.gg_T_Int_ai1_1_Re = ExtendedTemplate(
                      self.templateFile.Get("{}_Int_ai1_1_Re".format(self.templatePrefix)).Clone("{}_Int_ai1_1_Re_{}".format(self.templatePrefix,self.templateSuffix)),
@@ -323,7 +332,7 @@ class BSITemplateHelper:
       if len(self.ggSigFunctions_Args)!=len(self.ggSigRFV_list):
          sys.exit("Number of {0}Sig templates {1:.0f} is not equal to number of funcficients {2:.0f}!".format(self.processName,len(self.ggSigFunctions_Args),len(self.ggSigRFV_list)))
 
-      if(not(self.isSigOnly)):
+      if(not(self.useNoBSInt)):
          self.ggInterfFunctions_Args.append(self.gg_T_Int_Re)
          if self.anomCoupl == 1:
             self.ggInterfFunctions_Args.append(self.gg_T_Int_Im)
@@ -347,8 +356,9 @@ class BSITemplateHelper:
       if(not(self.isSigOnly)):
          for var in self.ggSigRFV_list:
             rfvargs.add(var)
-         for var in self.ggInterfRFV_list:
-            rfvargs.add(var)
+         if(not(self.useNoBSInt)):
+            for var in self.ggInterfRFV_list:
+               rfvargs.add(var)
          rfvargs.add(self.kbkg_gg)
       else:
          for var in self.ggSigRFV_noMu_list:
@@ -403,9 +413,13 @@ class BSITemplateHelper:
       strformula = "@0"
       rfvargs.add(self.ggSigRates_RooFormulaVar)
       if(not(self.isSigOnly)):
-         strformula = "@0+@1+@2"
-         rfvargs.add(self.ggInterfRates_RooFormulaVar)
-         rfvargs.add(self.ggBkgRates_RooFormulaVar)
+         if(not(self.useNoBSInt)):
+            strformula = "@0+@1+@2"
+            rfvargs.add(self.ggInterfRates_RooFormulaVar)
+            rfvargs.add(self.ggBkgRates_RooFormulaVar)
+         else:
+            strformula = "@0+@1"
+            rfvargs.add(self.ggBkgRates_RooFormulaVar)
       rfvname = "{}TotalRate_{}".format(self.processName,self.templateSuffix)
       self.ggTotalRate = ROOT.RooFormulaVar( rfvname , strformula , rfvargs )
       print rfvname,"total rate =",self.ggTotalRate.getVal()
@@ -425,6 +439,7 @@ class BSITemplateHelper:
                   self.dimensions,
                   self.KD1, self.KD2, self.KD3
                )
+      if(not(self.useNoBSInt)):
          self.VBF_T_Int_Re = ExtendedTemplate(
                   self.templateFile.Get("{}_Int_Re".format(self.templatePrefix)).Clone("{}_Int_Re_{}".format(self.templatePrefix,self.templateSuffix)),
                   self.dimensions,
@@ -511,7 +526,7 @@ class BSITemplateHelper:
 #-----------------------------------------------------------------------#
 #                       INTERFERENCE AC TERMS
 #-----------------------------------------------------------------------#
-         if(not(self.isSigOnly)):
+         if(not(self.useNoBSInt)):
 # Interference ai**1 x a1**(1/2-1) real and imaginary parts
             self.VBF_T_Int_ai1_1_Re = ExtendedTemplate(
                      self.templateFile.Get("{}_Int_ai1_1_Re".format(self.templatePrefix)).Clone("{}_Int_ai1_1_Re_{}".format(self.templatePrefix,self.templateSuffix)),
@@ -557,7 +572,7 @@ class BSITemplateHelper:
       if len(self.VBFSigFunctions_Args)!=len(self.VBFSigRFV_list):
          sys.exit("Number of {0}Sig templates {1:.0f} is not equal to number of funcficients {2:.0f}!".format(self.processName,len(self.VBFSigFunctions_Args),len(self.VBFSigRFV_list)))
 
-      if(not(self.isSigOnly)):
+      if(not(self.useNoBSInt)):
          self.VBFInterfFunctions_Args.append(self.VBF_T_Int_Re)
          if self.anomCoupl == 1:
             self.VBFInterfFunctions_Args.append(self.VBF_T_Int_Im)
@@ -584,8 +599,9 @@ class BSITemplateHelper:
       if(not(self.isSigOnly)):
          for var in self.VBFSigRFV_list:
             rfvargs.add(var)
-         for var in self.VBFInterfRFV_list:
-            rfvargs.add(var)
+         if(not(self.useNoBSInt)):
+            for var in self.VBFInterfRFV_list:
+               rfvargs.add(var)
          rfvargs.add(self.kbkg_VBF)
       else:
          for var in self.VBFSigRFV_noMu_list:
@@ -640,12 +656,14 @@ class BSITemplateHelper:
       strformula = "@0"
       rfvargs.add(self.VBFSigRates_RooFormulaVar)
       if(not(self.isSigOnly)):
-         strformula = "@0+@1+@2"
-         rfvargs.add(self.VBFInterfRates_RooFormulaVar)
-         rfvargs.add(self.VBFBkgRates_RooFormulaVar)
+         if(not(self.useNoBSInt)):
+            strformula = "@0+@1+@2"
+            rfvargs.add(self.VBFInterfRates_RooFormulaVar)
+            rfvargs.add(self.VBFBkgRates_RooFormulaVar)
+         else:
+            strformula = "@0+@1"
+            rfvargs.add(self.VBFBkgRates_RooFormulaVar)
       rfvname = "{}TotalRate_{}".format(self.processName,self.templateSuffix)
       self.VBFTotalRate = ROOT.RooFormulaVar( rfvname , strformula , rfvargs )
       print rfvname,"total rate =",self.VBFTotalRate.getVal()
-
-
 

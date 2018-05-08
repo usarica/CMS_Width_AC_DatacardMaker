@@ -3,10 +3,10 @@ period 2016
 decay 2e2mu
 lumi 35.8671
 category HadVHTagged
-channel ggZZ 1 -1 1
-channel VBF 1 -1 1
-channel ZH 1 -1 1
-channel WH 1 -1 1
+channel ggZZ 1 -1 2 Options:nobsint
+channel VBF 1 -1 2 Options:nobsint
+channel ZH 1 -1 2 Options:nobsint
+channel WH 1 -1 2 Options:nobsint
 channel bkg_qqzz 1 -1 0
 channel zjets 1 -1 0
 # SYSTEMATICS
