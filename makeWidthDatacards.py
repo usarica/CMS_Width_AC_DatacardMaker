@@ -44,6 +44,7 @@ class makeWidthDatacards:
                          type='string', default="",    help='Inputs directory')
       parser.add_option('-t', '--templates', dest='templateDir',
                          type='string', default="", help='Directory of templates')
+      parser.add_option('--extMassShapes', type='string', default=None, help='Directory of external mass shapes')
       parser.add_option('-a', '--append', dest='appendName',
                          type='string', default="",    help='Append name for cards directory')
 
@@ -79,6 +80,9 @@ class makeWidthDatacards:
          sys.exit()
       else:
          self.opt.coordList = self.opt.coordinates.split(":")
+         if self.opt.extMassShapes is not None and self.opt.coordList[0]!="mass":
+            print "First coordinate has to be mass when external mass shapes are given."
+            sys.exit()
          self.opt.dimensions = len(self.opt.coordList)
 
       if (self.opt.appendName == ''):

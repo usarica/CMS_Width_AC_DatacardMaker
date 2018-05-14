@@ -22,11 +22,12 @@ echo $CMSSW_VERSION
 wname=$1
 outname=$2
 poi=$3
-range=$4
-let npoints=$5
-let firstpoint=$6
-let lastpoint=$7
-extarg=$8
+rangel=$4
+rangeh=$5
+let npoints=$6
+let firstpoint=$7
+let lastpoint=$8
+extarg=$9
 
 cmdadd=""
 if [ $firstpoint -ge 0 ];then
@@ -41,10 +42,10 @@ fi
 
 if [[ "$poi" == "GGsm" ]];then
   echo "POI is GGsm"
-  cmdadd=$cmdadd" --redefineSignalPOIs=GGsm --freezeNuisances=CMS_zz4l_fai1,kbkg_VBF --setPhysicsModelParameterRanges GGsm=0,"$range
+  cmdadd=$cmdadd" --redefineSignalPOIs=GGsm --freezeParameters=CMS_zz4l_fai1,kbkg_VBF --setParameterRanges GGsm="$rangel","$rangeh
 elif [[ "$poi" == "fai1" ]];then
   echo "POI is fai1"
-  cmdadd=$cmdadd" --redefineSignalPOIs=CMS_zz4l_fai1 --freezeNuisances=GGsm,kbkg_VBF --setPhysicsModelParameterRanges CMS_zz4l_fai1=-"$range","$range
+  cmdadd=$cmdadd" --redefineSignalPOIs=CMS_zz4l_fai1 --freezeParameters=GGsm,kbkg_VBF --setParameterRanges CMS_zz4l_fai1="$rangel","$rangeh
 fi
 
 

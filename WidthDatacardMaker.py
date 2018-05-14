@@ -12,7 +12,7 @@ from EquationsMaker import EquationsMaker
 from SystematicsHelper import SystematicsHelper
 from SystematicsHelper import FloatToString
 from BSITemplateHelper import BSITemplateHelper
-from BkgTemplateHelper import BkgTemplateHelper
+from SimpleTemplateHelper import SimpleTemplateHelper
 
 
 def FindMinMax(rate,var):
@@ -168,6 +168,7 @@ class WidthDatacardMaker:
       self.pdfList = []
       self.rateList = []
       self.extraRateList = []
+      self.extraPdfList = []
       self.normList = []
       self.extraVars = [] # To keep track of which variables are created on the fly
 
@@ -191,6 +192,15 @@ class WidthDatacardMaker:
       for proc in self.theInputCard.channels:
          procname = proc[0]
          proctype = proc[3]
+         procopts = proc[4]
+         isConditional=False
+         procnamefile = procname
+         for procopt in procopts:
+            procoptl=procopt.lower()
+            if "conditional" in procoptl:
+               isConditional=True
+            if "filenamealias" in procoptl:
+               procnamefile = procopt.split('=')[1]
 
          bunchNominal = None
          bunchVariations = []
@@ -205,9 +215,9 @@ class WidthDatacardMaker:
 
          # Nominal pdf and rate
          systName = "Nominal"
-         templateFileName = "{0}/{1}{2}_{3}{4}".format(self.templateDir, templateFileNameMain, procname, systName, ".root")
-         if proctype==0:
-            bunchNominal = BkgTemplateHelper(self.options,self,self.theCategorizer,proc,templateFileName,self.iCat,systName)
+         templateFileName = "{0}/{1}{2}_{3}{4}".format(self.templateDir, templateFileNameMain, procnamefile, systName, ".root")
+         if proctype==0 or isConditional:
+            bunchNominal = SimpleTemplateHelper(self.options,self,self.theEqnsMaker,self.theCategorizer,proc,templateFileName,self.iCat,systName)
             bunchNominal.getTemplates()
          else:
             bunchNominal = BSITemplateHelper(self.options,self,self.theEqnsMaker,self.theCategorizer,proc,templateFileName,self.iCat,systName)
@@ -229,10 +239,10 @@ class WidthDatacardMaker:
                            systName = "{}Up".format(systName)
                         else:
                            systName = "{}Down".format(systName)
-                        templateFileName = "{0}/{1}{2}_{3}{4}".format(self.templateDir,templateFileNameMain,procname,systName,".root")
+                        templateFileName = "{0}/{1}{2}_{3}{4}".format(self.templateDir, templateFileNameMain, procnamefile, systName, ".root")
                         bunchVar = None
-                        if proctype==0:
-                           bunchVar = BkgTemplateHelper(self.options,self,self.theCategorizer,proc,templateFileName,self.iCat,systName)
+                        if proctype==0 or isConditional:
+                           bunchVar = SimpleTemplateHelper(self.options,self,self.theEqnsMaker,self.theCategorizer,proc,templateFileName,self.iCat,systName)
                            bunchVar.getTemplates()
                         else:
                            bunchVar = BSITemplateHelper(self.options,self,self.theEqnsMaker,self.theCategorizer,proc,templateFileName,self.iCat,systName)

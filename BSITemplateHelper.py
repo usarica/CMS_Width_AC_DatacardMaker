@@ -86,13 +86,7 @@ class BSITemplateHelper:
       if self.condDim==1:
          self.condDim=0
       if self.condDim>0:
-         self.condVars = ROOT.RooArgSet()
-         if self.condDim%2==0:
-            self.condVars.add(self.KD1)
-         if self.condDim%3==0:
-            self.condVars.add(self.KD2)
-         if self.condDim%5==0:
-            self.condVars.add(self.KD3)
+         raise RuntimeError("BSITemplateHelper does not support conditional templates.")
 
    # Extended template lists
    # Bare SM

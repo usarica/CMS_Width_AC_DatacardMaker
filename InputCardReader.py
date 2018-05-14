@@ -103,7 +103,7 @@ class InputCardReader:
                      iBkg = int(f[4])
                      if len(f)>5:
                         strchanopts=f[5].lower()
-                        if strchanopts.startswith("options:"):
+                        if strchanopts.startswith("options:"): # Options could be "Options:Conditional=KD1;FileNameAlias=ggZZ"
                            strchanopts=strchanopts[8:]
                            chanopts=strchanopts.split(';')
 

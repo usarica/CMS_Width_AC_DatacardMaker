@@ -22,7 +22,6 @@ class ExtendedTemplate:
       for v in range(0,len(theVars)):
          if theVars[v] is not None:
             self.obslist.add(theVars[v])
-            # FIXME: Revise for variable binning
             axis=None
             if v==0:
                axis=self.origTemplate.GetXaxis()
