@@ -47,15 +47,20 @@ class SimpleTemplateHelper:
       self.procopts = theProcess[4]
       self.isBkgOnly = self.proctype==0
       self.isSigOnly = self.proctype==1
+      self.procTplAlias=self.procname
+      self.condDim = 0
+
       if not self.isBkgOnly and self.issigOnly:
          raise RuntimeError("SimpleTemplateHelper only supports bkg-only or sig-only templates")
 
-      self.condDim = 0
       for procopt in self.procopts:
          procoptl=procopt.lower()
          if "conditional" in procoptl:
             # Note: kd1/2/3 here refer only to self.KD1/2/3, so KD1 could actually be mass in the EquationMaker.
             self.condDim = 2**int("kd1" in procoptl) * 3**int("kd2" in procoptl) * 5**int("kd3" in procoptl)
+         if "templatenamealias" in procoptl:
+            self.procTplAlias = procopt.split('=')[1]
+
       if self.condDim==1:
          self.condDim=0
       if self.condDim>0:
@@ -119,12 +124,14 @@ class SimpleTemplateHelper:
 
       self.templatePrefix = templatePrefix
       self.templatePrefix = "{}_{}".format(self.templatePrefix,self.procname)
+      self.templateInputPrefix = templatePrefix
+      self.templateInputPrefix = "{}_{}".format(self.templateInputPrefix,self.procTplAlias)
 
 #---------- TEMPLATES AND PDFS -------------
    # Construct the p.d.f.s
       # Construct the templates
       theTpl_uncond = ExtendedTemplate(
-               self.templateFile.Get(self.templatePrefix).Clone("{}_{}".format(self.templatePrefix,self.templateSuffix)),
+               self.templateFile.Get(self.templateInputPrefix).Clone("{}_{}".format(self.templatePrefix,self.templateSuffix)),
                self.dimensions,
                self.KD1, self.KD2, self.KD3
             )
@@ -135,7 +142,7 @@ class SimpleTemplateHelper:
          if self.condDim%3==0: condDimSuffix=condDimSuffix+"1"
          if self.condDim%5==0: condDimSuffix=condDimSuffix+"2"
          self.theTpl = ExtendedTemplate(
-                  self.templateFile.Get(self.templatePrefix+"_"+condDimSuffix).Clone("{}_{}_{}".format(self.templatePrefix,self.templateSuffix,condDimSuffix)),
+                  self.templateFile.Get(self.templateInputPrefix+"_"+condDimSuffix).Clone("{}_{}_{}".format(self.templatePrefix,self.templateSuffix,condDimSuffix)),
                   self.dimensions,
                   self.KD1, self.KD2, self.KD3,
                   self.condDim

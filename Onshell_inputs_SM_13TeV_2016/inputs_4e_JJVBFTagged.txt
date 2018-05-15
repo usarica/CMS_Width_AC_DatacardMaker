@@ -1,0 +1,57 @@
+sqrts 13
+period 2016
+decay 4e
+lumi 35.8671
+category HadVHTagged
+channel ggH 1 -1 1 Options:Conditional=KD1;FileNameAlias=ggZZ;TemplateNameAlias=ggZZ_Sig
+channel VBF 1 -1 1 Options:Conditional=KD1;FileNameAlias=VBF;TemplateNameAlias=VBF_Sig
+channel ZH 1 -1 1 Options:Conditional=KD1;FileNameAlias=ZH;TemplateNameAlias=ZH_Sig
+channel WH 1 -1 1 Options:Conditional=KD1;FileNameAlias=WH;TemplateNameAlias=WH_Sig
+channel bkg_gg 1 -1 0 FileNameAlias=ggZZ;TemplateNameAlias=ggZZ_Bkg
+channel bkg_vbs 1 -1 0 FileNameAlias=VBF;TemplateNameAlias=VBF_Bkg
+channel bkg_zzz 1 -1 0 FileNameAlias=ZH;TemplateNameAlias=ZH_Bkg
+channel bkg_wzz 1 -1 0 FileNameAlias=WH;TemplateNameAlias=WH_Bkg
+channel bkg_qqzz 1 -1 0
+channel zjets 0.042488 -1 0
+# SYSTEMATICS
+## COMMON
+systematic lumiUnc lnN ggH:1.026 bkg_gg:1.026 VBF:1.026 bkg_vbs:1.026 ZH:1.026 bkg_zzz:1.026 WH:1.026 bkg_wzz:1.026 bkg_qqzz:1.026
+systematic BRhiggs_hzz4l lnN ggH:1.02 bkg_gg:1.02 VBF:1.02 bkg_vbs:1.02 ZH:1.02 bkg_zzz:1.02 WH:1.02 bkg_wzz:1.02
+systematic CMS_hzz4l_zz4e_zjets lnN zjets:0.72:1.32
+systematic kbkg_gg param 1:0.1:0:2
+## THEORY
+## Systematics due to muR
+systematic QCDscale_ren_ggH template ggH:0:1 bkg_gg:0:1 Options:normonly
+systematic QCDscale_ren_qqH template VBF:0:1 bkg_vbs:0:1 Options:normonly
+systematic QCDscale_ren_VH template ZH:0:1 bkg_zzz:0:1 Options:normonly
+systematic QCDscale_ren_VH template WH:0:1 bkg_wzz:0:1 Options:normonly
+systematic QCDscale_ren_VV template bkg_qqzz:0:1 Options:normonly
+## Systematics due to muF
+systematic QCDscale_fac_ggH template ggH:0:1 bkg_gg:0:1 Options:normonly
+systematic QCDscale_fac_qqH template VBF:0:1 bkg_vbs:0:1 Options:normonly
+systematic QCDscale_fac_VH template ZH:0:1 bkg_zzz:0:1 Options:normonly
+systematic QCDscale_fac_VH template WH:0:1 bkg_wzz:0:1 Options:normonly
+systematic QCDscale_fac_VV template bkg_qqzz:0:1 Options:normonly
+## Systematics due to PDF variations
+systematic pdf_variation_Higgs_gg template ggH:0:1 bkg_gg:0:1 Options:normonly
+systematic pdf_variation_Higgs_qqbar template VBF:0:1 bkg_vbs:0:1 ZH:0:1 bkg_zzz:0:1 WH:0:1 bkg_wzz:0:1 Options:normonly
+systematic pdf_variation_qqbar template bkg_qqzz:0:1 Options:normonly
+## Systematics due to PDF alpha_s choice
+systematic pdf_asmz_Higgs_gg template ggH:0:1 bkg_gg:0:1 Options:normonly
+systematic pdf_asmz_Higgs_qqbar template VBF:0:1 bkg_vbs:0:1 ZH:0:1 bkg_zzz:0:1 WH:0:1 bkg_wzz:0:1 Options:normonly
+systematic pdf_asmz_qqbar template bkg_qqzz:0:1 Options:normonly
+## EXPERIMENT
+## Experimental systematic due to lepton efficiency corrections
+systematic CMS_scale_e param 0:1:-7:7
+systematic CMS_res_e param 0:1:-7:7
+systematic CMS_eff_e template ggH:0:1 bkg_gg:0:1 VBF:0:1 bkg_vbs:0:1 ZH:0:1 bkg_zzz:0:1 WH:0:1 bkg_wzz:0:1 bkg_qqzz:0:1 Options:normonly
+## Z+X fake rate estimation
+systematic CMS_fake_4e template zjets:0:1
+## CATEGORIZATION-SPECIFIC
+## Pythia scale/tune systematics on signal
+systematic CMS_scale_pythia template ggH:0:1 bkg_gg:0:1 VBF:0:1 bkg_vbs:0:1 ZH:0:1 bkg_zzz:0:1 WH:0:1 bkg_wzz:0:1
+systematic CMS_tune_pythia template ggH:0:1 bkg_gg:0:1 VBF:0:1 bkg_vbs:0:1 ZH:0:1 bkg_zzz:0:1 WH:0:1 bkg_wzz:0:1
+## MINLO systematic on gluon fusion
+systematic QCDscale_ggH2in template ggH:0:1 bkg_gg:0:1
+# JEC systematic
+systematic CMS_scale_j_13TeV_2016 template ggH:0:1 bkg_gg:0:1 VBF:0:1 bkg_vbs:0:1 ZH:0:1 bkg_zzz:0:1 WH:0:1 bkg_wzz:0:1 bkg_qqzz:0:1

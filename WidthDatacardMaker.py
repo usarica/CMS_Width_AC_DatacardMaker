@@ -13,6 +13,7 @@ from SystematicsHelper import SystematicsHelper
 from SystematicsHelper import FloatToString
 from BSITemplateHelper import BSITemplateHelper
 from SimpleTemplateHelper import SimpleTemplateHelper
+from ExternalShapeHelper import ExternalShapeHelper
 
 
 def FindMinMax(rate,var):
@@ -63,11 +64,14 @@ def PlotPdf1D(pdf,norm,xvar,path,appendname=""):
    if appendname!="":
       canvasname = canvasname+"_"+appendname
    cproj = ROOT.TCanvas( canvasname, canvasname, 750, 700 )
-   histo = pdf.createHistogram("htemp",xvar)
-   histo.SetName("{}_{}".format(pdf.GetName(),xvar.GetName()))
-   histo.SetTitle("Projection of {} on {}".format(pdf.GetName(),xvar.GetName()))
-   histo.Scale(norm/histo.Integral())
-   histo.Draw("hist")
+   #histo = pdf.createHistogram("htemp",xvar)
+   #histo.SetName("{}_{}".format(pdf.GetName(),xvar.GetName()))
+   #histo.SetTitle("Projection of {} on {}".format(pdf.GetName(),xvar.GetName()))
+   #histo.Scale(norm/histo.Integral())
+   #histo.Draw("hist")
+   plot = xvar.frame()
+   pdf.plotOn(plot)
+   plot.Draw()
    cproj.SaveAs("{}{}{}".format(path,canvasname,".png"))
    cproj.Close()
 
@@ -98,6 +102,14 @@ class WidthDatacardMaker:
       self.catName = self.theCategorizer.catNameList[self.iCat]
 
       self.theSystVarsDict = self.theSystematizer.getVariableDict()
+
+      self.extMassShapesDir=self.options.extMassShapes
+      self.hasExtMassShapes=(self.extMassShapesDir is not None)
+      self.extShapeHandle=None
+      if self.hasExtMassShapes:
+         shapesFileNameMain = "HtoZZ{}_{}_MassShapes_".format(self.theChannelName, self.catName)
+         shapesFileName = "{0}/{1}{2}{3}".format(self.extMassShapesDir, shapesFileNameMain, "AllProcesses", ".root")
+         self.extShapeHandle=ExternalShapeHelper(self.options,self,self.theEqnsMaker,self.theCategorizer,shapesFileName,self.iCat)
 
       self.workspace = ROOT.RooWorkspace("w", "w")
       self.workspace.importClassCode(ROOT.AsymPow.Class(),True)
@@ -195,10 +207,19 @@ class WidthDatacardMaker:
          procopts = proc[4]
          isConditional=False
          procnamefile = procname
+         condNormVars=None # Unconditional variables which are not involved in conditional template construction
          for procopt in procopts:
             procoptl=procopt.lower()
             if "conditional" in procoptl:
                isConditional=True
+               condNormVars = ROOT.RooArgSet()
+               if not("kd1" in procoptl) and self.KD1 is not None: condNormVars.add(self.KD1)
+               if not("kd2" in procoptl) and self.KD2 is not None: condNormVars.add(self.KD2)
+               if not("kd3" in procoptl) and self.KD3 is not None: condNormVars.add(self.KD3)
+               if condNormVars.getSize()==0:
+                  raise RuntimeError("Process {} has all variables listed as conditional.".format(procname))
+               elif condNormVars.getSize()==dataVars.getSize():
+                  raise RuntimeError("Process {} has no variables listed as conditional even though the conditional option is specified.".format(procname))
             if "filenamealias" in procoptl:
                procnamefile = procopt.split('=')[1]
 
@@ -337,6 +358,22 @@ class WidthDatacardMaker:
             procPdf.SetName(procname)
             procPdf.SetTitle(procname)
             procRate = bunchNominal.getTheRate()
+
+         if self.hasExtShapes:
+            condpdfname = bunchNominal.getThePdf().GetName() + "_ConditionalPdf"
+            condpdfname = condpdfname.replace("_Nominal","")
+            procCondPdf = procPdf; procPdf=None
+            procCondPdf.SetName(condpdfname); procCondPdf.SetTitle(condpdfname)
+            self.extraPdfList.append(procCondPdf)
+            procExtPdf = self.extShapeHandle.getThePdf(procname)
+            self.extraPdfList.append(procExtPdf)
+            procPdf = ROOT.RooProdPdf(
+               procname,procname,
+               ROOT.RooArgSet(procExtPdf),
+               ROOT.RooFit.Conditional(ROOT.RooArgSet(procCondPdf),condNormVars)
+            )
+         elif isConditional:
+               raise RuntimeError("No external shape handle exists even though process {} is conditional".format(procname))
 
          self.pdfList.append(procPdf)
          self.rateList.append(procRate)
