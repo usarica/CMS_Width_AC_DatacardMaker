@@ -17,8 +17,7 @@ class ExternalShapeHelper:
       self.theSqrtsPeriod = theMaker.theSqrtsPeriod
       self.channel = theMaker.channel
       self.theChannelName = theMaker.theChannelName
-      self.workspace = theMaker.workspace
-      self.theInputs = theMaker.theInputCard.getInputs()
+      self.theInputCard = theMaker.theInputCard
 
       # RooRealVars from the datacard maker class
       self.mass = theMaker.mass
@@ -38,6 +37,8 @@ class ExternalShapeHelper:
       self.theWS = None
       self.thePdfs = dict()
 
+      self.getShapes()
+
 
 # Open the shape files
    def openFile(self):
@@ -54,11 +55,12 @@ class ExternalShapeHelper:
             self.shapeFile.Close()
 
 
-   def getThePdf(self, procname):
+   def getThePdf(self, theProcess):
+      procname = theProcess[0]
       if procname in self.thePdfs:
          return self.thePdfs[procname]
       else:
-         raise RuntimeError("ExternalShapeHelper: External shape for process {} does not exist".format(self.procname))
+         raise RuntimeError("ExternalShapeHelper: External shape for process {} does not exist".format(procname))
          return None
 
 
@@ -66,7 +68,6 @@ class ExternalShapeHelper:
    def getShapes(self):
       self.openFile()
       self.theWS=self.shapeFile.Get("w").Clone("WSinput_{}".format(self.shapeSuffix))
-      self.closeFile()
 
       MH_in=self.theWS.factory("MH")
       mass_in=self.theWS.factory("mass")
@@ -78,22 +79,27 @@ class ExternalShapeHelper:
             clientsIter = var.clientIterator()
             client=clientsIter.Next()
             while client:
-               client.redirectServers(ROOT.RooArgSet(var_out), false, false, false)
+               client.redirectServers(ROOT.RooArgSet(var_out), False, False, False)
                client=clientsIter.Next()
 
       for proc in self.theInputCard.channels:
          procname = proc[0]
          proctype = proc[3]
          procopts = proc[4]
+         procTplAlias = procname
          isConditional=False
          for procopt in procopts:
             procoptl=procopt.lower()
             if "conditional" in procoptl:
                isConditional=True
+            if "templatenamealias" in procoptl:
+               procTplAlias = procopt.split('=')[1]
          if isConditional:
-            shapeName = "{}_MassShape".format(procname)
+            shapeName = "{}_MassShape".format(procTplAlias)
+            #shapeName = "MassShapeModel"
             pdf=self.theWS.pdf(shapeName)
             pdf.SetName("{}_{}_ExtMassShape".format(procname, self.shapeSuffix))
             pdf.SetTitle("{}_{}_ExtMassShape".format(procname, self.shapeSuffix))
+            print "Acquiring mass shape {} for process {}".format(shapeName, procname)
             self.thePdfs[procname]=pdf
 

@@ -69,7 +69,7 @@ class BSITemplateHelper:
       self.proctype = theProcess[3]
       self.procopts = theProcess[4]
       # Set how process functions
-      self.isGGVVLikeCouplings = self.procname.lower().startswith("gg") or self.procname.lower().startswith("tt")
+      self.isGGVVLikeCouplings = self.procname.lower().startswith("gg") or self.procname.lower().startswith("tt") or self.procname.lower().startswith("bb")
       self.isSigOnly = self.proctype==1
       self.useNoBSInt = self.isSigOnly # To be changed later
       self.condDim = 0

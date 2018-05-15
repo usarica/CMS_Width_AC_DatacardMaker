@@ -50,8 +50,8 @@ class SimpleTemplateHelper:
       self.procTplAlias=self.procname
       self.condDim = 0
 
-      if not self.isBkgOnly and self.issigOnly:
-         raise RuntimeError("SimpleTemplateHelper only supports bkg-only or sig-only templates")
+      if not self.isBkgOnly and not self.isSigOnly:
+         raise RuntimeError("SimpleTemplateHelper only supports bkg-only or sig-only templates, so please revise process {}".format(self.procname))
 
       for procopt in self.procopts:
          procoptl=procopt.lower()

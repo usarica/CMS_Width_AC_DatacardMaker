@@ -12,6 +12,7 @@ from array import array
 # Note: This class is independent of the input card, so luminosity and other variables common per-sqrts have to be created somewhere else.
 class EquationsMaker:
    def __init__(self, options, theInputCard):
+      self.mPOLE = options.mPOLE
       self.mLow = options.mLow
       self.mHigh = options.mHigh
       self.anomCoupl = options.anomCouplIndex
@@ -22,6 +23,11 @@ class EquationsMaker:
       self.lumi = theInputCard.lumi
 
       self.rrvars = dict()
+
+      # MH
+      var = ROOT.RooRealVar("MH", "MH", self.mPOLE, 0, self.sqrts*1000.)
+      var.setConstant(True)
+      self.rrvars["MH"]=var
 
       # LUMI
       var = ROOT.RooConstVar("LUMI_{0}".format(self.theSqrtsPeriod), "LUMI_{0}".format(self.theSqrtsPeriod), self.lumi)

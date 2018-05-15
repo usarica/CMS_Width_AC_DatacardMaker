@@ -39,13 +39,13 @@ class InputCardReader:
       self.parameters = []
 
       # list of either
-      # [ systematics name, systematics type=lnN, [ [channel, 1+sigma] ] ] --> e.g. systematics mySyst lnN ggH:1.02 qqH:1.04
+      # [ systematics name, systematics type=lnN, [ [channel, 1+sigma] ] ] --> e.g. systematic mySyst lnN ggH:1.02 qqH:1.04
       # or
-      # [ systematics name, systematics type=lnN, [ [channel, 1+sigma, 1-sigma] ] ] --> e.g. systematics mySyst lnN ggH:1.02:0.96 qqH:1.04:0.90
+      # [ systematics name, systematics type=lnN, [ [channel, 1+sigma, 1-sigma] ] ] --> e.g. systematic mySyst lnN ggH:1.02:0.96 qqH:1.04:0.90
       # or
-      # [ systematics name, systematics type=param, [central value, 1 sigma error, (optional) parameter minimum, (optional) parameter maximum] ] --> e.g. systematics mySyst param 0:1:-3:3
+      # [ systematics name, systematics type=param, [central value, 1 sigma error, (optional) parameter minimum, (optional) parameter maximum] ] --> e.g. systematic mySyst param 0:1:-3:3
       # or
-      # [ systematics name, systematics type=template, [ [ channel, systematics up appendix name, systematics dn appendix name ] ] --> e.g. systematics mySyst template ggZZ_offshell:QCDUp:QCDDn VBF_offhshell:QCDUp:QCDDn
+      # [ systematics name, systematics type=template, [ [ channel, systematics up appendix name, systematics dn appendix name ] ] --> e.g. systematic mySyst template ggZZ_offshell:QCDUp:QCDDn VBF_offhshell:QCDUp:QCDDn
       self.systematics = []
 
       self.readInputs()
@@ -102,8 +102,8 @@ class InputCardReader:
                   if len(f)>4:
                      iBkg = int(f[4])
                      if len(f)>5:
-                        strchanopts=f[5].lower()
-                        if strchanopts.startswith("options:"): # Options could be "Options:Conditional=KD1;FileNameAlias=ggZZ"
+                        strchanopts=f[5]
+                        if strchanopts.lower().startswith("options:"): # Options could be "Options:Conditional=KD1;FileNameAlias=ggZZ"
                            strchanopts=strchanopts[8:]
                            chanopts=strchanopts.split(';')
 

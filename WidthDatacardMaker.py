@@ -103,14 +103,6 @@ class WidthDatacardMaker:
 
       self.theSystVarsDict = self.theSystematizer.getVariableDict()
 
-      self.extMassShapesDir=self.options.extMassShapes
-      self.hasExtMassShapes=(self.extMassShapesDir is not None)
-      self.extShapeHandle=None
-      if self.hasExtMassShapes:
-         shapesFileNameMain = "HtoZZ{}_{}_MassShapes_".format(self.theChannelName, self.catName)
-         shapesFileName = "{0}/{1}{2}{3}".format(self.extMassShapesDir, shapesFileNameMain, "AllProcesses", ".root")
-         self.extShapeHandle=ExternalShapeHelper(self.options,self,self.theEqnsMaker,self.theCategorizer,shapesFileName,self.iCat)
-
       self.workspace = ROOT.RooWorkspace("w", "w")
       self.workspace.importClassCode(ROOT.AsymPow.Class(),True)
       self.workspace.importClassCode(ROOT.AsymQuad.Class(),True)
@@ -126,6 +118,15 @@ class WidthDatacardMaker:
       eqnrrvars = self.theEqnsMaker.rrvars
       self.theLumi = eqnrrvars["lumi"]
       self.mass = eqnrrvars["mass"]
+
+      # External mass shapes
+      self.extMassShapesDir=self.options.extMassShapes
+      self.hasExtMassShapes=(self.extMassShapesDir is not None)
+      self.extShapeHandle=None
+      if self.hasExtMassShapes:
+         shapesFileNameMain = "HtoZZ{}_{}_FinalMassShape_".format(self.theChannelName, self.catName)
+         shapesFileName = "{0}/{1}{2}{3}".format(self.extMassShapesDir, shapesFileNameMain, "AllProcesses", ".root")
+         self.extShapeHandle=ExternalShapeHelper(self.options,self,self.theEqnsMaker,self.theCategorizer,shapesFileName,self.iCat)
 
       self.onevar = eqnrrvars["one"]
 
@@ -218,7 +219,7 @@ class WidthDatacardMaker:
                if not("kd3" in procoptl) and self.KD3 is not None: condNormVars.add(self.KD3)
                if condNormVars.getSize()==0:
                   raise RuntimeError("Process {} has all variables listed as conditional.".format(procname))
-               elif condNormVars.getSize()==dataVars.getSize():
+               elif condNormVars.getSize()==self.dataVars.getSize():
                   raise RuntimeError("Process {} has no variables listed as conditional even though the conditional option is specified.".format(procname))
             if "filenamealias" in procoptl:
                procnamefile = procopt.split('=')[1]
@@ -359,20 +360,22 @@ class WidthDatacardMaker:
             procPdf.SetTitle(procname)
             procRate = bunchNominal.getTheRate()
 
-         if self.hasExtShapes:
-            condpdfname = bunchNominal.getThePdf().GetName() + "_ConditionalPdf"
-            condpdfname = condpdfname.replace("_Nominal","")
-            procCondPdf = procPdf; procPdf=None
-            procCondPdf.SetName(condpdfname); procCondPdf.SetTitle(condpdfname)
-            self.extraPdfList.append(procCondPdf)
-            procExtPdf = self.extShapeHandle.getThePdf(procname)
-            self.extraPdfList.append(procExtPdf)
-            procPdf = ROOT.RooProdPdf(
-               procname,procname,
-               ROOT.RooArgSet(procExtPdf),
-               ROOT.RooFit.Conditional(ROOT.RooArgSet(procCondPdf),condNormVars)
-            )
-         elif isConditional:
+         # Construct the product pdfs from conditional pdf x mass shape
+         if isConditional:
+            if self.hasExtMassShapes:
+               condpdfname = bunchNominal.getThePdf().GetName() + "_ConditionalPdf"
+               condpdfname = condpdfname.replace("_Nominal","")
+               procCondPdf = procPdf; procPdf=None
+               procCondPdf.SetName(condpdfname); procCondPdf.SetTitle(condpdfname)
+               self.extraPdfList.append(procCondPdf)
+               procExtPdf = self.extShapeHandle.getThePdf(proc)
+               self.extraPdfList.append(procExtPdf)
+               procPdf = ROOT.RooProdPdf(
+                  procname,procname,
+                  ROOT.RooArgSet(procExtPdf),
+                  ROOT.RooFit.Conditional(ROOT.RooArgSet(procCondPdf),condNormVars)
+               )
+            else:
                raise RuntimeError("No external shape handle exists even though process {} is conditional".format(procname))
 
          self.pdfList.append(procPdf)
@@ -433,6 +436,8 @@ class WidthDatacardMaker:
       # Garbage collection
       for bunch in self.theBunches:
          bunch.close()
+      if self.extShapeHandle is not None:
+         self.extShapeHandle.close()
 
 
    def GetData(self):
