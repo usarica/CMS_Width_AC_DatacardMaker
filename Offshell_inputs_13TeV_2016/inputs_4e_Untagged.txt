@@ -6,7 +6,7 @@ category HadVHTagged
 channel ggZZ_offshell 1 -1 2
 channel VVZZ_offshell 1 -1 2
 channel qqZZ 1 -1 0
-channel Zjets 1 -1 0
+channel Zjets 0.042488 -1 0
 # SYSTEMATICS
 ## COMMON
 systematic lumiUnc lnN ggZZ_offshell:1.026 VVZZ_offshell:1.026 qqZZ:1.026

@@ -16,6 +16,7 @@ class ExtendedTemplate:
          self.condDim=condDim
 
       self.origTemplate = origTemplate # Just to store
+      TemplateName = self.origTemplate.GetName() # Template name contains extra suffix if already cloned
 
       self.obslist = ROOT.RooArgList()
       theVars = [ varX, varY, varZ ]
@@ -30,10 +31,10 @@ class ExtendedTemplate:
             else:
                axis=self.origTemplate.GetZaxis()
             axisBinning = self.getBinningFromHistogram(axis)
+            print "ExtendedTemplate: {} axis {} has {} bins.".format(TemplateName,v,axisBinning.numBins())
             theVars[v].setBinning(axisBinning)
             theVars[v].setVal((axisBinning.lowBound()+axisBinning.highBound())/2.)
 
-      TemplateName = self.origTemplate.GetName() # Template name contains extra suffix if already cloned
       HistFuncName = "{}_HistFunc".format(TemplateName)
       self.getHistFunc(HistFuncName)
 

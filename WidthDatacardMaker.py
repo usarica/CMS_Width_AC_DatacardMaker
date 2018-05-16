@@ -106,8 +106,9 @@ class WidthDatacardMaker:
       self.workspace = ROOT.RooWorkspace("w", "w")
       self.workspace.importClassCode(ROOT.AsymPow.Class(),True)
       self.workspace.importClassCode(ROOT.AsymQuad.Class(),True)
-      self.workspace.importClassCode(ROOT.RooqqZZPdf_v2.Class(), True)
       self.workspace.importClassCode(ROOT.RooFormulaVar.Class(), True)
+      #self.workspace.importClassCode(ROOT.RooqqZZPdf_v2.Class(), True)
+      self.workspace.importClassCode(ROOT.RooDoubleCB.Class(), True)
       self.workspace.importClassCode(ROOT.FastHistoFunc_f.Class(),True)
       self.workspace.importClassCode(ROOT.FastHisto2DFunc_f.Class(),True)
       self.workspace.importClassCode(ROOT.FastHisto3DFunc_f.Class(),True)
@@ -202,6 +203,27 @@ class WidthDatacardMaker:
          self.theOutputDir, self.theChannelName, self.catName, self.theSqrtsPeriod
       )
 
+      globalCondDim=1
+      for proc in self.theInputCard.channels:
+         procname = proc[0]
+         procopts = proc[4]
+         isConditional=False
+         procnamefile = procname
+         condDim=0
+         for procopt in procopts:
+            procoptl=procopt.lower()
+            if "conditional" in procoptl:
+               isConditional=True
+               condNormVars = ROOT.RooArgSet()
+               condDim = 2**int("kd1" in procoptl) * 3**int("kd2" in procoptl) * 5**int("kd3" in procoptl)
+               if condDim%2==0 and globalCondDim%2!=0: globalCondDim = globalCondDim*2
+               if condDim%3==0 and globalCondDim%3!=0: globalCondDim = globalCondDim*3
+               if condDim%5==0 and globalCondDim%5!=0: globalCondDim = globalCondDim*5
+      if globalCondDim==1:
+         globalCondDim=0
+      else:
+         print "Some processes have conditional templates, so globalCondDim={}".format(globalCondDim)
+
       for proc in self.theInputCard.channels:
          procname = proc[0]
          proctype = proc[3]
@@ -209,6 +231,7 @@ class WidthDatacardMaker:
          isConditional=False
          procnamefile = procname
          condNormVars=None # Unconditional variables which are not involved in conditional template construction
+         condDim=0
          for procopt in procopts:
             procoptl=procopt.lower()
             if "conditional" in procoptl:
@@ -217,6 +240,7 @@ class WidthDatacardMaker:
                if not("kd1" in procoptl) and self.KD1 is not None: condNormVars.add(self.KD1)
                if not("kd2" in procoptl) and self.KD2 is not None: condNormVars.add(self.KD2)
                if not("kd3" in procoptl) and self.KD3 is not None: condNormVars.add(self.KD3)
+               condDim = 2**int("kd1" in procoptl) * 3**int("kd2" in procoptl) * 5**int("kd3" in procoptl)
                if condNormVars.getSize()==0:
                   raise RuntimeError("Process {} has all variables listed as conditional.".format(procname))
                elif condNormVars.getSize()==self.dataVars.getSize():
@@ -406,6 +430,31 @@ class WidthDatacardMaker:
          print "\t- Lumi = ",self.theLumi.getVal()
          if procRateExtra is not None:
             print "\t- Extra rate = ",procRateExtra.getVal()
+
+         # Fix conditional dimension binning: For a mass distribution, toy generation might create some issues
+         if globalCondDim>0:
+            condVars=[]
+            if globalCondDim%2==0:
+               condVars.append(self.KD1)
+            if globalCondDim%3==0:
+               condVars.append(self.KD2)
+            if globalCondDim%5==0:
+               condVars.append(self.KD3)
+            for var in condVars:
+               varBinning=var.getBinning()
+               varBinArray=varBinning.array()
+               varNbins=varBinning.numBins()
+               newBinning=ROOT.RooBinning(varBinning)
+               ndiv=100
+               for ix in range(0,varNbins):
+                  lowedge=varBinArray[ix]
+                  highedge=varBinArray[ix+1]
+                  step=(highedge-lowedge)/float(ndiv)
+                  for iy in range(1,ndiv):
+                     newBinning.addBoundary(lowedge+step*float(iy))
+               var.setBinning(newBinning)
+
+         # Import the pdf and rates for this process
          getattr(self.workspace, 'import')(procPdf,ROOT.RooFit.RecycleConflictNodes())
          getattr(self.workspace, 'import')(procNorm,ROOT.RooFit.RecycleConflictNodes())
 
