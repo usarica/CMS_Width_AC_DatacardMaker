@@ -667,6 +667,7 @@ class WidthDatacardMaker:
          args = self.GetProcessSystVars(tmpnorm.GetName())
          if not isBkg:
             args.append(self.theEqnsMaker.rrvars["fai1"])
+            args.append(self.theEqnsMaker.rrvars["GHratio"])
          if len(args)>0:
             PlotRate(tmpnorm,args,self.plotsPathName)
 

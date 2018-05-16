@@ -22,6 +22,18 @@ class EquationsMaker:
       self.theSqrtsPeriod = theInputCard.theSqrtsPeriod
       self.lumi = theInputCard.lumi
 
+      # Set the GHmodel name: Important to distinguish on-shell vs off-shell
+      if self.GHmodel==1:
+         self.GHmodelName="OnshellR_times_GGsm"
+      elif self.GHmodel==-1:
+         self.GHmodelName="OnshellR_over_GGsm"
+      elif self.GHmodel==2:
+         self.GHmodelName="OnshellR_times_GGsm_times_GHref"
+      elif self.GHmodel==-2:
+         self.GHmodelName="OnshellR_over_GGsm_over_GHref"
+      else:
+         self.GHmodelName="OnshellR_only"
+
       self.rrvars = dict()
 
       # MH
@@ -139,20 +151,25 @@ class EquationsMaker:
 
    # Construct muF/V
       if self.GHmodel==1:
-         muF = ROOT.RooFormulaVar("muF_{0:.0f}TeV".format(self.sqrts), "@0*@1*@2*@3*@4", ROOT.RooArgList(self.rrvars["R"],self.rrvars["RF"], self.rrvars["Rsqrts"],self.rrvars["RFsqrts"], self.rrvars["GHratio"]))
-         muV = ROOT.RooFormulaVar("muV_{0:.0f}TeV".format(self.sqrts), "@0*@1*@2*@3*@4", ROOT.RooArgList(self.rrvars["R"],self.rrvars["RV"], self.rrvars["Rsqrts"],self.rrvars["RVsqrts"], self.rrvars["GHratio"]))
+         self.GHmodelName="OnshellR_times_GGsm"
+         muF = ROOT.RooFormulaVar("muF_{0}_{1:.0f}TeV".format(self.GHmodelName,self.sqrts), "@0*@1*@2*@3*@4", ROOT.RooArgList(self.rrvars["R"],self.rrvars["RF"], self.rrvars["Rsqrts"],self.rrvars["RFsqrts"], self.rrvars["GHratio"]))
+         muV = ROOT.RooFormulaVar("muV_{0}_{1:.0f}TeV".format(self.GHmodelName,self.sqrts), "@0*@1*@2*@3*@4", ROOT.RooArgList(self.rrvars["R"],self.rrvars["RV"], self.rrvars["Rsqrts"],self.rrvars["RVsqrts"], self.rrvars["GHratio"]))
       elif self.GHmodel==-1:
-         muF = ROOT.RooFormulaVar("muF_{0:.0f}TeV".format(self.sqrts), "@0*@1*@2*@3/@4", ROOT.RooArgList(self.rrvars["R"],self.rrvars["RF"], self.rrvars["Rsqrts"],self.rrvars["RFsqrts"], self.rrvars["GHratio"]))
-         muV = ROOT.RooFormulaVar("muV_{0:.0f}TeV".format(self.sqrts), "@0*@1*@2*@3/@4", ROOT.RooArgList(self.rrvars["R"],self.rrvars["RV"], self.rrvars["Rsqrts"],self.rrvars["RVsqrts"], self.rrvars["GHratio"]))
+         self.GHmodelName="OnshellR_over_GGsm"
+         muF = ROOT.RooFormulaVar("muF_{0}_{1:.0f}TeV".format(self.GHmodelName,self.sqrts), "@0*@1*@2*@3/@4", ROOT.RooArgList(self.rrvars["R"],self.rrvars["RF"], self.rrvars["Rsqrts"],self.rrvars["RFsqrts"], self.rrvars["GHratio"]))
+         muV = ROOT.RooFormulaVar("muV_{0}_{1:.0f}TeV".format(self.GHmodelName,self.sqrts), "@0*@1*@2*@3/@4", ROOT.RooArgList(self.rrvars["R"],self.rrvars["RV"], self.rrvars["Rsqrts"],self.rrvars["RVsqrts"], self.rrvars["GHratio"]))
       elif self.GHmodel==2:
-         muF = ROOT.RooFormulaVar("muF_{0:.0f}TeV".format(self.sqrts), "@0*@1*@2*@3*@4*@5", ROOT.RooArgList(self.rrvars["R"],self.rrvars["RF"], self.rrvars["Rsqrts"],self.rrvars["RFsqrts"], self.rrvars["GHratio"],self.rrvars["GHrefval"]))
-         muV = ROOT.RooFormulaVar("muV_{0:.0f}TeV".format(self.sqrts), "@0*@1*@2*@3*@4*@5", ROOT.RooArgList(self.rrvars["R"],self.rrvars["RV"], self.rrvars["Rsqrts"],self.rrvars["RVsqrts"], self.rrvars["GHratio"],self.rrvars["GHrefval"]))
+         self.GHmodelName="OnshellR_times_GGsm_times_GHref"
+         muF = ROOT.RooFormulaVar("muF_{0}_{1:.0f}TeV".format(self.GHmodelName,self.sqrts), "@0*@1*@2*@3*@4*@5", ROOT.RooArgList(self.rrvars["R"],self.rrvars["RF"], self.rrvars["Rsqrts"],self.rrvars["RFsqrts"], self.rrvars["GHratio"],self.rrvars["GHrefval"]))
+         muV = ROOT.RooFormulaVar("muV_{0}_{1:.0f}TeV".format(self.GHmodelName,self.sqrts), "@0*@1*@2*@3*@4*@5", ROOT.RooArgList(self.rrvars["R"],self.rrvars["RV"], self.rrvars["Rsqrts"],self.rrvars["RVsqrts"], self.rrvars["GHratio"],self.rrvars["GHrefval"]))
       elif self.GHmodel==-2:
-         muF = ROOT.RooFormulaVar("muF_{0:.0f}TeV".format(self.sqrts), "@0*@1*@2*@3/(@4*@5)", ROOT.RooArgList(self.rrvars["R"],self.rrvars["RF"], self.rrvars["Rsqrts"],self.rrvars["RFsqrts"], self.rrvars["GHratio"],self.rrvars["GHrefval"]))
-         muV = ROOT.RooFormulaVar("muV_{0:.0f}TeV".format(self.sqrts), "@0*@1*@2*@3/(@4*@5)", ROOT.RooArgList(self.rrvars["R"],self.rrvars["RV"], self.rrvars["Rsqrts"],self.rrvars["RVsqrts"], self.rrvars["GHratio"],self.rrvars["GHrefval"]))
+         self.GHmodelName="OnshellR_over_GGsm_over_GHref"
+         muF = ROOT.RooFormulaVar("muF_{0}_{1:.0f}TeV".format(self.GHmodelName,self.sqrts), "@0*@1*@2*@3/(@4*@5)", ROOT.RooArgList(self.rrvars["R"],self.rrvars["RF"], self.rrvars["Rsqrts"],self.rrvars["RFsqrts"], self.rrvars["GHratio"],self.rrvars["GHrefval"]))
+         muV = ROOT.RooFormulaVar("muV_{0}_{1:.0f}TeV".format(self.GHmodelName,self.sqrts), "@0*@1*@2*@3/(@4*@5)", ROOT.RooArgList(self.rrvars["R"],self.rrvars["RV"], self.rrvars["Rsqrts"],self.rrvars["RVsqrts"], self.rrvars["GHratio"],self.rrvars["GHrefval"]))
       else:
-         muF = ROOT.RooFormulaVar("muF_{0:.0f}TeV".format(self.sqrts), "@0*@1*@2*@3", ROOT.RooArgList(self.rrvars["R"],self.rrvars["RF"], self.rrvars["Rsqrts"],self.rrvars["RFsqrts"]))
-         muV = ROOT.RooFormulaVar("muV_{0:.0f}TeV".format(self.sqrts), "@0*@1*@2*@3", ROOT.RooArgList(self.rrvars["R"],self.rrvars["RV"], self.rrvars["Rsqrts"],self.rrvars["RVsqrts"]))
+         self.GHmodelName="OnshellR_only"
+         muF = ROOT.RooFormulaVar("muF_{0}_{1:.0f}TeV".format(self.GHmodelName,self.sqrts), "@0*@1*@2*@3", ROOT.RooArgList(self.rrvars["R"],self.rrvars["RF"], self.rrvars["Rsqrts"],self.rrvars["RFsqrts"]))
+         muV = ROOT.RooFormulaVar("muV_{0}_{1:.0f}TeV".format(self.GHmodelName,self.sqrts), "@0*@1*@2*@3", ROOT.RooArgList(self.rrvars["R"],self.rrvars["RV"], self.rrvars["Rsqrts"],self.rrvars["RVsqrts"]))
       self.rrvars["muF"]=muF
       self.rrvars["muV"]=muV
 
@@ -188,7 +205,7 @@ class EquationsMaker:
 
       for irfv in range(0,len(self.ggSigFormula_list)):
          rfvname_noMu = "HVV_Sig_ai1_{0:.0f}_noMu_Coef".format(irfv)
-         rfvname = "HVV_Sig_ai1_{0:.0f}_Coef".format(irfv)
+         rfvname = "HVV_Sig_ai1_{0:.0f}_{1}_Coef".format(irfv,self.rrvars["muF"].GetName())
          rfvargs = ROOT.RooArgList()
          if self.anomCoupl == 1:
             rfvargs.add(self.rrvars["fai1"])
@@ -206,7 +223,7 @@ class EquationsMaker:
 
       for irfv in range(0,len(self.ggInterfFormula_list)):
          rfvname_noMu = "HVV_Interf_ai1_{0:.0f}_noMu_Coef".format(irfv)
-         rfvname = "HVV_Interf_ai1_{0:.0f}_Coef".format(irfv)
+         rfvname = "HVV_Interf_ai1_{0:.0f}_{1}_Coef".format(irfv,self.rrvars["muF"].GetName())
          rfvargs = ROOT.RooArgList()
          rfvargs.add(self.rrvars["kbkg_gg"])
          if self.anomCoupl == 1:
@@ -258,7 +275,7 @@ class EquationsMaker:
 
       for irfv in range(0,len(self.VBFSigFormula_list)):
          rfvname_noMu = "vvHVV_Sig_ai1_{0:.0f}_noMu_Coef".format(irfv)
-         rfvname = "vvHVV_Sig_ai1_{0:.0f}_Coef".format(irfv)
+         rfvname = "vvHVV_Sig_ai1_{0:.0f}_{1}_Coef".format(irfv,self.rrvars["muV"].GetName())
          rfvargs = ROOT.RooArgList()
          if self.anomCoupl == 1:
             rfvargs.add(self.rrvars["fai1"])
@@ -276,7 +293,7 @@ class EquationsMaker:
 
       for irfv in range(0,len(self.VBFInterfFormula_list)):
          rfvname_noMu = "vvHVV_Interf_ai1_{0:.0f}_noMu_Coef".format(irfv)
-         rfvname = "vvHVV_Interf_ai1_{0:.0f}_Coef".format(irfv)
+         rfvname = "vvHVV_Interf_ai1_{0:.0f}_{1}_Coef".format(irfv,self.rrvars["muV"].GetName())
          rfvargs = ROOT.RooArgList()
          rfvargs.add(self.rrvars["kbkg_VBF"])
          if self.anomCoupl == 1:
