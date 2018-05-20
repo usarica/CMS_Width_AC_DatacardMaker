@@ -49,7 +49,7 @@ struct process_spec{
   process_spec() : pdf(0), norm(0), rate(0){}
   process_spec(RooAbsPdf* pdf_, RooAbsReal* norm_, double rate_) : pdf(pdf_), norm(norm_), rate(rate_), name(pdf->GetName()){}
   process_spec(RooAbsPdf* pdf_, RooAbsReal* norm_, double rate_, vector<TH3F*> templates_) : pdf(pdf_), norm(norm_), rate(rate_), name(pdf->GetName()), templates(templates_){}
-  process_spec(const process_spec& other) : pdf(other.pdf), norm(other.norm), rate(other.rate), templates(other.templates){}
+  process_spec(const process_spec& other, TString newname="") : pdf(other.pdf), pdf_shape(other.pdf_shape), norm(other.norm), rate(other.rate), name(newname=="" ? other.name: newname), templates(other.templates), systematics(other.systematics){}
 
   void setSystematic(string systname, string systtype, string systline){ systematics[systname] = pair<string, string>(systtype, systline); }
   void setShapePdf(string systname, RooAbsPdf* pdf_){ if (pdf_!=0)pdf_shape[systname] = pdf_; else cout << name << "_" << systname << " pdf does not exist!" << endl; }
@@ -128,7 +128,7 @@ void getDataTree(TString cinput){
   foutput->Close();
   finput->Close();
 }
-void getTemplates(TString cinput, double lumiScale=1, bool scale_width=true){
+void getTemplates(TString cinput, double lumiScale=1, bool scale_width=true, bool copy_ggH_to_VVH=false){
   string strinput = cinput.Data();
   vector<string> splitinput;
   splitOptionRecursive(strinput, splitinput, '/');
@@ -146,7 +146,7 @@ void getTemplates(TString cinput, double lumiScale=1, bool scale_width=true){
 
   const unsigned int ncats=4;
   string catnames[ncats]={ "Inclusive", "VBFtagged", "VHHadrtagged", "Untagged" };
-  string catname;
+  string catname = catnames[0];
   for (unsigned int ic=0; ic<ncats; ic++){
     if (strinput.find(catnames[ic])!=string::npos) catname=catnames[ic];
   }
@@ -192,7 +192,7 @@ void getTemplates(TString cinput, double lumiScale=1, bool scale_width=true){
   }
 
   // Get process pdfs
-  unordered_map<const char*, process_spec> procSpecs;
+  unordered_map<string, process_spec> procSpecs;
   for (unsigned int ip=0; ip<procname.size(); ip++){
     cout << procname.at(ip) << ": " << procrate.at(ip) << endl;
 
@@ -205,6 +205,7 @@ void getTemplates(TString cinput, double lumiScale=1, bool scale_width=true){
   }
 
   // Get systematics
+  unordered_map<string, string> tplSyst;
   unordered_map<string, string> logSyst;
   unordered_map<string, string> paramSyst;
   while (!tin.eof()){
@@ -236,10 +237,16 @@ void getTemplates(TString cinput, double lumiScale=1, bool scale_width=true){
               procSpecs[procname.at(ip).Data()].setShapePdf(systname+"Up", up_);
               procSpecs[procname.at(ip).Data()].setShapePdf(systname+"Down", dn_);
             }
-            accumulate += string(procname.at(ip).Data()) + ":" + systline + " ";
+            if (isShape) accumulate += string(procname.at(ip).Data()) + ":0:1 ";
+            else accumulate += string(procname.at(ip).Data()) + ":" + systline + " ";
+            if (copy_ggH_to_VVH && procname.at(ip)=="ggH"){
+              if (isShape) accumulate += string("VVH") + ":0:1 ";
+              else accumulate += string("VVH") + ":" + systline + " ";
+            }
           }
         }
         if (isLog) logSyst[systname] = accumulate;
+        else if (isShape) tplSyst[systname] = accumulate;
       }
       else{
         RooAbsReal* systvar = (RooAbsReal*) ws->var(systname.c_str());
@@ -258,6 +265,7 @@ void getTemplates(TString cinput, double lumiScale=1, bool scale_width=true){
                 }
                 procSpecs[procname.at(ip).Data()].setSystematic(systname, systtype, systline);
                 accumulate += string(procname.at(ip).Data()) + ":" + systline + " ";
+                if (copy_ggH_to_VVH && procname.at(ip)=="ggH") accumulate += string("VVH") + ":" + systline + " ";
               }
             }
           }
@@ -265,6 +273,22 @@ void getTemplates(TString cinput, double lumiScale=1, bool scale_width=true){
         paramSyst[systname] = accumulate;
       }
 
+    }
+  }
+  cout << "Processes: ";
+  for (auto const& pname:procname) cout << pname << " ";
+  cout << endl;
+  cout << "Process specification keys: ";
+  for (auto it=procSpecs.begin(); it!=procSpecs.end(); it++) cout << it->first << " ";
+  cout << endl;
+  if (copy_ggH_to_VVH){
+    for (auto it=procSpecs.begin(); it!=procSpecs.end(); it++){
+      if (TString(it->first)=="ggH"){
+        cout << "Copying ggH process into VVH" << endl;
+        procSpecs["VVH"]=process_spec(it->second, "VVH");
+        procname.emplace_back("VVH");
+        cout << "Copy successful" << endl;
+      }
     }
   }
 
@@ -278,6 +302,7 @@ void getTemplates(TString cinput, double lumiScale=1, bool scale_width=true){
   for (unsigned int ip=0; ip<procname.size(); ip++) tout << "channel " << procname.at(ip) << " 1 -1 " << (procSpecs[procname.at(ip).Data()].name.Contains("bkg") ? 0 : 1) << endl;
 
   // Write systematics
+  /*
   for (unsigned int ip=0; ip<procname.size(); ip++){
     for (auto syst = procSpecs[procname.at(ip).Data()].systematics.begin(); syst != procSpecs[procname.at(ip).Data()].systematics.end(); ++syst){
       if (syst->second.first=="shape1"){
@@ -286,10 +311,14 @@ void getTemplates(TString cinput, double lumiScale=1, bool scale_width=true){
       }
     }
   }
+  */
+  for (auto syst = tplSyst.begin(); syst != tplSyst.end(); ++syst) tout << "systematic " << syst->first << " lnN " << syst->second << endl;
   for (auto syst = logSyst.begin(); syst != logSyst.end(); ++syst) tout << "systematic " << syst->first << " lnN " << syst->second << endl;
   for (auto syst = paramSyst.begin(); syst != paramSyst.end(); ++syst) tout << "systematic " << syst->first << " template " << syst->second << endl;
 
   for (unsigned int ip=0; ip<procname.size(); ip++){
+    cout << "Attempting to extract tpls for process " << procname.at(ip) << endl;
+
     TFile* foutput;
     TString coutput_root;
     
@@ -346,6 +375,10 @@ void extractTemplates(process_spec& proc, RooDataSet* data, string shapename, bo
   vector<TH3F*> templates;
 
   vector<RooRealVar*> deps;
+  if (!proc.pdf){
+    cerr << "ERROR: PDF IS NULL!" << endl;
+    assert(0);
+  }
   RooArgSet* depList = proc.pdf->getDependents(data);
   depList->Print("v");
   TIterator* coefIter = depList->createIterator();
@@ -355,16 +388,22 @@ void extractTemplates(process_spec& proc, RooDataSet* data, string shapename, bo
   delete depList;
 
   vector<RooRealVar*> pars;
+  RooRealVar* RV=0;
+  RooRealVar* RF=0;
   RooRealVar* fai1=0;
   RooRealVar* GGsm=0;
-  RooArgSet* parList = proc.pdf->getParameters(data);
+  RooArgSet* parList;
+  if (proc.norm) parList = proc.norm->getParameters(data);
+  else parList = proc.pdf->getParameters(data);
   parList->Print("v");
   coefIter = parList->createIterator();
   coef=0;
   while ((coef = (RooAbsArg*)coefIter->Next())){
     pars.push_back((RooRealVar*)coef);
-    if (TString(pars.at(pars.size()-1)->GetName()).Contains("fai1")) fai1 = pars.at(pars.size()-1);
-    else if (TString(pars.at(pars.size()-1)->GetName()).Contains("GGsm")) GGsm = pars.at(pars.size()-1);
+    if (TString(pars.back()->GetName()).Contains("fai1")) fai1 = pars.back();
+    else if (TString(pars.back()->GetName()).Contains("GGsm")) GGsm = pars.back();
+    else if (TString(pars.back()->GetName())=="RV") RV = pars.back();
+    else if (TString(pars.back()->GetName())=="RF") RF = pars.back();
   }
   delete coefIter;
   delete parList;
@@ -396,6 +435,13 @@ void extractTemplates(process_spec& proc, RooDataSet* data, string shapename, bo
   }
   else if (proc.name.Contains("ggH") || proc.name.Contains("ttH")){
     if (fai1!=0 && GGsm==0){
+      if (RV){
+        cout << "\t- Setting RV to 0" << endl;
+        RV->setVal(0);
+      }
+      else{
+        cout << "Could not find RV" << endl;
+      }
       vector<TH3F*> intpl;
       for (unsigned int ifv=0; ifv<3; ifv++){
         if (ifv==0) fai1->setVal(0);
@@ -421,10 +467,18 @@ void extractTemplates(process_spec& proc, RooDataSet* data, string shapename, bo
       fai1->setVal(0);
       extractTemplates_ggLike_fai1(tplname, intpl, templates);
       for (unsigned int it=0; it<intpl.size(); it++) delete intpl.at(it);
+      if (RV) RV->setVal(1);
     }
   }
-  else if (proc.name.Contains("qqH") || proc.name.Contains("WH") || proc.name.Contains("ZH")){
+  else if (proc.name.Contains("qqH") || proc.name.Contains("WH") || proc.name.Contains("ZH") || proc.name.Contains("VVH")){
     if (fai1!=0 && GGsm==0){
+      if (RF){
+        cout << "\t- Setting RF to 0" << endl;
+        RF->setVal(0);
+      }
+      else{
+        cout << "Could not find RF" << endl;
+      }
       vector<TH3F*> intpl;
       for (unsigned int ifv=0; ifv<5; ifv++){
         if (ifv==0) fai1->setVal(0);
@@ -452,6 +506,7 @@ void extractTemplates(process_spec& proc, RooDataSet* data, string shapename, bo
       fai1->setVal(0);
       extractTemplates_VVLike_fai1(tplname, intpl, templates);
       for (unsigned int it=0; it<intpl.size(); it++) delete intpl.at(it);
+      if (RF) RF->setVal(1);
     }
   }
 
@@ -472,7 +527,7 @@ void extractTemplates_ggLike_fai1(const TString& newname, const vector<TH3F*>& i
     outtpl.push_back((TH3F*)intpl.at(ot)->Clone(nname));
     outtpl.at(ot)->Reset("ICES");
     for (unsigned int it=0; it<intpl.size(); it++) outtpl.at(ot)->Add(intpl.at(it), invA[ot][it]);
-    cout << outtpl.at(ot)->GetName() << " integral = " << outtpl.at(ot)->Integral() << endl;
+    cout << outtpl.at(ot)->GetName() << " integral = " << outtpl.at(ot)->Integral("width") << endl;
   }
 }
 void extractTemplates_VVLike_fai1(const TString& newname, const vector<TH3F*>& intpl, vector<TH3F*>& outtpl){
@@ -494,7 +549,7 @@ void extractTemplates_VVLike_fai1(const TString& newname, const vector<TH3F*>& i
     outtpl.push_back((TH3F*)intpl.at(ot)->Clone(nname));
     outtpl.at(ot)->Reset("ICES");
     for (unsigned int it=0; it<intpl.size(); it++) outtpl.at(ot)->Add(intpl.at(it), invA[ot][it]);
-    cout << outtpl.at(ot)->GetName() << " integral = " << outtpl.at(ot)->Integral() << endl;
+    cout << outtpl.at(ot)->GetName() << " integral = " << outtpl.at(ot)->Integral("width") << endl;
   }
 }
 
