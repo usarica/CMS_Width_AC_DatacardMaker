@@ -165,7 +165,7 @@ class SimpleTemplateHelper:
             self.theRate = ROOT.RooFormulaVar(RateName, "@0*abs(@1)", ROOT.RooArgList(self.theTpl.theRate, self.muF))
          else:
             self.theRate = self.theTpl.theRate
-      elif "vbs" in self.procname.lower() or "zh" in self.procname.lower() or "wh" in self.procname.lower() or "vbs" in self.procname.lower() or "zzz" in self.procname.lower() or "wzz" in self.procname.lower():
+      elif "vbf" in self.procname.lower() or "zh" in self.procname.lower() or "wh" in self.procname.lower() or "vbs" in self.procname.lower() or "zzz" in self.procname.lower() or "wzz" in self.procname.lower():
          if self.isBkgOnly:
             self.theRate = ROOT.RooFormulaVar(RateName, "@0*abs(@1)", ROOT.RooArgList(self.theTpl.theRate, self.kbkg_VBF))
          else:
