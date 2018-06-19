@@ -7,6 +7,8 @@ channel ggZZ 1 -1 2 Options:nobsint
 channel VBF 1 -1 2 Options:nobsint
 channel ZH 1 -1 2 Options:nobsint
 channel WH 1 -1 2 Options:nobsint
+channel ttZZ 1 -1 1
+channel bbZZ 1 -1 1
 channel bkg_qqzz 1 -1 0
 channel zjets 1 -1 0
 # SYSTEMATICS
