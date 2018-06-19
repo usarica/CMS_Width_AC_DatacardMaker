@@ -1,7 +1,7 @@
 sqrts 13
 period 2017
 decay 4mu
-lumi 41.37
+lumi 41.529343499127
 category HadVHTagged
 channel ggH 1 -1 1 Options:Conditional=KD1;FileNameAlias=ggZZ;TemplateNameAlias=ggZZ_Sig
 channel VBF 1 -1 1 Options:Conditional=KD1;FileNameAlias=VBF;TemplateNameAlias=VBF_Sig
@@ -12,7 +12,7 @@ channel bkg_vbs 1 -1 0 Options:FileNameAlias=VBF;TemplateNameAlias=VBF_Bkg
 channel bkg_zzz 1 -1 0 Options:FileNameAlias=ZH;TemplateNameAlias=ZH_Bkg
 channel bkg_wzz 1 -1 0 Options:FileNameAlias=WH;TemplateNameAlias=WH_Bkg
 channel bkg_qqzz 1 -1 0
-channel zjets 0.135383 -1 0
+channel zjets 1 -1 0
 # SYSTEMATICS
 ## COMMON
 systematic lumiUnc lnN ggH:1.023 bkg_gg:1.023 VBF:1.023 bkg_vbs:1.023 ZH:1.023 bkg_zzz:1.023 WH:1.023 bkg_wzz:1.023 bkg_qqzz:1.023

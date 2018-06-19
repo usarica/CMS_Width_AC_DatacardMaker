@@ -1,14 +1,14 @@
 sqrts 13
 period 2016
 decay 4mu
-lumi 35.8671
+lumi 35.921875594646
 category Untagged
 channel ggZZ 1 -1 2 Options:nobsint
 channel VBF 1 -1 2 Options:nobsint
 channel ZH 1 -1 2 Options:nobsint
 channel WH 1 -1 2 Options:nobsint
 channel bkg_qqzz 1 -1 0
-channel zjets 0.145117 -1 0
+channel zjets 1 -1 0
 # SYSTEMATICS
 ## COMMON
 systematic lumiUnc lnN ggZZ:1.026 VBF:1.026 ZH:1.026 WH:1.026 bkg_qqzz:1.026

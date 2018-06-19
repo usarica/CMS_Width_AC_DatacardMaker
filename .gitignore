@@ -1,3 +1,4 @@
 **/*.pyc
 templates2D/**
+externalShapes/13TeV_*
 cards_*

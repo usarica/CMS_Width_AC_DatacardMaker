@@ -1,14 +1,14 @@
 sqrts 13
 period 2017
 decay 2e2mu
-lumi 41.37
+lumi 41.529343499127
 category JJVBFTagged
 channel ggZZ 1 -1 2 Options:nobsint
 channel VBF 1 -1 2 Options:nobsint
 channel ZH 1 -1 2 Options:nobsint
 channel WH 1 -1 2 Options:nobsint
 channel bkg_qqzz 1 -1 0
-channel zjets 0.068717 -1 0
+channel zjets 1 -1 0
 # SYSTEMATICS
 ## COMMON
 systematic lumiUnc lnN ggZZ:1.023 VBF:1.023 ZH:1.023 WH:1.023 bkg_qqzz:1.023
