@@ -17,8 +17,8 @@ channel bkg_qqzz 1 -1 0
 channel zjets 1 -1 0
 # SYSTEMATICS
 ## COMMON
-systematic lumiUnc lnN ggH:1.023 bkg_gg:1.023 VBF:1.023 bkg_vbs:1.023 ZH:1.023 bkg_zzz:1.023 WH:1.023 bkg_wzz:1.023 bkg_qqzz:1.023
-systematic BRhiggs_hzz4l lnN ggH:1.02 bkg_gg:1.02 VBF:1.02 bkg_vbs:1.02 ZH:1.02 bkg_zzz:1.02 WH:1.02 bkg_wzz:1.02
+systematic lumiUnc lnN ggH:1.023 bkg_gg:1.023 VBF:1.023 bkg_vbs:1.023 ZH:1.023 bkg_zzz:1.023 WH:1.023 bkg_wzz:1.023 ttH:1.023 bbH:1.023 bkg_qqzz:1.023
+systematic BRhiggs_hzz4l lnN ggH:1.02 bkg_gg:1.02 VBF:1.02 bkg_vbs:1.02 ZH:1.02 bkg_zzz:1.02 WH:1.02 bkg_wzz:1.02 ttH:1.02 bbH:1.02
 systematic CMS_hzz4l_zz2e2mu_zjets lnN zjets:1.3
 systematic kbkg_gg param 1:0.1:0:2
 ## THEORY
@@ -51,19 +51,18 @@ systematic pdf_variation_Higgs_gg lnN bbH:1.113:0.922
 ## Experimental systematic due to lepton efficiency corrections
 systematic CMS_scale_e param 0:1:-7:7
 systematic CMS_res_e param 0:1:-7:7
-systematic CMS_eff_e template ggH:0:1 bkg_gg:0:1 VBF:0:1 bkg_vbs:0:1 ZH:0:1 bkg_zzz:0:1 WH:0:1 bkg_wzz:0:1 bkg_qqzz:0:1 Options:normonly
+systematic CMS_eff_e template ggH:0:1 bkg_gg:0:1 VBF:0:1 bkg_vbs:0:1 ZH:0:1 bkg_zzz:0:1 WH:0:1 bkg_wzz:0:1 ttH:0:1 bbH:0:1 bkg_qqzz:0:1 Options:normonly
 systematic CMS_scale_m param 0:1:-7:7
 systematic CMS_res_m param 0:1:-7:7
-systematic CMS_eff_m template ggH:0:1 bkg_gg:0:1 VBF:0:1 bkg_vbs:0:1 ZH:0:1 bkg_zzz:0:1 WH:0:1 bkg_wzz:0:1 bkg_qqzz:0:1 Options:normonly
+systematic CMS_eff_m template ggH:0:1 bkg_gg:0:1 VBF:0:1 bkg_vbs:0:1 ZH:0:1 bkg_zzz:0:1 WH:0:1 bkg_wzz:0:1 ttH:0:1 bbH:0:1 bkg_qqzz:0:1 Options:normonly
 ## Z+X fake rate estimation
 systematic CMS_fake_2e2mu template zjets:0:1
 ## CATEGORIZATION-SPECIFIC
 ## Pythia scale/tune systematics on signal
 systematic CMS_scale_pythia template ggH:0:1 bkg_gg:0:1 VBF:0:1 bkg_vbs:0:1 ZH:0:1 bkg_zzz:0:1 WH:0:1 bkg_wzz:0:1 Options:normonly
-# FIXME WHEN NEW SAMPLES ARRIVE
-#systematic CMS_tune_pythia template ggH:0:1 bkg_gg:0:1 VBF:0:1 bkg_vbs:0:1 ZH:0:1 bkg_zzz:0:1 WH:0:1 bkg_wzz:0:1 Options:normonly
-systematic CMS_tune_pythia template ggH:0:1 bkg_gg:0:1 VBF:0:1 bkg_vbs:0:1 WH:0:1 bkg_wzz:0:1 Options:normonly
+systematic CMS_tune_pythia template ggH:0:1 bkg_gg:0:1 VBF:0:1 bkg_vbs:0:1 ZH:0:1 bkg_zzz:0:1 WH:0:1 bkg_wzz:0:1 Options:normonly
 ## MINLO systematic on gluon fusion
 systematic QCDscale_ggH2in template ggH:0:1 bkg_gg:0:1 Options:normonly
 # JEC systematic
-systematic CMS_scale_j_13TeV_2017 template ggH:0:1 bkg_gg:0:1 VBF:0:1 bkg_vbs:0:1 ZH:0:1 bkg_zzz:0:1 WH:0:1 bkg_wzz:0:1 bkg_qqzz:0:1 Options:normonly
+systematic CMS_scale_j_13TeV_2017 template ggH:0:1 bkg_gg:0:1 VBF:0:1 bkg_vbs:0:1 ZH:0:1 bkg_zzz:0:1 WH:0:1 bkg_wzz:0:1 ttH:0:1 bbH:0:1 bkg_qqzz:0:1 Options:normonly
+systematic CMS_btag_comb_13TeV_2017 template ttH:0:1 bbH:0:1 Options:normonly
