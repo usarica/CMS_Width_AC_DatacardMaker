@@ -7,8 +7,8 @@ channel ggZZ 1 -1 2 Options:nobsint
 channel VBF 1 -1 2 Options:nobsint
 channel ZH 1 -1 2 Options:nobsint
 channel WH 1 -1 2 Options:nobsint
-channel ttZZ 1 -1 1
-channel bbZZ 1 -1 1
+channel ttH 1 -1 1
+channel bbH 1 -1 1
 channel bkg_qqzz 1 -1 0
 channel zjets 1 -1 0
 # SYSTEMATICS
@@ -21,25 +21,28 @@ systematic kbkg_gg param 1:0.1:0:2
 ## Systematics due to muR
 systematic QCDscale_ren_ggH template ggZZ:0:1 Options:normonly
 systematic QCDscale_ren_qqH template VBF:0:1 Options:normonly
-systematic QCDscale_ren_VH template ZH:0:1 Options:normonly
-systematic QCDscale_ren_VH template WH:0:1 Options:normonly
+systematic QCDscale_ren_ttH template ttH:0:1 Options:normonly
+systematic QCDscale_ren_VH template ZH:0:1 WH:0:1 Options:normonly
 systematic QCDscale_ren_VV template bkg_qqzz:0:1 Options:normonly
 ## Systematics due to muF
 systematic QCDscale_fac_ggH template ggZZ:0:1 Options:normonly
 systematic QCDscale_fac_qqH template VBF:0:1 Options:normonly
-systematic QCDscale_fac_VH template ZH:0:1 Options:normonly
-systematic QCDscale_fac_VH template WH:0:1 Options:normonly
+systematic QCDscale_fac_ttH template ttH:0:1 Options:normonly
+systematic QCDscale_fac_VH template ZH:0:1 WH:0:1 Options:normonly
 systematic QCDscale_fac_VV template bkg_qqzz:0:1 Options:normonly
 ## Systematics due to PDF variations
-systematic pdf_variation_Higgs_gg template ggZZ:0:1 Options:normonly
+systematic pdf_variation_Higgs_gg template ggZZ:0:1 ttH:0:1 Options:normonly
 systematic pdf_variation_Higgs_qqbar template VBF:0:1 ZH:0:1 WH:0:1 Options:normonly
 systematic pdf_variation_qqbar template bkg_qqzz:0:1 Options:normonly
 ## Systematics due to PDF alpha_s choice
 systematic pdf_asmz_Higgs_gg template ggZZ:0:1 Options:normonly
 systematic pdf_asmz_Higgs_qqbar template VBF:0:1 ZH:0:1 WH:0:1 Options:normonly
 systematic pdf_asmz_qqbar template bkg_qqzz:0:1 Options:normonly
-## Systematic for qq bkg. NLO EW correction
-systematic EWcorr_VV template bkg_qqzz:0:1 Options:normonly
+# Special theory systematics
+systematic QCDscale_ren_bbH lnN bbH:1.128:0.837
+systematic QCDscale_fac_bbH lnN bbH:1.078:0.96
+systematic pdf_asmz_Higgs_gg lnN ttH:0.98:1.02 bbH:0.945:1.075
+systematic pdf_variation_Higgs_gg lnN bbH:1.113:0.922
 ## EXPERIMENT
 ## Experimental systematic due to lepton efficiency corrections
 systematic CMS_eff_m template ggZZ:0:1 VBF:0:1 ZH:0:1 WH:0:1 bkg_qqzz:0:1 Options:normonly
