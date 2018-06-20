@@ -19,7 +19,7 @@ channel zjets 1 -1 0
 ## COMMON
 systematic lumiUnc lnN ggH:1.023 bkg_gg:1.023 VBF:1.023 bkg_vbs:1.023 ZH:1.023 bkg_zzz:1.023 WH:1.023 bkg_wzz:1.023 bkg_qqzz:1.023
 systematic BRhiggs_hzz4l lnN ggH:1.02 bkg_gg:1.02 VBF:1.02 bkg_vbs:1.02 ZH:1.02 bkg_zzz:1.02 WH:1.02 bkg_wzz:1.02
-systematic CMS_hzz4l_zz4e_zjets lnN zjets:0.78:1.24
+systematic CMS_hzz4l_zz4e_zjets lnN zjets:1.3
 systematic kbkg_gg param 1:0.1:0:2
 ## THEORY
 ## Systematics due to muR

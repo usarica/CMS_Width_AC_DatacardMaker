@@ -11,7 +11,7 @@ channel Zjets 1 -1 0
 ## COMMON
 systematic lumiUnc lnN ggZZ_offshell:1.023 VVZZ_offshell:1.023 qqZZ:1.023
 systematic BRhiggs_hzz4l lnN ggZZ_offshell:1.02 VVZZ_offshell:1.02
-systematic CMS_hzz4l_zz4e_zjets lnN Zjets:0.78:1.24
+systematic CMS_hzz4l_zz4e_zjets lnN Zjets:1.3
 systematic kbkg_gg param 1:0.1:0:2
 ## THEORY
 ## Systematics due to muR
