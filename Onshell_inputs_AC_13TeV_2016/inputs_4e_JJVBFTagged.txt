@@ -52,8 +52,8 @@ systematic CMS_res_e template ggZZ:0:1 VBF:0:1 ZH:0:1 WH:0:1 ttH:0:1 bbH:0:1 Opt
 systematic CMS_fake_4e template zjets:0:1
 ## CATEGORIZATION-SPECIFIC
 ## Pythia scale/tune systematics on signal
-systematic CMS_scale_pythia template ggZZ:0:1 VBF:0:1 ZH:0:1 WH:0:1 ttH:0:1
-systematic CMS_tune_pythia template ggZZ:0:1 VBF:0:1 ZH:0:1 WH:0:1 ttH:0:1
+systematic CMS_scale_pythia template ggZZ:0:1 VBF:0:1 ZH:0:1 WH:0:1 ttH:0:1 Range:-1:1
+systematic CMS_tune_pythia template ggZZ:0:1 VBF:0:1 ZH:0:1 WH:0:1 ttH:0:1 Range:-1:1
 ## MINLO systematic on gluon fusion
 systematic QCDscale_ggH2in template ggZZ:0:1
 # JEC systematic
