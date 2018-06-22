@@ -97,7 +97,10 @@ class ExternalShapeHelper:
          if isConditional:
             shapeName = "{}_MassShape".format(procTplAlias)
             #shapeName = "MassShapeModel"
+            print "\t=> Attempting to get the pdf {} from the WS".format(shapeName)
             pdf=self.theWS.pdf(shapeName)
+            if pdf is None:
+               raise RuntimeError("{} pdf is null!".format(shapeName))
             pdf.SetName("{}_{}_ExtMassShape".format(procname, self.shapeSuffix))
             pdf.SetTitle("{}_{}_ExtMassShape".format(procname, self.shapeSuffix))
             print "Acquiring mass shape {} for process {}".format(shapeName, procname)

@@ -58,8 +58,8 @@ class makeWidthDatacards:
       parser.add_option('-c', '--CatScheme', type='int', dest='iCatScheme', default=1,
                          help='Categorization scheme. 0: Inclusive, 1: VBF-tagged and untagged, 2: VBF-, VH-tagged and untagged')
 
-      parser.add_option('-r', '--datadir', type='string', dest='dataDirAppend', default="",
-                         help='dataDirAppend: Reference CMSdata folder per measurement')
+      parser.add_option('-r', '--datadir', type='string', dest='customDataDir', default="",
+                         help='customDataDir: Reference data folder per measurement')
 
       parser.add_option('--ac', '--AnomCoupl', type='int', dest='anomCouplIndex', default="0",
                          help='anomCouplIndex: 0: SM-only, 1: Full parameterization, 2: Parameterization with phi=0 or pi')

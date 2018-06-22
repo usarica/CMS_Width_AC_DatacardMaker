@@ -88,7 +88,7 @@ class WidthDatacardMaker:
       self.theSystematizer = theSystematizer
 
       self.templateDir = self.options.templateDir
-      self.dataAppendDir = self.options.dataDirAppend
+      self.customDataDir = self.options.customDataDir
       self.iCatScheme = self.options.iCatScheme
       self.mH = self.options.mPOLE
       self.mLow = self.options.mLow
@@ -187,8 +187,8 @@ class WidthDatacardMaker:
       self.extraVars = [] # To keep track of which variables are created on the fly
 
       self.dataFileDir = "CMSdata"
-      if (self.dataAppendDir != ''):
-         self.dataFileDir = "{0}_{1}".format(self.dataFileDir,self.dataAppendDir)
+      if (self.customDataDir != ''):
+         self.dataFileDir = self.customDataDir
       self.dataTreeName = "data_obs"
       self.dataFileName = "{0}/hzz{1}_{2}_{3}.root".format(
          self.dataFileDir, self.theChannelName, self.catName, self.theSqrtsPeriod
@@ -360,18 +360,27 @@ class WidthDatacardMaker:
                tmpBunchOpts = systvar[3]
                print "\t- Including bunch variation {}".format(systvar[2].GetName())
                normOnly=False
+               shapeOnly=False
                for tmpBunchOpt in tmpBunchOpts:
                   if "normonly" in tmpBunchOpt.lower():
                      normOnly=True
-               if normOnly:
+                  if "shapeonly" in tmpBunchOpt.lower():
+                     shapeOnly=True
+               if normOnly and shapeOnly:
+                  raise RuntimeError("\t=> {} systematic in process {} cannot be both norm-only and shape-only.".format(systvar[2].GetName(), procname))
+               elif normOnly:
                   print "\t=> {} is a norm-only systematic in process {}.".format(systvar[2].GetName(), procname)
+               elif shapeOnly:
+                  print "\t=> {} is a shape-only systematic in process {}.".format(systvar[2].GetName(), procname)
                for isyst in range(0,2):
                   if not normOnly:
                      morphPdfList.add(systvar[isyst].getThePdf())
-                  morphRateList.add(systvar[isyst].getTheRate())
+                  if not shapeOnly:
+                     morphRateList.add(systvar[isyst].getTheRate())
                if not normOnly:
                   morphPdfVarList.add(systvar[2])
-               morphRateVarList.add(systvar[2])
+               if not shapeOnly:
+                  morphRateVarList.add(systvar[2])
             procPdf = ROOT.VerticalInterpPdf(procname, procname, morphPdfList, morphPdfVarList,1.0, 2)
 
             ratename = bunchNominal.getTheRate().GetName() + "_AsymQuad"
@@ -504,7 +513,7 @@ class WidthDatacardMaker:
             del(data_obs)
 
             dataHasMass=False
-            if self.theDataTree.GetBranchStatus(self.mass.GetName()):
+            if self.theDataTree.GetBranchStatus("mass"):
                self.dataVars.add(self.mass) # If mass is already present in list of data variables, this line does nothing.
                dataHasMass=True
 
@@ -513,14 +522,15 @@ class WidthDatacardMaker:
 
             dataScalars = dict()
             for coord in self.coordList:
-               dataScalars[coord] = array('d', [0])
+               dataScalars[coord] = array('f', [0])
             if dataHasMass:
-               dataScalars["mass"] = array('d', [0])
+               dataScalars["mass"] = array('f', [0])
             for name,var in dataScalars.iteritems():
                self.theDataTree.SetBranchAddress(name,var)
             for ev in range(0,self.theDataTree.GetEntries()):
                self.theDataTree.GetEntry(ev)
                for name,var in dataScalars.iteritems():
+                  print "\t- Setting variable {} to {} in event {}".format(name,var[0],ev)
                   self.theEqnsMaker.rrvars[name].setVal(var[0])
                data_obs.add(self.dataVars)
 
