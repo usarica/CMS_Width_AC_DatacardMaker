@@ -24,10 +24,7 @@ outname=$2
 poi=$3
 rangel=$4
 rangeh=$5
-let npoints=$6
-let firstpoint=$7
-let lastpoint=$8
-extarg=$9
+extarg=$6
 
 cmdadd=""
 cmdadd_bkgonly=""
@@ -51,10 +48,10 @@ elif [[ "$poi" == "fai1" ]];then
 fi
 
 
-cmd="-M FitDiagnostics "$wname" -n fitdiagnositcs_bkgonly --X-rtd OPTIMIZE_BOUNDS=0 --X-rtd TMCSO_AdaptivePseudoAsimov=0 -v 3 -S 1 -t -1 --points "$npoints" -n "$outname" "$cmdadd_bkgonly $extarg
+cmd="-M FitDiagnostics "$wname" -n fitdiagnositcs_bkgonly --X-rtd OPTIMIZE_BOUNDS=0 --X-rtd TMCSO_AdaptivePseudoAsimov=0 -v 3 -S 1 -t -1 "$cmdadd_bkgonly $extarg
 echo "Command: combine "$cmd
 combine $cmd
 
-cmd="-M FitDiagnostics "$wname" -n fitdiagnositcs_sigbkg --X-rtd OPTIMIZE_BOUNDS=0 --X-rtd TMCSO_AdaptivePseudoAsimov=0 -v 3 -S 1 -t -1 --points "$npoints" -n "$outname" "$cmdadd $extarg
+cmd="-M FitDiagnostics "$wname" -n fitdiagnositcs_sigbkg --X-rtd OPTIMIZE_BOUNDS=0 --X-rtd TMCSO_AdaptivePseudoAsimov=0 -v 3 -S 1 -t -1 "$cmdadd $extarg
 echo "Command: combine "$cmd
 combine $cmd

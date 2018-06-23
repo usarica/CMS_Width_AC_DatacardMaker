@@ -52,10 +52,18 @@ elif [[ "$poi" == "GGsm_floatMH" ]];then
 elif [[ "$poi" == "fai1" ]];then
   echo "POI is fai1"
   cmdadd=$cmdadd" -m 125 --redefineSignalPOIs=CMS_zz4l_fai1 --freezeParameters=GGsm,kbkg_VBF --setParameterRanges CMS_zz4l_fai1="$rangel","$rangeh
+elif [[ "$poi" == "GGsm_fai1" ]];then
+  echo "POIs are GGsm and fai1"
+  cmdadd=$cmdadd" -m 125 --redefineSignalPOIs=GGsm,CMS_zz4l_fai1 --freezeParameters=kbkg_VBF  --setParameterRanges GGsm="$rangel":CMS_zz4l_fai1="$rangeh
+fi
+if [[ "$extarg" == *"fastScan"* ]];then
+  cmdadd=$cmdadd" --fastScan"
 fi
 
-
-cmd="-M MultiDimFit "$wname" --algo=grid --X-rtd OPTIMIZE_BOUNDS=0 --X-rtd TMCSO_AdaptivePseudoAsimov=0 --alignEdges=1 --saveNLL --saveSpecifiedNuis=all --saveSpecifiedFunc=R,RV,RF,R_13TeV,RV_13TeV,RF_13TeV -v 3 -S 1 -t -1 --points "$npoints" -n "$outname" "$cmdadd $extarg
+cmd="-M MultiDimFit "$wname" --algo=grid --X-rtd OPTIMIZE_BOUNDS=0 --X-rtd TMCSO_AdaptivePseudoAsimov=0 --alignEdges=1 --saveNLL --saveSpecifiedNuis=all --saveSpecifiedFunc=R,RV,RF,R_13TeV,RV_13TeV,RF_13TeV -v 3 -S 1 -t -1 --points "$npoints" -n "$outname" "$cmdadd
+if [[ "$extarg" == *"noSyst"* ]];then
+  cmd=${cmd/"-S 1"/"-S 0"}
+fi
 
 echo "Command: combine "$cmd
 combine $cmd
