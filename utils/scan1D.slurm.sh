@@ -41,8 +41,11 @@ if [ $lastpoint -ge 0 ];then
 fi
 
 if [[ "$poi" == "GGsm" ]];then
-  echo "POI is GGsm"
+  echo "POI is GGsm, fixing fai1"
   cmdadd=$cmdadd" -m 125 --redefineSignalPOIs=GGsm --freezeParameters=CMS_zz4l_fai1,kbkg_VBF --setParameterRanges GGsm="$rangel","$rangeh
+elif [[ "$poi" == "GGsm_floatfai1" ]];then
+  echo "POIs are GGsm, floating fai1"
+  cmdadd=$cmdadd" -m 125 --redefineSignalPOIs=GGsm --freezeParameters=kbkg_VBF --setParameterRanges GGsm="$rangel","$rangeh
 elif [[ "$poi" == "GGsm_fixMH" ]];then
   echo "POI is GGsm, but fixing MH"
   cmdadd=$cmdadd" -m 125 --redefineSignalPOIs=GGsm --freezeParameters=CMS_zz4l_fai1,kbkg_VBF,MH --setParameterRanges GGsm="$rangel","$rangeh
@@ -63,6 +66,15 @@ fi
 cmd="-M MultiDimFit "$wname" --algo=grid --X-rtd OPTIMIZE_BOUNDS=0 --X-rtd TMCSO_AdaptivePseudoAsimov=0 --alignEdges=1 --saveNLL --saveSpecifiedNuis=all --saveSpecifiedFunc=R,RV,RF,R_13TeV,RV_13TeV,RF_13TeV -v 3 -S 1 -t -1 --points "$npoints" -n "$outname" "$cmdadd
 if [[ "$extarg" == *"noSyst"* ]];then
   cmd=${cmd/"-S 1"/"-S 0"}
+fi
+if [[ "$extarg" == *"obs"* ]];then
+  cmd=${cmd/"-t -1 "/" "}
+fi
+# Temporary fix to crazy parameters
+if [[ "$cmd" == *"--freezeParameters="* ]];then
+  cmd=${cmd/"--freezeParameters="/"--freezeParameters=pdf_variation_Higgs_gg,pdf_variation_Higgs_qqbar,pdf_variation_qqbar,"}
+else
+  cmd=$cmd" --freezeParameters=pdf_variation_Higgs_gg,pdf_variation_Higgs_qqbar,pdf_variation_qqbar"
 fi
 
 echo "Command: combine "$cmd

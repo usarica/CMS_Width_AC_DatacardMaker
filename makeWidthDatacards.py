@@ -58,6 +58,9 @@ class makeWidthDatacards:
       parser.add_option('-c', '--CatScheme', type='int', dest='iCatScheme', default=1,
                          help='Categorization scheme. 0: Inclusive, 1: VBF-tagged and untagged, 2: VBF-, VH-tagged and untagged')
 
+      parser.add_option("--channel", dest="customChannels", type="string", action="append", help="Channels to run (default=all turned on)")
+      parser.add_option("--category", dest="customCategories", type="string", action="append", help="Categories to run (default=all turned on)")
+
       parser.add_option('-r', '--datadir', type='string', dest='customDataDir', default="",
                          help='customDataDir: Reference data folder per measurement')
 
@@ -71,6 +74,9 @@ class makeWidthDatacards:
                          help='mLow: Low m4l boundary (def=220)')
       parser.add_option('--mHigh', type='float', dest='mHigh', default="1600",
                          help='mHigh: High m4l boundary (def=1600)')
+
+      parser.add_option('--checkpdfs', type="string", action="append", help='Check specified pdfs explicitly')
+      parser.add_option('--writeoutput', action='store_true', default=False, help='Write output to file')
 
        # store options and arguments as global variables
       (self.opt, self.args) = parser.parse_args()
@@ -119,25 +125,50 @@ class makeWidthDatacards:
 
 
    def creationLoop(self,theOutputDir):
+      finalstates = [ "4mu" , "4e" , "2e2mu" ]
       CatHelper = CategoryHelper(self.opt.iCatScheme)
-
       for iCat in range(0,CatHelper.nCategories):
-         finalstates = [ "4mu" , "4e" , "2e2mu" ]
+         catname=CatHelper.catNameList[iCat]
+         if self.opt.customCategories is not None:
+            if not catname in self.opt.customCategories:
+               continue
          for ifs in finalstates:
-            inputCardDir = self.opt.inputDir + "/inputs_" + ifs + "_" + CatHelper.catNameList[iCat] + ".txt"
-            theInputCard = InputCardReader(inputCardDir)
+            if self.opt.customChannels is not None:
+               if not ifs in self.opt.customChannels:
+                  continue
+            inputCardFile = self.opt.inputDir + "/inputs_" + ifs + "_" + catname + ".txt"
+            if os.path.isfile(inputCardFile):
+               theInputCard = InputCardReader(inputCardFile)
 
-            pathToDatacards = "{0}/HCG/{1}/".format(theOutputDir, theInputCard.theSqrtsPeriod)
-            print "Path to datacards:",pathToDatacards
-            self.makeDirectory(pathToDatacards)
+               pathToDatacards = "{0}/HCG/{1}/".format(theOutputDir, theInputCard.theSqrtsPeriod)
+               print "Path to datacards:",pathToDatacards
+               self.makeDirectory(pathToDatacards)
 
-            pathToPlots = "{0}/figs/{1}/hzz{2}_{3}/".format(theOutputDir, theInputCard.theSqrtsPeriod, theInputCard.decayChanName, CatHelper.catNameList[iCat])
-            print "Path to plots:",pathToPlots
-            self.makeDirectory(pathToPlots)
+               pathToPlots = "{0}/figs/{1}/hzz{2}_{3}/".format(theOutputDir, theInputCard.theSqrtsPeriod, theInputCard.decayChanName, catname)
+               print "Path to plots:",pathToPlots
+               self.makeDirectory(pathToPlots)
 
-            SystHelper = SystematicsHelper(theInputCard)
-            theEqnsMaker = EquationsMaker(self.opt,theInputCard)
-            theMaker = WidthDatacardMaker(self.opt,theInputCard,theEqnsMaker,CatHelper,SystHelper,iCat,theOutputDir)
+               stdout_original=None
+               stderr_original=None
+               if self.opt.writeoutput:
+                  try:
+                     stdout_original=sys.stdout
+                     sys.stdout = open(pathToPlots + "output.log", 'w')
+                  except IOError: print "ERROR: Could not open output.log"
+                  try:
+                     stderr_original=sys.stderr
+                     sys.stderr = open(pathToPlots + "errors.log", 'w')
+                  except IOError: print "ERROR: Could not open errors.log"
+
+               SystHelper = SystematicsHelper(theInputCard)
+               theEqnsMaker = EquationsMaker(self.opt,theInputCard)
+               theMaker = WidthDatacardMaker(self.opt,theInputCard,theEqnsMaker,CatHelper,SystHelper,iCat,theOutputDir)
+
+               if self.opt.writeoutput:
+                  if stdout_original is not None: sys.stdout=stdout_original
+                  if stderr_original is not None: sys.stderr=stderr_original
+            else:
+               print "Input card {} does not exist.".format(inputCardFile)
 
 
 # run the create_RM_cfg() as main()

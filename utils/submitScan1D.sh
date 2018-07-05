@@ -20,7 +20,7 @@ if [ $maxP -gt $npoints ]; then
 	let maxP=$npoints
 fi
 
-scr="scanExp.slurm.sh"
+scr="scan1D.slurm.sh"
 
 mkdir -p $fname"/Logs"
 cp $scr $fname"/"

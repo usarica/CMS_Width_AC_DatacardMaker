@@ -1,4 +1,10 @@
+**/*.so
+**/*.d
+**/*.pcm
 **/*.pyc
+**/*.log
+**/*.pdf
+**/*.png
 templates2D/**
 externalShapes/13TeV_*
 CMSdata/13TeV_*

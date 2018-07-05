@@ -49,9 +49,21 @@ fi
 
 
 cmd="-M FitDiagnostics "$wname" -n fitdiagnositcs_bkgonly --X-rtd OPTIMIZE_BOUNDS=0 --X-rtd TMCSO_AdaptivePseudoAsimov=0 -v 3 -S 1 -t -1 "$cmdadd_bkgonly $extarg
+# Temporary fix to crazy parameters
+if [[ "$cmd" == *"--freezeParameters="* ]];then
+  cmd=${cmd/"--freezeParameters="/"--freezeParameters=pdf_variation_Higgs_gg,pdf_variation_Higgs_qqbar,pdf_variation_qqbar,"}
+else
+  cmd=$cmd" --freezeParameters=pdf_variation_Higgs_gg,pdf_variation_Higgs_qqbar,pdf_variation_qqbar"
+fi
 echo "Command: combine "$cmd
 combine $cmd
 
 cmd="-M FitDiagnostics "$wname" -n fitdiagnositcs_sigbkg --X-rtd OPTIMIZE_BOUNDS=0 --X-rtd TMCSO_AdaptivePseudoAsimov=0 -v 3 -S 1 -t -1 "$cmdadd $extarg
+# Temporary fix to crazy parameters
+if [[ "$cmd" == *"--freezeParameters="* ]];then
+  cmd=${cmd/"--freezeParameters="/"--freezeParameters=pdf_variation_Higgs_gg,pdf_variation_Higgs_qqbar,pdf_variation_qqbar,"}
+else
+  cmd=$cmd" --freezeParameters=pdf_variation_Higgs_gg,pdf_variation_Higgs_qqbar,pdf_variation_qqbar"
+fi
 echo "Command: combine "$cmd
 combine $cmd

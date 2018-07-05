@@ -56,24 +56,127 @@ def PlotRate(rate,args,path):
       plot.Draw()
       cproj.SaveAs("{}{}{}".format(path,canvasname,".png"))
       cproj.Close()
+      del plot
+
+
+def CheckPdf(pdf,xvar,yvar,zvar,checkvar,path):
+   if pdf.dependsOn(checkvar):
+      print "Checking pdf {} against {}".format(pdf.GetName(),checkvar.GetName())
+
+      xcheckdefval=0
+      ycheckdefval=0
+      zcheckdefval=0
+      nbinsx=0
+      nbinsy=0
+      nbinsz=0
+      xcheckvals=[]
+      ycheckvals=[]
+      zcheckvals=[]
+      if xvar is not None:
+         xcheckdefval=xvar.getVal()
+         varBinning=xvar.getBinning()
+         varBinArray=varBinning.array()
+         nbinsx=varBinning.numBins()
+         for ix in range(0,nbinsx):
+            lowedge=varBinArray[ix]
+            highedge=varBinArray[ix+1]
+            xcheckvals.append((highedge+lowedge)/2.)
+      else: xcheckvals.append(xcheckdefval)
+      if yvar is not None:
+         ycheckdefval=yvar.getVal()
+         varBinning=yvar.getBinning()
+         varBinArray=varBinning.array()
+         nbinsy=varBinning.numBins()
+         for iy in range(0,nbinsy):
+            lowedge=varBinArray[iy]
+            highedge=varBinArray[iy+1]
+            ycheckvals.append((highedge+lowedge)/2.)
+      else: ycheckvals.append(ycheckdefval)
+      if zvar is not None:
+         zcheckdefval=zvar.getVal()
+         varBinning=zvar.getBinning()
+         varBinArray=varBinning.array()
+         nbinsz=varBinning.numBins()
+         for iz in range(0,nbinsz):
+            lowedge=varBinArray[iz]
+            highedge=varBinArray[iz+1]
+            zcheckvals.append((highedge+lowedge)/2.)
+      else: zcheckvals.append(zcheckdefval)
+
+      for xval in xcheckvals:
+         if xvar is not None: xvar.setVal(xval)
+         for yval in ycheckvals:
+            if yvar is not None: yvar.setVal(yval)
+            for zval in zcheckvals:
+               if zvar is not None: zvar.setVal(zval)
+               plotname="c_CheckPdf_{}_{}".format(pdf.GetName(),checkvar.GetName())
+               canvasname = plotname
+               if xvar is not None: plotname="{}_X{}".format(plotname,FloatToString(xval))
+               if yvar is not None: plotname="{}_Y{}".format(plotname,FloatToString(yval))
+               if zvar is not None: plotname="{}_Z{}".format(plotname,FloatToString(zval))
+
+               print "Adding {} to {}".format(plotname,canvasname)
+
+               cproj = ROOT.TCanvas( canvasname, canvasname, 200, 200 )
+               plot = checkvar.frame()
+               pdf.plotOn(plot, ROOT.RooFit.LineWidth(2), ROOT.RooFit.LineStyle(1))
+               plot.GetXaxis().CenterTitle()
+               plot.GetYaxis().SetTitleOffset(1.2)
+               plot.GetYaxis().CenterTitle()
+               plot.GetXaxis().SetTitle(checkvar.GetName())
+               plot.GetYaxis().SetTitle(pdf.GetName())
+               plot.GetXaxis().SetNdivisions(510)
+               plot.SetTitle(plotname)
+               plot.Draw()
+               savename="{}{}{}".format(path,canvasname,".gif+")
+               cproj.SaveAs(savename)
+               cproj.Close()
+
+               if zvar is not None: zvar.setVal(zcheckdefval)
+            if yvar is not None: yvar.setVal(ycheckdefval)
+         if xvar is not None: xvar.setVal(xcheckdefval)
 
 
 
-def PlotPdf1D(pdf,norm,xvar,path,appendname=""):
-   canvasname = "c_{}_{}".format(pdf.GetName(),xvar.GetName())
-   if appendname!="":
-      canvasname = canvasname+"_"+appendname
-   cproj = ROOT.TCanvas( canvasname, canvasname, 750, 700 )
-   #histo = pdf.createHistogram("htemp",xvar)
-   #histo.SetName("{}_{}".format(pdf.GetName(),xvar.GetName()))
-   #histo.SetTitle("Projection of {} on {}".format(pdf.GetName(),xvar.GetName()))
-   #histo.Scale(norm/histo.Integral())
-   #histo.Draw("hist")
-   plot = xvar.frame()
-   pdf.plotOn(plot)
-   plot.Draw()
-   cproj.SaveAs("{}{}{}".format(path,canvasname,".png"))
-   cproj.Close()
+def PlotPdf1D(pdf,norm,xvar,yvar,zvar,systarg,path,appendname=""):
+   varlist=[]
+   if xvar is not None: varlist.append(xvar)
+   if yvar is not None: varlist.append(yvar)
+   if zvar is not None: varlist.append(zvar)
+   ndims=len(varlist)
+   for ivar in range(0,ndims):
+      varplot=varlist[ivar]
+      if systarg is not None:
+         canvasname = "c_{}_pdf_{}_KD{}".format(pdf.GetName(),systarg.GetName(),ivar+1)
+      else:
+         canvasname = "c_{}_pdf_Nominal_KD{}".format(pdf.GetName(),ivar+1)
+      if appendname!="":
+         canvasname = canvasname+"_"+appendname
+      cproj = ROOT.TCanvas( canvasname, canvasname, 750, 700 )
+      plot = varplot.frame()
+      projvars = ROOT.RooArgSet()
+      for jvar in range(0,ndims):
+         if jvar==ivar: continue
+         projvars.add(varlist[jvar])
+      pdf.plotOn(plot, ROOT.RooFit.Project(projvars),ROOT.RooFit.Normalization(norm, ROOT.RooAbsReal.NumEvent),ROOT.RooFit.LineColor(ROOT.kBlack))
+      if systarg is not None:
+         defval = systarg.getVal()
+         setvals = [ -1., 1. ]
+         vallabels = [ "Down", "Up" ]
+         for argval,arglabel in zip(setvals,vallabels):
+            systarg.setVal(argval)
+            applabel = arglabel
+            lcolor=ROOT.kBlack
+            if arglabel=="Down":
+               lcolor=ROOT.kBlue
+            else:
+               lcolor=ROOT.kRed
+            pdf.plotOn(plot, ROOT.RooFit.Project(projvars),ROOT.RooFit.Normalization(norm, ROOT.RooAbsReal.NumEvent),ROOT.RooFit.LineColor(lcolor),ROOT.RooFit.LineStyle(7))
+         systarg.setVal(defval)
+      plot.Draw()
+      cproj.SaveAs("{}{}{}".format(path,canvasname,".png"))
+      cproj.Close()
+      del plot
 
 
 class WidthDatacardMaker:
@@ -470,6 +573,11 @@ class WidthDatacardMaker:
       # Get the data
       self.GetData()
 
+      # Check the pdfs
+      if self.options.checkpdfs is not None:
+         print "Now checking the pdfs"
+         self.CheckPdfs()
+
       # Plot the pdfs
       print "Now plotting the pdfs and rates"
       self.PlotPdfs()
@@ -507,10 +615,12 @@ class WidthDatacardMaker:
       else:
          self.theDataTree = self.theDataFile.Get(self.dataTreeName)
          if not self.theDataTree:
-            print "File, \"", self.dataFileName, "\" or tree \"", self.dataTreeName, "\" is not found."
+            print "File \"", self.dataFileName, "\" or tree \"", self.dataTreeName, "\" is not found."
             self.theDataRDS = data_obs
          else:
             del(data_obs)
+
+            print "File \"", self.dataFileName, "\" and tree \"", self.dataTreeName, "\" are found. Extracting he data..."
 
             dataHasMass=False
             if self.theDataTree.GetBranchStatus("mass"):
@@ -631,6 +741,15 @@ class WidthDatacardMaker:
       self.theDatacardFile.close()
 
 
+   def CheckPdfs(self):
+      for tmppdf in self.pdfList:
+         for pdfname in self.options.checkpdfs:
+            if pdfname in tmppdf.GetName():
+               CheckPdf(tmppdf,self.KD1,self.KD2,self.KD3,self.theEqnsMaker.rrvars["fai1"],self.plotsPathName)
+               CheckPdf(tmppdf,self.KD1,self.KD2,self.KD3,self.theEqnsMaker.rrvars["GHratio"],self.plotsPathName)
+               break
+
+
    def PlotPdfs(self):
       if len(self.normList)==len(self.pdfList):
          for tmppdf, tmpnorm in zip(self.pdfList,self.normList):
@@ -646,25 +765,10 @@ class WidthDatacardMaker:
                   theProcExtRate = defrate
             if procFound:
                tmprate = tmpnorm.getVal()*theProcExtRate/self.theLumi.getVal()
-               PlotPdf1D(tmppdf,tmprate,self.KD1,self.plotsPathName)
-               if self.KD2 is not None:
-                  PlotPdf1D(tmppdf,tmprate,self.KD2,self.plotsPathName)
-               if self.KD3 is not None:
-                  PlotPdf1D(tmppdf,tmprate,self.KD3,self.plotsPathName)
+               PlotPdf1D(tmppdf,tmprate,self.KD1,self.KD2,self.KD3,None,self.plotsPathName)
                args = self.GetProcessSystVars(tmpnorm.GetName())
                for arg in args:
-                  defval = arg.getVal()
-                  setvals = [ -1., 1. ]
-                  vallabels = [ "Down", "Up" ]
-                  for argval,arglabel in zip(setvals,vallabels):
-                     arg.setVal(argval)
-                     applabel = arg.GetName()+arglabel
-                     PlotPdf1D(tmppdf,tmprate,self.KD1,self.plotsPathName, applabel)
-                     if self.KD2 is not None:
-                        PlotPdf1D(tmppdf,tmprate,self.KD2,self.plotsPathName, applabel)
-                     if self.KD3 is not None:
-                        PlotPdf1D(tmppdf,tmprate,self.KD3,self.plotsPathName, applabel)
-                  arg.setVal(defval)
+                  PlotPdf1D(tmppdf,tmprate,self.KD1,self.KD2,self.KD3,arg,self.plotsPathName)
 
 
    def PlotRates(self):

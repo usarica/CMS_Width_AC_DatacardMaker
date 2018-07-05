@@ -26,6 +26,7 @@
 #include "TGaxis.h"
 #include "TString.h"
 #include "TChain.h"
+#include "TGraphAsymmErrors.h"
 #include "RooCmdArg.h"
 #include "RooGlobalFunc.h"
 #include "RooRealVar.h"
@@ -40,6 +41,7 @@
 #include "RooPlot.h"
 #include "RooNumIntConfig.h"
 #include "RooWorkspace.h"
+#include "QuantFuncMathCore.h"
 
 namespace std{
 
@@ -106,10 +108,27 @@ unsigned int extractTemplates(process_spec& proc, RooDataSet* data, unordered_ma
   delete coefIter;
   delete parList;
 
+  RooCmdArg xcmd;
+  if (deps.at(0)->getBins()>100){
+    RooBinning xbinning=RooBinning(deps.at(0)->getBins()/100, deps.at(0)->getMin(), deps.at(0)->getMax(), "plotbinningX");
+    xcmd = Binning(xbinning);
+  }
   RooCmdArg ycmd;
   RooCmdArg zcmd;
-  if (deps.size()>1) ycmd = YVar(*(deps.at(1)));
-  if (deps.size()>2) zcmd = ZVar(*(deps.at(2)));
+  if (deps.size()>1){
+    if (deps.at(1)->getBins()>100){
+      RooBinning ybinning=RooBinning(deps.at(1)->getBins()/100, deps.at(1)->getMin(), deps.at(1)->getMax(), "plotbinningY");
+      ycmd = YVar(*(deps.at(1)), Binning(ybinning));
+    }
+    else ycmd = YVar(*(deps.at(1)));
+  }
+  if (deps.size()>2){
+    if (deps.at(2)->getBins()>100){
+      RooBinning zbinning=RooBinning(deps.at(2)->getBins()/100, deps.at(2)->getMin(), deps.at(2)->getMax(), "plotbinningZ");
+      zcmd = ZVar(*(deps.at(2)), Binning(zbinning));
+    }
+    else zcmd = ZVar(*(deps.at(2)));
+  }
 
   TString procname=proc.name;
   if (newname!="") procname=newname;
@@ -117,7 +136,8 @@ unsigned int extractTemplates(process_spec& proc, RooDataSet* data, unordered_ma
   tplname += procname;
 
   if (ndims==3){
-    TH3F* tpl=(TH3F*) proc.pdf->createHistogram(tplname+"_Copy", *(deps.at(0)), ycmd, zcmd);
+    TH3F* tpl=(TH3F*) proc.pdf->createHistogram(tplname+"_Copy", *(deps.at(0)), xcmd, ycmd, zcmd);
+    multiplyBinWidth(tpl);
     double normval = proc.rate; if (proc.norm) normval *= proc.norm->getVal();
     double integral = tpl->Integral();
     double scale = normval/integral;
@@ -143,7 +163,8 @@ unsigned int extractTemplates(process_spec& proc, RooDataSet* data, unordered_ma
     delete tpl;
   }
   else if (ndims==2){
-    TH2F* tpl=(TH2F*) proc.pdf->createHistogram(tplname+"_Copy", *(deps.at(0)), ycmd, zcmd);
+    TH2F* tpl=(TH2F*) proc.pdf->createHistogram(tplname+"_Copy", *(deps.at(0)), xcmd, ycmd, zcmd);
+    multiplyBinWidth(tpl);
     double normval = proc.rate; if (proc.norm) normval *= proc.norm->getVal();
     double integral = tpl->Integral();
     double scale = normval/integral;
@@ -171,6 +192,165 @@ unsigned int extractTemplates(process_spec& proc, RooDataSet* data, unordered_ma
   cout << "Work on template " << tplname << " is complete!" << endl;
   return ndims;
 }
+unsigned int extractDataTemplates(process_spec& proc, RooDataSet* data, unordered_map<TString, TH2F>& procshape_2D, unordered_map<TString, TH3F>& procshape_3D, TString newname=""){
+  vector<RooRealVar*> deps;
+  RooArgSet* depList = proc.pdf->getDependents(data);
+  TIterator* coefIter = depList->createIterator();
+  RooAbsArg* coef;
+  while ((coef = (RooAbsArg*) coefIter->Next())) deps.push_back((RooRealVar*) coef);
+  delete coefIter;
+  delete depList;
+  const unsigned int ndims=deps.size();
+
+  RooCmdArg xcmd;
+  if (deps.at(0)->getBins()>100){
+    RooBinning xbinning=RooBinning(deps.at(0)->getBins()/100, deps.at(0)->getMin(), deps.at(0)->getMax(), "plotbinningX");
+    xcmd = Binning(xbinning);
+  }
+  RooCmdArg ycmd;
+  RooCmdArg zcmd;
+  if (deps.size()>1){
+    if (deps.at(1)->getBins()>100){
+      RooBinning ybinning=RooBinning(deps.at(1)->getBins()/100, deps.at(1)->getMin(), deps.at(1)->getMax(), "plotbinningY");
+      ycmd = YVar(*(deps.at(1)), Binning(ybinning));
+    }
+    else ycmd = YVar(*(deps.at(1)));
+  }
+  if (deps.size()>2){
+    if (deps.at(2)->getBins()>100){
+      RooBinning zbinning=RooBinning(deps.at(2)->getBins()/100, deps.at(2)->getMin(), deps.at(2)->getMax(), "plotbinningZ");
+      zcmd = ZVar(*(deps.at(2)), Binning(zbinning));
+    }
+    else zcmd = ZVar(*(deps.at(2)));
+  }
+
+  TString procname="data";
+  if (newname!="") procname=newname;
+  TString tplname = "T_";
+  tplname += procname;
+
+  if (ndims==3){
+    TH3F* tpl=(TH3F*) data->createHistogram(tplname+"_Copy", *(deps.at(0)), xcmd, ycmd, zcmd);
+    tpl->SetName(tplname);
+    tpl->SetTitle("");
+    cout << procname << " contribution final integral = " << getHistogramIntegralAndError(tpl, 1, tpl->GetNbinsX(), 1, tpl->GetNbinsY(), 1, tpl->GetNbinsZ(), false, nullptr) << endl;
+
+    bool isAdded=false;
+    for (auto it=procshape_3D.begin(); it!=procshape_3D.end(); it++){
+      if (it->first==procname){
+        it->second.Add(tpl, 1.);
+        isAdded=true;
+        break;
+      }
+    }
+    if (!isAdded){
+      cout << "\t- Creating " << tplname << endl;
+      procshape_3D[procname]=TH3F(*tpl);
+      procshape_3D[procname].SetName(tplname);
+    }
+    cout << procname << " final integral = " << getHistogramIntegralAndError(&(procshape_3D[procname]), 1, procshape_3D[procname].GetNbinsX(), 1, procshape_3D[procname].GetNbinsY(), 1, procshape_3D[procname].GetNbinsZ(), false, nullptr) << endl;
+    delete tpl;
+  }
+  else if (ndims==2){
+    TH2F* tpl=(TH2F*) data->createHistogram(tplname+"_Copy", *(deps.at(0)), xcmd, ycmd);
+    cout << procname << " contribution final integral = " << getHistogramIntegralAndError(tpl, 1, tpl->GetNbinsX(), 1, tpl->GetNbinsY(), false, nullptr) << endl;
+
+    bool isAdded=false;
+    for (auto it=procshape_2D.begin(); it!=procshape_2D.end(); it++){
+      if (it->first==procname){
+        it->second.Add(tpl, 1.);
+        isAdded=true;
+        break;
+      }
+    }
+    if (!isAdded){
+      cout << "\t- Creating " << tplname << endl;
+      procshape_2D[procname]=TH2F(*tpl);
+      procshape_2D[procname].SetName(tplname);
+    }
+    cout << procname << " final integral = " << getHistogramIntegralAndError(&(procshape_2D[procname]), 1, procshape_2D[procname].GetNbinsX(), 1, procshape_2D[procname].GetNbinsY(), false, nullptr) << endl;
+    delete tpl;
+  }
+  cout << "Work on data " << tplname << " is complete!" << endl;
+  return ndims;
+}
+
+
+float getACMuF(TString cinputdir, float fai1){
+  float res=1;
+  if (cinputdir.Contains("a3")) res = 1;
+  else if (cinputdir.Contains("a2")) res = sqrt((1.-fabs(fai1))*fabs(fai1))*TMath::Sign(1., fai1)*(1065.55457-2.*290.58626)/290.58626+1.;
+  else if (cinputdir.Contains("L1")) res = sqrt((1.-fabs(fai1))*fabs(fai1))*TMath::Sign(1., fai1)*(9.618383-2.*290.58626)/290.58626+1.;
+  cout << "getACMuF result = " << 1./res << endl;
+  return 1./res;
+}
+float getACMuV(TString cinputdir, float fai1){
+  float res=getACMuF(cinputdir, fai1);
+  float fai1_intcoef=sqrt((1.-fabs(fai1))*fabs(fai1))*TMath::Sign(1., fai1);
+  float fai1_pureSMcoef=(1.-fabs(fai1));
+  float fai1_pureBSMcoef=fabs(fai1);
+  if (cinputdir.Contains("a3")) res /= fai1_pureSMcoef + fai1_pureBSMcoef*pow(2.55052/0.297979018705, 2);
+  else if (cinputdir.Contains("a2")) res /= fai1_pureSMcoef + fai1_pureBSMcoef*pow(1.65684/0.27196538, 2) + fai1_intcoef*(2207.73/968.674-2.)*pow(1.65684/0.27196538, 1);
+  else if (cinputdir.Contains("L1")) res /= fai1_pureSMcoef + fai1_pureBSMcoef*pow(12100.42/2158.21307286, 2) + fai1_intcoef*(2861.213/968.674-2.)*pow(12100.42/2158.21307286, 1);
+  cout << "getACMuV result = " << res << endl;
+  return res;
+}
+
+TString getFractionString(float fai1){
+  TString res = Form("%.5f", fai1);
+  while (res.EndsWith("0")) res.Resize(res.Length()-1);
+  if (res.EndsWith(".")) res.Resize(res.Length()-1);
+  return res;
+}
+
+
+TGraphAsymmErrors* getDataGraph(TH1F* hdata){
+  TGraphAsymmErrors* tgdata = nullptr;
+  if (hdata){
+    int ndata = 0;
+    double xx_data[999];
+    double xu_data[999];
+    double xd_data[999];
+    double yy_data[999];
+    double yu_data[999];
+    double yd_data[999];
+    double rr_data[999];
+    double ru_data[999];
+    double rd_data[999];
+    const double quant = (1.0 - 0.6827) / 2.0;
+    double integral_data = 1;
+
+    for (int bin = 1; bin <= hdata->GetNbinsX(); bin++){
+      double bincenter = hdata->GetBinCenter(bin);
+      double bincontent = hdata->GetBinContent(bin);
+
+      if (bincontent >= 0){
+        xx_data[ndata] = bincenter;
+        yy_data[ndata] = bincontent / integral_data;
+        xu_data[ndata] = 0;
+        xd_data[ndata] = 0;
+        yu_data[ndata] = (ROOT::Math::chisquared_quantile_c(quant, 2 * (bincontent + 1)) / 2. - bincontent) / integral_data;
+        yd_data[ndata] = ((bincontent == 0) ? 0 : (bincontent - ROOT::Math::chisquared_quantile_c(1 - quant, 2 * bincontent) / 2.)) / integral_data;
+        ndata++;
+      }
+    }
+    cout << "Number of graph points: " << ndata << endl;
+    tgdata = new TGraphAsymmErrors(ndata, xx_data, yy_data, xd_data, xu_data, yd_data, yu_data);
+    tgdata->SetName("tgdata");
+    tgdata->SetMarkerSize(1.2);
+    tgdata->SetMarkerStyle(20);
+    tgdata->SetMarkerColor(kBlack);
+    tgdata->SetLineColor(kBlack);
+    tgdata->SetLineWidth(1);
+  }
+  else cout << "Data histogram is null." << endl;
+  //if (tgdata){
+  //  cout << tgdata->GetName() << " graph is not null!" << endl;
+  //  cout << "\t- Np = " << tgdata->GetN() << endl;
+  //  for (int ip=0; ip<tgdata->GetN(); ip++) cout << "Point " << ip << ": ( " << tgdata->GetX()[ip] << ", " << tgdata->GetY()[ip] << " )" << endl;
+  //}
+  return tgdata;
+}
 
 
 void getDistributions(TString cinputdir, int onORoffshell=0, bool isEnriched=true){
@@ -185,6 +365,7 @@ void getDistributions(TString cinputdir, int onORoffshell=0, bool isEnriched=tru
 
   TDirectory* curdir=gDirectory;
 
+  // Determine alternative model parameters
   TString failabel="f_{ai}";
   if (cinputdir.Contains("a3")) failabel="f_{a3}";
   else if (cinputdir.Contains("a2")) failabel="f_{a2}";
@@ -194,6 +375,7 @@ void getDistributions(TString cinputdir, int onORoffshell=0, bool isEnriched=tru
   constexpr float GHref=4.07;
   unordered_map<TString, float> val_fai1ALT; val_fai1ALT["RV"]=1; val_fai1ALT["RF"]=1; val_fai1ALT["fai1"]=0;
   unordered_map<TString, float> val_GGsmALT; val_GGsmALT["RV"]=1; val_GGsmALT["RF"]=1; val_GGsmALT["GGsm"]=1;
+  /*
   if (onORoffshell==1){ // Offshell
     if (cinputdir.Contains("a3")){ val_fai1ALT["RV"]=0.22; val_fai1ALT["RF"]=1.06; val_fai1ALT["fai1"]=0.01; }
     else if (cinputdir.Contains("a2")){ val_fai1ALT["RV"]=0.3; val_fai1ALT["RF"]=1.3; val_fai1ALT["fai1"]=-0.015; }
@@ -204,6 +386,19 @@ void getDistributions(TString cinputdir, int onORoffshell=0, bool isEnriched=tru
     if (cinputdir.Contains("a3")){ val_fai1ALT["RV"]=0.22; val_fai1ALT["RF"]=1.06; val_fai1ALT["fai1"]=0.01; }
     else if (cinputdir.Contains("a2")){ val_fai1ALT["RV"]=0.3; val_fai1ALT["RF"]=1.3; val_fai1ALT["fai1"]=-0.015; }
     else if (cinputdir.Contains("L1")){ val_fai1ALT["RV"]=0.1; val_fai1ALT["RF"]=0.85; val_fai1ALT["fai1"]=0.015; }
+    else{ val_GGsmALT["RV"]=0.29; val_GGsmALT["RF"]=0.88; val_GGsmALT["GGsm"]=1; }
+  }
+  */
+  if (onORoffshell==1){ // Offshell
+    if (cinputdir.Contains("a3")){ val_fai1ALT["fai1"]=0.1; val_fai1ALT["RV"]=getACMuV(cinputdir, val_fai1ALT["fai1"]); val_fai1ALT["RF"]=getACMuF(cinputdir, val_fai1ALT["fai1"]); }
+    else if (cinputdir.Contains("a2")){ val_fai1ALT["fai1"]=-0.1; val_fai1ALT["RV"]=getACMuV(cinputdir, val_fai1ALT["fai1"]); val_fai1ALT["RF"]=getACMuF(cinputdir, val_fai1ALT["fai1"]); }
+    else if (cinputdir.Contains("L1")){ val_fai1ALT["fai1"]=0.1; val_fai1ALT["RV"]=getACMuV(cinputdir, val_fai1ALT["fai1"]); val_fai1ALT["RF"]=getACMuF(cinputdir, val_fai1ALT["fai1"]); }
+    val_GGsmALT["RV"]=1; val_GGsmALT["RF"]=1; val_GGsmALT["GGsm"]=10./GHref;
+  }
+  else{ // Onshell
+    if (cinputdir.Contains("a3")){ val_fai1ALT["fai1"]=0.5; val_fai1ALT["RV"]=getACMuV(cinputdir, val_fai1ALT["fai1"]); val_fai1ALT["RF"]=getACMuF(cinputdir, val_fai1ALT["fai1"]); }
+    else if (cinputdir.Contains("a2")){ val_fai1ALT["fai1"]=-0.5; val_fai1ALT["RV"]=getACMuV(cinputdir, val_fai1ALT["fai1"]); val_fai1ALT["RF"]=getACMuF(cinputdir, val_fai1ALT["fai1"]); }
+    else if (cinputdir.Contains("L1")){ val_fai1ALT["fai1"]=0.5; val_fai1ALT["RV"]=getACMuV(cinputdir, val_fai1ALT["fai1"]); val_fai1ALT["RF"]=getACMuF(cinputdir, val_fai1ALT["fai1"]); }
     else{ val_GGsmALT["RV"]=0.29; val_GGsmALT["RF"]=0.88; val_GGsmALT["GGsm"]=1; }
   }
 
@@ -219,40 +414,45 @@ void getDistributions(TString cinputdir, int onORoffshell=0, bool isEnriched=tru
     std::vector<int> proc_color;
     std::vector<int> proc_code;
     if (onORoffshell==1){ // Offshell
-      if (catname=="Untagged") proc_order=std::vector<TString>{ "qqZZ", "Zjets", "VVZZ_offshell", "ggZZ_offshell", "total_GGsmALT" };
-      else if (catname=="JJVBFTagged") proc_order=std::vector<TString>{ "qqZZ", "Zjets", "ggZZ_offshell", "VVZZ_offshell", "total_GGsmALT" };
-      else if (catname=="HadVHTagged") proc_order=std::vector<TString>{ "qqZZ", "Zjets", "ggZZ_offshell", "VVZZ_offshell", "total_GGsmALT" };
+      proc_order=std::vector<TString>{ "Zjets", "qqZZ", "ggZZ_offshell", "VVZZ_offshell", "total_GGsmALT" };
       if (!cinputdir.Contains("SM")) proc_order.push_back("total_fai1ALT");
     }
     else{
-      if (catname=="Untagged") proc_order=std::vector<TString>{ "bkg_zz", "zjets", "VVZZ", "ggH", "total_fai1ALT" };
-      else if (catname=="JJVBFTagged") proc_order=std::vector<TString>{ "bkg_zz", "zjets", "ggH", "VVZZ", "total_fai1ALT" };
-      else if (catname=="HadVHTagged") proc_order=std::vector<TString>{ "bkg_zz", "zjets", "ggH", "VVZZ", "total_fai1ALT" };
+      proc_order=std::vector<TString>{ "zjets", "bkg_zz", "ggH", "VVZZ", "total_fai1ALT" };
     }
+    proc_order.push_back("data");
     for (auto const& p:proc_order){
-      if (p=="bkg_qqzz" || p=="qqZZ"){ proc_color.push_back(int(kAzure-2)); proc_label.push_back("q#bar{q}#rightarrow4l bkg."); proc_code.push_back(0); }
+      if (p=="bkg_qqzz" || p=="qqZZ"){ proc_color.push_back(int(TColor::GetColor("#99ccff"))); proc_label.push_back("q#bar{q}#rightarrow4l bkg."); proc_code.push_back(0); }
       else if (p=="bkg_gg"){ proc_color.push_back(int(kBlue)); proc_label.push_back("gg#rightarrow4l bkg."); proc_code.push_back(0); }
-      else if (p=="zjets" || p=="Zjets"){ proc_color.push_back(int(kGreen+2)); proc_label.push_back("Z+jets"); proc_code.push_back(0); }
+      else if (p=="zjets" || p=="Zjets"){ proc_color.push_back(int(TColor::GetColor("#669966"))); proc_label.push_back("Z+jets"); proc_code.push_back(0); }
       else if (p=="bkg_vv"){ proc_color.push_back(int(kPink+9)); proc_label.push_back("EW bkg."); proc_code.push_back(0); }
-      else if (p=="bkg_zz"){ proc_color.push_back(int(kAzure-2)); proc_label.push_back("ZZ/Z#gamma*/#gamma*#gamma*#rightarrow4l bkg."); proc_code.push_back(0); }
+      else if (p=="bkg_zz"){ proc_color.push_back(int(TColor::GetColor("#99ccff"))); proc_label.push_back("ZZ/Z#gamma*/#gamma*#gamma*#rightarrow4l bkg."); proc_code.push_back(0); }
       else if (p=="ggZZ_offshell" || p=="ggH"){
-        proc_color.push_back(int(kOrange-3));
-        if (p=="ggH"){ proc_label.push_back("gg#rightarrow4l sig."); proc_code.push_back(1); }
+        //proc_color.push_back(int(kOrange-2));
+        proc_color.push_back(int(TColor::GetColor("#ffdcdc")));
+        if (p=="ggH"){ proc_label.push_back("ggH+t#bar{t}H+b#bar{b}H"); proc_code.push_back(1); }
         else if (p=="ggZZ_offshell"){ proc_label.push_back("gg#rightarrow4l SM total"); proc_code.push_back(2); }
       }
       else if (p=="VVZZ" || p=="VVZZ_offshell"){
-        proc_color.push_back(int(kViolet));
-        if (p=="VVZZ"){ proc_label.push_back("EW sig."); proc_code.push_back(1); }
-        else if (p=="VVZZ_offshell"){ proc_label.push_back("EW SM total"); proc_code.push_back(2); }
+        proc_color.push_back(int(TColor::GetColor("#ff9b9b")));
+        if (p=="VVZZ"){ proc_label.push_back("Total SM"); proc_code.push_back(1); }
+        else if (p=="VVZZ_offshell"){ proc_label.push_back("Total SM"); proc_code.push_back(2); }
+        //if (p=="VVZZ"){ proc_label.push_back("EW sig."); proc_code.push_back(1); }
+        //else if (p=="VVZZ_offshell"){ proc_label.push_back("EW SM total"); proc_code.push_back(2); }
       }
       else if (p.Contains("ALT")){
         if (onORoffshell==1){ // Offshell
-          if (p.Contains("GGsmALT")){ proc_label.push_back(Form("Total (%s=0, #Gamma_{H}=%.0f MeV)", failabel.Data(), val_GGsmALT["GGsm"]*GHref)); proc_color.push_back(int(kCyan+2)); proc_code.push_back(-2); }
-          else if (p.Contains("fai1ALT")){ proc_label.push_back(Form("Total (%s=%.3f, #Gamma_{H}=#Gamma_{H}^{SM})", failabel.Data(), val_fai1ALT["fai1"])); proc_color.push_back(int(kRed)); proc_code.push_back(-2); }
+          if (p.Contains("GGsmALT")){ proc_label.push_back(Form("Total (%s=0, #Gamma_{H}=%s MeV)", failabel.Data(), getFractionString(val_GGsmALT["GGsm"]*GHref).Data())); proc_color.push_back(int(kCyan+2)); proc_code.push_back(-2); }
+          else if (p.Contains("fai1ALT")){ proc_label.push_back(Form("Total (%s=%s, #Gamma_{H}=#Gamma_{H}^{SM})", failabel.Data(), getFractionString(val_fai1ALT["fai1"]).Data())); proc_color.push_back(int(kViolet)); proc_code.push_back(-2); }
         }
         else{ // Onshell
-          if (p.Contains("fai1ALT")){ proc_label.push_back(Form("Total signal, %s=%.3f", failabel.Data(), val_fai1ALT["fai1"])); proc_color.push_back(int(kRed)); proc_code.push_back(-1); }
+          if (p.Contains("fai1ALT")){ proc_label.push_back(Form("Total, %s=%s", failabel.Data(), getFractionString(val_fai1ALT["fai1"]).Data())); proc_color.push_back(int(kViolet)); proc_code.push_back(-1); }
         }
+      }
+      else if (p=="data"){
+        proc_color.push_back(int(kBlack));
+        proc_code.push_back(-99);
+        proc_label.push_back("Observed");
       }
       else cerr << p << " is unmatched for labeling!" << endl;
     }
@@ -321,6 +521,7 @@ void getDistributions(TString cinputdir, int onORoffshell=0, bool isEnriched=tru
 
         // Get process pdfs
         for (auto const& pname:procname){
+          if (pname=="data") continue;
           curdir->cd();
           cout << "Extracting the pdf and norm from process " << pname << endl;
           RooAbsPdf* pdf = ws->pdf(pname);
@@ -349,6 +550,15 @@ void getDistributions(TString cinputdir, int onORoffshell=0, bool isEnriched=tru
               controlVars["RV"]->setVal(1);
               controlVars["RF"]->setVal(1);
               controlVars["kbkg_gg"]->setVal(1);
+            }
+            else if (pname.Contains("ttH") || pname.Contains("bbH")){
+              ndims = extractTemplates(procSpecs[pname], data, procshape_2D, procshape_3D, "ggH");
+
+              controlVars["CMS_zz4l_fai1"]->setVal(val_fai1ALT["fai1"]);
+              controlVars["RF"]->setVal(val_fai1ALT["RF"]);
+              ndims = extractTemplates(procSpecs[pname], data, procshape_2D, procshape_3D, "total_fai1ALT");
+              controlVars["CMS_zz4l_fai1"]->setVal(0);
+              controlVars["RF"]->setVal(1);
             }
             else if (pname.Contains("VBF")){
               controlVars["kbkg_VBF"]->setVal(0);
@@ -392,6 +602,9 @@ void getDistributions(TString cinputdir, int onORoffshell=0, bool isEnriched=tru
               ndims = extractTemplates(procSpecs[pname], data, procshape_2D, procshape_3D, "bkg_zz");
             }
           }
+          else if (!onORoffshell && (pname.Contains("ttH") || pname.Contains("bbH"))){ // On-shell SM
+            ndims = extractTemplates(procSpecs[pname], data, procshape_2D, procshape_3D, "ggH");
+          }
           else if (!onORoffshell && (pname.Contains("ZH") || pname.Contains("WH") || pname.Contains("VBF"))){ // On-shell SM
             ndims = extractTemplates(procSpecs[pname], data, procshape_2D, procshape_3D, "VVZZ");
           }
@@ -418,11 +631,11 @@ void getDistributions(TString cinputdir, int onORoffshell=0, bool isEnriched=tru
               controlVars["RV"]->setVal(1);
               controlVars["RF"]->setVal(1);
             }
-
           }
 
           ndims = extractTemplates(procSpecs[pname], data, procshape_2D, procshape_3D);
         }
+        extractDataTemplates(procSpecs[procname.front()], data, procshape_2D, procshape_3D, "data");
         finput->Close();
         curdir->cd();
       }
@@ -555,7 +768,7 @@ void getDistributions(TString cinputdir, int onORoffshell=0, bool isEnriched=tru
               }
             }
 
-            const float valKDCut=0.5;
+            const float valKDCut=(onORoffshell==1 ? 0.6 : 0.5);
             if ((int) idim!=kdDim){ // Cut on D_bkg
               if (kdDim==0){
                 if (idim==1){ iz=zaxis->FindBin(valKDCut); }
@@ -586,8 +799,8 @@ void getDistributions(TString cinputdir, int onORoffshell=0, bool isEnriched=tru
         }
 
         for (unsigned int ip=1; ip<proc_order.size(); ip++){
-          if (!proc_order.at(ip).Contains("ALT")) procdist[proc_order.at(ip)]->Add(procdist[proc_order.at(ip-1)]);
-          else{
+          if (!proc_order.at(ip).Contains("ALT") && proc_order.at(ip)!="data") procdist[proc_order.at(ip)]->Add(procdist[proc_order.at(ip-1)]);
+          else if (proc_order.at(ip)!="data"){
             for (unsigned int jp=ip-1; jp>0; jp--){
               if (proc_code[jp]==0){
                 procdist[proc_order.at(ip)]->Add(procdist[proc_order.at(jp)]); // Add the first bkg process and break
@@ -599,7 +812,7 @@ void getDistributions(TString cinputdir, int onORoffshell=0, bool isEnriched=tru
         }
 
         // Divide by bin width when plotting off-shell mass
-        if (onORoffshell==1 && (int) idim==massDim){ for (auto proc:proc_order) divideBinWidth(procdist[proc]); }
+        //if (onORoffshell==1 && (int) idim==massDim){ for (auto proc:proc_order) divideBinWidth(procdist[proc]); }
 
         // Draw
         TCanvas canvas(
@@ -621,7 +834,20 @@ void getDistributions(TString cinputdir, int onORoffshell=0, bool isEnriched=tru
         canvas.SetFrameFillStyle(0);
         canvas.SetFrameBorderMode(0);
 
-        TLegend legend(0.55, 0.90-0.10/3.*2.*float(proc_order.size()), 0.80, 0.90);
+        float leg_xmin=0.55;
+        float leg_ymin=0.90-0.10/3.*2.*float(proc_order.size());
+        float leg_xmax=0.80;
+        float leg_ymax=0.90;
+        if (
+          onORoffshell && idim==2
+          &&
+          (cinputdir.Contains("a3") || cinputdir.Contains("L1") || (cinputdir.Contains("a2") && icat!=2))
+          ){
+          leg_xmax-=leg_xmin;
+          leg_xmin=0.20;
+          leg_xmax+=leg_xmin;
+        }
+        TLegend legend(leg_xmin, leg_ymin, leg_xmax, leg_ymax);
         legend.SetBorderSize(0);
         legend.SetTextFont(42);
         legend.SetTextSize(0.03);
@@ -643,76 +869,127 @@ void getDistributions(TString cinputdir, int onORoffshell=0, bool isEnriched=tru
         text = pt.AddText(0.165, 0.42, "#font[52]{Work in progress}");
         text->SetTextSize(0.0315);
         int theSqrts=13;
-        TString cErgTev = Form("#font[42]{77.3 fb^{-1} (%i TeV)}", theSqrts);
+        TString cErgTev = Form("#font[42]{77.5 fb^{-1} (%i TeV)}", theSqrts);
         text = pt.AddText(0.82, 0.45, cErgTev);
         text->SetTextSize(0.0315);
 
         float ymax=-1;
         float xmin=-1, xmax=-1;
+        TGraphAsymmErrors* tgdata=nullptr;
         for (unsigned int ip=0; ip<proc_order.size(); ip++){
+          TString const& procname = proc_order.at(ip);
+          TString const& proclabel = proc_label.at(ip);
+          cout << "Adjusting process " << procname << " at index " << ip << endl;
+          TH1F*& prochist = procdist[procname];
+          if (!prochist) cout << procname << " histogram is null!" << endl;
+          else cout << procname << " histogram is present." << endl;
           if (onORoffshell && idim==0){ xmin=220; xmax=1000; }
           else{
-            xmin=procdist[proc_order.at(ip)]->GetXaxis()->GetBinLowEdge(1);
-            xmax=procdist[proc_order.at(ip)]->GetXaxis()->GetBinUpEdge(procdist[proc_order.at(ip)]->GetNbinsX());
+            xmin=prochist->GetXaxis()->GetBinLowEdge(1);
+            xmax=prochist->GetXaxis()->GetBinUpEdge(prochist->GetNbinsX());
           }
-          cout << "Process " << proc_order.at(ip) << " color: " << proc_color[ip] << endl;
-          if (proc_order.at(ip).Contains("ALT")){
-            if (proc_order.at(ip).Contains("GGsm")) procdist[proc_order.at(ip)]->SetLineStyle(2);
-            else if (proc_order.at(ip).Contains("fai1")) procdist[proc_order.at(ip)]->SetLineStyle(7);
-            procdist[proc_order.at(ip)]->SetMarkerColor(proc_color[ip]);
-            procdist[proc_order.at(ip)]->SetLineColor(proc_color[ip]);
+          cout << "\t- Process " << procname << " color: " << proc_color[ip] << endl;
+          if (!prochist) cout << "ERROR: PDF for " << procname << " missing!" << endl;
+          if (procname.Contains("ALT")){
+            if (procname.Contains("GGsm")) prochist->SetLineStyle(2);
+            else if (procname.Contains("fai1")) prochist->SetLineStyle(7);
+            prochist->SetMarkerColor(proc_color[ip]);
+            prochist->SetLineColor(proc_color[ip]);
+          }
+          else if (proclabel=="Total SM"){
+            prochist->SetMarkerColor(kRed);
+            prochist->SetLineColor(kRed);
           }
           else if (proc_code.at(ip)==0){
-            procdist[proc_order.at(ip)]->SetMarkerColor(proc_color[ip]);
-            procdist[proc_order.at(ip)]->SetLineColorAlpha(kBlack, 0.5);
-            procdist[proc_order.at(ip)]->SetFillColor(proc_color[ip]);
-            procdist[proc_order.at(ip)]->SetFillStyle(1001);
+            prochist->SetMarkerColor(proc_color[ip]);
+            prochist->SetLineColorAlpha(kBlack, 0.5);
+            prochist->SetFillColor(proc_color[ip]);
+            prochist->SetFillStyle(1001);
+          }
+          else if (proc_code.at(ip)==-99){ // Data
+            prochist->SetMarkerColor(proc_color[ip]);
           }
           else{
-            procdist[proc_order.at(ip)]->SetMarkerColor(proc_color[ip]);
-            procdist[proc_order.at(ip)]->SetLineColorAlpha(proc_color[ip], 0.9);
-            procdist[proc_order.at(ip)]->SetFillColor(0);
-            procdist[proc_order.at(ip)]->SetFillStyle(1001);
+            prochist->SetMarkerColor(proc_color[ip]);
+            //prochist->SetLineColorAlpha(proc_color[ip], 0.9);
+            //prochist->SetFillColor(0);
+            prochist->SetLineColorAlpha(kRed+1, 0.5);
+            prochist->SetFillColor(proc_color[ip]);
+            prochist->SetFillStyle(1001);
           }
-          procdist[proc_order.at(ip)]->SetLineWidth(2);
+          prochist->SetLineWidth(2);
 
-          int binXlow = procdist[proc_order.at(ip)]->GetXaxis()->FindBin(xmin);
-          int binXhigh = procdist[proc_order.at(ip)]->GetXaxis()->FindBin(xmax);
-
-          procdist[proc_order.at(ip)]->GetXaxis()->SetRangeUser(xmin, xmax);
-          procdist[proc_order.at(ip)]->GetXaxis()->SetNdivisions(505);
-          procdist[proc_order.at(ip)]->GetXaxis()->SetLabelFont(42);
-          procdist[proc_order.at(ip)]->GetXaxis()->SetLabelOffset(0.007);
-          procdist[proc_order.at(ip)]->GetXaxis()->SetLabelSize(0.04);
-          procdist[proc_order.at(ip)]->GetXaxis()->SetTitleSize(0.06);
-          procdist[proc_order.at(ip)]->GetXaxis()->SetTitleOffset(0.9);
-          procdist[proc_order.at(ip)]->GetXaxis()->SetTitleFont(42);
-          procdist[proc_order.at(ip)]->GetYaxis()->SetNdivisions(505);
-          procdist[proc_order.at(ip)]->GetYaxis()->SetLabelFont(42);
-          procdist[proc_order.at(ip)]->GetYaxis()->SetLabelOffset(0.007);
-          procdist[proc_order.at(ip)]->GetYaxis()->SetLabelSize(0.04);
-          procdist[proc_order.at(ip)]->GetYaxis()->SetTitleSize(0.06);
-          procdist[proc_order.at(ip)]->GetYaxis()->SetTitleOffset(1.1);
-          procdist[proc_order.at(ip)]->GetYaxis()->SetTitleFont(42);
-          procdist[proc_order.at(ip)]->GetYaxis()->SetTitle("Events / bin");
-          for (int ix=binXlow; ix<binXhigh; ix++){
-            float bc = procdist[proc_order.at(ip)]->GetBinContent(ix);
-            if (bc!=0.) ymax = std::max(bc, ymax);
+          cout << "\t- Adding overflow content" << endl;
+          int binXlow = prochist->GetXaxis()->FindBin(xmin);
+          int binXhigh = prochist->GetXaxis()->FindBin(xmax);
+          for (int ix=binXhigh+1; ix<=prochist->GetNbinsX(); ix++){
+            prochist->SetBinContent(binXhigh, prochist->GetBinContent(ix)+prochist->GetBinContent(binXhigh));
+            prochist->SetBinError(binXhigh, sqrt(pow(prochist->GetBinError(ix), 2)+pow(prochist->GetBinContent(binXhigh), 2)));
           }
-          legend.AddEntry(procdist[proc_order.at(ip)], proc_label.at(ip), "f");
+          prochist->GetXaxis()->SetRangeUser(xmin, xmax);
+          prochist->GetXaxis()->SetNdivisions(505);
+          prochist->GetXaxis()->SetLabelFont(42);
+          prochist->GetXaxis()->SetLabelOffset(0.007);
+          prochist->GetXaxis()->SetLabelSize(0.04);
+          prochist->GetXaxis()->SetTitleSize(0.06);
+          prochist->GetXaxis()->SetTitleOffset(0.9);
+          prochist->GetXaxis()->SetTitleFont(42);
+          prochist->GetYaxis()->SetNdivisions(505);
+          prochist->GetYaxis()->SetLabelFont(42);
+          prochist->GetYaxis()->SetLabelOffset(0.007);
+          prochist->GetYaxis()->SetLabelSize(0.04);
+          prochist->GetYaxis()->SetTitleSize(0.06);
+          prochist->GetYaxis()->SetTitleOffset(1.1);
+          prochist->GetYaxis()->SetTitleFont(42);
+          prochist->GetYaxis()->SetTitle("Events / bin");
+
+          if (procname!="data"){
+            for (int ix=binXlow; ix<=binXhigh; ix++){
+              float bc = prochist->GetBinContent(ix);
+              if (bc!=0.) ymax = std::max(bc, ymax);
+            }
+          }
+          else{
+            cout << "\t- Obtaining " << procname << " graph" << endl;
+            tgdata=getDataGraph(prochist);
+            if (tgdata){
+              cout << "\t\t- Np = " << tgdata->GetN() << endl;
+              for (int ipoint=0; ipoint<tgdata->GetN(); ipoint++){
+                float bc = tgdata->GetY()[ipoint]+tgdata->GetEYhigh()[ipoint];
+                if (bc!=0.) ymax = std::max(bc, ymax);
+              }
+              cout << "\t\t- Success!" << endl;
+            }
+            else cout << "-t-t- Failure!" << endl;
+          }
         }
+
         for (unsigned int ip=proc_order.size(); ip>0; ip--){
+          TString const& procname = proc_order.at(ip-1);
+          cout << "Adding process " << procname << " to legend..." << endl;
+          TH1F*& prochist = procdist[procname];
+          if (!prochist) cout << procname << " histogram is null!" << endl;
+          if (procname!="data") legend.AddEntry(prochist, proc_label.at(ip-1), "f");
+          else if (tgdata) legend.AddEntry(tgdata, proc_label.at(ip-1), "e1p");
+        }
+
+        bool drawfirst=true;
+        for (unsigned int ip=proc_order.size(); ip>0; ip--){
+          TString const& procname = proc_order.at(ip-1);
+          TH1F*& prochist = procdist[procname];
+          if (procname=="data") continue;
           cout << "\t- Drawing " << proc_order.at(ip-1) << endl;
-          procdist[proc_order.at(ip-1)]->GetYaxis()->SetRangeUser(0, ymax*1.4);
-          procdist[proc_order.at(ip-1)]->Draw((ip==proc_order.size() ? "hist" : "histsame"));
+          prochist->GetYaxis()->SetRangeUser(0, ymax*1.6);
+          prochist->Draw((drawfirst ? "hist" : "histsame"));
+          drawfirst=false;
         }
         // Re-draw ALT
         for (unsigned int ip=proc_order.size(); ip>0; ip--){
           if (!proc_order.at(ip-1).Contains("ALT")) continue;
           cout << "\t- Drawing " << proc_order.at(ip-1) << endl;
-          procdist[proc_order.at(ip-1)]->GetYaxis()->SetRangeUser(0, ymax*1.4);
           procdist[proc_order.at(ip-1)]->Draw("histsame");
         }
+        if (tgdata) tgdata->Draw("e1psame");
         legend.Draw();
         pt.Draw();
         canvas.RedrawAxis();
@@ -722,6 +999,7 @@ void getDistributions(TString cinputdir, int onORoffshell=0, bool isEnriched=tru
         canvas.Close();
         curdir->cd();
 
+        delete tgdata;
         for (auto it=procdist.begin(); it!=procdist.end(); it++){
           TH1F* htmp = it->second;
           cout << "\t- Deleting histogram " << htmp->GetName() << endl;

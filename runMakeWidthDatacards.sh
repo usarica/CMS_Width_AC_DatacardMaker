@@ -21,8 +21,8 @@ for p in SM L1 a2 a3; do
 
       mkdir $outcardsname"/HCG/Scans/"
 
-      cp utils/submitScanExp.sh $outcardsname"/HCG/Scans/"
-      cp utils/scanExp.slurm.sh $outcardsname"/HCG/Scans/"
+      cp utils/submitScan1D.sh $outcardsname"/HCG/Scans/"
+      cp utils/scan1D.slurm.sh $outcardsname"/HCG/Scans/"
 
       chmod -R 755 "$outcardsname"
     fi
@@ -47,8 +47,8 @@ for p in SM L1 L1ZGs a2 a3; do
 
       mkdir $outcardsname"/HCG/Scans/"
 
-      cp utils/submitScanExp.sh $outcardsname"/HCG/Scans/"
-      cp utils/scanExp.slurm.sh $outcardsname"/HCG/Scans/"
+      cp utils/submitScan1D.sh $outcardsname"/HCG/Scans/"
+      cp utils/scan1D.slurm.sh $outcardsname"/HCG/Scans/"
 
       chmod -R 755 "$outcardsname"
     fi
@@ -172,8 +172,10 @@ for p in SM L1 L1ZGs a2 a3; do
 
       popd
 
-      cp utils/submitScanExp.sh $outcardsname"/HCG/Scans/"
-      cp utils/scanExp.slurm.sh $outcardsname"/HCG/Scans/"
+      cp utils/submitScan1D.sh $outcardsname"/HCG/Scans/"
+      cp utils/scan1D.slurm.sh $outcardsname"/HCG/Scans/"
+      cp utils/submitImpacts.sh $outcardsname"/HCG/Scans/"
+      cp utils/doImpacts.slurm.sh $outcardsname"/HCG/Scans/"
       cp utils/submitPreApprovalChecks.sh $outcardsname"/HCG/Scans/"
       cp utils/doPreApprovalChecks.slurm.sh $outcardsname"/HCG/Scans/"
 
