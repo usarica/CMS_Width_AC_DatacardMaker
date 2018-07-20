@@ -353,7 +353,7 @@ TGraphAsymmErrors* getDataGraph(TH1F* hdata){
 }
 
 
-void getDistributions(TString cinputdir, int onORoffshell=0, bool isEnriched=true){
+void plotStacked(TString cinputdir, int onORoffshell=0, bool isEnriched=true){
   gStyle->SetOptStat(0);
 
   const unsigned int nsqrts=2;
@@ -414,29 +414,29 @@ void getDistributions(TString cinputdir, int onORoffshell=0, bool isEnriched=tru
     std::vector<int> proc_color;
     std::vector<int> proc_code;
     if (onORoffshell==1){ // Offshell
-      proc_order=std::vector<TString>{ "Zjets", "qqZZ", "ggZZ_offshell", "VVZZ_offshell", "total_GGsmALT" };
+      proc_order=std::vector<TString>{ "Zjets", "qqZZ", "VVZZ_offshell", "ggZZ_offshell", "total_GGsmALT" };
       if (!cinputdir.Contains("SM")) proc_order.push_back("total_fai1ALT");
     }
     else{
-      proc_order=std::vector<TString>{ "zjets", "bkg_zz", "ggH", "VVZZ", "total_fai1ALT" };
+      proc_order=std::vector<TString>{ "zjets", "bkg_zz", "VVZZ", "ggH", "total_fai1ALT" };
     }
     proc_order.push_back("data");
     for (auto const& p:proc_order){
       if (p=="bkg_qqzz" || p=="qqZZ"){ proc_color.push_back(int(TColor::GetColor("#99ccff"))); proc_label.push_back("q#bar{q}#rightarrow4l bkg."); proc_code.push_back(0); }
       else if (p=="bkg_gg"){ proc_color.push_back(int(kBlue)); proc_label.push_back("gg#rightarrow4l bkg."); proc_code.push_back(0); }
-      else if (p=="zjets" || p=="Zjets"){ proc_color.push_back(int(TColor::GetColor("#669966"))); proc_label.push_back("Z+jets"); proc_code.push_back(0); }
+      else if (p=="zjets" || p=="Zjets"){ proc_color.push_back(int(TColor::GetColor("#669966"))); proc_label.push_back("Z+X"); proc_code.push_back(0); }
       else if (p=="bkg_vv"){ proc_color.push_back(int(kPink+9)); proc_label.push_back("EW bkg."); proc_code.push_back(0); }
       else if (p=="bkg_zz"){ proc_color.push_back(int(TColor::GetColor("#99ccff"))); proc_label.push_back("ZZ/Z#gamma*/#gamma*#gamma*#rightarrow4l bkg."); proc_code.push_back(0); }
       else if (p=="ggZZ_offshell" || p=="ggH"){
         //proc_color.push_back(int(kOrange-2));
         proc_color.push_back(int(TColor::GetColor("#ffdcdc")));
-        if (p=="ggH"){ proc_label.push_back("ggH+t#bar{t}H+b#bar{b}H"); proc_code.push_back(1); }
-        else if (p=="ggZZ_offshell"){ proc_label.push_back("gg#rightarrow4l SM total"); proc_code.push_back(2); }
+        if (p=="ggH"){ proc_label.push_back("Total SM"); proc_code.push_back(1); }
+        else if (p=="ggZZ_offshell"){ proc_label.push_back("gg#rightarrow4l SM s+b+i"); proc_code.push_back(2); }
       }
       else if (p=="VVZZ" || p=="VVZZ_offshell"){
         proc_color.push_back(int(TColor::GetColor("#ff9b9b")));
-        if (p=="VVZZ"){ proc_label.push_back("Total SM"); proc_code.push_back(1); }
-        else if (p=="VVZZ_offshell"){ proc_label.push_back("Total SM"); proc_code.push_back(2); }
+        if (p=="VVZZ"){ proc_label.push_back("VBF+VH SM"); proc_code.push_back(1); }
+        else if (p=="VVZZ_offshell"){ proc_label.push_back("EW SM s+b+i"); proc_code.push_back(2); }
         //if (p=="VVZZ"){ proc_label.push_back("EW sig."); proc_code.push_back(1); }
         //else if (p=="VVZZ_offshell"){ proc_label.push_back("EW SM total"); proc_code.push_back(2); }
       }
@@ -900,6 +900,23 @@ void getDistributions(TString cinputdir, int onORoffshell=0, bool isEnriched=tru
             prochist->SetMarkerColor(kRed);
             prochist->SetLineColor(kRed);
           }
+          else if (proclabel=="gg#rightarrow4l SM s+b+i"){
+            prochist->SetMarkerColor(kRed);
+            prochist->SetLineColor(kRed);
+            prochist->SetFillColor(kRed-7);
+            prochist->SetFillStyle(3345);
+          }
+          else if (proclabel=="VBF+VH SM"){
+            prochist->SetMarkerColor(kBlue);
+            prochist->SetLineColor(kBlue);
+          }
+          else if (proclabel=="EW SM s+b+i"){
+            prochist->SetMarkerColor(kBlue);
+            prochist->SetLineColor(kBlue);
+            prochist->SetFillColor(kBlue-7);
+            //prochist->SetFillStyle(3354);
+            prochist->SetFillStyle(3344);
+          }
           else if (proc_code.at(ip)==0){
             prochist->SetMarkerColor(proc_color[ip]);
             prochist->SetLineColorAlpha(kBlack, 0.5);
@@ -922,9 +939,14 @@ void getDistributions(TString cinputdir, int onORoffshell=0, bool isEnriched=tru
           cout << "\t- Adding overflow content" << endl;
           int binXlow = prochist->GetXaxis()->FindBin(xmin);
           int binXhigh = prochist->GetXaxis()->FindBin(xmax);
+          if (prochist->GetXaxis()->GetBinLowEdge(binXhigh)==xmax) binXhigh--;
           for (int ix=binXhigh+1; ix<=prochist->GetNbinsX(); ix++){
             prochist->SetBinContent(binXhigh, prochist->GetBinContent(ix)+prochist->GetBinContent(binXhigh));
             prochist->SetBinError(binXhigh, sqrt(pow(prochist->GetBinError(ix), 2)+pow(prochist->GetBinContent(binXhigh), 2)));
+          }
+          for (int ix=1; ix<binXlow; ix++){
+            prochist->SetBinContent(binXlow, prochist->GetBinContent(ix)+prochist->GetBinContent(binXlow));
+            prochist->SetBinError(binXlow, sqrt(pow(prochist->GetBinError(ix), 2)+pow(prochist->GetBinContent(binXlow), 2)));
           }
           prochist->GetXaxis()->SetRangeUser(xmin, xmax);
           prochist->GetXaxis()->SetNdivisions(505);
@@ -966,20 +988,36 @@ void getDistributions(TString cinputdir, int onORoffshell=0, bool isEnriched=tru
 
         for (unsigned int ip=proc_order.size(); ip>0; ip--){
           TString const& procname = proc_order.at(ip-1);
+          TString const& proclabel = proc_label.at(ip-1);
           cout << "Adding process " << procname << " to legend..." << endl;
           TH1F*& prochist = procdist[procname];
           if (!prochist) cout << procname << " histogram is null!" << endl;
-          if (procname!="data") legend.AddEntry(prochist, proc_label.at(ip-1), "f");
+          if (proclabel=="Total SM" || procname.Contains("ALT")) legend.AddEntry(prochist, proc_label.at(ip-1), "l");
+          else if (procname!="data") legend.AddEntry(prochist, proc_label.at(ip-1), "f");
           else if (tgdata) legend.AddEntry(tgdata, proc_label.at(ip-1), "e1p");
         }
 
+        vector<TH1F*> intermediateHistList;
         bool drawfirst=true;
         for (unsigned int ip=proc_order.size(); ip>0; ip--){
           TString const& procname = proc_order.at(ip-1);
+          TString const& proclabel = proc_label.at(ip-1);
           TH1F*& prochist = procdist[procname];
           if (procname=="data") continue;
-          cout << "\t- Drawing " << proc_order.at(ip-1) << endl;
+          cout << "\t- Drawing " << procname << endl;
           prochist->GetYaxis()->SetRangeUser(0, ymax*1.6);
+          /*
+          if (proclabel=="EW SM s+b+i"){
+            intermediateHistList.push_back((TH1F*) prochist->Clone(procname+"_tmpclone"));
+            TH1F* htmp = intermediateHistList.back();
+            cout << "\t\t- Drawing a hollow histogram first..." << endl;
+            htmp->SetFillColor(0);
+            htmp->SetLineColor(0);
+            htmp->SetMarkerColor(0);
+            htmp->SetFillStyle(1001);
+            htmp->Draw((drawfirst ? "hist" : "histsame")); drawfirst=false;
+          }
+          */
           prochist->Draw((drawfirst ? "hist" : "histsame"));
           drawfirst=false;
         }
@@ -996,6 +1034,7 @@ void getDistributions(TString cinputdir, int onORoffshell=0, bool isEnriched=tru
         canvas.Modified();
         canvas.Update();
         canvas.SaveAs(TString(canvas.GetName())+".pdf");
+        for (TH1F*& htmp:intermediateHistList) delete htmp;
         canvas.Close();
         curdir->cd();
 

@@ -49,6 +49,9 @@ elif [[ "$poi" == "GGsm_floatfai1" ]];then
 elif [[ "$poi" == "GGsm_fixMH" ]];then
   echo "POI is GGsm, but fixing MH"
   cmdadd=$cmdadd" -m 125 --redefineSignalPOIs=GGsm --freezeParameters=CMS_zz4l_fai1,kbkg_VBF,MH --setParameterRanges GGsm="$rangel","$rangeh
+elif [[ "$poi" == "MH" ]];then
+  echo "POI is MH, fixing other POIs"
+  cmdadd=$cmdadd" -m 125 --redefineSignalPOIs=MH --freezeParameters=CMS_zz4l_fai1,GGsm,kbkg_VBF --setParameterRanges MH="$rangel","$rangeh
 elif [[ "$poi" == "GGsm_floatMH" ]];then
   echo "POI is GGsm, but floating MH"
   cmdadd=$cmdadd" -m 125 --redefineSignalPOIs=GGsm --freezeParameters=CMS_zz4l_fai1,kbkg_VBF --setParameterRanges GGsm="$rangel","$rangeh

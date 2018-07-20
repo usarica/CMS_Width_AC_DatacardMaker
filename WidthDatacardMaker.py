@@ -742,6 +742,7 @@ class WidthDatacardMaker:
 
 
    def CheckPdfs(self):
+      if not self.options.dopdfproj: return
       for tmppdf in self.pdfList:
          for pdfname in self.options.checkpdfs:
             if pdfname in tmppdf.GetName():
@@ -751,6 +752,7 @@ class WidthDatacardMaker:
 
 
    def PlotPdfs(self):
+      if not self.options.dopdfproj: return
       if len(self.normList)==len(self.pdfList):
          for tmppdf, tmpnorm in zip(self.pdfList,self.normList):
             theProcExtRate=float(1)

@@ -77,6 +77,7 @@ class makeWidthDatacards:
 
       parser.add_option('--checkpdfs', type="string", action="append", help='Check specified pdfs explicitly')
       parser.add_option('--writeoutput', action='store_true', default=False, help='Write output to file')
+      parser.add_option('--dopdfproj', action='store_true', default=False, help='Do pdf projections for cross checks')
 
        # store options and arguments as global variables
       (self.opt, self.args) = parser.parse_args()
