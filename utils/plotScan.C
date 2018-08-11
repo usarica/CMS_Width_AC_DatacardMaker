@@ -242,6 +242,8 @@ void plotScan(TString const indir, TString const strxvar, TString const stryvar=
   gr->GetYaxis()->SetTitleFont(42);
   gr->GetYaxis()->SetNdivisions(505);
   gr->GetXaxis()->SetNdivisions(505);
+  gr->GetYaxis()->CenterTitle();
+  gr->GetXaxis()->CenterTitle();
   if (stryvar=="deltaNLL"){
     if (strxvar=="GGsm"){
       gr->GetXaxis()->SetNdivisions(510);
@@ -288,8 +290,8 @@ void plotScan(TString const indir, TString const strxvar, TString const stryvar=
   pt->SetTextFont(42);
   pt->SetTextSize(0.04);
   TText* text = pt->AddText(0.02,0.45,"#font[61]{CMS}");
-  text = pt->AddText(0.14, 0.42, "#font[52]{Unpublished}");
-  text->SetTextSize(0.0315);
+  //text = pt->AddText(0.14, 0.42, "#font[52]{Unpublished}");
+  //text->SetTextSize(0.0315);
   //text = pt->AddText(0.48, 0.45, "#font[42]{19.7 fb^{-1} (8 TeV) + 5.1 fb^{-1} (7 TeV)}");
   //text->SetTextSize(0.0315);
   pt->Draw();

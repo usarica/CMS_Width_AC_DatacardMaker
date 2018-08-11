@@ -324,7 +324,7 @@ TGraphAsymmErrors* getDataGraph(TH1F* hdata){
       double bincenter = hdata->GetBinCenter(bin);
       double bincontent = hdata->GetBinContent(bin);
 
-      if (bincontent >= 0){
+      if (bincontent > 0.){
         xx_data[ndata] = bincenter;
         yy_data[ndata] = bincontent / integral_data;
         xu_data[ndata] = 0;
@@ -866,8 +866,8 @@ void plotStacked(TString cinputdir, int onORoffshell=0, bool isEnriched=true){
         pt.SetTextSize(0.045);
         text = pt.AddText(0.025, 0.45, "#font[61]{CMS}");
         text->SetTextSize(0.044);
-        text = pt.AddText(0.165, 0.42, "#font[52]{Work in progress}");
-        text->SetTextSize(0.0315);
+        //text = pt.AddText(0.165, 0.42, "#font[52]{Work in progress}");
+        //text->SetTextSize(0.0315);
         int theSqrts=13;
         TString cErgTev = Form("#font[42]{77.5 fb^{-1} (%i TeV)}", theSqrts);
         text = pt.AddText(0.82, 0.45, cErgTev);
@@ -964,6 +964,8 @@ void plotStacked(TString cinputdir, int onORoffshell=0, bool isEnriched=true){
           prochist->GetYaxis()->SetTitleOffset(1.1);
           prochist->GetYaxis()->SetTitleFont(42);
           prochist->GetYaxis()->SetTitle("Events / bin");
+          prochist->GetYaxis()->CenterTitle();
+          prochist->GetXaxis()->CenterTitle();
 
           if (procname!="data"){
             for (int ix=binXlow; ix<=binXhigh; ix++){
@@ -1027,7 +1029,7 @@ void plotStacked(TString cinputdir, int onORoffshell=0, bool isEnriched=true){
           cout << "\t- Drawing " << proc_order.at(ip-1) << endl;
           procdist[proc_order.at(ip-1)]->Draw("histsame");
         }
-        if (tgdata) tgdata->Draw("e1psame");
+        if (tgdata && tgdata->GetN()>0) tgdata->Draw("e1psame");
         legend.Draw();
         pt.Draw();
         canvas.RedrawAxis();

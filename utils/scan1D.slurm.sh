@@ -73,12 +73,6 @@ fi
 if [[ "$extarg" == *"obs"* ]];then
   cmd=${cmd/"-t -1 "/" "}
 fi
-# Temporary fix to crazy parameters
-if [[ "$cmd" == *"--freezeParameters="* ]];then
-  cmd=${cmd/"--freezeParameters="/"--freezeParameters=pdf_variation_Higgs_gg,pdf_variation_Higgs_qqbar,pdf_variation_qqbar,"}
-else
-  cmd=$cmd" --freezeParameters=pdf_variation_Higgs_gg,pdf_variation_Higgs_qqbar,pdf_variation_qqbar"
-fi
 
 echo "Command: combine "$cmd
 combine $cmd
