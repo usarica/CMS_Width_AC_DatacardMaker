@@ -10,6 +10,7 @@
 #include "TMatrixD.h"
 #include "TFile.h"
 #include "TH3F.h"
+#include "TH2F.h"
 #include "TSystem.h"
 #include "TMath.h"
 #include "TCanvas.h"
@@ -63,8 +64,6 @@ void splitOption(const string rawoption, string& wish, string& value, char delim
 void splitOptionRecursive(const string rawoption, vector<string>& splitoptions, char delimiter);
 Bool_t checkListVariable(const vector<string>& list, const string& var);
 void extractTemplates(process_spec& proc, RooDataSet* data, string shapename, bool scale_width);
-void extractTemplates_ggLike_fai1(const TString& newname, const vector<TH3F*>& intpl, vector<TH3F*>& outtpl);
-void extractTemplates_VVLike_fai1(const TString& newname, const vector<TH3F*>& intpl, vector<TH3F*>& outtpl);
 
 void getDataTree(TString cinput){
   string strinput = cinput.Data();
@@ -371,6 +370,181 @@ void getTemplates(TString cinput, double lumiScale=1, bool scale_width=true, boo
   tout.close();
 }
 
+
+template<typename TH_t> void extractTemplates_ggLike_fai1(const TString& newname, const vector<TH_t*>& intpl, vector<TH_t*>& outtpl){
+  double invA[3][3]={
+    { 1, 0, 0 },
+  { -1, 2, -1 },
+  { 0, 0, 1 }
+  };
+
+  if (intpl.size()!=3) return;
+  for (unsigned int ot=0; ot<intpl.size(); ot++){
+    TString nname = Form("%s_Sig", newname.Data());
+    if (ot>0) nname += Form("_ai1_%i", ot);
+    if (ot==1) nname += "_Re";
+    outtpl.push_back((TH_t*) intpl.at(ot)->Clone(nname));
+    outtpl.at(ot)->Reset("ICES");
+    for (unsigned int it=0; it<intpl.size(); it++) outtpl.at(ot)->Add(intpl.at(it), invA[ot][it]);
+    cout << outtpl.at(ot)->GetName() << " integral = " << outtpl.at(ot)->Integral("width") << endl;
+  }
+}
+template<typename TH_t> void extractTemplates_VVLike_fai1(const TString& newname, const vector<TH_t*>& intpl, vector<TH_t*>& outtpl){
+  double A[25]={
+    1, 0, 0, 0, 0,
+    9./16., 3.*sqrt(3.)/16., 3./16., sqrt(3.)/16., 1./16.,
+    0.25, 0.25, 0.25, 0.25, 0.25,
+    1./16., sqrt(3.)/16., 3./16., 3.*sqrt(3.)/16., 9./16.,
+    0, 0, 0, 0, 1
+  };
+  TMatrixD matA(5, 5, A);
+  TMatrixD invA = matA.Invert();
+
+  if (intpl.size()!=5) return;
+  for (unsigned int ot=0; ot<intpl.size(); ot++){
+    TString nname = Form("%s_Sig", newname.Data());
+    if (ot>0) nname += Form("_ai1_%i", ot);
+    if (ot==1 || ot==3) nname += "_Re";
+    else if (ot==2) nname += "_PosDef";
+    outtpl.push_back((TH_t*) intpl.at(ot)->Clone(nname));
+    outtpl.at(ot)->Reset("ICES");
+    for (unsigned int it=0; it<intpl.size(); it++) outtpl.at(ot)->Add(intpl.at(it), invA[ot][it]);
+    cout << outtpl.at(ot)->GetName() << " integral = " << outtpl.at(ot)->Integral("width") << endl;
+  }
+}
+template<typename TH_t> void extractTemplates_ggORvv_GGsm(const TString& newname, const vector<TH_t*>& intpl, vector<TH_t*>& outtpl){
+  double invA[3][3]={
+    { 1, 0, 0 },
+  { -1.5, 2, -0.5 },
+  { 0.5, -1, 0.5 }
+  };
+
+  if (intpl.size()!=3) return;
+  for (unsigned int ot=0; ot<intpl.size(); ot++){
+    TString nname;
+    switch (ot){
+    case 0:
+      nname = Form("%s_Bkg", newname.Data());
+      break;
+    case 1:
+      nname = Form("%s_Int_Re", newname.Data());
+      break;
+    case 2:
+      nname = Form("%s_Sig", newname.Data());
+      break;
+    default:
+      assert(0);
+    }
+    outtpl.push_back((TH_t*) intpl.at(ot)->Clone(nname));
+    outtpl.at(ot)->Reset("ICES");
+    for (unsigned int it=0; it<intpl.size(); it++) outtpl.at(ot)->Add(intpl.at(it), invA[ot][it]);
+    cout << outtpl.at(ot)->GetName() << " integral = " << outtpl.at(ot)->Integral("width") << endl;
+  }
+}
+template<typename TH_t> void extractTemplates_ggLike_fai1_GGsm(const TString& newname, const vector<TH_t*>& intpl, vector<TH_t*>& outtpl){
+  double invA[6][6]={
+    { 1, 0, 0, 0, 0, 0 },
+  { 0.5, -1, 0.5, 0, 0, 0 },
+  { -1.5, 2, -0.5, 0, 0, 0 },
+  { 0.5, 0, 0, -1, 0.5, 0 },
+  { 5./4., -2, 1./6., -7./4., 1./4., 25./12. },
+  { -1.5, 0, 0, 2, -0.5, 0 }
+  };
+
+  if (intpl.size()!=6) return;
+  for (unsigned int ot=0; ot<intpl.size(); ot++){
+    TString nname;
+    switch (ot){
+    case 0:
+      nname = Form("%s_Bkg", newname.Data());
+      break;
+    case 1:
+      nname = Form("%s_Sig", newname.Data());
+      break;
+    case 2:
+      nname = Form("%s_Int_Re", newname.Data());
+      break;
+    case 3:
+      nname = Form("%s_Sig_ai1_2", newname.Data());
+      break;
+    case 4:
+      nname = Form("%s_Sig_ai1_1_Re", newname.Data());
+      break;
+    case 5:
+      nname = Form("%s_Int_ai1_1_Re", newname.Data());
+      break;
+    }
+    outtpl.push_back((TH_t*) intpl.at(ot)->Clone(nname));
+    outtpl.at(ot)->Reset("ICES");
+    for (unsigned int it=0; it<intpl.size(); it++) outtpl.at(ot)->Add(intpl.at(it), invA[ot][it]);
+    cout << outtpl.at(ot)->GetName() << " integral = " << outtpl.at(ot)->Integral("width") << endl;
+  }
+}
+template<typename TH_t> void extractTemplates_VVLike_fai1_GGsm(const TString& newname, const vector<TH_t*>& intpl, vector<TH_t*>& outtpl){
+  double invA[9][9]={
+    { 1, 0, 0, 0, 0, 0, 0, 0, 0 },
+    { 1./2., -1, 1./2., 0, 0, 0, 0, 0, 0 },
+    { -3./2., 2, -1./2., 0, 0, 0, 0, 0, 0 },
+    { 1./2., -2, 1./2., 1, 50./7., 0, -50./7., -25./14., 25./14. },
+    { 0, -19./60., -25./24., -5./12., -6325./336., 28561./2640., 8075./924., 50./21., -75./56. },
+    { 1, 2, 1, 269./144., 16325./448., -142805./6336., -13700./693., -25./14., 25./14. },
+    { 0, 53./30., -25./24., -5./2., -8825./336., 28561./2640., 7475./462., 50./21., -75./56. },
+    { 0, -25./6., 25./24., 0, 200./21., 0, -75./14., -50./21., 75./56. },
+    { -3./2., 2, -1./2., 0, -50./7., 0, 50./7., 25./14., -25./14. }
+  };
+
+  if (intpl.size()!=9) return;
+  for (unsigned int ot=0; ot<intpl.size(); ot++){
+    TString nname;
+    switch(ot){
+    case 0:
+      nname="Bkg";
+      break;
+    case 1:
+      nname="Sig";
+      break;
+    case 2:
+      nname="Int_Re";
+      break;
+    case 3:
+      nname="Sig_ai1_4";
+      break;
+    case 4:
+      nname="Sig_ai1_1_Re";
+      break;
+    case 5:
+      nname="Sig_ai1_2_PosDef";
+      break;
+    case 6:
+      nname="Sig_ai1_3_Re";
+      break;
+    case 7:
+      nname="Int_ai1_1_Re";
+      break;
+    case 8:
+      nname="Int_ai1_2_Re";
+      break;
+    }
+    nname = Form("%s_%s", newname.Data(), nname.Data());
+    outtpl.push_back((TH_t*) intpl.at(ot)->Clone(nname));
+    outtpl.at(ot)->Reset("ICES");
+    for (unsigned int it=0; it<intpl.size(); it++) outtpl.at(ot)->Add(intpl.at(it), invA[ot][it]);
+    cout << outtpl.at(ot)->GetName() << " integral = " << outtpl.at(ot)->Integral("width") << endl;
+  }
+}
+
+template void extractTemplates_ggLike_fai1(const TString& newname, const vector<TH2F*>& intpl, vector<TH2F*>& outtpl);
+template void extractTemplates_VVLike_fai1(const TString& newname, const vector<TH2F*>& intpl, vector<TH2F*>& outtpl);
+template void extractTemplates_ggORvv_GGsm(const TString& newname, const vector<TH2F*>& intpl, vector<TH2F*>& outtpl);
+template void extractTemplates_ggLike_fai1_GGsm(const TString& newname, const vector<TH2F*>& intpl, vector<TH2F*>& outtpl);
+template void extractTemplates_VVLike_fai1_GGsm(const TString& newname, const vector<TH2F*>& intpl, vector<TH2F*>& outtpl);
+
+template void extractTemplates_ggLike_fai1(const TString& newname, const vector<TH3F*>& intpl, vector<TH3F*>& outtpl);
+template void extractTemplates_VVLike_fai1(const TString& newname, const vector<TH3F*>& intpl, vector<TH3F*>& outtpl);
+template void extractTemplates_ggORvv_GGsm(const TString& newname, const vector<TH3F*>& intpl, vector<TH3F*>& outtpl);
+template void extractTemplates_ggLike_fai1_GGsm(const TString& newname, const vector<TH3F*>& intpl, vector<TH3F*>& outtpl);
+template void extractTemplates_VVLike_fai1_GGsm(const TString& newname, const vector<TH3F*>& intpl, vector<TH3F*>& outtpl);
+
 void extractTemplates(process_spec& proc, RooDataSet* data, string shapename, bool scale_width){
   vector<TH3F*> templates;
 
@@ -433,22 +607,24 @@ void extractTemplates(process_spec& proc, RooDataSet* data, string shapename, bo
     tpl->Scale(scale);
     templates.push_back(tpl);
   }
-  else if (proc.name.Contains("ggH") || proc.name.Contains("ttH")){
-    if (fai1!=0 && GGsm==0){
-      if (RV){
-        cout << "\t- Setting RV to 0" << endl;
-        RV->setVal(0);
-      }
-      else{
-        cout << "Could not find RV" << endl;
-      }
+  else if (proc.name.Contains("gg") || proc.name.Contains("tt")){
+    float RVdefval=0;
+    if (RV){
+      cout << "\t- Setting RV to 0" << endl;
+      RVdefval = RV->getVal();
+      RV->setVal(0);
+    }
+    else{
+      cout << "Could not find RV" << endl;
+    }
+    if (fai1 && !GGsm){
       vector<TH3F*> intpl;
       for (unsigned int ifv=0; ifv<3; ifv++){
         fai1->setVal(0.5*float(ifv));
 
         TString theName = Form("%s_%i", tplname.Data(), ifv);
         TH3F* tpl = (TH3F*)proc.pdf->createHistogram(theName, *(deps.at(0)), ycmd, zcmd);
-        double normval = proc.rate; if (proc.norm!=0) normval *= proc.norm->getVal();
+        double normval = proc.rate; if (proc.norm) normval *= proc.norm->getVal();
         double integral = 1;
         if (scale_width) integral = tpl->Integral("width");
         else integral = tpl->Integral();
@@ -465,25 +641,108 @@ void extractTemplates(process_spec& proc, RooDataSet* data, string shapename, bo
       fai1->setVal(0);
       extractTemplates_ggLike_fai1(tplname, intpl, templates);
       for (unsigned int it=0; it<intpl.size(); it++) delete intpl.at(it);
-      if (RV) RV->setVal(1);
     }
+    else if (!fai1 && GGsm){
+      vector<TH3F*> intpl;
+      for (unsigned int ifv=0; ifv<3; ifv++){
+        switch (ifv){
+        case 0:
+        case 1:
+          GGsm->setVal(ifv);
+          break;
+        case 2:
+          GGsm->setVal(4);
+          break;
+        }
+
+        TString theName = Form("%s_%i", tplname.Data(), ifv);
+        TH3F* tpl = (TH3F*) proc.pdf->createHistogram(theName, *(deps.at(0)), ycmd, zcmd);
+        double normval = proc.rate; if (proc.norm) normval *= proc.norm->getVal();
+        double integral = 1;
+        if (scale_width) integral = tpl->Integral("width");
+        else integral = tpl->Integral();
+        double scale = normval/integral;
+        cout << "Scaling template " << tplname << " by " << normval << " / " << integral << endl;
+        if (shapename!=""){
+          delete tpl;
+          tpl=(TH3F*) proc.pdf_shape[shapename]->createHistogram(theName, *(deps.at(0)), ycmd, zcmd);
+        }
+        tpl->SetTitle("");
+        tpl->Scale(scale);
+        intpl.push_back(tpl);
+      }
+      GGsm->setVal(1);
+      extractTemplates_ggORvv_GGsm(tplname, intpl, templates);
+      for (unsigned int it=0; it<intpl.size(); it++) delete intpl.at(it);
+    }
+    else{
+      vector<TH3F*> intpl;
+      for (unsigned int ifv=0; ifv<6; ifv++){
+        switch (ifv){
+        case 0:
+          GGsm->setVal(0);
+          break;
+        case 1:
+          GGsm->setVal(1);
+          break;
+        case 2:
+          GGsm->setVal(4);
+          break;
+        case 3:
+          GGsm->setVal(1);
+          fai1->setVal(1);
+          break;
+        case 4:
+          GGsm->setVal(4);
+          fai1->setVal(1);
+          break;
+        case 5:
+          GGsm->setVal(1);
+          fai1->setVal(9./25.);
+          break;
+        }
+
+        TString theName = Form("%s_%i", tplname.Data(), ifv);
+        TH3F* tpl = (TH3F*) proc.pdf->createHistogram(theName, *(deps.at(0)), ycmd, zcmd);
+        double normval = proc.rate; if (proc.norm) normval *= proc.norm->getVal();
+        double integral = 1;
+        if (scale_width) integral = tpl->Integral("width");
+        else integral = tpl->Integral();
+        double scale = normval/integral;
+        cout << "Scaling template " << tplname << " by " << normval << " / " << integral << endl;
+        if (shapename!=""){
+          delete tpl;
+          tpl=(TH3F*) proc.pdf_shape[shapename]->createHistogram(theName, *(deps.at(0)), ycmd, zcmd);
+        }
+        tpl->SetTitle("");
+        tpl->Scale(scale);
+        intpl.push_back(tpl);
+      }
+      GGsm->setVal(1);
+      fai1->setVal(0);
+      extractTemplates_ggLike_fai1_GGsm(tplname, intpl, templates);
+      for (unsigned int it=0; it<intpl.size(); it++) delete intpl.at(it);
+    }
+    if (RV) RV->setVal(RVdefval);
   }
-  else if (proc.name.Contains("qqH") || proc.name.Contains("WH") || proc.name.Contains("ZH") || proc.name.Contains("VVH")){
-    if (fai1!=0 && GGsm==0){
-      if (RF){
-        cout << "\t- Setting RF to 0" << endl;
-        RF->setVal(0);
-      }
-      else{
-        cout << "Could not find RF" << endl;
-      }
+  else if (proc.name.Contains("qqH") || proc.name.Contains("VBF") || proc.name.Contains("WH") || proc.name.Contains("ZH") || proc.name.Contains("VV")){
+    float RFdefval=0;
+    if (RF){
+      cout << "\t- Setting RF to 0" << endl;
+      RFdefval = RF->getVal();
+      RF->setVal(0);
+    }
+    else{
+      cout << "Could not find RF" << endl;
+    }
+    if (fai1 && !GGsm){
       vector<TH3F*> intpl;
       for (unsigned int ifv=0; ifv<5; ifv++){
         fai1->setVal(0.25*float(ifv));
 
         TString theName = Form("%s_%i", tplname.Data(), ifv);
         TH3F* tpl = (TH3F*)proc.pdf->createHistogram(theName, *(deps.at(0)), ycmd, zcmd);
-        double normval = proc.rate; if (proc.norm!=0) normval *= proc.norm->getVal();
+        double normval = proc.rate; if (proc.norm) normval *= proc.norm->getVal();
         double integral = 1;
         if (scale_width) integral = tpl->Integral("width");
         else integral = tpl->Integral();
@@ -500,122 +759,104 @@ void extractTemplates(process_spec& proc, RooDataSet* data, string shapename, bo
       fai1->setVal(0);
       extractTemplates_VVLike_fai1(tplname, intpl, templates);
       for (unsigned int it=0; it<intpl.size(); it++) delete intpl.at(it);
-      if (RF) RF->setVal(1);
     }
+    else if (!fai1 && GGsm){
+      vector<TH3F*> intpl;
+      for (unsigned int ifv=0; ifv<3; ifv++){
+        switch (ifv){
+        case 0:
+        case 1:
+          GGsm->setVal(ifv);
+          break;
+        case 2:
+          GGsm->setVal(4);
+          break;
+        }
+
+        TString theName = Form("%s_%i", tplname.Data(), ifv);
+        TH3F* tpl = (TH3F*) proc.pdf->createHistogram(theName, *(deps.at(0)), ycmd, zcmd);
+        double normval = proc.rate; if (proc.norm) normval *= proc.norm->getVal();
+        double integral = 1;
+        if (scale_width) integral = tpl->Integral("width");
+        else integral = tpl->Integral();
+        double scale = normval/integral;
+        cout << "Scaling template " << tplname << " by " << normval << " / " << integral << endl;
+        if (shapename!=""){
+          delete tpl;
+          tpl=(TH3F*) proc.pdf_shape[shapename]->createHistogram(theName, *(deps.at(0)), ycmd, zcmd);
+        }
+        tpl->SetTitle("");
+        tpl->Scale(scale);
+        intpl.push_back(tpl);
+      }
+      GGsm->setVal(1);
+      extractTemplates_ggORvv_GGsm(tplname, intpl, templates);
+      for (unsigned int it=0; it<intpl.size(); it++) delete intpl.at(it);
+    }
+    else{
+      vector<TH3F*> intpl;
+      for (unsigned int ifv=0; ifv<9; ifv++){
+        switch (ifv){
+        case 0:
+          GGsm->setVal(0);
+          break;
+        case 1:
+          GGsm->setVal(1);
+          break;
+        case 2:
+          GGsm->setVal(4);
+          break;
+        case 3:
+          GGsm->setVal(1);
+          fai1->setVal(1);
+          break;
+        case 4:
+          GGsm->setVal(1);
+          fai1->setVal(9./25.);
+          break;
+        case 5:
+          GGsm->setVal(1);
+          fai1->setVal(25./169.);
+          break;
+        case 6:
+          GGsm->setVal(1);
+          fai1->setVal(16./25.);
+          break;
+        case 7:
+          GGsm->setVal(4);
+          fai1->setVal(9./25.);
+          break;
+        case 8:
+          GGsm->setVal(4);
+          fai1->setVal(16./25.);
+          break;
+        }
+
+        TString theName = Form("%s_%i", tplname.Data(), ifv);
+        TH3F* tpl = (TH3F*) proc.pdf->createHistogram(theName, *(deps.at(0)), ycmd, zcmd);
+        double normval = proc.rate; if (proc.norm) normval *= proc.norm->getVal();
+        double integral = 1;
+        if (scale_width) integral = tpl->Integral("width");
+        else integral = tpl->Integral();
+        double scale = normval/integral;
+        cout << "Scaling template " << tplname << " by " << normval << " / " << integral << endl;
+        if (shapename!=""){
+          delete tpl;
+          tpl=(TH3F*) proc.pdf_shape[shapename]->createHistogram(theName, *(deps.at(0)), ycmd, zcmd);
+        }
+        tpl->SetTitle("");
+        tpl->Scale(scale);
+        intpl.push_back(tpl);
+      }
+      GGsm->setVal(1);
+      fai1->setVal(0);
+      extractTemplates_VVLike_fai1_GGsm(tplname, intpl, templates);
+      for (unsigned int it=0; it<intpl.size(); it++) delete intpl.at(it);
+    }
+    if (RF) RF->setVal(RFdefval);
   }
 
   proc.templates = templates;
-}
-
-void extractTemplates_ggLike_fai1(const TString& newname, const vector<TH3F*>& intpl, vector<TH3F*>& outtpl){
-  double invA[3][3]={
-    { 1, 0, 0 },
-    { -1, 2, -1 },
-    { 0, 0, 1 }
-  };
-
-  if (intpl.size()!=3) return;
-  for (unsigned int ot=0; ot<intpl.size(); ot++){
-    TString nname = Form("%s_Sig", newname.Data());
-    if (ot>0) nname += Form("_ai1_%i", ot);
-    if (ot==1) nname += "_Re";
-    outtpl.push_back((TH3F*)intpl.at(ot)->Clone(nname));
-    outtpl.at(ot)->Reset("ICES");
-    for (unsigned int it=0; it<intpl.size(); it++) outtpl.at(ot)->Add(intpl.at(it), invA[ot][it]);
-    cout << outtpl.at(ot)->GetName() << " integral = " << outtpl.at(ot)->Integral("width") << endl;
-  }
-}
-void extractTemplates_VVLike_fai1(const TString& newname, const vector<TH3F*>& intpl, vector<TH3F*>& outtpl){
-  double A[25]={
-    1, 0, 0, 0, 0,
-    9./16., 3.*sqrt(3.)/16., 3./16., sqrt(3.)/16., 1./16.,
-    0.25, 0.25, 0.25, 0.25, 0.25,
-    1./16., sqrt(3.)/16., 3./16., 3.*sqrt(3.)/16., 9./16.,
-    0, 0, 0, 0, 1
-  };
-  TMatrixD matA(5, 5, A);
-  TMatrixD invA = matA.Invert();
-
-  if (intpl.size()!=5) return;
-  for (unsigned int ot=0; ot<intpl.size(); ot++){
-    TString nname = Form("%s_Sig", newname.Data());
-    if (ot>0) nname += Form("_ai1_%i", ot);
-    if (ot==1 || ot==3) nname += "_Re";
-    else if (ot==2) nname += "_PosDef";
-    outtpl.push_back((TH3F*)intpl.at(ot)->Clone(nname));
-    outtpl.at(ot)->Reset("ICES");
-    for (unsigned int it=0; it<intpl.size(); it++) outtpl.at(ot)->Add(intpl.at(it), invA[ot][it]);
-    cout << outtpl.at(ot)->GetName() << " integral = " << outtpl.at(ot)->Integral("width") << endl;
-  }
-}
-
-void extractTemplates_ggLike_fai1_GGsm(const TString& newname, const vector<TH3F*>& intpl, vector<TH3F*>& outtpl){
-  double invA[3][3]={
-    { 1, 0, 0, 0, 0, 0 },
-    { -1, 2, -1, 0, 0, 0 },
-    { 0, 0, 1, 0, 0, 0 },
-    { -1, 0, 0, 2, 0, -1 },
-    { 0, 0, -1, 0, 2, -1 },
-    { 0, 0, 0, 0, 0, 1 }
-  };
-
-  if (intpl.size()!=6) return;
-  for (unsigned int ot=0; ot<intpl.size(); ot++){
-    TString nname;
-    if (ot<3){
-      nname = Form("%s_Sig", newname.Data());
-      if (ot>0) nname += Form("_ai1_%i", ot);
-      if (ot==1) nname += "_Re";
-    }
-    else if (ot<5){
-      nname = Form("%s_Int", newname.Data());
-      if (ot>3) nname += Form("_ai1_%i", ot-3);
-      nname += "_Re";
-    }
-    else nname = Form("%s_Bkg", newname.Data());
-    outtpl.push_back((TH3F*) intpl.at(ot)->Clone(nname));
-    outtpl.at(ot)->Reset("ICES");
-    for (unsigned int it=0; it<intpl.size(); it++) outtpl.at(ot)->Add(intpl.at(it), invA[ot][it]);
-    cout << outtpl.at(ot)->GetName() << " integral = " << outtpl.at(ot)->Integral("width") << endl;
-  }
-}
-void extractTemplates_VVLike_fai1_GGsm(const TString& newname, const vector<TH3F*>& intpl, vector<TH3F*>& outtpl){
-  double A[81]={
-    1, 0, 0, 0, 0, 0, 0, 0, 0,
-    9./16., 3.*sqrt(3.)/16., 3./16., sqrt(3.)/16., 1./16., 0, 0, 0, 0,
-    0.25, 0.25, 0.25, 0.25, 0.25, 0, 0, 0, 0,
-    1./16., sqrt(3.)/16., 3./16., 3.*sqrt(3.)/16., 9./16., 0, 0, 0, 0,
-    0, 0, 0, 0, 1, 0, 0, 0, 0,
-
-    1, 0, 0, 0, 0, 1, 0, 0, 1,
-    0.25, 0.25, 0.25, 0.25, 0.25, 0.5, 0.5, 0.5, 1,
-    0, 0, 0, 0, 1, 0, 0, 1, 1,
-
-    0, 0, 0, 0, 0, 0, 0, 0, 1
-  };
-  TMatrixD matA(9, 9, A);
-  TMatrixD invA = matA.Invert();
-
-  if (intpl.size()!=9) return;
-  for (unsigned int ot=0; ot<intpl.size(); ot++){
-    TString nname;
-    if (ot<5){
-      nname = Form("%s_Sig", newname.Data());
-      if (ot>0) nname += Form("_ai1_%i", ot);
-      if (ot==1 || ot==3) nname += "_Re";
-      else if (ot==2) nname += "_PosDef";
-    }
-    else if (ot<8){
-      nname = Form("%s_Int", newname.Data());
-      if (ot>5) nname += Form("_ai1_%i", ot-5);
-      nname += "_Re";
-    }
-    else nname = Form("%s_Bkg", newname.Data());
-    outtpl.push_back((TH3F*) intpl.at(ot)->Clone(nname));
-    outtpl.at(ot)->Reset("ICES");
-    for (unsigned int it=0; it<intpl.size(); it++) outtpl.at(ot)->Add(intpl.at(it), invA[ot][it]);
-    cout << outtpl.at(ot)->GetName() << " integral = " << outtpl.at(ot)->Integral("width") << endl;
-  }
 }
 
 void splitOption(const string rawoption, string& wish, string& value, char delimiter){
