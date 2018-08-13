@@ -1,5 +1,6 @@
 #include <iostream>
 #include <fstream>
+#include <cassert>
 #include <cmath>
 #include <cstdlib>
 #include <string>
@@ -66,6 +67,18 @@ Bool_t checkListVariable(const vector<string>& list, const string& var);
 void extractTemplates(process_spec& proc, RooDataSet* data, string shapename, bool scale_width);
 
 void getDataTree(TString cinput){
+  TString strSqrtsPeriod;
+  if (cinput.Contains("7TeV")) strSqrtsPeriod = "7TeV_2011";
+  else if (cinput.Contains("8TeV")) strSqrtsPeriod = "8TeV_2012";
+  else if (cinput.Contains("13TeV_2015")) strSqrtsPeriod = "13TeV_2015";
+  else if (cinput.Contains("13TeV_2016")) strSqrtsPeriod = "13TeV_2016";
+  else if (cinput.Contains("13TeV_2017")) strSqrtsPeriod = "13TeV_2017";
+  else if (cinput.Contains("13TeV_2018")) strSqrtsPeriod = "13TeV_2018";
+  else{
+    cerr << "Need a valid strSqrtsPeriod!" << endl;
+    assert(0);
+  }
+
   string strinput = cinput.Data();
   vector<string> splitinput;
   splitOptionRecursive(strinput, splitinput, '/');
@@ -81,7 +94,7 @@ void getDataTree(TString cinput){
 
   const unsigned int ncats=4;
   string catnames[ncats]={ "Inclusive", "VBFtagged", "VHHadrtagged", "Untagged" };
-  string catname;
+  string catname=catnames[0];
   for (unsigned int ic=0; ic<ncats; ic++){
     if (strinput.find(catnames[ic])!=string::npos) catname=catnames[ic];
   }
@@ -94,19 +107,23 @@ void getDataTree(TString cinput){
   float* KD = new float[nvars];
   float mass;
 
+  TString coutput_data = "Decompilation/Data";
+  gSystem->Exec("mkdir -p " + coutput_data);
   TString coutput_root;
   TFile* foutput;
-  coutput_root = Form("test/13TeV/CMSdata/hzz%s_%s_13TeV.root", channame.c_str(), catname.c_str());
+  coutput_root = Form("%s/hzz%s_%s_%s.root", coutput_data.Data(), channame.c_str(), catname.c_str(), strSqrtsPeriod.Data());
   foutput = TFile::Open(coutput_root, "recreate");
 
   TTree* t = new TTree("data_obs", "");
-  for (int iv=0; iv<nvars; iv++) t->Branch(Form("KD%i", iv+1), KD+iv);
+  //for (int iv=0; iv<nvars; iv++) t->Branch(Form("KD%i", iv+1), KD+iv);
 
+  unsigned int nKDs=0;
   for (int ev=0; ev<nevents; ev++){
     const RooArgSet* args = (const RooArgSet*)data->get(ev);
     TIterator* coefIter = args->createIterator();
     const RooAbsArg* coef;
     unsigned int ik=0;
+    unsigned int ikd=0;
     while ((coef = (const RooAbsArg*)coefIter->Next())){
       const RooAbsReal* rvar = dynamic_cast<const RooAbsReal*>(coef);
       TString rname = rvar->GetName();
@@ -114,7 +131,12 @@ void getDataTree(TString cinput){
         mass=rvar->getVal();
         if (t->GetBranchStatus("mass")==0) t->Branch("mass", &mass);
       }
-      KD[ik]=rvar->getVal();
+      else{
+        KD[ik]=rvar->getVal();
+        TString KDname = Form("KD%i", ikd+1);
+        if (t->GetBranchStatus(KDname)==0) t->Branch(KDname, KD+ik);
+        ikd++;
+      }
       ik++;
     }
     delete coefIter;
@@ -128,13 +150,34 @@ void getDataTree(TString cinput){
   finput->Close();
 }
 void getTemplates(TString cinput, double lumiScale=1, bool scale_width=true, bool copy_ggH_to_VVH=false){
+  getDataTree(cinput);
+
+  TString strSqrtsPeriod, strSqrts;
+  if (cinput.Contains("7TeV")) strSqrtsPeriod = "7TeV_2011";
+  else if (cinput.Contains("8TeV")) strSqrtsPeriod = "8TeV_2012";
+  else if (cinput.Contains("13TeV_2015")) strSqrtsPeriod = "13TeV_2015";
+  else if (cinput.Contains("13TeV_2016")) strSqrtsPeriod = "13TeV_2016";
+  else if (cinput.Contains("13TeV_2017")) strSqrtsPeriod = "13TeV_2017";
+  else if (cinput.Contains("13TeV_2018")) strSqrtsPeriod = "13TeV_2018";
+  else{
+    cerr << "Need a valid strSqrtsPeriod!" << endl;
+    assert(0);
+  }
+  if (strSqrtsPeriod.Contains("7TeV")) strSqrts = "7TeV";
+  else if (strSqrtsPeriod.Contains("8TeV")) strSqrts = "8TeV";
+  else if (strSqrtsPeriod.Contains("13TeV")) strSqrts = "13TeV";
+
   string strinput = cinput.Data();
   vector<string> splitinput;
   splitOptionRecursive(strinput, splitinput, '/');
   strinput = splitinput.at(splitinput.size()-1); splitinput.clear();
   splitOptionRecursive(strinput, splitinput, '/');
 
-  gSystem->Exec("mkdir -p test/13TeV");
+  TString coutput_templates = "Decompilation/Templates";
+  TString coutput_inputs = "Decompilation/Inputs";
+
+  gSystem->Exec("mkdir -p " + coutput_templates);
+  gSystem->Exec("mkdir -p " + coutput_inputs);
 
   const unsigned int nchans=3;
   string channames[nchans]={ "4mu", "4e", "2e2mu" };
@@ -152,13 +195,13 @@ void getTemplates(TString cinput, double lumiScale=1, bool scale_width=true, boo
 
   //TString coutput = splitinput.at(splitinput.size()-1);
   //ofstream tout((coutput+".input.txt").Data());
-  TString coutput_txt = Form("test/inputs_%s_%s%s", channame.c_str(), catname.c_str(), ".txt");
+  TString coutput_txt = Form("%s/inputs_%s_%s%s", coutput_inputs.Data(), channame.c_str(), catname.c_str(), ".txt");
   ofstream tout(coutput_txt.Data());
 
   TFile* finput = TFile::Open(cinput+".input.root", "read");
   RooWorkspace* ws = (RooWorkspace*)finput->Get("w");
   TString varsToCheck[6]={
-    "R", "RF", "RF_13TeV", "RV", "RV_13TeV", "R_13TeV"
+    "R", "RF", "RF_"+strSqrts, "RV", "RV_"+strSqrts, "R_"+strSqrts
   };
   for (unsigned int v=0; v<6; v++){
     if (ws->var(varsToCheck[v])!=0) ((RooRealVar*)ws->var(varsToCheck[v]))->setVal(1);
@@ -259,7 +302,7 @@ void getTemplates(TString cinput, double lumiScale=1, bool scale_width=true, boo
               if (client->GetName() == pdf->GetName()){
                 string systline="";
                 for (unsigned int ip=2; ip<systdist.size(); ip++){
-                  if (ip>2)systline += ":";
+                  if (ip>2) systline += ":";
                   systline += systdist.at(ip);
                 }
                 procSpecs[procname.at(ip).Data()].setSystematic(systname, systtype, systline);
@@ -292,7 +335,30 @@ void getTemplates(TString cinput, double lumiScale=1, bool scale_width=true, boo
   }
 
   // Write input file
-  tout << "sqrts " << 13 << endl;
+  if (strSqrtsPeriod=="7TeV_2011"){
+    tout << "sqrts " << 7 << endl;
+    tout << "period " << 2011 << endl;
+  }
+  else if (strSqrtsPeriod=="8TeV_2012"){
+    tout << "sqrts " << 8 << endl;
+    tout << "period " << 2012 << endl;
+  }
+  else if (strSqrtsPeriod=="13TeV_2015"){
+    tout << "sqrts " << 13 << endl;
+    tout << "period " << 2015 << endl;
+  }
+  else if (strSqrtsPeriod=="13TeV_2016"){
+    tout << "sqrts " << 13 << endl;
+    tout << "period " << 2016 << endl;
+  }
+  else if (strSqrtsPeriod=="13TeV_2017"){
+    tout << "sqrts " << 13 << endl;
+    tout << "period " << 2017 << endl;
+  }
+  else if (strSqrtsPeriod=="13TeV_2018"){
+    tout << "sqrts " << 13 << endl;
+    tout << "period " << 2018 << endl;
+  }
   tout << "decay " << channame << endl;
   tout << "lumi " << lumiScale << endl;
   tout << "category " << catname << endl;
@@ -318,13 +384,18 @@ void getTemplates(TString cinput, double lumiScale=1, bool scale_width=true, boo
   for (unsigned int ip=0; ip<procname.size(); ip++){
     cout << "Attempting to extract tpls for process " << procname.at(ip) << endl;
 
+    TString const& theProcName = procname.at(ip);
+    TString theProcNameLower = theProcName; theProcNameLower.ToLower();
+    float tplscale=1;
+    if (!theProcNameLower.Contains("zjets")) tplscale=1./lumiScale;
+
     TFile* foutput;
     TString coutput_root;
     
-    coutput_root = Form("test/13TeV/HtoZZ%s_%s_FinalTemplates_%s_%s%s", channame.c_str(), catname.c_str(), procname.at(ip).Data(), "Nominal", ".root");
+    coutput_root = Form("%s/HtoZZ%s_%s_FinalTemplates_%s_%s%s", coutput_templates.Data(), channame.c_str(), catname.c_str(), procname.at(ip).Data(), "Nominal", ".root");
     foutput = TFile::Open(coutput_root, "recreate");
     extractTemplates(procSpecs[procname.at(ip).Data()], data, "", scale_width);
-    for (unsigned int it=0; it<procSpecs[procname.at(ip).Data()].templates.size(); it++) procSpecs[procname.at(ip).Data()].templates.at(it)->Scale(1./lumiScale);
+    for (unsigned int it=0; it<procSpecs[procname.at(ip).Data()].templates.size(); it++) procSpecs[procname.at(ip).Data()].templates.at(it)->Scale(tplscale);
     procSpecs[procname.at(ip).Data()].writeTemplates(foutput);
     procSpecs[procname.at(ip).Data()].deleteTemplates();
     foutput->Close();
@@ -339,10 +410,10 @@ void getTemplates(TString cinput, double lumiScale=1, bool scale_width=true, boo
         for (unsigned int is=0; is<2; is++){
           systvar->setVal(double(2*is)-1);
           cout << "Setting param systematic " << systvar->GetName() << " to " << double(2*is)-1 << endl;
-          coutput_root = Form("test/13TeV/HtoZZ%s_%s_FinalTemplates_%s_%s%s%s", channame.c_str(), catname.c_str(), procname.at(ip).Data(), syst->first.c_str(), (is==0 ? "Down" : "Up"), ".root");
+          coutput_root = Form("%s/HtoZZ%s_%s_FinalTemplates_%s_%s%s%s", coutput_templates.Data(), channame.c_str(), catname.c_str(), procname.at(ip).Data(), syst->first.c_str(), (is==0 ? "Down" : "Up"), ".root");
           foutput = TFile::Open(coutput_root, "recreate");
           extractTemplates(procSpecs[procname.at(ip).Data()], data, "", scale_width);
-          for (unsigned int it=0; it<procSpecs[procname.at(ip).Data()].templates.size(); it++) procSpecs[procname.at(ip).Data()].templates.at(it)->Scale(1./lumiScale);
+          for (unsigned int it=0; it<procSpecs[procname.at(ip).Data()].templates.size(); it++) procSpecs[procname.at(ip).Data()].templates.at(it)->Scale(tplscale);
           procSpecs[procname.at(ip).Data()].writeTemplates(foutput);
           procSpecs[procname.at(ip).Data()].deleteTemplates();
           foutput->Close();
@@ -351,10 +422,10 @@ void getTemplates(TString cinput, double lumiScale=1, bool scale_width=true, boo
       else if (syst->second.first=="shape1"){
         for (unsigned int is=0; is<2; is++){
           string syst_du = syst->first + (is==0 ? "Down" : "Up");
-          coutput_root = Form("test/13TeV/HtoZZ%s_%s_FinalTemplates_%s_%s%s", channame.c_str(), catname.c_str(), procname.at(ip).Data(), syst_du.c_str(), ".root");
+          coutput_root = Form("%s/HtoZZ%s_%s_FinalTemplates_%s_%s%s", coutput_templates.Data(), channame.c_str(), catname.c_str(), procname.at(ip).Data(), syst_du.c_str(), ".root");
           foutput = TFile::Open(coutput_root, "recreate");
           extractTemplates(procSpecs[procname.at(ip).Data()], data, syst_du, scale_width);
-          for (unsigned int it=0; it<procSpecs[procname.at(ip).Data()].templates.size(); it++) procSpecs[procname.at(ip).Data()].templates.at(it)->Scale(1./lumiScale);
+          for (unsigned int it=0; it<procSpecs[procname.at(ip).Data()].templates.size(); it++) procSpecs[procname.at(ip).Data()].templates.at(it)->Scale(tplscale);
           procSpecs[procname.at(ip).Data()].writeTemplates(foutput);
           procSpecs[procname.at(ip).Data()].deleteTemplates();
           foutput->Close();
@@ -865,6 +936,7 @@ void splitOption(const string rawoption, string& wish, string& value, char delim
     wish=rawoption;
     value=rawoption.substr(posEq+1);
     wish.erase(wish.begin()+posEq, wish.end());
+    while (value.find(delimiter)==0) value=value.substr(1);
   }
   else{
     wish="";

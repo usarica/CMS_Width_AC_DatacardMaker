@@ -74,5 +74,8 @@ if [[ "$extarg" == *"obs"* ]];then
   cmd=${cmd/"-t -1 "/" "}
 fi
 
+# Add protection for fluctuations
+cmd=$cmd" --startFromPreFit 1 --cminPreScan --cminDefaultMinimizerStrategy 2 --cminDefaultMinimizerTolerance 0.5 --cminDefaultMinimizerPrecision 0.000001"
+
 echo "Command: combine "$cmd
 combine $cmd

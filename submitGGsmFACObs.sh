@@ -36,8 +36,8 @@ popd
 fi
 
 if [[ "$coupling" == "L1" ]];then
-#cp utils/submitScan1D.sh cards_"$version"_Combination_L1/HCG/Scans/
-#cp utils/scan1D.slurm.sh cards_"$version"_Combination_L1/HCG/Scans/
+cp utils/submitScan1D.sh cards_"$version"_Combination_L1/HCG/Scans/
+cp utils/scan1D.slurm.sh cards_"$version"_Combination_L1/HCG/Scans/
 pushd cards_"$version"_Combination_L1/HCG/Scans/
 . submitScan1D.sh "$wdname"_GGsmFloated_fai1Fixed_Obs_13TeV $wsname GGsm 51 0 7 0 51 obs
 . submitScan1D.sh "$wdname"_GGsmFloated_fai1Floated_Obs_13TeV $wsname GGsm_floatfai1 51 0 7 0 51 obs
