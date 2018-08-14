@@ -1,0 +1,20 @@
+sqrts 8
+period 2012
+decay 4e
+lumi 19.712
+category Inclusive
+channel ggH 1 -1 1
+channel bkg_qqzz 1 -1 0
+channel bkg_ggzz 1 -1 0
+channel bkg_zjets 1 -1 0
+channel VVH 1 -1 1
+systematic CMS_hzz4l_zz4e_res template ggH:0:1 VVH:0:1 
+systematic CMS_hzz4l_zz4e_zjets lnN bkg_zjets:0.8:1.2 
+systematic CMS_eff_e lnN ggH:1.101 VVH:1.101 bkg_qqzz:1.101 bkg_ggzz:1.101 
+systematic BRhiggs_hzz4l lnN ggH:1.02 VVH:1.02 
+systematic lumiUnc lnN ggH:1.026 VVH:1.026 bkg_qqzz:1.026 bkg_ggzz:1.026 
+systematic pdf_Higgs_gg lnN bkg_ggzz:1.0708 
+systematic pdf_qqbar lnN bkg_qqzz:1.0341 
+systematic QCDscale_VV lnN bkg_qqzz:1.0284 
+systematic kbkg_gg lnN bkg_ggzz:1.1 
+systematic CMS_hzz4l_zz4e_shape_zjets template bkg_zjets:0:1:-3:3 
