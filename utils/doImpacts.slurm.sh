@@ -48,12 +48,6 @@ if [[ "$extarg" == *"obs"* ]];then
 elif [[ "$extarg" == *"exp"* ]];then
   cmdcore=${cmdcore/"-t -1 "/"-t 1 "}
 fi
-# Temporary fix to crazy parameters
-if [[ "$cmdcore" == *"--freezeParameters="* ]];then
-  cmdcore=${cmdcore/"--freezeParameters="/"--freezeParameters=pdf_variation_Higgs_gg,pdf_variation_Higgs_qqbar,pdf_variation_qqbar,"}
-else
-  cmdcore=$cmdcore" --freezeParameters=pdf_variation_Higgs_gg,pdf_variation_Higgs_qqbar,pdf_variation_qqbar"
-fi
 
 cmd=$cmdcore" --doInitialFit "
 echo "Command: combineTool.py "$cmd

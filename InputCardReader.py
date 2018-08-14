@@ -39,9 +39,9 @@ class InputCardReader:
       self.parameters = []
 
       # list of either
-      # [ systematics name, systematics type=lnN, [ [channel, 1+sigma] ] ] --> e.g. systematic mySyst lnN ggH:1.02 qqH:1.04
+      # [ systematics name, systematics type=lnN, [ [channel, +1 sigma] ] ] --> e.g. systematic mySyst lnN ggH:1.02 qqH:1.04
       # or
-      # [ systematics name, systematics type=lnN, [ [channel, 1+sigma, 1-sigma] ] ] --> e.g. systematic mySyst lnN ggH:1.02:0.96 qqH:1.04:0.90
+      # [ systematics name, systematics type=lnN, [ [channel, -1 sigma, +1 sigma] ] ] --> e.g. systematic mySyst lnN ggH:0.96:1.02 qqH:0.90:1.04
       # or
       # [ systematics name, systematics type=param, [central value, 1 sigma error, (optional) parameter minimum, (optional) parameter maximum] ] --> e.g. systematic mySyst param 0:1:-3:3
       # or
