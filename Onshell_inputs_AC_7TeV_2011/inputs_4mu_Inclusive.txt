@@ -13,8 +13,24 @@ systematic CMS_hzz4l_zz4mu_zjets lnN bkg_zjets:0.6:1.4
 systematic CMS_eff_m lnN ggH:1.043 VVH:1.043 bkg_qqzz:1.043 bkg_ggzz:1.043 
 systematic BRhiggs_hzz4l lnN ggH:1.02 VVH:1.02 
 systematic lumiUnc lnN ggH:1.022 VVH:1.022 bkg_qqzz:1.022 bkg_ggzz:1.022 
-systematic pdf_Higgs_gg lnN bkg_ggzz:1.0708 
-systematic pdf_qqbar lnN bkg_qqzz:1.0341 
-systematic QCDscale_VV lnN bkg_qqzz:1.0284 
-systematic kbkg_gg lnN bkg_ggzz:1.1 
+# ggH+ttH or bkg_gg
+systematic QCDscale_fac_ggH lnN ggH:0.99453:1.00566 bkg_ggzz:0.99464:1.00547 
+systematic QCDscale_ren_ggH lnN ggH:1.07037:0.92264 bkg_ggzz:1.06798:0.92422 
+systematic QCDscale_fac_ttH lnN ggH:1.00008:0.99987 
+systematic QCDscale_ren_ttH lnN ggH:1.00016:0.99949 
+systematic pdf_asmz_Higgs_gg lnN ggH:0.93643:1.06663 bkg_ggzz:0.93551:1.06158 
+systematic pdf_variation_Higgs_gg lnN ggH:0.96821:1.03665 bkg_ggzz:0.96775:1.03387 
+systematic kbkg_gg param 1:0.1:0:2
+# VBF+ZH+WH
+systematic QCDscale_fac_qqH lnN VVH:0.98752:1.01262 
+systematic QCDscale_ren_qqH lnN VVH:0.99951:1.00159 
+systematic QCDscale_fac_VH lnN VVH:0.99376:1.00651 
+systematic QCDscale_ren_VH lnN VVH:0.99475:1.00366 
+systematic pdf_variation_Higgs_qqbar lnN VVH:0.97872:1.02411 
+# bkg_qqzz
+systematic QCDscale_fac_VV lnN bkg_qqzz:0.974:1.025 
+systematic QCDscale_ren_VV lnN bkg_qqzz:1.014:0.992 
+systematic pdf_asmz_qqbar lnN bkg_qqzz:1.019:0.944 
+systematic pdf_variation_qqbar lnN bkg_qqzz:1.00557:0.98918 
+# bkg_zjets
 systematic CMS_hzz4l_zz4mu_shape_zjets template bkg_zjets:0:1:-3:3 
