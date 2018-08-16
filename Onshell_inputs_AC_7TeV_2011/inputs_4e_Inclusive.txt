@@ -30,7 +30,7 @@ systematic pdf_variation_Higgs_qqbar lnN VVH:0.97872:1.02411
 # bkg_qqzz
 systematic QCDscale_fac_VV lnN bkg_qqzz:0.974:1.025 
 systematic QCDscale_ren_VV lnN bkg_qqzz:1.014:0.992 
-systematic pdf_asmz_qqbar lnN bkg_qqzz:1.019:0.944 
-systematic pdf_variation_qqbar lnN bkg_qqzz:1.00557:0.98918 
+systematic pdf_asmz_qqbar lnN bkg_qqzz:0.9845:1.0098 
+systematic pdf_variation_qqbar lnN bkg_qqzz:0.971:1.033 
 # bkg_zjets
 systematic CMS_hzz4l_zz4e_shape_zjets template bkg_zjets:0:1:-3:3 
