@@ -519,12 +519,12 @@ class WidthDatacardMaker:
 
          normname = procname + "_norm"
          if procRateExtra is None:
-            if procname.lower() == "zjets" or procname.lower() == "zx":
+            if "zjets" in procname.lower() or "zx" in procname.lower():
                procNorm = ROOT.RooFormulaVar(normname, "TMath::Max(@0,1e-15)", ROOT.RooArgList(procRate))
             else:
                procNorm = ROOT.RooFormulaVar(normname, "TMath::Max(@0*@1,1e-15)", ROOT.RooArgList(procRate, self.theLumi))
          else:
-            if procname.lower() == "zjets" or procname.lower() == "zx":
+            if "zjets" in procname.lower() or "zx" in procname.lower():
                procNorm = ROOT.RooFormulaVar(normname, "TMath::Max(@0*@1,1e-15)", ROOT.RooArgList(procRate, procRateExtra))
             else:
                procNorm = ROOT.RooFormulaVar(normname, "TMath::Max(@0*@1*@2,1e-15)", ROOT.RooArgList(procRate, procRateExtra, self.theLumi))
