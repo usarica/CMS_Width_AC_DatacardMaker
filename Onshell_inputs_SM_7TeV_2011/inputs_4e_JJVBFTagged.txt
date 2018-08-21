@@ -3,11 +3,11 @@ period 2011
 decay 4e
 lumi 5.051
 category JJVBFTagged
-channel ggH 1 -1 1 Options:Conditional=KD1;FileNameAlias=ggH;TemplateNameAlias=ggH_Sig
-channel qqH 1 -1 1 Options:Conditional=KD1;FileNameAlias=qqH;TemplateNameAlias=qqH_Sig
-channel WH 1 -1 1 Options:Conditional=KD1;FileNameAlias=WH;TemplateNameAlias=WH_Sig
-channel ZH 1 -1 1 Options:Conditional=KD1;FileNameAlias=ZH;TemplateNameAlias=ZH_Sig
-channel ttH 1 -1 1 Options:Conditional=KD1;FileNameAlias=ttH;TemplateNameAlias=ttH_Sig
+channel ggH 1 -1 1 Options:Conditional=KD1
+channel qqH 1 -1 1 Options:Conditional=KD1
+channel WH 1 -1 1 Options:Conditional=KD1
+channel ZH 1 -1 1 Options:Conditional=KD1
+channel ttH 1 -1 1 Options:Conditional=KD1
 channel bkg2d_qqzz 1 -1 0 Options:Conditional=KD1
 channel bkg2d_ggzz 1 -1 0 Options:Conditional=KD1
 channel bkg2d_zjets 1 -1 0 Options:Conditional=KD1
