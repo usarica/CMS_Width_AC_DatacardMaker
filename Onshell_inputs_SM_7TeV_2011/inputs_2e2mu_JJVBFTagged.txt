@@ -1,0 +1,45 @@
+sqrts 7
+period 2011
+decay 2e2mu
+lumi 5.051
+category JJVBFTagged
+channel ggH 1 -1 1 Options:Conditional=KD1;FileNameAlias=ggH;TemplateNameAlias=ggH_Sig
+channel qqH 1 -1 1 Options:Conditional=KD1;FileNameAlias=qqH;TemplateNameAlias=qqH_Sig
+channel WH 1 -1 1 Options:Conditional=KD1;FileNameAlias=WH;TemplateNameAlias=WH_Sig
+channel ZH 1 -1 1 Options:Conditional=KD1;FileNameAlias=ZH;TemplateNameAlias=ZH_Sig
+channel ttH 1 -1 1 Options:Conditional=KD1;FileNameAlias=ttH;TemplateNameAlias=ttH_Sig
+channel bkg2d_qqzz 1 -1 0 Options:Conditional=KD1
+channel bkg2d_ggzz 1 -1 0 Options:Conditional=KD1
+channel bkg2d_zjets 1 -1 0 Options:Conditional=KD1
+systematic QCDscale_qqH2in lnN qqH:1.100 
+systematic QCDscale_ggH2in lnN ggH:1.300 
+systematic lumiUnc lnN ggH:1.022 qqH:1.022 WH:1.022 ZH:1.022 ttH:1.022 bkg2d_qqzz:1.022 bkg2d_ggzz:1.022 
+systematic CMS_hzz4l_zz2e2mu_zjets lnN bkg2d_zjets:0.75:1.25 
+systematic CMS_eff_e lnN ggH:1.110 qqH:1.110 WH:1.110 ZH:1.110 ttH:1.110 bkg2d_qqzz:1.110 bkg2d_ggzz:1.110 
+systematic BRhiggs_hzz4l lnN ggH:1.02 qqH:1.02 WH:1.02 ZH:1.02 ttH:1.02 
+systematic CMS_eff_m lnN ggH:1.026 qqH:1.026 WH:1.026 ZH:1.026 ttH:1.026 bkg2d_qqzz:1.026 bkg2d_ggzz:1.026 
+systematic CMS_hzz4l_zz2e2mu_shape_zjets template bkg2d_zjets:0:1 
+systematic CMS_scale_j_7TeV_2011 template ggH:0:1 qqH:0:1 WH:0:1 ZH:0:1 ttH:0:1 bkg2d_qqzz:0:1 bkg2d_ggzz:0:1 
+# Common systematics
+systematic CMS_scale_e param 0:1:-7:7
+systematic CMS_res_e param 0:1:-7:7
+systematic CMS_scale_m param 0:1:-7:7
+systematic CMS_res_m param 0:1:-7:7
+systematic kbkg_gg param 1:0.1:0:2
+systematic QCDscale_fac_VV lnN bkg2d_qqzz:0.974:1.025 
+systematic QCDscale_ren_VV lnN bkg2d_qqzz:1.014:0.992 
+systematic pdf_asmz_qqbar lnN bkg2d_qqzz:0.9845:1.0098 
+systematic pdf_variation_qqbar lnN bkg2d_qqzz:0.971:1.033 
+# ggH,ttH,bkg2d_gg
+systematic QCDscale_fac_ggH lnN ggH:0.99464:1.00551 bkg2d_ggzz:0.99464:1.00547 
+systematic QCDscale_ren_ggH lnN ggH:1.07079:0.92218 bkg2d_ggzz:1.06798:0.92422 
+systematic QCDscale_fac_ttH lnN ttH:1.01386:0.97721 
+systematic QCDscale_ren_ttH lnN ttH:1.02884:0.90984 
+systematic pdf_asmz_Higgs_gg lnN ggH:0.93822:1.06433 ttH:0.92212:1.07496 bkg2d_ggzz:0.93551:1.06158 
+systematic pdf_variation_Higgs_gg lnN ggH:0.96502:1.04047 ttH:1.03791:0.96853 bkg2d_ggzz:0.96775:1.03387 
+# VBF,ZH,WH
+systematic QCDscale_fac_qqH lnN qqH:0.99700:1.00298 
+systematic QCDscale_ren_qqH lnN qqH:0.99999:1.00037 
+systematic QCDscale_fac_VH lnN ZH:0.97773:1.02529 WH:0.99298:1.00787 
+systematic QCDscale_ren_VH lnN ZH:0.98142:1.01420 WH:0.99437:1.00437 
+systematic pdf_variation_Higgs_qqbar lnN qqH:0.97900:1.025 ZH:0.97300:1.02700 WH:0.974:1.026
