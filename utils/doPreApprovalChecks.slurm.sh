@@ -45,6 +45,21 @@ elif [[ "$poi" == "fai1" ]];then
   echo "POI is fai1"
   cmdadd=$cmdadd" -m 125 --redefineSignalPOIs=CMS_zz4l_fai1 --freezeParameters=GGsm,kbkg_VBF --setParameterRanges CMS_zz4l_fai1="$rangel","$rangeh
   cmdadd_bkgonly=$cmdadd_bkgonly" -m 125 --redefineSignalPOIs=CMS_zz4l_fai1 --setParameters RF=0,RV=0 --freezeParameters=GGsm,kbkg_VBF --setParameterRanges CMS_zz4l_fai1="$rangel","$rangeh
+elif [[ "$poi" == "GGsm_fai1" ]];then
+  echo "POIs are GGsm and fai1"
+  cmdadd=$cmdadd" -m 125 --redefineSignalPOIs=GGsm,CMS_zz4l_fai1 --freezeParameters=kbkg_VBF  --setParameterRanges GGsm="$rangel":CMS_zz4l_fai1="$rangeh
+  cmdadd_bkgonly=$cmdadd_bkgonly" -m 125 --redefineSignalPOIs=GGsm,CMS_zz4l_fai1 --setParameters RF=0,RV=0 --freezeParameters=kbkg_VBF  --setParameterRanges GGsm="$rangel":CMS_zz4l_fai1="$rangeh
+fi
+
+if [[ "$extarg" == *"obs"* ]];then
+  cmdadd=${cmdadd/"-t -1 "/" "}
+  cmdadd_bkgonly=${cmdadd_bkgonly/"-t -1 "/" "}
+fi
+
+# Add protection for fluctuations
+if [[ "$extarg" == *"ALTFIT"* ]];then
+  cmdadd=$cmdadd" --startFromPreFit 1 --cminPreScan --cminDefaultMinimizerStrategy 2 --cminDefaultMinimizerTolerance 0.5 --cminDefaultMinimizerPrecision 0.000001"
+  cmdadd_bkgonly=$cmdadd_bkgonly" --startFromPreFit 1 --cminPreScan --cminDefaultMinimizerStrategy 2 --cminDefaultMinimizerTolerance 0.5 --cminDefaultMinimizerPrecision 0.000001"
 fi
 
 

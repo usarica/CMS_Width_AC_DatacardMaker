@@ -3,11 +3,11 @@ period 2012
 decay 2e2mu
 lumi 19.712
 category JJVBFTagged
-channel ggH 1 -1 1 Options:Conditional=KD1
-channel qqH 1 -1 1 Options:Conditional=KD1
-channel WH 1 -1 1 Options:Conditional=KD1
-channel ZH 1 -1 1 Options:Conditional=KD1
-channel ttH 1 -1 1 Options:Conditional=KD1
+channel ggH 1 -1 1 Options:Conditional=KD1;TemplateNameAlias=ggH_Sig
+channel qqH 1 -1 1 Options:Conditional=KD1;TemplateNameAlias=qqH_Sig
+channel WH 1 -1 1 Options:Conditional=KD1;TemplateNameAlias=WH_Sig
+channel ZH 1 -1 1 Options:Conditional=KD1;TemplateNameAlias=ZH_Sig
+channel ttH 1 -1 1 Options:Conditional=KD1;TemplateNameAlias=ttH_Sig
 channel bkg2d_qqzz 1 -1 0 Options:Conditional=KD1
 channel bkg2d_ggzz 1 -1 0 Options:Conditional=KD1
 channel bkg2d_zjets 1 -1 0 Options:Conditional=KD1

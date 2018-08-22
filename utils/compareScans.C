@@ -147,10 +147,15 @@ TGraph* getGraphFromTree(TTree* tree, TString const strxvar, TString const stryv
   TGraph* gr=nullptr;
   vector<pair<var_t, var_t>> points;
   var_t xvar, yvar;
+  var_t nll, nll0;
 
   if (tree){
     tree->SetBranchAddress(strxvar, &xvar);
     tree->SetBranchAddress(stryvar, &yvar);
+    if (stryvar=="deltaNLL"){
+      tree->SetBranchAddress("nll", &nll);
+      tree->SetBranchAddress("nll0", &nll0);
+    }
     var_t minY=1e9;
     for (int ev=0; ev<tree->GetEntries(); ev++){
       tree->GetEntry(ev);
@@ -158,7 +163,10 @@ TGraph* getGraphFromTree(TTree* tree, TString const strxvar, TString const stryv
       var_t yval = yvar;
       if (strxvar=="deltaNLL") xval *= 2;
       else if (strxvar=="GGsm") xval *= 4.07;
-      if (stryvar=="deltaNLL") yval *= 2;
+      if (stryvar=="deltaNLL"){
+        yval += nll+nll0;
+        yval *= 2;
+      }
       else if (stryvar=="GGsm") yval *= 4.07;
       pair<var_t, var_t> point(xval, yval);
       minY=std::min(minY, yval);

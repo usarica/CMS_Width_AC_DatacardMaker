@@ -49,6 +49,11 @@ elif [[ "$extarg" == *"exp"* ]];then
   cmdcore=${cmdcore/"-t -1 "/"-t 1 "}
 fi
 
+# Add protection for fluctuations
+if [[ "$extarg" == *"ALTFIT"* ]];then
+  cmdcore=$cmdcore" --startFromPreFit 1 --cminPreScan --cminDefaultMinimizerStrategy 2 --cminDefaultMinimizerTolerance 0.5 --cminDefaultMinimizerPrecision 0.000001"
+fi
+
 cmd=$cmdcore" --doInitialFit "
 echo "Command: combineTool.py "$cmd
 combineTool.py $cmd

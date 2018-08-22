@@ -95,9 +95,9 @@ template <typename T> void multiplyBinWidth(T* histo);
 template<> void multiplyBinWidth<TH1F>(TH1F* histo);
 template<> void multiplyBinWidth<TH2F>(TH2F* histo);
 template<> void multiplyBinWidth<TH3F>(TH3F* histo);
-template <typename T> double getHistogramIntegralAndError(T const* histo, int ix, int jx, bool useWidth, double* error=nullptr, bool doprint=false);
-template <typename T> double getHistogramIntegralAndError(T const* histo, int ix, int jx, int iy, int jy, bool useWidth, double* error=nullptr, bool doprint=false);
-template <typename T> double getHistogramIntegralAndError(T const* histo, int ix, int jx, int iy, int jy, int iz, int jz, bool useWidth, double* error=nullptr, bool doprint=false);
+template <typename T> double getHistogramIntegralAndError(T const* histo, int ix, int jx, bool useWidth, double* error=nullptr);
+template <typename T> double getHistogramIntegralAndError(T const* histo, int ix, int jx, int iy, int jy, bool useWidth, double* error=nullptr);
+template <typename T> double getHistogramIntegralAndError(T const* histo, int ix, int jx, int iy, int jy, int iz, int jz, bool useWidth, double* error=nullptr);
 TH1F* getHistogramSlice(TH2F const* histo, unsigned char XDirection, int iy, int jy, TString newname="");
 TH1F* getHistogramSlice(TH3F const* histo, unsigned char XDirection, int iy, int jy, int iz, int jz, TString newname=""); // "y" and "z" are cylical, so if Xdirection==1 (Y), "y"=Z and "z"=X
 TH2F* getHistogramSlice(TH3F const* histo, unsigned char XDirection, unsigned char YDirection, int iz, int jz, TString newname="");
@@ -163,7 +163,7 @@ TString getSystRename(TString const& systname, TString const& strSqrts, TString 
   else if (res == "CMS_zz4l_smd_zjets_bkg_2e2mu") res = "CMS_hzz4l_zz2e2mu_shape_zjets";
   return res;
 }
-float getProcessRescale(TString const& procname, TString const& strSqrts, TString const& strPeriod){
+float getProcessRescale(TString const& procname, TString const& strSqrts, TString const& strPeriod, TString const& strChannel){
   float res=1;
   if (strSqrts=="13TeV" && strPeriod=="2015"){
     float ggH[2] ={ 1.218e-2, 1.234e-2 };
@@ -179,6 +179,42 @@ float getProcessRescale(TString const& procname, TString const& strSqrts, TStrin
     else if (procname.Contains("WH")) res = WH[1]/WH[0];
     else if (procname.Contains("ttH")) res = ttH[1]/ttH[0];
     else if (procname.Contains("VVH")) res = (VBFH[1]+ZH[1]+WH[1])/(VBFH[0]+ZH[0]+WH[0]);
+  }
+  else if (strSqrts=="8TeV" && strPeriod=="2012"){
+    if (strChannel=="2e2mu"){
+      if (procname=="ggH" || procname=="ttH") res = 1.063000995;
+      else if (procname=="qqH" || procname=="ZH" || procname=="WH") res = 0.999383935;
+      else if (procname=="bkg2d_zjets") res = 1.037345976;
+    }
+    else if (strChannel=="4e"){
+      if (procname=="ggH" || procname=="ttH") res = 1.056010454;
+      else if (procname=="qqH" || procname=="ZH" || procname=="WH") res = 1.042473623;
+      else if (procname=="bkg2d_zjets") res = 1.841115359;
+    }
+    else if (strChannel=="4mu"){
+      if (procname=="ggH" || procname=="ttH") res = 1.047930429;
+      else if (procname=="qqH" || procname=="ZH" || procname=="WH") res = 1.049536928;
+    }
+  }
+  else if (strSqrts=="7TeV" && strPeriod=="2011"){
+    if (strChannel=="2e2mu"){
+      if (procname=="ggH" || procname=="ttH") res = 1.061918564;
+      else if (procname=="qqH" || procname=="ZH" || procname=="WH") res = 1.00309823;
+      else if (procname=="bkg2d_ggzz") res = 1.024011343;
+      else if (procname=="bkg2d_zjets") res = 1.037375111;
+    }
+    else if (strChannel=="4e"){
+      if (procname=="ggH" || procname=="ttH") res = 1.050730425;
+      else if (procname=="qqH" || procname=="ZH" || procname=="WH") res = 1.071638182;
+      else if (procname=="bkg2d_ggzz") res = 1.021341508;
+      else if (procname=="bkg2d_zjets") res = 1.840982222;
+    }
+    else if (strChannel=="4mu"){
+      if (procname=="ggH" || procname=="ttH") res = 1.044852093;
+      else if (procname=="qqH" || procname=="ZH" || procname=="WH") res = 1.071797032;
+      else if (procname=="bkg2d_qqzz") res = 0.999944344;
+      else if (procname=="bkg2d_ggzz") res = 1.026622352;
+    }
   }
   return res;
 }
@@ -257,10 +293,19 @@ void getDataTree(TString cinput){
   }
 
   const unsigned int ncats=4;
-  string catnames[ncats]={ "Inclusive", "VBFtagged", "VHHadrtagged", "Untagged" };
-  string catname=catnames[0];
-  for (unsigned int ic=0; ic<ncats; ic++){
-    if (strinput.find(catnames[ic])!=string::npos) catname=catnames[ic];
+  string catnames[ncats]={ "Inclusive", "JJVBFTagged", "HadVHTagged", "Untagged" };
+  string catnamesALT[ncats]={ "Inclusive", "VBFtagged", "VHHadrtagged", "Untagged" };
+  string catname = catnames[0];
+  {
+    int icat=-1;
+    for (unsigned int ic=0; ic<ncats; ic++){
+      if (strinput.find(catnames[ic])!=string::npos){ catname=catnames[ic]; icat=ic; }
+    }
+    if (icat<0){
+      for (unsigned int ic=0; ic<ncats; ic++){
+        if (strinput.find(catnamesALT[ic])!=string::npos){ catname=catnames[ic]; icat=ic; }
+      }
+    }
   }
 
   TFile* finput = TFile::Open(cinput+".input.root", "read");
@@ -342,9 +387,18 @@ void getTemplates(TString cinput, double lumiScale=1, bool copy_ggH_to_VVH=false
 
   const unsigned int ncats=4;
   string catnames[ncats]={ "Inclusive", "JJVBFTagged", "HadVHTagged", "Untagged" };
+  string catnamesALT[ncats]={ "Inclusive", "VBFtagged", "VHHadrtagged", "Untagged" };
   string catname = catnames[0];
-  for (unsigned int ic=0; ic<ncats; ic++){
-    if (strinput.find(catnames[ic])!=string::npos) catname=catnames[ic];
+  {
+    int icat=-1;
+    for (unsigned int ic=0; ic<ncats; ic++){
+      if (strinput.find(catnames[ic])!=string::npos){ catname=catnames[ic]; icat=ic; }
+    }
+    if (icat<0){
+      for (unsigned int ic=0; ic<ncats; ic++){
+        if (strinput.find(catnamesALT[ic])!=string::npos){ catname=catnames[ic]; icat=ic; }
+      }
+    }
   }
 
   //TString coutput = splitinput.at(splitinput.size()-1);
@@ -500,7 +554,10 @@ void getTemplates(TString cinput, double lumiScale=1, bool copy_ggH_to_VVH=false
   tout << "category " << catname << endl;
 
   // Write channels
-  for (unsigned int ip=0; ip<procname.size(); ip++) tout << "channel " << procname.at(ip) << " 1 -1 " << (procSpecs[procname.at(ip).Data()].name.Contains("bkg") ? 0 : 1) << endl;
+  for (unsigned int ip=0; ip<procname.size(); ip++){
+    unsigned int proccode = (procSpecs[procname.at(ip).Data()].name.Contains("bkg") ? 0 : (procSpecs[procname.at(ip).Data()].name.Contains("offshell") ? 2 : 1));
+    tout << "channel " << procname.at(ip) << " 1 -1 " << proccode << endl;
+  }
 
   // Write systematics
   /*
@@ -516,17 +573,17 @@ void getTemplates(TString cinput, double lumiScale=1, bool copy_ggH_to_VVH=false
   for (auto syst = tplSyst.begin(); syst != tplSyst.end(); ++syst){
     TString systName = syst->first.c_str();
     systName = getSystRename(systName, strSqrts, strPeriod);
-    tout << "systematic " << systName << " template " << syst->second << endl;
+    if (syst->second!="") tout << "systematic " << systName << " template " << syst->second << endl;
   }
   for (auto syst = logSyst.begin(); syst != logSyst.end(); ++syst){
     TString systName = syst->first.c_str();
     systName = getSystRename(systName, strSqrts, strPeriod);
-    tout << "systematic " << systName << " lnN " << syst->second << endl;
+    if (syst->second!="") tout << "systematic " << systName << " lnN " << syst->second << endl;
   }
   for (auto syst = paramSyst.begin(); syst != paramSyst.end(); ++syst){
     TString systName = syst->first.c_str();
     systName = getSystRename(systName, strSqrts, strPeriod);
-    tout << "systematic " << systName << " template " << syst->second << endl;
+    if (syst->second!="") tout << "systematic " << systName << " template " << syst->second << endl;
   }
 
   // Search for external shapes but do not record them
@@ -551,7 +608,7 @@ void getTemplates(TString cinput, double lumiScale=1, bool copy_ggH_to_VVH=false
     float tplscale=1;
     if (!theProcNameLower.Contains("zjets")) tplscale=1./lumiScale;
     if (rescale_xsec){
-      float extrascale = getProcessRescale(theProcName, strSqrts, strPeriod);
+      float extrascale = getProcessRescale(theProcName, strSqrts, strPeriod, channame.c_str());
       cout << "Extra scale factor: " << extrascale << endl;
       tplscale *= extrascale;
     }
@@ -702,18 +759,27 @@ void getTemplates(TString cinput, double lumiScale=1, bool copy_ggH_to_VVH=false
 
   if (hasExtMassShapes){
     renameDataObservables(ws, data);
+    TString coutput_shapes = Form("%s/HtoZZ%s_%s_FinalMassShape_%s%s", coutput_extshapes.Data(), channame.c_str(), catname.c_str(), "AllProcesses", ".root");
+    TFile* foutput_extshapes = TFile::Open(coutput_shapes, "recreate");
+    RooWorkspace wws("w", "");
     for (unsigned int ip=0; ip<procname.size(); ip++){
+      const TString& theProcName=procname.at(ip);
       cout << "Attempting to extract mass pdf for process " << procname.at(ip) << endl;
-      RooAbsPdf* mass_pdf = searchMassPdf(data, procSpecs[procname.at(ip).Data()].pdf);
+      RooAbsPdf* mass_pdf = searchMassPdf(data, procSpecs[theProcName.Data()].pdf);
       if (mass_pdf){
-        TString coutput_shapes = Form("%s/HtoZZ%s_%s_FinalMassShape_%s%s", coutput_extshapes.Data(), channame.c_str(), catname.c_str(), procname.at(ip).Data(), ".root");
-        TFile* foutput_extshapes = TFile::Open(coutput_shapes, "recreate");
-        RooWorkspace wws("w", "");
+        if (
+          !theProcName.Contains("bkg") && (
+            theProcName.Contains("gg") || theProcName.Contains("tt") || theProcName.Contains("bb")
+            ||
+            theProcName.Contains("qqH") || theProcName.Contains("VBF") || theProcName.Contains("ZH") || theProcName.Contains("WH")
+            )
+          ) mass_pdf->SetName(theProcName+"_Sig_MassShape");
+        else mass_pdf->SetName(theProcName+"_MassShape");
         wws.import(*mass_pdf, RecycleConflictNodes());
-        foutput_extshapes->WriteTObject(&wws);
-        foutput_extshapes->Close();
       }
     }
+    foutput_extshapes->WriteTObject(&wws);
+    foutput_extshapes->Close();
   }
 
   tin.close();
@@ -987,7 +1053,7 @@ template<typename TH_t> void extractTemplates(process_spec& proc, RooDataSet* da
     tpl->Scale(scale);
     templates.push_back(tpl);
   }
-  else if (proc.name.Contains("gg") || proc.name.Contains("tt")){
+  else if (proc.name.Contains("gg") || proc.name.Contains("tt") || proc.name.Contains("bb")){
     float RVdefval=0;
     if (RV){
       cout << "\t- Setting RV to 0" << endl;
@@ -1512,7 +1578,7 @@ template<> void multiplyBinWidth<TH3F>(TH3F* histo){
   }
 }
 
-template <typename T> double getHistogramIntegralAndError(T const* histo, int ix, int jx, bool useWidth, double* error, bool doprint){
+template <typename T> double getHistogramIntegralAndError(T const* histo, int ix, int jx, bool useWidth, double* error){
   double res=0;
   double reserror=0;
   if (histo){
@@ -1537,7 +1603,7 @@ template <typename T> double getHistogramIntegralAndError(T const* histo, int ix
   if (error) *error=reserror;
   return res;
 }
-template <typename T> double getHistogramIntegralAndError(T const* histo, int ix, int jx, int iy, int jy, bool useWidth, double* error, bool doprint){
+template <typename T> double getHistogramIntegralAndError(T const* histo, int ix, int jx, int iy, int jy, bool useWidth, double* error){
   double res=0;
   double reserror=0;
   if (histo){
@@ -1565,7 +1631,7 @@ template <typename T> double getHistogramIntegralAndError(T const* histo, int ix
   if (error) *error=reserror;
   return res;
 }
-template <typename T> double getHistogramIntegralAndError(T const* histo, int ix, int jx, int iy, int jy, int iz, int jz, bool useWidth, double* error, bool doprint){
+template <typename T> double getHistogramIntegralAndError(T const* histo, int ix, int jx, int iy, int jy, int iz, int jz, bool useWidth, double* error){
   double res=0;
   double reserror=0;
   if (histo){
@@ -1589,23 +1655,16 @@ template <typename T> double getHistogramIntegralAndError(T const* histo, int ix
       }
       integraloutside=histo->IntegralAndError(ix, jx, iy, jy, iz, jz, integralerroroutside, "");
 
-      if (doprint) cout << "getHistogramIntegralAndError: xbins = " << xb[0] << "," << xb[1] << " | ybins = " << yb[0] << "," << yb[1] << " | zbins = " << zb[0] << "," << zb[1] << endl;
-      if (doprint) cout << "getHistogramIntegralAndError: res = " << res << endl;
-      if (doprint) cout << "getHistogramIntegralAndError: integralinside = " << integralinside << endl;
-      if (doprint) cout << "getHistogramIntegralAndError: integraloutside = " << integraloutside << endl;
-
       res = res + integraloutside - integralinside;
       reserror = sqrt(std::max(0., pow(reserror, 2) + pow(integralerroroutside, 2) - pow(integralerrorinside, 2)));
-
-      if (doprint) cout << "getHistogramIntegralAndError: finalres = " << res << endl;
     }
   }
   if (error) *error=reserror;
   return res;
 }
-template double getHistogramIntegralAndError<TH1F>(TH1F const* histo, int ix, int jx, bool useWidth, double* error, bool doprint);
-template double getHistogramIntegralAndError<TH2F>(TH2F const* histo, int ix, int jx, int iy, int jy, bool useWidth, double* error, bool doprint);
-template double getHistogramIntegralAndError<TH3F>(TH3F const* histo, int ix, int jx, int iy, int jy, int iz, int jz, bool useWidth, double* error, bool doprint);
+template double getHistogramIntegralAndError<TH1F>(TH1F const* histo, int ix, int jx, bool useWidth, double* error);
+template double getHistogramIntegralAndError<TH2F>(TH2F const* histo, int ix, int jx, int iy, int jy, bool useWidth, double* error);
+template double getHistogramIntegralAndError<TH3F>(TH3F const* histo, int ix, int jx, int iy, int jy, int iz, int jz, bool useWidth, double* error);
 
 
 TH1F* getHistogramSlice(TH2F const* histo, unsigned char XDirection, int iy, int jy, TString newname){
@@ -1978,16 +2037,15 @@ template<> void conditionalizeHistogram<TH3F>(TH3F* histo, unsigned int iaxis, s
       break;
     }
 
-    if (!conditionalsReference) integral = getHistogramIntegralAndError<TH3F>(histo, int_xb[0], int_xb[1], int_yb[0], int_yb[1], int_zb[0], int_zb[1], useWidth, &integralerror, true);
+    if (!conditionalsReference) integral = getHistogramIntegralAndError<TH3F>(histo, int_xb[0], int_xb[1], int_yb[0], int_yb[1], int_zb[0], int_zb[1], useWidth, &integralerror);
     else{
       for (std::pair<TH3F*, float> const& hh:(*conditionalsReference)){
         double extraintegralerror=0;
-        double extraintegral = getHistogramIntegralAndError<TH3F>(hh.first, int_xb[0], int_xb[1], int_yb[0], int_yb[1], int_zb[0], int_zb[1], useWidth, &extraintegralerror, true);
+        double extraintegral = getHistogramIntegralAndError<TH3F>(hh.first, int_xb[0], int_xb[1], int_yb[0], int_yb[1], int_zb[0], int_zb[1], useWidth, &extraintegralerror);
         integralerror = calculateSimpleProductError(extraintegral, extraintegralerror, hh.second, integral, integralerror, 1);
         integral *= pow(extraintegral, hh.second);
       }
     }
-    cout << "Dividing by integral " << integral << endl;
     for (int j=0; j<=nbins[1]+1; j++){
       for (int k=0; k<=nbins[2]+1; k++){
         int ix=0, iy=0, iz=0;

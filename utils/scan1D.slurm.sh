@@ -75,7 +75,9 @@ if [[ "$extarg" == *"obs"* ]];then
 fi
 
 # Add protection for fluctuations
-cmd=$cmd" --startFromPreFit 1 --cminPreScan --cminDefaultMinimizerStrategy 2 --cminDefaultMinimizerTolerance 0.5 --cminDefaultMinimizerPrecision 0.000001"
+if [[ "$extarg" == *"ALTFIT"* ]];then
+  cmd=$cmd" --startFromPreFit 1 --cminPreScan --cminDefaultMinimizerStrategy 2 --cminDefaultMinimizerTolerance 0.5 --cminDefaultMinimizerPrecision 0.000001"
+fi
 
 echo "Command: combine "$cmd
 combine $cmd

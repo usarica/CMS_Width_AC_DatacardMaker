@@ -83,26 +83,31 @@ class makeWidthDatacards:
       (self.opt, self.args) = parser.parse_args()
 
       if (self.opt.coordinates == ''):
-         print 'Please pass template dimensions! Exiting...'
+         print 'makeWidthDatacards: Please pass template dimensions! Exiting...'
          sys.exit()
       else:
          self.opt.coordList = self.opt.coordinates.split(":")
          if self.opt.extMassShapes is not None and self.opt.coordList[0]!="mass":
-            print "First coordinate has to be mass when external mass shapes are given."
+            print "makeWidthDatacards: First coordinate has to be mass when external mass shapes are given. Listed coordinates:"
+            print self.opt.coordList
             sys.exit()
          self.opt.dimensions = len(self.opt.coordList)
 
       if (self.opt.appendName == ''):
-         print 'Please pass an append name for the cards directory! Exiting...'
+         print 'makeWidthDatacards: Please pass an append name for the cards directory! Exiting...'
          sys.exit()
 
       if (self.opt.inputDir == ''):
-         print 'Please pass an input directory! Exiting...'
+         print 'makeWidthDatacards: Please pass an input directory! Exiting...'
          sys.exit()
 
       if (self.opt.templateDir == ''):
-         print 'Please pass an input directory for the templates! Exiting...'
+         print 'makeWidthDatacards: Please pass an input directory for the templates! Exiting...'
          sys.exit()
+
+      print "makeWidthDatacards: Categorization scheme: {0}".format(self.opt.iCatScheme)
+      print "makeWidthDatacards: AC scheme: {0}".format(self.opt.anomCouplIndex)
+      print "makeWidthDatacards: GH model: {0}".format(self.opt.GHmodel)
 
 
    # define make directory function
@@ -111,17 +116,17 @@ class makeWidthDatacards:
          cmd = 'mkdir -p ' + subDirName
          status, output = commands.getstatusoutput(cmd)
          if status != 0:
-            print 'Error in creating submission dir ' + subDirName + '.'
+            print 'makeWidthDatacards::makeDirectory: Error in creating submission dir ' + subDirName + '.'
             sys.exit()
       else:
-         print 'Directory ' + subDirName + ' already exists.'
+         print 'makeWidthDatacards::makeDirectory: Directory ' + subDirName + ' already exists.'
 
 
    # define function for processing of os command
    def processCmd(self,cmd):
       status, output = commands.getstatusoutput(cmd)
       if status != 0:
-         print 'Error in processing command:\n   [' + cmd + '] \nExiting...'
+         print 'makeWidthDatacards::processCmd: Error in processing command:\n   [' + cmd + '] \nExiting...'
          sys.exit()
 
 
@@ -142,11 +147,11 @@ class makeWidthDatacards:
                theInputCard = InputCardReader(inputCardFile)
 
                pathToDatacards = "{0}/HCG/{1}/".format(theOutputDir, theInputCard.theSqrtsPeriod)
-               print "Path to datacards:",pathToDatacards
+               print "makeWidthDatacards::creationLoop: Path to datacards:",pathToDatacards
                self.makeDirectory(pathToDatacards)
 
                pathToPlots = "{0}/figs/{1}/hzz{2}_{3}/".format(theOutputDir, theInputCard.theSqrtsPeriod, theInputCard.decayChanName, catname)
-               print "Path to plots:",pathToPlots
+               print "makeWidthDatacards::creationLoop: Path to plots:",pathToPlots
                self.makeDirectory(pathToPlots)
 
                stdout_original=None
@@ -155,11 +160,11 @@ class makeWidthDatacards:
                   try:
                      stdout_original=sys.stdout
                      sys.stdout = open(pathToPlots + "output.log", 'w')
-                  except IOError: print "ERROR: Could not open output.log"
+                  except IOError: print "makeWidthDatacards::creationLoop ERROR: Could not open output.log"
                   try:
                      stderr_original=sys.stderr
                      sys.stderr = open(pathToPlots + "errors.log", 'w')
-                  except IOError: print "ERROR: Could not open errors.log"
+                  except IOError: print "makeWidthDatacards::creationLoop ERROR: Could not open errors.log"
 
                SystHelper = SystematicsHelper(theInputCard)
                theEqnsMaker = EquationsMaker(self.opt,theInputCard)
@@ -169,7 +174,7 @@ class makeWidthDatacards:
                   if stdout_original is not None: sys.stdout=stdout_original
                   if stderr_original is not None: sys.stderr=stderr_original
             else:
-               print "Input card {} does not exist.".format(inputCardFile)
+               print "makeWidthDatacards::creationLoop: Input card {} does not exist.".format(inputCardFile)
 
 
 # run the create_RM_cfg() as main()
