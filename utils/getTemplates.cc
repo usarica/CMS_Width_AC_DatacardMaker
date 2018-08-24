@@ -86,6 +86,33 @@ template<typename TH_t> void extractTemplates(process_spec& proc, RooDataSet* da
 template void extractTemplates<TH2F>(process_spec& proc, RooDataSet* data, string shapename);
 template void extractTemplates<TH3F>(process_spec& proc, RooDataSet* data, string shapename);
 
+double ArcCot(double arg){
+  double res = -TMath::ATan(arg);
+  if (arg>=0.) res += TMath::Pi()/2.;
+  else res -= TMath::Pi()/2.;
+  return res;
+}
+float getBreitWignerIntegral(
+  float mass, float width,
+  float massmin, float massmax
+){
+  double MG = mass*width;
+  double msq = pow(mass, 2);
+  double msqmax = pow(massmax, 2);
+  double msqmin = pow(massmin, 2);
+  double int_high = -ArcCot(MG/(msq-msqmax)) / MG;
+  double int_low = -ArcCot(MG/(msq-msqmin)) / MG;
+  double res = int_high - int_low;
+  return res;
+}
+float getBreitWignerIntegralRatio(
+  float mass_old, float width_old,
+  float mass_new, float width_new,
+  float massmin, float massmax
+){
+  return getBreitWignerIntegral(mass_new, width_new, massmin, massmax)/getBreitWignerIntegral(mass_old, width_old, massmin, massmax);
+}
+
 
 template <typename T> void divideBinWidth(T* histo);
 template<> void divideBinWidth<TH1F>(TH1F* histo);
@@ -109,6 +136,53 @@ template <typename T> void conditionalizeHistogram(T* histo, unsigned int iaxis,
 template<> void conditionalizeHistogram<TH2F>(TH2F* histo, unsigned int iaxis, std::vector<std::pair<TH2F*, float>> const* conditionalsReference, bool useWidth, bool useEffErr);
 template<> void conditionalizeHistogram<TH3F>(TH3F* histo, unsigned int iaxis, std::vector<std::pair<TH3F*, float>> const* conditionalsReference, bool useWidth, bool useEffErr);
 
+template<typename T> bool checkVarNanInf(T const& val);
+template<typename T> bool checkVarNanInf(T const& val){
+  return !(std::isnan(val) || std::isinf(val));
+}
+template<typename T> bool checkNanInf(std::vector<T> const& vars){
+  for (T const& v:vars){ if (!checkVarNanInf<T>(v)) return false; }
+  return true;
+}
+
+template <typename T> void multiplyHistograms(T const* h1, T const* h2, T*& hAssign, bool useEffErr);
+template <typename T> void multiplyHistograms(T const* h1, TH1F const* h2, unsigned int matchDimension, T*& hAssign, bool useEffErr);
+template<> void multiplyHistograms<TH1F>(TH1F const* h1, TH1F const* h2, TH1F*& hAssign, bool useEffErr);
+template<> void multiplyHistograms<TH2F>(TH2F const* h1, TH2F const* h2, TH2F*& hAssign, bool useEffErr);
+template<> void multiplyHistograms<TH3F>(TH3F const* h1, TH3F const* h2, TH3F*& hAssign, bool useEffErr);
+template<> void multiplyHistograms<TH2F>(TH2F const* h1, TH1F const* h2, unsigned int matchDimension, TH2F*& hAssign, bool useEffErr);
+template<> void multiplyHistograms<TH3F>(TH3F const* h1, TH1F const* h2, unsigned int matchDimension, TH3F*& hAssign, bool useEffErr);
+
+template<typename T> void rescaleOffshellTemplates(std::vector<T*>& tpls, TString const& strSqrts, TString const& strPeriod){
+  if (tpls.empty()) return;
+  vector<float> binLowEdgeList;
+  for (int ix=1; ix<=tpls.back()->GetNbinsX()+1; ix++) binLowEdgeList.push_back(tpls.back()->GetXaxis()->GetBinLowEdge(ix));
+  if (strSqrts=="7TeV" || strSqrts=="8TeV"){
+    TH1F scalingHist("tmp_scale", "", binLowEdgeList.size()-1, binLowEdgeList.data());
+    TH1F scalingHist_sqrt("tmp_scale_sqrt", "", binLowEdgeList.size()-1, binLowEdgeList.data());
+    for (unsigned int ix=0; ix<binLowEdgeList.size()-1; ix++){
+      float const& xlow = binLowEdgeList.at(ix);
+      float const& xhigh = binLowEdgeList.at(ix+1);
+      float const bwscale = getBreitWignerIntegralRatio(125.6, 0.00415, 125, 0.00407, xlow, xhigh);
+      //cout << "BW scale factor for bin [" << xlow << ", " << xhigh << "]: " << bwscale << endl;
+      scalingHist.SetBinContent(ix+1, bwscale);
+      scalingHist_sqrt.SetBinContent(ix+1, sqrt(bwscale));
+    }
+    const float fLQscale = pow(125.6/125., 2);
+    cout << "rescaleOffshellTemplates: WARNING! Scaling for fLQ contributions. Single power scale is " << fLQscale << endl;
+    for (auto& tpl:tpls){
+      TString tplname = tpl->GetName();
+      if (tplname.Contains("Int")) multiplyHistograms(tpl, &scalingHist_sqrt, 0, tpl, false);
+      else if (tplname.Contains("Sig")) multiplyHistograms(tpl, &scalingHist, 0, tpl, false);
+
+      // Scale fLQ contributions
+      if (tplname.Contains("ai1_1")) tpl->Scale(fLQscale);
+      else if (tplname.Contains("ai1_2")) tpl->Scale(pow(fLQscale, 2));
+      else if (tplname.Contains("ai1_3")) tpl->Scale(pow(fLQscale, 3));
+      else if (tplname.Contains("ai1_4")) tpl->Scale(pow(fLQscale, 4));
+    }
+  }
+}
 
 void getSqrtsPeriod(TString const& cinput, TString& strSqrtsPeriod, TString& strSqrts, TString& strPeriod){
   char cwd[1024];
@@ -147,7 +221,7 @@ void getSqrtsPeriod(TString const& cinput, TString& strSqrtsPeriod, TString& str
   }
   strSqrtsPeriod = strSqrts + '_' + strPeriod;
 }
-TString getSystRename(TString const& systname, TString const& strSqrts, TString const& strPeriod){
+TString getSystRename(TString const& systname, TString const& systLine, TString const& strSqrts, TString const& strPeriod, TString const& strCategory, TString const& strChannel){
   TString res=systname;
   if (res.Contains("lumi")) res = "lumiUnc";
   else if (res == "pdf_qq") res = "pdf_qqbar";
@@ -161,6 +235,12 @@ TString getSystRename(TString const& systname, TString const& strSqrts, TString 
   else if (res == "CMS_zz4l_smd_zjets_bkg_4mu") res = "CMS_hzz4l_zz4mu_shape_zjets";
   else if (res == "CMS_zz4l_smd_zjets_bkg_4e") res = "CMS_hzz4l_zz4e_shape_zjets";
   else if (res == "CMS_zz4l_smd_zjets_bkg_2e2mu") res = "CMS_hzz4l_zz2e2mu_shape_zjets";
+  else if (res == "EWKcorr_VV") res = "EWcorr_VV";
+  else if (res == "CMS_zz4l_ZXshape_syst"){
+    if (strChannel=="4mu") res = "CMS_hzz4l_zz4mu_shape_zjets";
+    else if (strChannel=="4e") res = "CMS_hzz4l_zz4e_shape_zjets";
+    else if (strChannel=="2e2mu") res = "CMS_hzz4l_zz2e2mu_shape_zjets";
+  }
   return res;
 }
 float getProcessRescale(TString const& procname, TString const& strSqrts, TString const& strPeriod, TString const& strChannel){
@@ -217,6 +297,11 @@ float getProcessRescale(TString const& procname, TString const& strSqrts, TStrin
     }
   }
   return res;
+}
+
+bool checkProcessIsBkg(TString procname){
+  procname.ToLower();
+  return (procname.Contains("bkg") || procname.Contains("qqzz") || procname.Contains("zjets"));
 }
 
 RooAbsPdf* searchMassPdf(RooDataSet* data, RooAbsPdf* rawpdf){
@@ -358,7 +443,7 @@ void getDataTree(TString cinput){
   foutput->Close();
   finput->Close();
 }
-void getTemplates(TString cinput, double lumiScale=1, bool copy_ggH_to_VVH=false, bool rescale_xsec=false, bool hasExtMassShapes=false){
+void getTemplates(TString cinput, double lumiScale=1, bool copy_ggH_to_VVH=false, bool rescale_xsec=false, bool rescaleOffshellComponents=false, bool hasExtMassShapes=false){
   TString strSqrtsPeriod, strSqrts, strPeriod;
   getSqrtsPeriod(cinput, strSqrtsPeriod, strSqrts, strPeriod);
 
@@ -400,6 +485,8 @@ void getTemplates(TString cinput, double lumiScale=1, bool copy_ggH_to_VVH=false
       }
     }
   }
+  TString strChannel = channame.c_str();
+  TString strCategory = catname.c_str();
 
   //TString coutput = splitinput.at(splitinput.size()-1);
   //ofstream tout((coutput+".input.txt").Data());
@@ -415,7 +502,7 @@ void getTemplates(TString cinput, double lumiScale=1, bool copy_ggH_to_VVH=false
     if (ws->var(varsToCheck[v])) ((RooRealVar*)ws->var(varsToCheck[v]))->setVal(1);
   }
   RooRealVar* MH = ws->var("MH");
-  if (MH){
+  if (MH){ // Set MH to 125
     MH->setRange(0, 13000);
     MH->setVal(125);
   }
@@ -507,7 +594,13 @@ void getTemplates(TString cinput, double lumiScale=1, bool copy_ggH_to_VVH=false
         if (systvar->hasClients()){
           for (unsigned int ip=0; ip<procname.size(); ip++){
             RooAbsPdf* pdf = procSpecs[procname.at(ip).Data()].pdf;
-            if (pdf->dependsOn(*systvar)){
+            RooAbsReal* norm = procSpecs[procname.at(ip).Data()].norm;
+            if (
+              (pdf && pdf->dependsOn(*systvar))
+              ||
+              (norm && norm->dependsOn(*systvar))
+              ){
+              cout << "Pdf or norm for " << procname.at(ip) << " depends on systematic " << systname << endl;
               string systline="";
               for (unsigned int ip=2; ip<systdist.size(); ip++){
                 if (ip>2) systline += ":";
@@ -555,7 +648,7 @@ void getTemplates(TString cinput, double lumiScale=1, bool copy_ggH_to_VVH=false
 
   // Write channels
   for (unsigned int ip=0; ip<procname.size(); ip++){
-    unsigned int proccode = (procSpecs[procname.at(ip).Data()].name.Contains("bkg") ? 0 : (procSpecs[procname.at(ip).Data()].name.Contains("offshell") ? 2 : 1));
+    unsigned int proccode = (checkProcessIsBkg(procSpecs[procname.at(ip).Data()].name) ? 0 : (procSpecs[procname.at(ip).Data()].name.Contains("offshell") ? 2 : 1));
     tout << "channel " << procname.at(ip) << " 1 -1 " << proccode << endl;
   }
 
@@ -572,17 +665,20 @@ void getTemplates(TString cinput, double lumiScale=1, bool copy_ggH_to_VVH=false
   */
   for (auto syst = tplSyst.begin(); syst != tplSyst.end(); ++syst){
     TString systName = syst->first.c_str();
-    systName = getSystRename(systName, strSqrts, strPeriod);
+    TString systLine = syst->second.c_str();
+    systName = getSystRename(systName, systLine, strSqrts, strPeriod, strCategory, strChannel);
     if (syst->second!="") tout << "systematic " << systName << " template " << syst->second << endl;
   }
   for (auto syst = logSyst.begin(); syst != logSyst.end(); ++syst){
     TString systName = syst->first.c_str();
-    systName = getSystRename(systName, strSqrts, strPeriod);
+    TString systLine = syst->second.c_str();
+    systName = getSystRename(systName, systLine, strSqrts, strPeriod, strCategory, strChannel);
     if (syst->second!="") tout << "systematic " << systName << " lnN " << syst->second << endl;
   }
   for (auto syst = paramSyst.begin(); syst != paramSyst.end(); ++syst){
     TString systName = syst->first.c_str();
-    systName = getSystRename(systName, strSqrts, strPeriod);
+    TString systLine = syst->second.c_str();
+    systName = getSystRename(systName, systLine, strSqrts, strPeriod, strCategory, strChannel);
     if (syst->second!="") tout << "systematic " << systName << " template " << syst->second << endl;
   }
 
@@ -604,6 +700,7 @@ void getTemplates(TString cinput, double lumiScale=1, bool copy_ggH_to_VVH=false
     cout << "Number of dimensions: " << ndims << endl;
 
     TString const& theProcName = procname.at(ip);
+    bool isBkg = checkProcessIsBkg(theProcName);
     TString theProcNameLower = theProcName; theProcNameLower.ToLower();
     float tplscale=1;
     if (!theProcNameLower.Contains("zjets")) tplscale=1./lumiScale;
@@ -624,6 +721,10 @@ void getTemplates(TString cinput, double lumiScale=1, bool copy_ggH_to_VVH=false
       extractTemplates<TH3F>(procSpecs[procname.at(ip).Data()], data, "");
       for (auto& tpl:procSpecs[procname.at(ip).Data()].templates3D) tpl->Scale(tplscale);
       break;
+    }
+    if (rescaleOffshellComponents && !isBkg){
+      rescaleOffshellTemplates(procSpecs[procname.at(ip).Data()].templates2D, strSqrts, strPeriod);
+      rescaleOffshellTemplates(procSpecs[procname.at(ip).Data()].templates3D, strSqrts, strPeriod);
     }
     procSpecs[procname.at(ip).Data()].writeTemplates(foutput);
     if (extShapeProcPdfs.find(procname.at(ip))!=extShapeProcPdfs.cend()){
@@ -656,15 +757,17 @@ void getTemplates(TString cinput, double lumiScale=1, bool copy_ggH_to_VVH=false
     for (auto syst = procSpecs[procname.at(ip).Data()].systematics.begin(); syst != procSpecs[procname.at(ip).Data()].systematics.end(); ++syst){
       if (syst->second.first=="param"){
         RooRealVar* systvar = (RooRealVar*)ws->var(syst->first.c_str());
-        if (systvar==0){
+        if (!systvar){
           cout << syst->first << " could not be found." << endl;
           continue;
         }
+        double systCentralVal = systvar->getVal();
         for (unsigned int is=0; is<2; is++){
-          systvar->setVal(double(2*is)-1);
-          cout << "Setting param systematic " << systvar->GetName() << " to " << double(2*is)-1 << endl;
+          systvar->setVal(double(2*is)-1.+systCentralVal);
+          cout << "Setting param systematic " << systvar->GetName() << " to " << systvar->getVal() << endl;
           TString systName = syst->first.c_str();
-          systName = getSystRename(systName, strSqrts, strPeriod);
+          TString systLine = (syst->second.first + " " + syst->second.second).c_str();
+          systName = getSystRename(systName, systLine, strSqrts, strPeriod, strCategory, strChannel);
           coutput_root = Form("%s/HtoZZ%s_%s_FinalTemplates_%s_%s%s%s", coutput_templates.Data(), channame.c_str(), catname.c_str(), procname.at(ip).Data(), systName.Data(), (is==0 ? "Down" : "Up"), ".root");
           foutput = TFile::Open(coutput_root, "recreate");
           switch (ndims){
@@ -676,6 +779,10 @@ void getTemplates(TString cinput, double lumiScale=1, bool copy_ggH_to_VVH=false
             extractTemplates<TH3F>(procSpecs[procname.at(ip).Data()], data, "");
             for (auto& tpl:procSpecs[procname.at(ip).Data()].templates3D) tpl->Scale(tplscale);
             break;
+          }
+          if (rescaleOffshellComponents && !isBkg){
+            rescaleOffshellTemplates(procSpecs[procname.at(ip).Data()].templates2D, strSqrts, strPeriod);
+            rescaleOffshellTemplates(procSpecs[procname.at(ip).Data()].templates3D, strSqrts, strPeriod);
           }
           procSpecs[procname.at(ip).Data()].writeTemplates(foutput);
           if (extShapeProcPdfs.find(procname.at(ip))!=extShapeProcPdfs.cend()){
@@ -705,12 +812,14 @@ void getTemplates(TString cinput, double lumiScale=1, bool copy_ggH_to_VVH=false
           procSpecs[procname.at(ip).Data()].deleteTemplates();
           foutput->Close();
         }
+        systvar->setVal(systCentralVal);
       }
       else if (syst->second.first=="shape1"){
         for (unsigned int is=0; is<2; is++){
           string syst_du = syst->first + (is==0 ? "Down" : "Up");
           TString systName = syst->first.c_str();
-          systName = getSystRename(systName, strSqrts, strPeriod);
+          TString systLine = (syst->second.first + " " + syst->second.second).c_str();
+          systName = getSystRename(systName, systLine, strSqrts, strPeriod, strCategory, strChannel);
           coutput_root = Form("%s/HtoZZ%s_%s_FinalTemplates_%s_%s%s%s", coutput_templates.Data(), channame.c_str(), catname.c_str(), procname.at(ip).Data(), systName.Data(), (is==0 ? "Down" : "Up"), ".root");
           foutput = TFile::Open(coutput_root, "recreate");
           switch (ndims){
@@ -722,6 +831,10 @@ void getTemplates(TString cinput, double lumiScale=1, bool copy_ggH_to_VVH=false
             extractTemplates<TH3F>(procSpecs[procname.at(ip).Data()], data, syst_du);
             for (auto& tpl:procSpecs[procname.at(ip).Data()].templates3D) tpl->Scale(tplscale);
             break;
+          }
+          if (rescaleOffshellComponents && !isBkg){
+            rescaleOffshellTemplates(procSpecs[procname.at(ip).Data()].templates2D, strSqrts, strPeriod);
+            rescaleOffshellTemplates(procSpecs[procname.at(ip).Data()].templates3D, strSqrts, strPeriod);
           }
           procSpecs[procname.at(ip).Data()].writeTemplates(foutput);
           if (extShapeProcPdfs.find(procname.at(ip))!=extShapeProcPdfs.cend()){
@@ -768,7 +881,7 @@ void getTemplates(TString cinput, double lumiScale=1, bool copy_ggH_to_VVH=false
       RooAbsPdf* mass_pdf = searchMassPdf(data, procSpecs[theProcName.Data()].pdf);
       if (mass_pdf){
         if (
-          !theProcName.Contains("bkg") && (
+          !checkProcessIsBkg(theProcName) && (
             theProcName.Contains("gg") || theProcName.Contains("tt") || theProcName.Contains("bb")
             ||
             theProcName.Contains("qqH") || theProcName.Contains("VBF") || theProcName.Contains("ZH") || theProcName.Contains("WH")
@@ -962,6 +1075,7 @@ template void extractTemplates_ggORvv_GGsm(const TString& newname, const vector<
 template void extractTemplates_ggLike_fai1_GGsm(const TString& newname, const vector<TH3F*>& intpl, vector<TH3F*>& outtpl);
 template void extractTemplates_VVLike_fai1_GGsm(const TString& newname, const vector<TH3F*>& intpl, vector<TH3F*>& outtpl);
 
+
 template<typename TH_t> void extractTemplates(process_spec& proc, RooDataSet* data, string shapename){
   vector<TH_t*> templates;
 
@@ -1020,7 +1134,7 @@ template<typename TH_t> void extractTemplates(process_spec& proc, RooDataSet* da
   TString tplname = "T_";
   tplname += proc.name;
 
-  if (proc.name.Contains("bkg")){
+  if (checkProcessIsBkg(proc.name)){
     TH_t* tpl;
     switch (deps.size()){
     case 2:
@@ -1252,7 +1366,7 @@ template<typename TH_t> void extractTemplates(process_spec& proc, RooDataSet* da
     }
     if (RV) RV->setVal(RVdefval);
   }
-  else if (proc.name.Contains("qqH") || proc.name.Contains("VBF") || proc.name.Contains("WH") || proc.name.Contains("ZH") || proc.name.Contains("VV")){
+  else if (proc.name.Contains("qqH") || proc.name.Contains("VBF") || proc.name.Contains("vbf") || proc.name.Contains("WH") || proc.name.Contains("ZH") || proc.name.Contains("VV")){
     float RFdefval=0;
     if (RF){
       cout << "\t- Setting RF to 0" << endl;
@@ -1498,7 +1612,6 @@ Bool_t checkListVariable(const vector<string>& list, const string& var){
   }
   return false;
 }
-
 
 template<> void divideBinWidth<TH1F>(TH1F* histo){
   TAxis const* xaxis = histo->GetXaxis();
@@ -2085,6 +2198,155 @@ template<> void conditionalizeHistogram<TH3F>(TH3F* histo, unsigned int iaxis, s
 
         histo->SetBinContent(ix, iy, iz, hval);
         histo->SetBinError(ix, iy, iz, herr);
+      }
+    }
+  }
+}
+
+template<> void multiplyHistograms<TH1F>(TH1F const* h1, TH1F const* h2, TH1F*& hAssign, bool useEffErr){
+  if (h1->GetNbinsX()!=h2->GetNbinsX()) return;
+  const int nbinsx = h1->GetNbinsX();
+  for (int binx=0; binx<=nbinsx+1; binx++){
+    float sumW = h1->GetBinContent(binx);
+    float sumWAll = h2->GetBinContent(binx);
+    float sumWsq = pow(h1->GetBinError(binx), 2);
+    float sumWsqAll = pow(h2->GetBinError(binx), 2);
+    float bincontent=sumW*sumWAll;
+    float binerror=0;
+    if (useEffErr) binerror = translateEfficiencyErrorToNumeratorError(sumW, sumWAll, sumWsq, sumWsqAll);
+    else binerror = calculateSimpleProductError(sumW, sqrt(sumWsq), 1, sumWAll, sqrt(sumWsqAll), 1);
+    if (!checkVarNanInf(bincontent) || !checkVarNanInf(binerror)){
+      bincontent=0;
+      binerror=0;
+    }
+    hAssign->SetBinContent(binx, bincontent);
+    hAssign->SetBinError(binx, binerror);
+  }
+}
+template<> void multiplyHistograms<TH2F>(TH2F const* h1, TH2F const* h2, TH2F*& hAssign, bool useEffErr){
+  if (h1->GetNbinsX()!=h2->GetNbinsX()) return;
+  const int nbinsx = h1->GetNbinsX();
+  if (h1->GetNbinsY()!=h2->GetNbinsY()) return;
+  const int nbinsy = h1->GetNbinsY();
+  for (int binx=0; binx<=nbinsx+1; binx++){
+    for (int biny=0; biny<=nbinsy+1; biny++){
+      float sumW = h1->GetBinContent(binx, biny);
+      float sumWAll = h2->GetBinContent(binx, biny);
+      float sumWsq = pow(h1->GetBinError(binx, biny), 2);
+      float sumWsqAll = pow(h2->GetBinError(binx, biny), 2);
+      float bincontent=sumW*sumWAll;
+      float binerror=0;
+      if (useEffErr) binerror = translateEfficiencyErrorToNumeratorError(sumW, sumWAll, sumWsq, sumWsqAll);
+      else binerror = calculateSimpleProductError(sumW, sqrt(sumWsq), 1, sumWAll, sqrt(sumWsqAll), 1);
+      if (!checkVarNanInf(bincontent) || !checkVarNanInf(binerror)){
+        bincontent=0;
+        binerror=0;
+      }
+      hAssign->SetBinContent(binx, biny, bincontent);
+      hAssign->SetBinError(binx, biny, binerror);
+    }
+  }
+}
+template<> void multiplyHistograms<TH3F>(TH3F const* h1, TH3F const* h2, TH3F*& hAssign, bool useEffErr){
+  if (h1->GetNbinsX()!=h2->GetNbinsX()) return;
+  const int nbinsx = h1->GetNbinsX();
+  if (h1->GetNbinsY()!=h2->GetNbinsY()) return;
+  const int nbinsy = h1->GetNbinsY();
+  if (h1->GetNbinsZ()!=h2->GetNbinsZ()) return;
+  const int nbinsz = h1->GetNbinsZ();
+  for (int binx=0; binx<=nbinsx+1; binx++){
+    for (int biny=0; biny<=nbinsy+1; biny++){
+      for (int binz=0; binz<=nbinsz+1; binz++){
+        float sumW = h1->GetBinContent(binx, biny, binz);
+        float sumWAll = h2->GetBinContent(binx, biny, binz);
+        float sumWsq = pow(h1->GetBinError(binx, biny, binz), 2);
+        float sumWsqAll = pow(h2->GetBinError(binx, biny, binz), 2);
+        float bincontent=sumW*sumWAll;
+        float binerror=0;
+        if (useEffErr) binerror = translateEfficiencyErrorToNumeratorError(sumW, sumWAll, sumWsq, sumWsqAll);
+        else binerror = calculateSimpleProductError(sumW, sqrt(sumWsq), 1, sumWAll, sqrt(sumWsqAll), 1);
+        if (!checkVarNanInf(bincontent) || !checkVarNanInf(binerror)){
+          bincontent=0;
+          binerror=0;
+        }
+        hAssign->SetBinContent(binx, biny, binz, bincontent);
+        hAssign->SetBinError(binx, biny, binz, binerror);
+      }
+    }
+  }
+}
+template<> void multiplyHistograms<TH2F>(TH2F const* h1, TH1F const* h2, unsigned int matchDimension, TH2F*& hAssign, bool useEffErr){
+  if (matchDimension>1) assert(0);
+  if (matchDimension==0 && h1->GetNbinsX()!=h2->GetNbinsX()) return;
+  const int nbinsx = h1->GetNbinsX();
+  if (matchDimension==1 && h1->GetNbinsY()!=h2->GetNbinsX()) return;
+  const int nbinsy = h1->GetNbinsY();
+  for (int binx=0; binx<=nbinsx+1; binx++){
+    for (int biny=0; biny<=nbinsy+1; biny++){
+      float sumW = h1->GetBinContent(binx, biny);
+      float sumWsq = pow(h1->GetBinError(binx, biny), 2);
+      float sumWAll=0, sumWsqAll=0;
+      switch (matchDimension){
+      case 0:
+        sumWAll = h2->GetBinContent(binx);
+        sumWsqAll = pow(h2->GetBinError(binx), 2);
+        break;
+      case 1:
+        sumWAll = h2->GetBinContent(biny);
+        sumWsqAll = pow(h2->GetBinError(biny), 2);
+        break;
+      }
+      float bincontent=sumW*sumWAll;
+      float binerror=0;
+      if (useEffErr) binerror = translateEfficiencyErrorToNumeratorError(sumW, sumWAll, sumWsq, sumWsqAll);
+      else binerror = calculateSimpleProductError(sumW, sqrt(sumWsq), 1, sumWAll, sqrt(sumWsqAll), 1);
+      if (!checkVarNanInf(bincontent) || !checkVarNanInf(binerror)){
+        bincontent=0;
+        binerror=0;
+      }
+      hAssign->SetBinContent(binx, biny, bincontent);
+      hAssign->SetBinError(binx, biny, binerror);
+    }
+  }
+}
+template<> void multiplyHistograms<TH3F>(TH3F const* h1, TH1F const* h2, unsigned int matchDimension, TH3F*& hAssign, bool useEffErr){
+  if (matchDimension>2) assert(0);
+  if (matchDimension==0 && h1->GetNbinsX()!=h2->GetNbinsX()) return;
+  const int nbinsx = h1->GetNbinsX();
+  if (matchDimension==1 && h1->GetNbinsY()!=h2->GetNbinsX()) return;
+  const int nbinsy = h1->GetNbinsY();
+  if (matchDimension==2 && h1->GetNbinsZ()!=h2->GetNbinsX()) return;
+  const int nbinsz = h1->GetNbinsZ();
+  for (int binx=0; binx<=nbinsx+1; binx++){
+    for (int biny=0; biny<=nbinsy+1; biny++){
+      for (int binz=0; binz<=nbinsz+1; binz++){
+        float sumW = h1->GetBinContent(binx, biny, binz);
+        float sumWsq = pow(h1->GetBinError(binx, biny, binz), 2);
+        float sumWAll=0, sumWsqAll=0;
+        switch (matchDimension){
+        case 0:
+          sumWAll = h2->GetBinContent(binx);
+          sumWsqAll = pow(h2->GetBinError(binx), 2);
+          break;
+        case 1:
+          sumWAll = h2->GetBinContent(biny);
+          sumWsqAll = pow(h2->GetBinError(biny), 2);
+          break;
+        case 2:
+          sumWAll = h2->GetBinContent(binz);
+          sumWsqAll = pow(h2->GetBinError(binz), 2);
+          break;
+        }
+        float bincontent=sumW*sumWAll;
+        float binerror=0;
+        if (useEffErr) binerror = translateEfficiencyErrorToNumeratorError(sumW, sumWAll, sumWsq, sumWsqAll);
+        else binerror = calculateSimpleProductError(sumW, sqrt(sumWsq), 1, sumWAll, sqrt(sumWsqAll), 1);
+        if (!checkVarNanInf(bincontent) || !checkVarNanInf(binerror)){
+          bincontent=0;
+          binerror=0;
+        }
+        hAssign->SetBinContent(binx, biny, binz, bincontent);
+        hAssign->SetBinError(binx, biny, binz, binerror);
       }
     }
   }
