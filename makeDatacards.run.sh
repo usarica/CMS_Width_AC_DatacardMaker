@@ -58,7 +58,7 @@ if [[ "$massregion" == "Offshell" ]]; then
       mkdir $outcardsname"/HCG/Scans/"
 
       cp utils/submitScan1D.sh $outcardsname"/HCG/Scans/"
-      cp utils/scan1D.slurm.sh $outcardsname"/HCG/Scans/"
+      cp utils/scan1D.* $outcardsname"/HCG/Scans/"
 
       chmod -R 755 "$outcardsname"
    fi
@@ -79,7 +79,7 @@ else
       mkdir $outcardsname"/HCG/Scans/"
 
       cp utils/submitScan1D.sh $outcardsname"/HCG/Scans/"
-      cp utils/scan1D.slurm.sh $outcardsname"/HCG/Scans/"
+      cp utils/scan1D.* $outcardsname"/HCG/Scans/"
 
       chmod -R 755 "$outcardsname"
    fi

@@ -44,8 +44,7 @@ for p in L1 L1ZGs a2 a3; do
          done
       done
 
-      cp utils/buildCards.sh $outcardsname"/HCG/"
-      cp utils/buildCards.slurm.sh $outcardsname"/HCG/"
+      cp utils/buildCards.* $outcardsname"/HCG/"
 
       pushd $curdir"/"$outcardsname"/HCG"
 
@@ -156,11 +155,11 @@ for p in L1 L1ZGs a2 a3; do
       popd
 
       cp utils/submitScan1D.sh $outcardsname"/HCG/Scans/"
-      cp utils/scan1D.slurm.sh $outcardsname"/HCG/Scans/"
+      cp utils/scan1D.* $outcardsname"/HCG/Scans/"
       cp utils/submitImpacts.sh $outcardsname"/HCG/Scans/"
-      cp utils/doImpacts.slurm.sh $outcardsname"/HCG/Scans/"
+      cp utils/doImpacts.* $outcardsname"/HCG/Scans/"
       cp utils/submitPreApprovalChecks.sh $outcardsname"/HCG/Scans/"
-      cp utils/doPreApprovalChecks.slurm.sh $outcardsname"/HCG/Scans/"
+      cp utils/doPreApprovalChecks.* $outcardsname"/HCG/Scans/"
 
       chmod -R 755 "$outcardsname"
    fi
