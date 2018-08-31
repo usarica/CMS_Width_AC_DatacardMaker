@@ -3,7 +3,7 @@ period 2012
 decay 2e2mu
 lumi 19.712
 category JJVBFTagged
-channel ggzz 1 -1 1
+channel ggzz 1 -1 2
 channel vbf_offshell 1 -1 2
 channel bkg_qqzz 1 -1 0
 channel bkg_zjets 1 -1 0
