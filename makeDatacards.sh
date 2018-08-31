@@ -10,12 +10,12 @@ compoundname=$todaysdate"_"$massregion"_"$data"_"$hypo
 
 scr=""
 cmd=""
-
+hname=$(hostname)
 if [[ "$hname" == *"lxplus"* ]];then
   echo "Host is on LXPLUS, so need to use LXBATCH"
   scr="makeDatacards.lsf.sh"
   cmd="bsub -q 8nh -C 0 -o ./Logs/lsflog_"$compoundname".txt -e ./Logs/lsferr_"$compoundname".err"
-elif [[ "$hname" == *"login-node"* ]]; then
+elif [[ "$hname" == *"login-node"* ]] || [[ "$hname" == *"bc-login"* ]]; then
   echo "Host is on MARCC, so need to use SLURM batch"
   scr="makeDatacards.slurm.sh"
   cmd="sbatch --output=./Logs/lsflog_"$compoundname".txt --error=./Logs/lsferr_"$compoundname".err"

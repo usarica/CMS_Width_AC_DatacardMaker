@@ -26,7 +26,7 @@ if [[ "$hname" == *"lxplus"* ]];then
   echo "Host is on LXPLUS, so need to use LXBATCH"
   scr="scan1D.lsf.sh"
   cmd="bsub -q 2nd -C 0 -oo ./Logs/lsflog_"$fname"_"$minVar"_"$maxVar".txt -eo ./Logs/lsferr_"$fname"_"$minVar"_"$maxVar".err"
-elif [[ "$hname" == *"login-node"* ]]; then
+elif [[ "$hname" == *"login-node"* ]] || [[ "$hname" == *"bc-login"* ]]; then
   echo "Host is on MARCC, so need to use SLURM batch"
   scr="scan1D.slurm.sh"
   cmd="sbatch --output=./Logs/lsflog_"$fname"_"$minVar"_"$maxVar".txt --error=./Logs/lsferr_"$fname"_"$minVar"_"$maxVar".err"

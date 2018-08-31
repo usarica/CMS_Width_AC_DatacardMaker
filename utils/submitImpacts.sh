@@ -13,7 +13,7 @@ if [[ "$hname" == *"lxplus"* ]];then
   echo "Host is on LXPLUS, so need to use LXBATCH"
   scr="doImpacts.lsf.sh"
   cmd="bsub -q 2nd -C 0 -oo ./Logs/lsflog_"$fname".txt -eo ./Logs/lsferr_"$fname".err"
-elif [[ "$hname" == *"login-node"* ]]; then
+elif [[ "$hname" == *"login-node"* ]] || [[ "$hname" == *"bc-login"* ]]; then
   echo "Host is on MARCC, so need to use SLURM batch"
   scr="doImpacts.slurm.sh"
   cmd="sbatch --output=./Logs/lsflog_"$fname".txt --error=./Logs/lsferr_"$fname".err"
