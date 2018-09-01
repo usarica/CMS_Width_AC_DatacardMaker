@@ -11,10 +11,9 @@
 cd ${SLURM_SUBMIT_DIR}
 echo "SLURM job running in: "$(pwd)
 
+module load gcc/6.4.0
+
 source /work-zfs/lhc/cms/cmsset_default.sh
-module load boost/1.60.0
-export LIBRARY_PATH=$LIBRARY_PATH:/cm/shared/apps/boost/1.60.0/lib
-export CPATH=$CPATH:/cm/shared/apps/boost/1.60.0/include
 
 eval `scram runtime -sh`
 

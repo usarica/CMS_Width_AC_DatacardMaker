@@ -50,6 +50,9 @@ if [[ "$massregion" == "Offshell" ]]; then
    if [ ! -d $outcardsname ];then
       tpldir="templates2D/"$data"/"$hypo
       if [[ "$hypo" == "SM" ]];then
+         if [[ "$data" == *"2011"* ]] || [[ "$data" == *"2012"* ]];then
+           tpldir=$tpldir"/Offshell"
+         fi
          python makeWidthDatacards.py -b --writeoutput --dopdfproj -i Offshell_inputs_"$data" -t $tpldir -r $datadirname -a $outdirname --coord $theCoords --GHmodel 1 --CatScheme $theCatScheme --ac 0 --mLow 220 --mHigh 13000
       else
          python makeWidthDatacards.py -b --writeoutput --dopdfproj -i Offshell_inputs_"$data" -t $tpldir -r $datadirname -a $outdirname --coord $theCoords --GHmodel 1 --CatScheme $theCatScheme --ac 2 --mLow 220 --mHigh 13000
@@ -71,6 +74,9 @@ else
       tpldir="templates2D/"$data"/"$hypo
       if [[ "$hypo" == "SM" ]];then
          extmsdir="externalShapes/"$data"/"
+         if [[ "$data" == *"2011"* ]] || [[ "$data" == *"2012"* ]];then
+           tpldir=$tpldir"/Onshell"
+         fi
          python makeWidthDatacards.py -b --writeoutput -i Onshell_inputs_SM_"$data" --extMassShapes=$extmsdir -t $tpldir -r $datadirname -a $outdirname --coord $theCoords --GHmodel 0 --CatScheme $theCatScheme --ac 0 --mLow 105 --mHigh 140
       else
          python makeWidthDatacards.py -b --writeoutput --dopdfproj -i Onshell_inputs_AC_"$data" -t $tpldir -r $datadirname -a $outdirname --coord $theCoords --GHmodel 0 --CatScheme $theCatScheme --ac 2 --mLow 105 --mHigh 140

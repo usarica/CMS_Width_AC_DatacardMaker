@@ -25,16 +25,15 @@ cmd=""
 if [[ "$hname" == *"lxplus"* ]];then
   echo "Host is on LXPLUS, so need to use LXBATCH"
   scr="scan1D.lsf.sh"
-  cmd="bsub -q 2nd -C 0 -oo ./Logs/lsflog_"$fname"_"$minVar"_"$maxVar".txt -eo ./Logs/lsferr_"$fname"_"$minVar"_"$maxVar".err"
 elif [[ "$hname" == *"login-node"* ]] || [[ "$hname" == *"bc-login"* ]]; then
   echo "Host is on MARCC, so need to use SLURM batch"
   scr="scan1D.slurm.sh"
-  cmd="sbatch --output=./Logs/lsflog_"$fname"_"$minVar"_"$maxVar".txt --error=./Logs/lsferr_"$fname"_"$minVar"_"$maxVar".err"
 fi
 
 
 mkdir -p $fname"/Logs"
-cp $scr $fname"/"
+scrcore=${scr%%"."*}
+cp "$scrcore"* $fname"/"
 pushd $fname
 
 while [  $maxVar -lt $maxP ];
@@ -44,6 +43,11 @@ do
   let maxVar=$CTP*$INCREMENT
   if [ $maxVar -gt $maxP ]; then
     let maxVar=$maxP
+  fi
+  if [[ "$hname" == *"lxplus"* ]];then
+    cmd="bsub -q 2nd -C 0 -oo ./Logs/lsflog_"$fname"_"$minVar"_"$maxVar".txt -eo ./Logs/lsferr_"$fname"_"$minVar"_"$maxVar".err"
+  elif [[ "$hname" == *"login-node"* ]] || [[ "$hname" == *"bc-login"* ]]; then
+    cmd="sbatch --output=./Logs/lsflog_"$fname"_"$minVar"_"$maxVar".txt --error=./Logs/lsferr_"$fname"_"$minVar"_"$maxVar".err"
   fi
   $cmd $scr $wname $fname $poi $rangel $rangeh $npoints $minVar $maxVar "$extarg"
   let COUNTER=COUNTER+1

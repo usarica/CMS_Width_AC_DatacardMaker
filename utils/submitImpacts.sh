@@ -20,7 +20,8 @@ elif [[ "$hname" == *"login-node"* ]] || [[ "$hname" == *"bc-login"* ]]; then
 fi
 
 mkdir -p $fname"/Logs"
-cp $scr $fname"/"
+scrcore=${scr%%"."*}
+cp "$scrcore"* $fname"/"
 pushd $fname
 
 $cmd $scr $wname $fname $poi $rangel $rangeh $extarg

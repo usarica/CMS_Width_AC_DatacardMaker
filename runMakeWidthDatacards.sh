@@ -28,7 +28,7 @@ fi
 if [[ "$option" == *"combine"* ]];then
 echo "Combining cards"
 # Make combination datacards
-for p in L1 L1ZGs a2 a3; do
+for p in SM L1 L1ZGs a2 a3; do
    outdirname=$todaysdate"_Combination_"$p
    outcardsname="cards_"$outdirname
 
@@ -149,6 +149,36 @@ for p in L1 L1ZGs a2 a3; do
          . buildCards.sh hzz4l_Prop_All_7813TeV_hronshell.txt hzz4l_Prop_All_7813TeV_hronshell.root "7,8,13" $p
 
          combineCards.py hzz4l_Prop_7813_15.txt hzz4l_Prop_All_13TeV.txt > hzz4l_Prop_All_7813TeV.txt
+         . buildCards.sh hzz4l_Prop_All_7813TeV.txt hzz4l_Prop_All_7813TeV.root "7,8,13" $p
+      else
+         ln -sf "/work-zfs/lhc/usarica/hep/SpinWidthPaper_2015/RunII_Combination/CMSSW_9_4_3/src/HZZ4l/CreateWidthDatacards/cards_180817_Onshell_"$p"_7TeV_2011/HCG/7TeV_2011" Onshell_7TeV_2011
+         ln -sf "/work-zfs/lhc/usarica/hep/SpinWidthPaper_2015/RunII_Combination/CMSSW_9_4_3/src/HZZ4l/CreateWidthDatacards/cards_180817_Onshell_"$p"_8TeV_2012/HCG/8TeV_2012" Onshell_8TeV_2012
+         ln -sf "/work-zfs/lhc/usarica/hep/SpinWidthPaper_2015/RunII_Combination/CMSSW_9_4_3/src/HZZ4l/CreateWidthDatacards/cards_180817_Offshell_"$p"_7TeV_2011/HCG/7TeV_2011" Offshell_7TeV_2011
+         ln -sf "/work-zfs/lhc/usarica/hep/SpinWidthPaper_2015/RunII_Combination/CMSSW_9_4_3/src/HZZ4l/CreateWidthDatacards/cards_180817_Offshell_"$p"_8TeV_2012/HCG/8TeV_2012" Offshell_8TeV_2012
+
+         combineCards.py \
+            ch1=Onshell_7TeV_2011/hzz2e2mu_Untagged.txt ch2=Onshell_7TeV_2011/hzz4mu_Untagged.txt ch3=Onshell_7TeV_2011/hzz4e_Untagged.txt \
+            ch4=Onshell_7TeV_2011/hzz2e2mu_JJVBFTagged.txt ch5=Onshell_7TeV_2011/hzz4mu_JJVBFTagged.txt ch6=Onshell_7TeV_2011/hzz4e_JJVBFTagged.txt \
+            > hzz4l_Prop_All_Onshell_7TeV_2011.txt
+         combineCards.py \
+            ch1=Offshell_7TeV_2011/hzz2e2mu_Untagged.txt ch2=Offshell_7TeV_2011/hzz4mu_Untagged.txt ch3=Offshell_7TeV_2011/hzz4e_Untagged.txt \
+            ch4=Offshell_7TeV_2011/hzz2e2mu_JJVBFTagged.txt ch5=Offshell_7TeV_2011/hzz4mu_JJVBFTagged.txt ch6=Offshell_7TeV_2011/hzz4e_JJVBFTagged.txt \
+            > hzz4l_Prop_All_Offshell_7TeV_2011.txt
+         combineCards.py hzz4l_Prop_All_Onshell_7TeV_2011.txt hzz4l_Prop_All_Offshell_7TeV_2011.txt > hzz4l_Prop_All_7TeV_2011.txt
+
+         combineCards.py \
+            ch1=Onshell_8TeV_2012/hzz2e2mu_Untagged.txt ch2=Onshell_8TeV_2012/hzz4mu_Untagged.txt ch3=Onshell_8TeV_2012/hzz4e_Untagged.txt \
+            ch4=Onshell_8TeV_2012/hzz2e2mu_JJVBFTagged.txt ch5=Onshell_8TeV_2012/hzz4mu_JJVBFTagged.txt ch6=Onshell_8TeV_2012/hzz4e_JJVBFTagged.txt \
+            > hzz4l_Prop_All_Onshell_8TeV_2012.txt
+         combineCards.py \
+            ch1=Offshell_8TeV_2012/hzz2e2mu_Untagged.txt ch2=Offshell_8TeV_2012/hzz4mu_Untagged.txt ch3=Offshell_8TeV_2012/hzz4e_Untagged.txt \
+            ch4=Offshell_8TeV_2012/hzz2e2mu_JJVBFTagged.txt ch5=Offshell_8TeV_2012/hzz4mu_JJVBFTagged.txt ch6=Offshell_8TeV_2012/hzz4e_JJVBFTagged.txt \
+            > hzz4l_Prop_All_Offshell_8TeV_2012.txt
+         combineCards.py hzz4l_Prop_All_Onshell_8TeV_2012.txt hzz4l_Prop_All_Offshell_8TeV_2012.txt > hzz4l_Prop_All_8TeV_2012.txt
+
+         combineCards.py hzz4l_Prop_All_7TeV_2011.txt hzz4l_Prop_All_8TeV_2012.txt > hzz4l_Prop_78.txt
+
+         combineCards.py hzz4l_Prop_78.txt hzz4l_Prop_All_13TeV.txt > hzz4l_Prop_All_7813TeV.txt
          . buildCards.sh hzz4l_Prop_All_7813TeV.txt hzz4l_Prop_All_7813TeV.root "7,8,13" $p
       fi
 

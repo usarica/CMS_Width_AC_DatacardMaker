@@ -7,7 +7,10 @@ rangel=$4
 rangeh=$5
 let npoints=$6
 let firstpoint=$7
-let lastpoint=$8-1
+let lastpoint=$8
+if [ $lastpoint -lt $npoints ]; then
+  let lastpoint=$lastpoint-1
+fi
 if [ $lastpoint -lt $firstpoint ]; then
   let lastpoint=$firstpoint
 fi
