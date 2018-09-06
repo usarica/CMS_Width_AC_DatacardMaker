@@ -8,9 +8,9 @@ channel qqH 1 -1 1 Options:Conditional=KD1;TemplateNameAlias=qqH_Sig
 channel WH 1 -1 1 Options:Conditional=KD1;TemplateNameAlias=WH_Sig
 channel ZH 1 -1 1 Options:Conditional=KD1;TemplateNameAlias=ZH_Sig
 channel ttH 1 -1 1 Options:Conditional=KD1;TemplateNameAlias=ttH_Sig
-channel bkg2d_qqzz 1 -1 0 Options:Conditional=KD1
-channel bkg2d_ggzz 1 -1 0 Options:Conditional=KD1
-channel bkg2d_zjets 1 -1 0 Options:Conditional=KD1
+channel bkg2d_qqzz 1 -1 0
+channel bkg2d_ggzz 1 -1 0
+channel bkg2d_zjets 1 -1 0
 systematic CMS_eff_m lnN ggH:1.026 qqH:1.026 WH:1.026 ZH:1.026 ttH:1.026 bkg2d_qqzz:1.026 bkg2d_ggzz:1.026 
 systematic CMS_hzz4l_zz2e2mu_zjets lnN bkg2d_zjets:0.75:1.25 
 systematic CMS_eff_e lnN ggH:1.110 qqH:1.110 WH:1.110 ZH:1.110 ttH:1.110 bkg2d_qqzz:1.110 bkg2d_ggzz:1.110 

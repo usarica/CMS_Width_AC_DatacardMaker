@@ -64,13 +64,24 @@ class ExternalShapeHelper:
          return None
 
 
+   def redirectRooAbsArgServers(self, theClient, var_in, var_out):
+      theClient.redirectServers(ROOT.RooArgSet(var_out), False, False, False)
+      print "Attempting to redirect {} servers of {} ({} -> {}).".format(var_out.GetName(),theClient.GetName(),var_in,var_out)
+      if theClient.hasClients():
+         clientsIter = theClient.clientIterator()
+         client=clientsIter.Next()
+         while client:
+            self.redirectRooAbsArgServers(client, var_in, var_out)
+            client=clientsIter.Next()
+
+
 # Get shapes for each category
    def getShapes(self):
       self.openFile()
       self.theWS=self.shapeFile.Get("w").Clone("WSinput_{}".format(self.shapeSuffix))
 
-      MH_in=self.theWS.factory("MH")
       mass_in=self.theWS.factory("mass")
+      MH_in=self.theWS.factory("MH")
       w_in_vars = [ mass_in, MH_in ]
       w_out_vars = [ self.mass, self.MH ]
 
@@ -79,7 +90,7 @@ class ExternalShapeHelper:
             clientsIter = var.clientIterator()
             client=clientsIter.Next()
             while client:
-               client.redirectServers(ROOT.RooArgSet(var_out), False, False, False)
+               self.redirectRooAbsArgServers(client, var, var_out)
                client=clientsIter.Next()
 
       for proc in self.theInputCard.channels:

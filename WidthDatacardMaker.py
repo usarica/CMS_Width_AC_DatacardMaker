@@ -307,6 +307,7 @@ class WidthDatacardMaker:
       )
 
       globalCondDim=1
+      condDimsAdjusted=False
       for proc in self.theInputCard.channels:
          procname = proc[0]
          procopts = proc[4]
@@ -497,6 +498,7 @@ class WidthDatacardMaker:
             procRate = bunchNominal.getTheRate()
 
          # Construct the product pdfs from conditional pdf x mass shape
+         procExtPdf = None
          if isConditional:
             if self.hasExtMassShapes:
                condpdfname = bunchNominal.getThePdf().GetName() + "_ConditionalPdf"
@@ -530,7 +532,9 @@ class WidthDatacardMaker:
                procNorm = ROOT.RooFormulaVar(normname, "TMath::Max(@0*@1*@2,1e-15)", ROOT.RooArgList(procRate, procRateExtra, self.theLumi))
          self.normList.append(procNorm)
 
-         print "Last check on pdf value:",procPdf.getVal(),"at"
+         #if procExtPdf is not None: procExtPdf.Print("v")
+         print "Last check on pdf value:",procPdf.getVal(None),"at"
+         #if procExtPdf is not None: procExtPdf.Print("v")
          if self.KD1 is not None:
             print "\t- KD1 =",self.KD1.getVal()
          if self.KD2 is not None:
@@ -544,7 +548,7 @@ class WidthDatacardMaker:
             print "\t- Extra rate = ",procRateExtra.getVal()
 
          # Fix conditional dimension binning: For a mass distribution, toy generation might create some issues
-         if globalCondDim>0:
+         if globalCondDim>0 and not condDimsAdjusted:
             condVars=[]
             if globalCondDim%2==0:
                condVars.append(self.KD1)
@@ -553,6 +557,7 @@ class WidthDatacardMaker:
             if globalCondDim%5==0:
                condVars.append(self.KD3)
             for var in condVars:
+               print "Adjusting the binning of {}".format(var.GetName())
                varBinning=var.getBinning()
                varBinArray=varBinning.array()
                varNbins=varBinning.numBins()
@@ -565,6 +570,7 @@ class WidthDatacardMaker:
                   for iy in range(1,ndiv):
                      newBinning.addBoundary(lowedge+step*float(iy))
                var.setBinning(newBinning)
+            condDimsAdjusted=True
 
          # Import the pdf and rates for this process
          getattr(self.workspace, 'import')(procPdf,ROOT.RooFit.RecycleConflictNodes())
@@ -615,12 +621,12 @@ class WidthDatacardMaker:
       else:
          self.theDataTree = self.theDataFile.Get(self.dataTreeName)
          if not self.theDataTree:
-            print "File \"", self.dataFileName, "\" or tree \"", self.dataTreeName, "\" is not found."
+            print "File \"",self.dataFileName,"\" or tree \"",self.dataTreeName, "\" is not found."
             self.theDataRDS = data_obs
          else:
             del(data_obs)
 
-            print "File \"", self.dataFileName, "\" and tree \"", self.dataTreeName, "\" are found. Extracting he data..."
+            print "File \"",self.dataFileName,"\" and tree \"",self.dataTreeName,"\" are found. Extracting the data..."
 
             dataHasMass=False
             if self.theDataTree.GetBranchStatus("mass"):
