@@ -9,6 +9,7 @@ extarg=$6
 
 scr=""
 cmd=""
+hname=$(hostname)
 if [[ "$hname" == *"lxplus"* ]];then
   echo "Host is on LXPLUS, so need to use LXBATCH"
   scr="doImpacts.lsf.sh"
