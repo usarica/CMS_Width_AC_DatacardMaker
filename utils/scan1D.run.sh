@@ -33,6 +33,9 @@ if [[ "$poi" == "GGsm" ]];then
 elif [[ "$poi" == "GGsm_floatfai1" ]];then
   echo "POIs are GGsm, floating fai1"
   cmdadd=$cmdadd" -m 125 --redefineSignalPOIs=GGsm --freezeParameters=kbkg_VBF --setParameterRanges GGsm="$rangel","$rangeh
+elif [[ "$poi" == "GGsm_floatfai1Narrow" ]];then
+  echo "POIs are GGsm, floating fai1 but with narrow range"
+  cmdadd=$cmdadd" -m 125 --redefineSignalPOIs=GGsm --freezeParameters=kbkg_VBF --setParameterRanges GGsm="$rangel","$rangeh":CMS_zz4l_fai1=-0.005:0.005"
 elif [[ "$poi" == "GGsm_fixMH" ]];then
   echo "POI is GGsm, but fixing MH"
   cmdadd=$cmdadd" -m 125 --redefineSignalPOIs=GGsm --freezeParameters=CMS_zz4l_fai1,kbkg_VBF,MH --setParameterRanges GGsm="$rangel","$rangeh
@@ -48,6 +51,9 @@ elif [[ "$poi" == "fai1" ]];then
 elif [[ "$poi" == "GGsm_fai1" ]];then
   echo "POIs are GGsm and fai1"
   cmdadd=$cmdadd" -m 125 --redefineSignalPOIs=GGsm,CMS_zz4l_fai1 --freezeParameters=kbkg_VBF  --setParameterRanges GGsm="$rangel":CMS_zz4l_fai1="$rangeh
+elif [[ "$poi" == "GGsm_MH" ]];then
+  echo "POIs are GGsm and MH"
+  cmdadd=$cmdadd" -m 125 --redefineSignalPOIs=MH,GGsm --freezeParameters=kbkg_VBF,CMS_zz4l_fai1  --setParameterRanges GGsm="$rangel":MH="$rangeh
 fi
 if [[ "$extarg" == *"fastScan"* ]];then
   cmdadd=$cmdadd" --fastScan"
