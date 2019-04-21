@@ -23,7 +23,7 @@ elif [[ "$poi" == "fai1" ]];then
   cmdadd=$cmdadd" -m 125 --redefineSignalPOIs=CMS_zz4l_fai1 --freezeParameters=GGsm,kbkg_VBF --setParameterRanges CMS_zz4l_fai1="$rangel","$rangeh
 fi
 
-cmdcore=" -M Impacts -d "$wname" --X-rtd OPTIMIZE_BOUNDS=0 --X-rtd TMCSO_AdaptivePseudoAsimov=0 -v 3 -S 1 -t -1 "$cmdadd
+cmdcore=" -M Impacts -d "$wname" --X-rtd OPTIMIZE_BOUNDS=0 --X-rtd TMCSO_AdaptivePseudoAsimov=0 -v 3 -t -1 "$cmdadd
 if [[ "$extarg" == *"obs"* ]];then
   cmdcore=${cmdcore/"-t -1 "/" "}
 elif [[ "$extarg" == *"exp"* ]];then

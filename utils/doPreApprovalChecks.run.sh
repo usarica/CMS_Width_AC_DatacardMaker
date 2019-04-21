@@ -44,10 +44,10 @@ if [[ "$extarg" == *"ALTFIT"* ]];then
 fi
 
 
-cmd="-M FitDiagnostics "$wname" -n fitdiagnositcs_bkgonly --X-rtd OPTIMIZE_BOUNDS=0 --X-rtd TMCSO_AdaptivePseudoAsimov=0 -v 3 -S 1 -t -1 "$cmdadd_bkgonly $extarg
+cmd="-M FitDiagnostics "$wname" -n fitdiagnositcs_bkgonly --X-rtd OPTIMIZE_BOUNDS=0 --X-rtd TMCSO_AdaptivePseudoAsimov=0 -v 3 -t -1 "$cmdadd_bkgonly $extarg
 echo "Command: combine "$cmd
 combine $cmd
 
-cmd="-M FitDiagnostics "$wname" -n fitdiagnositcs_sigbkg --X-rtd OPTIMIZE_BOUNDS=0 --X-rtd TMCSO_AdaptivePseudoAsimov=0 -v 3 -S 1 -t -1 "$cmdadd $extarg
+cmd="-M FitDiagnostics "$wname" -n fitdiagnositcs_sigbkg --X-rtd OPTIMIZE_BOUNDS=0 --X-rtd TMCSO_AdaptivePseudoAsimov=0 -v 3 -t -1 "$cmdadd $extarg
 echo "Command: combine "$cmd
 combine $cmd
