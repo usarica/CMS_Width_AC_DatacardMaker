@@ -59,9 +59,9 @@ if [[ "$extarg" == *"fastScan"* ]];then
   cmdadd=$cmdadd" --fastScan"
 fi
 
-cmd="-M MultiDimFit "$wname" --algo=grid --X-rtd OPTIMIZE_BOUNDS=0 --X-rtd TMCSO_AdaptivePseudoAsimov=0 --alignEdges=1 --saveNLL --saveSpecifiedNuis=all --saveSpecifiedFunc=R,RV,RF,R_13TeV,RV_13TeV,RF_13TeV -v 3 -S 1 -t -1 --points "$npoints" -n "$outname" "$cmdadd
+cmd="-M MultiDimFit "$wname" --algo=grid --X-rtd OPTIMIZE_BOUNDS=0 --X-rtd TMCSO_AdaptivePseudoAsimov=0 --alignEdges=1 --saveNLL --saveSpecifiedNuis=all --saveSpecifiedFunc=R,RV,RF,R_13TeV,RV_13TeV,RF_13TeV -v 3 -t -1 --points "$npoints" -n "$outname" "$cmdadd
 if [[ "$extarg" == *"noSyst"* ]];then
-  cmd=${cmd/"-S 1"/"-S 0"}
+  cmd=${cmd/"--freezeParameters="/"--freezeParameters=allConstrainedNuisances,"}
 fi
 if [[ "$extarg" == *"obs"* ]];then
   cmd=${cmd/"-t -1 "/" "}
