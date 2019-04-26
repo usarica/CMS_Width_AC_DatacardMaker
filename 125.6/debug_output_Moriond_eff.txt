@@ -1,4 +1,0 @@
-Mass: 125
-Energy: 7
-Channel: 4mu
-Untagged
