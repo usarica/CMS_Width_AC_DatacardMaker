@@ -1,4 +1,4 @@
-Logs
+**/Logs*
 **/*.so
 **/*.d
 **/*.pcm
@@ -6,11 +6,3 @@ Logs
 **/*.log
 **/*.pdf
 **/*.png
-templates2D/**
-externalShapes/7TeV_*
-externalShapes/8TeV_*
-externalShapes/13TeV_*
-CMSdata/7TeV_*
-CMSdata/8TeV_*
-CMSdata/13TeV_*
-cards_*
