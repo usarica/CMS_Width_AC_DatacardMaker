@@ -6,8 +6,8 @@ import math
 from scipy.special import erf
 import ROOT
 from array import array
-from CategoryHelper import CategoryHelper
-from ExtendedTemplate import ExtendedTemplate
+from CMS_ZZ_Width_AC_DatacardMaker.DatacardMaker.CategoryHelper import CategoryHelper
+from CMS_ZZ_Width_AC_DatacardMaker.DatacardMaker.ExtendedTemplate import ExtendedTemplate
 
 class ExternalShapeHelper:
    def __init__(self, options, theMaker, theEqnsMaker, theCategorizer, shapesFileName, iCat):

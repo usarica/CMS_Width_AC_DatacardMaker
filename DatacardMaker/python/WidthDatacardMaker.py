@@ -6,14 +6,14 @@ import math
 from scipy.special import erf
 import ROOT
 from array import array
-from InputCardReader import InputCardReader
-from CategoryHelper import CategoryHelper
-from EquationsMaker import EquationsMaker
-from SystematicsHelper import SystematicsHelper
-from SystematicsHelper import FloatToString
-from BSITemplateHelper import BSITemplateHelper
-from SimpleTemplateHelper import SimpleTemplateHelper
-from ExternalShapeHelper import ExternalShapeHelper
+from CMS_ZZ_Width_AC_DatacardMaker.DatacardMaker.InputCardReader import InputCardReader
+from CMS_ZZ_Width_AC_DatacardMaker.DatacardMaker.CategoryHelper import CategoryHelper
+from CMS_ZZ_Width_AC_DatacardMaker.DatacardMaker.EquationsMaker import EquationsMaker
+from CMS_ZZ_Width_AC_DatacardMaker.DatacardMaker.SystematicsHelper import SystematicsHelper
+from CMS_ZZ_Width_AC_DatacardMaker.DatacardMaker.SystematicsHelper import FloatToString
+from CMS_ZZ_Width_AC_DatacardMaker.DatacardMaker.BSITemplateHelper import BSITemplateHelper
+from CMS_ZZ_Width_AC_DatacardMaker.DatacardMaker.SimpleTemplateHelper import SimpleTemplateHelper
+from CMS_ZZ_Width_AC_DatacardMaker.DatacardMaker.ExternalShapeHelper import ExternalShapeHelper
 
 
 def FindMinMax(rate,var):

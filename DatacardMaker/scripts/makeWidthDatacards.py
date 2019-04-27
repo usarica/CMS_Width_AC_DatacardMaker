@@ -1,9 +1,10 @@
 #!/usr/bin/python
+
 import pwd
 import commands
 import optparse
 import shlex
-from WidthDatacardMaker import *
+from CMS_ZZ_Width_AC_DatacardMaker.DatacardMaker.WidthDatacardMaker import *
 
 
 def loadIncludes():
