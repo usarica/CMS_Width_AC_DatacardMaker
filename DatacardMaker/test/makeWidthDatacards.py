@@ -50,14 +50,14 @@ class makeWidthDatacards:
                          type='string', default="",    help='Append name for cards directory')
 
       parser.add_option('--coord', dest='coordinates',
-                         type='string', default="KD1:KD2:KD3",    help='Template dimensions (mass:KD1:KD2/3/int etc. Ignore CMS_zz4l_ prefix.)')
+                         type='string', default="KD1:KD2:KD3",    help='Template dimensions (mass:KD1:KD2/3/int etc. Ignore the CMS_zz(*)_ prefix.)')
 
       parser.add_option('--GHmodel', type='int', dest='GHmodel', default=1,
                          help='GH model. 0: No GH in muF or muV, 1: Add GH/GHSM as a multiplicative factor, 2: Add GH as a multiplicative factor, -1: Add GH/GHSM as a divisive factor, -2: Add GH as a divisive factor')
       parser.add_option('--GHrefval', type='float', dest='GHrefval', default=4.07, help='GH MC reference')
 
-      parser.add_option('-c', '--CatScheme', type='int', dest='iCatScheme', default=1,
-                         help='Categorization scheme. 0: Inclusive, 1: VBF-tagged and untagged, 2: VBF-, VH-tagged and untagged')
+      parser.add_option('-c', '--CatScheme', type='string', dest='iCatScheme', default='vbfvhcat',
+                         help='Categorization scheme. inclusive (or 0): Inclusive, vbfcat (or 1): VBF-tagged and untagged, vbfvhcat (or 2): VBF-, VH-tagged and untagged')
 
       parser.add_option("--channel", dest="customChannels", type="string", action="append", help="Channels to run (default=all turned on)")
       parser.add_option("--category", dest="customCategories", type="string", action="append", help="Categories to run (default=all turned on)")
@@ -132,7 +132,7 @@ class makeWidthDatacards:
 
 
    def creationLoop(self,theOutputDir):
-      finalstates = [ "4mu" , "4e" , "2e2mu" ]
+      finalstates = [ "4mu" , "4e" , "2e2mu", "2mu2e" ]
       CatHelper = CategoryHelper(self.opt.iCatScheme)
       for iCat in range(0,CatHelper.nCategories):
          catname=CatHelper.catNameList[iCat]

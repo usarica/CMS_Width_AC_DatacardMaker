@@ -10,7 +10,7 @@ from CMS_ZZ_Width_AC_DatacardMaker.DatacardMaker.InputCardReader import InputCar
 from CMS_ZZ_Width_AC_DatacardMaker.DatacardMaker.CategoryHelper import CategoryHelper
 from CMS_ZZ_Width_AC_DatacardMaker.DatacardMaker.EquationsMaker import EquationsMaker
 from CMS_ZZ_Width_AC_DatacardMaker.DatacardMaker.SystematicsHelper import SystematicsHelper
-from CMS_ZZ_Width_AC_DatacardMaker.DatacardMaker.SystematicsHelper import FloatToString
+from CMS_ZZ_Width_AC_DatacardMaker.DatacardMaker.WidthHelperFunctions import FloatToString
 from CMS_ZZ_Width_AC_DatacardMaker.DatacardMaker.BSITemplateHelper import BSITemplateHelper
 from CMS_ZZ_Width_AC_DatacardMaker.DatacardMaker.SimpleTemplateHelper import SimpleTemplateHelper
 from CMS_ZZ_Width_AC_DatacardMaker.DatacardMaker.ExternalShapeHelper import ExternalShapeHelper
@@ -188,11 +188,11 @@ class WidthDatacardMaker:
       self.theInputCard = theInputCard
       self.theEqnsMaker = theEqnsMaker
       self.theCategorizer = theCategorizer
+      #self.iCatScheme = self.theCategorizer.iCatScheme
       self.theSystematizer = theSystematizer
 
       self.templateDir = self.options.templateDir
       self.customDataDir = self.options.customDataDir
-      self.iCatScheme = self.options.iCatScheme
       self.mH = self.options.mPOLE
       self.mLow = self.options.mLow
       self.mHigh = self.options.mHigh
@@ -235,10 +235,8 @@ class WidthDatacardMaker:
       self.onevar = eqnrrvars["one"]
 
       # Determine all observables and rename them for mass range, final state, category and data period
-      #addVarMassName = "i{0}_e{1}_{2}_{3}_{4}TeV".format(
       addVarMassName = "i{0}_e{1}_{2}_{3}".format(
          FloatToString(self.mLow), FloatToString(self.mHigh),
-         #self.theChannelName, self.catName, FloatToString(self.sqrts)
          self.catName, self.theSqrtsPeriod
       )
       addVarMassName.replace(".","p")
@@ -259,8 +257,8 @@ class WidthDatacardMaker:
                   repName = addVarMassName
                   KDsHaveMass=True
                newVarName = "{}_{}".format(value.GetName(),repName)
-               if not("CMS_zz4l" in newVarName):
-                  newVarName = "CMS_zz4l_{}".format(newVarName)
+               if not("CMS_zz{}".format(self.theChannelName) in newVarName):
+                  newVarName = "CMS_zz{}_{}".format(self.theChannelName,newVarName)
                print "Renaming",value.GetName(),"to",newVarName
                value.SetName(newVarName)
 
@@ -276,8 +274,8 @@ class WidthDatacardMaker:
 
       if not KDsHaveMass:
          newVarName = "{}_{}".format(self.mass.GetName(),addVarMassName)
-         if not("CMS_zz4l" in newVarName):
-            newVarName = "CMS_zz4l_{}".format(newVarName)
+         if not("CMS_zz{}".format(self.theChannelName) in newVarName):
+            newVarName = "CMS_zz{}_{}".format(self.theChannelName,newVarName)
          print "Renaming",self.mass.GetName(),"to",newVarName
          self.mass.SetName(newVarName)
 
@@ -332,7 +330,8 @@ class WidthDatacardMaker:
          procname = proc[0]
          proctype = proc[3]
          procopts = proc[4]
-         isConditional=False
+         isConditional = False
+         isDataDriven = ("zjets" in procname.lower() or "zx" in procname.lower())
          procnamefile = procname
          condNormVars=None # Unconditional variables which are not involved in conditional template construction
          condDim=0
@@ -351,6 +350,8 @@ class WidthDatacardMaker:
                   raise RuntimeError("Process {} has no variables listed as conditional even though the conditional option is specified.".format(procname))
             if "filenamealias" in procoptl:
                procnamefile = procopt.split('=')[1]
+            if "datadriven" in procoptl:
+               isDataDriven = True
 
          bunchNominal = None
          bunchVariations = []
@@ -521,12 +522,12 @@ class WidthDatacardMaker:
 
          normname = procname + "_norm"
          if procRateExtra is None:
-            if "zjets" in procname.lower() or "zx" in procname.lower():
+            if isDataDriven:
                procNorm = ROOT.RooFormulaVar(normname, "TMath::Max(@0,1e-15)", ROOT.RooArgList(procRate))
             else:
                procNorm = ROOT.RooFormulaVar(normname, "TMath::Max(@0*@1,1e-15)", ROOT.RooArgList(procRate, self.theLumi))
          else:
-            if "zjets" in procname.lower() or "zx" in procname.lower():
+            if isDataDriven:
                procNorm = ROOT.RooFormulaVar(normname, "TMath::Max(@0*@1,1e-15)", ROOT.RooArgList(procRate, procRateExtra))
             else:
                procNorm = ROOT.RooFormulaVar(normname, "TMath::Max(@0*@1*@2,1e-15)", ROOT.RooArgList(procRate, procRateExtra, self.theLumi))
@@ -580,9 +581,8 @@ class WidthDatacardMaker:
       self.GetData()
 
       # Check the pdfs
-      if self.options.checkpdfs is not None:
-         print "Now checking the pdfs"
-         self.CheckPdfs()
+      print "Now checking the pdfs"
+      self.CheckPdfs()
 
       # Plot the pdfs
       print "Now plotting the pdfs and rates"
@@ -748,6 +748,7 @@ class WidthDatacardMaker:
 
 
    def CheckPdfs(self):
+      if self.options.checkpdfs is None: return
       if not self.options.dopdfproj: return
       for tmppdf in self.pdfList:
          for pdfname in self.options.checkpdfs:

@@ -8,13 +8,12 @@ from array import array
 # Some helper functions that don't need to belong to the systematics class
 def FloatToString(inputValue):
    return ('%.10f' % inputValue).rstrip('0').rstrip('.')
-def FloatToStringScientific(inputValue,etype='e'):
+def FloatToStringScientific(inputValue,etype='g'):
    s = FloatToString(inputValue)
    q = s.replace(".","").lstrip('0')
-   f = float(s)
-   nq = len(q)-1
+   nq = max(len(q)-1, 4)
    strcmd = ("%%%c%i%c" % ('.',nq,etype))
-   return (strcmd % f)
+   return (strcmd % inputValue)
 def GetDataPeriodString(sqrts,period):
    try: # Check whether python knows about 'basestring'
       basestring
@@ -33,4 +32,3 @@ def GetDataPeriodString(sqrts,period):
       else:
          res = "{}_{}".format(res,FloatToString(period))
    return res
-
