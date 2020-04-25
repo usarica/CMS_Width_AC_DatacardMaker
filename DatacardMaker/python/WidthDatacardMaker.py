@@ -228,7 +228,7 @@ class WidthDatacardMaker:
       self.hasExtMassShapes=(self.extMassShapesDir is not None)
       self.extShapeHandle=None
       if self.hasExtMassShapes:
-         shapesFileNameMain = "HtoZZ{}_{}_FinalMassShape_".format(self.theChannelName, self.catName)
+         shapesFileNameMain = "Hto{}_{}_FinalMassShape_".format(self.theChannelName, self.catName)
          shapesFileName = "{0}/{1}{2}{3}".format(self.extMassShapesDir, shapesFileNameMain, "AllProcesses", ".root")
          self.extShapeHandle=ExternalShapeHelper(self.options,self,self.theEqnsMaker,self.theCategorizer,shapesFileName,self.iCat)
 
@@ -257,8 +257,8 @@ class WidthDatacardMaker:
                   repName = addVarMassName
                   KDsHaveMass=True
                newVarName = "{}_{}".format(value.GetName(),repName)
-               if not("CMS_zz{}".format(self.theChannelName) in newVarName):
-                  newVarName = "CMS_zz{}_{}".format(self.theChannelName,newVarName)
+               if not("CMS_{}".format(self.theChannelName) in newVarName):
+                  newVarName = "CMS_{}_{}".format(self.theChannelName,newVarName)
                print "Renaming",value.GetName(),"to",newVarName
                value.SetName(newVarName)
 
@@ -274,8 +274,8 @@ class WidthDatacardMaker:
 
       if not KDsHaveMass:
          newVarName = "{}_{}".format(self.mass.GetName(),addVarMassName)
-         if not("CMS_zz{}".format(self.theChannelName) in newVarName):
-            newVarName = "CMS_zz{}_{}".format(self.theChannelName,newVarName)
+         if not("CMS_{}".format(self.theChannelName) in newVarName):
+            newVarName = "CMS_{}_{}".format(self.theChannelName,newVarName)
          print "Renaming",self.mass.GetName(),"to",newVarName
          self.mass.SetName(newVarName)
 
@@ -291,16 +291,16 @@ class WidthDatacardMaker:
       if (self.customDataDir != ''):
          self.dataFileDir = self.customDataDir
       self.dataTreeName = "data_obs"
-      self.dataFileName = "{0}/hzz{1}_{2}_{3}.root".format(
+      self.dataFileName = "{0}/hto{1}_{2}_{3}.root".format(
          self.dataFileDir, self.theChannelName, self.catName, self.theSqrtsPeriod
       )
-      self.datacardName = "{0}/HCG/{3}/hzz{1}_{2}.txt".format(
+      self.datacardName = "{0}/HCG/{3}/hto{1}_{2}.txt".format(
          self.theOutputDir, self.theChannelName, self.catName, self.theSqrtsPeriod
       )
-      self.workspaceFileName = "{0}/HCG/{3}/hzz{1}_{2}.input.root".format(
+      self.workspaceFileName = "{0}/HCG/{3}/hto{1}_{2}.input.root".format(
          self.theOutputDir, self.theChannelName, self.catName, self.theSqrtsPeriod
       )
-      self.plotsPathName = "{0}/figs/{3}/hzz{1}_{2}/".format(
+      self.plotsPathName = "{0}/figs/{3}/hto{1}_{2}/".format(
          self.theOutputDir, self.theChannelName, self.catName, self.theSqrtsPeriod
       )
 
@@ -362,7 +362,7 @@ class WidthDatacardMaker:
          quadNVars = []
 
          # Template file name core piece
-         templateFileNameMain = "HtoZZ{}_{}_FinalTemplates_".format(self.theChannelName, self.catName)
+         templateFileNameMain = "Hto{}_{}_FinalTemplates_".format(self.theChannelName, self.catName)
 
          # Nominal pdf and rate
          systName = "Nominal"
