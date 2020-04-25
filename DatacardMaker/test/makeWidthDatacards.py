@@ -132,7 +132,7 @@ class makeWidthDatacards:
 
 
    def creationLoop(self,theOutputDir):
-      finalstates = [ "4mu" , "4e" , "2e2mu", "2mu2e" ]
+      finalstates = [ "4mu" , "4e" , "2e2mu", "2mu2e", "2e2nu", "2mu2nu", "enumunu", "enuenu", "munumunu" ]
       CatHelper = CategoryHelper(self.opt.iCatScheme)
       for iCat in range(0,CatHelper.nCategories):
          catname=CatHelper.catNameList[iCat]
