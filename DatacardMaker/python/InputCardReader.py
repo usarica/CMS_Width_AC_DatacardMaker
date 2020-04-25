@@ -83,7 +83,12 @@ class InputCardReader:
             elif f[1] == "4e": self.decayChan = 2
             elif f[1] == "2e2mu": self.decayChan = 3
             elif f[1] == "2mu2e": self.decayChan = 4
-            else: raise RuntimeError("Unknown decay channel {0}, choices are 4mu, 4e, 2e2mu or 2mu2e".format(f[1]))
+            elif f[1] == "2e2nu": self.decayChan = 5 # ZZ
+            elif f[1] == "2mu2nu": self.decayChan = 6 # ZZ
+            elif f[1] == "enumunu": self.decayChan = 7 # WW
+            elif f[1] == "enuenu": self.decayChan = 8 # WW
+            elif f[1] == "munumunu": self.decayChan = 9 # WW
+            else: raise RuntimeError("Unknown decay channel {0}, choices are 4mu, 4e, 2e2mu, 2mu2e, 2e2nu, 2mu2nu, enumunu, enuenu, or munumunu".format(f[1]))
             self.decayChanName = f[1]
 
          if f[0].lower().startswith("category"):
