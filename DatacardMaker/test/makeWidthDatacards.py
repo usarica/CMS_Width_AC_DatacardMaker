@@ -4,7 +4,7 @@ import pwd
 import commands
 import optparse
 import shlex
-from CMS_ZZ_Width_AC_DatacardMaker.DatacardMaker.WidthDatacardMaker import *
+from CMS_Width_AC_DatacardMaker.DatacardMaker.WidthDatacardMaker import *
 
 
 def loadIncludes():

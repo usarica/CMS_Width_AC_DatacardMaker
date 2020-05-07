@@ -4,7 +4,7 @@ import re
 import math
 import collections
 from array import array
-from CMS_ZZ_Width_AC_DatacardMaker.DatacardMaker.WidthHelperFunctions import GetDataPeriodString
+from CMS_Width_AC_DatacardMaker.DatacardMaker.WidthHelperFunctions import GetDataPeriodString
 
 ## ---------------------------------------------------------------
 ## card reader class

@@ -3,6 +3,7 @@
 **/*.d
 **/*.pcm
 **/*.pyc
+**/python/__init__.py
 **/*.log
 **/*.pdf
 **/*.png

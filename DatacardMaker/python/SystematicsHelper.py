@@ -4,7 +4,7 @@ import re
 import math
 import ROOT
 from array import array
-from CMS_ZZ_Width_AC_DatacardMaker.DatacardMaker.WidthHelperFunctions import FloatToString
+from CMS_Width_AC_DatacardMaker.DatacardMaker.WidthHelperFunctions import FloatToString
 
 
 ## ------------------------------------
