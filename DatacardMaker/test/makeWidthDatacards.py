@@ -10,8 +10,8 @@ from CMS_Width_AC_DatacardMaker.DatacardMaker.WidthDatacardMaker import *
 def loadIncludes():
    # ---------------- LOAD THE INCLUDES ----------------- ##
    ROOT.gSystem.AddIncludePath("-I$ROOFITSYS/include/")
-   ROOT.gSystem.AddIncludePath("-Iinclude/")
-   ROOT.gROOT.ProcessLine(".L include/tdrstyle.cc")
+   ROOT.gSystem.AddIncludePath("-Iutils/")
+   ROOT.gROOT.ProcessLine(".L utils/tdrstyle.cc")
    ROOT.gSystem.Load("libRooFit")
    ROOT.gSystem.Load("libHiggsAnalysisCombinedLimit.so")
    # ---------------- SET PLOTTING STYLE ---------------- ##
