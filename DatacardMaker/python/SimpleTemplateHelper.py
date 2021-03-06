@@ -106,7 +106,7 @@ class SimpleTemplateHelper:
 
 # Open the template files
    def openFile(self):
-      print "Opening file ",self.templateFileName
+      print("Opening file ",self.templateFileName)
       self.templateFile = ROOT.TFile.Open(self.templateFileName, "read")
       if self.templateFile is None:
          raise RuntimeError("SimpleTemplateHelper file {} is None!".format(self.templateFileName))
@@ -194,6 +194,6 @@ class SimpleTemplateHelper:
          PdfName, PdfName,
          ROOT.RooArgList(self.theTpl.theHistFunc),ROOT.RooArgList()
       )
-      print self.thePdf.GetName(),"value =",self.thePdf.getVal()
-      print self.theRate.GetName(),"rate =",self.theRate.getVal()
+      print(self.thePdf.GetName(),"value =",self.thePdf.getVal())
+      print(self.theRate.GetName(),"rate =",self.theRate.getVal())
 

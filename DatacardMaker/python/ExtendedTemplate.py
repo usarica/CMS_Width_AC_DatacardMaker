@@ -31,7 +31,7 @@ class ExtendedTemplate:
             else:
                axis=self.origTemplate.GetZaxis()
             axisBinning = self.getBinningFromHistogram(axis)
-            print "ExtendedTemplate: {} axis {} has {} bins.".format(TemplateName,v,axisBinning.numBins())
+            print("ExtendedTemplate: {} axis {} has {} bins.".format(TemplateName,v,axisBinning.numBins()))
             theVars[v].setBinning(axisBinning)
             theVars[v].setVal((axisBinning.lowBound()+axisBinning.highBound())/2.)
 
@@ -42,7 +42,7 @@ class ExtendedTemplate:
       integral = float(self.theTemplate.IntegralWidth()) # Ensure that the precision is floating-point
       RateName = "{}_Rate".format(TemplateName)
       self.theRate = ROOT.RooConstVar(RateName,RateName,integral)
-      print "Template",TemplateName,"has integral =",self.theRate.getVal()
+      print("Template",TemplateName,"has integral =",self.theRate.getVal())
 
 
    def getBinningFromHistogram(self,axis):

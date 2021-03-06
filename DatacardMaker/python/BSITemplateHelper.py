@@ -190,7 +190,7 @@ class BSITemplateHelper:
 
 # Open the template files
    def openFile(self):
-      print "Opening file ",self.templateFileName
+      print("Opening file {}".format(self.templateFileName))
       self.templateFile = ROOT.TFile.Open(self.templateFileName, "read")
       if self.templateFile is None:
          raise RuntimeError("BSITemplateHelper file {} is None!".format(self.templateFileName))
@@ -367,7 +367,7 @@ class BSITemplateHelper:
       )
       self.ggHistFunc_Arg.Print("v")
       rfvargs.Print("v")
-      print PdfName,"value =",self.ggPdf.getVal()
+      print(PdfName,"value =",self.ggPdf.getVal())
 
 # Lists of rate FormulaVars
 # Each signal, bkg and interf is constructed separately to be able to count their contributions in the end
@@ -419,7 +419,7 @@ class BSITemplateHelper:
             rfvargs.add(self.ggBkgRates_RooFormulaVar)
       rfvname = "{}TotalRate_{}".format(self.processName,self.templateSuffix)
       self.ggTotalRate = ROOT.RooFormulaVar( rfvname , strformula , rfvargs )
-      print rfvname,"total rate =",self.ggTotalRate.getVal()
+      print(rfvname,"total rate =",self.ggTotalRate.getVal())
 
 
    def getTemplates_vvVVLike(self):
@@ -610,7 +610,7 @@ class BSITemplateHelper:
       )
       self.VBFHistFunc_Arg.Print("v")
       rfvargs.Print("v")
-      print PdfName,"value =",self.VBFPdf.getVal()
+      print(PdfName,"value =",self.VBFPdf.getVal())
 
 # Lists of rate FormulaVars
 # Each signal, bkg and interf is constructed separately to be able to count their contributions in the end
@@ -662,5 +662,5 @@ class BSITemplateHelper:
             rfvargs.add(self.VBFBkgRates_RooFormulaVar)
       rfvname = "{}TotalRate_{}".format(self.processName,self.templateSuffix)
       self.VBFTotalRate = ROOT.RooFormulaVar( rfvname , strformula , rfvargs )
-      print rfvname,"total rate =",self.VBFTotalRate.getVal()
+      print(rfvname,"total rate =",self.VBFTotalRate.getVal())
 

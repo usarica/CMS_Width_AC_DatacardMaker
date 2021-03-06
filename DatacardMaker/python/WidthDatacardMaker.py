@@ -61,7 +61,7 @@ def PlotRate(rate,args,path):
 
 def CheckPdf(pdf,xvar,yvar,zvar,checkvar,path):
    if pdf.dependsOn(checkvar):
-      print "Checking pdf {} against {}".format(pdf.GetName(),checkvar.GetName())
+      print("Checking pdf {} against {}".format(pdf.GetName(),checkvar.GetName()))
 
       xcheckdefval=0
       ycheckdefval=0
@@ -115,7 +115,7 @@ def CheckPdf(pdf,xvar,yvar,zvar,checkvar,path):
                if yvar is not None: plotname="{}_Y{}".format(plotname,FloatToString(yval))
                if zvar is not None: plotname="{}_Z{}".format(plotname,FloatToString(zval))
 
-               print "Adding {} to {}".format(plotname,canvasname)
+               print("Adding {} to {}".format(plotname,canvasname))
 
                cproj = ROOT.TCanvas( canvasname, canvasname, 200, 200 )
                plot = checkvar.frame()
@@ -259,7 +259,7 @@ class WidthDatacardMaker:
                newVarName = "{}_{}".format(value.GetName(),repName)
                if not("CMS_{}".format(self.theChannelName) in newVarName):
                   newVarName = "CMS_{}_{}".format(self.theChannelName,newVarName)
-               print "Renaming",value.GetName(),"to",newVarName
+               print("Renaming",value.GetName(),"to",newVarName)
                value.SetName(newVarName)
 
                self.dataVars.add(value)
@@ -276,7 +276,7 @@ class WidthDatacardMaker:
          newVarName = "{}_{}".format(self.mass.GetName(),addVarMassName)
          if not("CMS_{}".format(self.theChannelName) in newVarName):
             newVarName = "CMS_{}_{}".format(self.theChannelName,newVarName)
-         print "Renaming",self.mass.GetName(),"to",newVarName
+         print("Renaming",self.mass.GetName(),"to",newVarName)
          self.mass.SetName(newVarName)
 
       self.theBunches = [] # To keep track of which files are open
@@ -324,7 +324,7 @@ class WidthDatacardMaker:
       if globalCondDim==1:
          globalCondDim=0
       else:
-         print "Some processes have conditional templates, so globalCondDim={}".format(globalCondDim)
+         print("Some processes have conditional templates, so globalCondDim={}".format(globalCondDim))
 
       for proc in self.theInputCard.channels:
          procname = proc[0]
@@ -457,7 +457,7 @@ class WidthDatacardMaker:
 
          # Construct the ultimate pdf and rate for the process
          if len(bunchVariations)>0:
-            print "Bunch variations are found. Constructing VerticalInterpPdf pdf and AsymQuad rate..."
+            print("Bunch variations are found. Constructing VerticalInterpPdf pdf and AsymQuad rate...")
             morphPdfVarList = ROOT.RooArgList()
             morphPdfList = ROOT.RooArgList()
             morphRateVarList = ROOT.RooArgList()
@@ -466,7 +466,7 @@ class WidthDatacardMaker:
             morphRateList.add(bunchNominal.getTheRate())
             for systvar in bunchVariations:
                tmpBunchOpts = systvar[3]
-               print "\t- Including bunch variation {}".format(systvar[2].GetName())
+               print("\t- Including bunch variation {}".format(systvar[2].GetName()))
                normOnly=False
                shapeOnly=False
                for tmpBunchOpt in tmpBunchOpts:
@@ -477,9 +477,9 @@ class WidthDatacardMaker:
                if normOnly and shapeOnly:
                   raise RuntimeError("\t=> {} systematic in process {} cannot be both norm-only and shape-only.".format(systvar[2].GetName(), procname))
                elif normOnly:
-                  print "\t=> {} is a norm-only systematic in process {}.".format(systvar[2].GetName(), procname)
+                  print("\t=> {} is a norm-only systematic in process {}.".format(systvar[2].GetName(), procname))
                elif shapeOnly:
-                  print "\t=> {} is a shape-only systematic in process {}.".format(systvar[2].GetName(), procname)
+                  print("\t=> {} is a shape-only systematic in process {}.".format(systvar[2].GetName(), procname))
                for isyst in range(0,2):
                   if not normOnly:
                      morphPdfList.add(systvar[isyst].getThePdf())
@@ -495,7 +495,7 @@ class WidthDatacardMaker:
             ratename = ratename.replace("_Nominal","")
             procRate = ROOT.AsymQuad(ratename, ratename, morphRateList, morphRateVarList, 1.0, 2)
          else:
-            print "Bunch variations do not exist. Constructing pdf and rate from nominal bunch..."
+            print("Bunch variations do not exist. Constructing pdf and rate from nominal bunch...")
             procPdf = bunchNominal.getThePdf()
             procPdf.SetName(procname)
             procPdf.SetTitle(procname)
@@ -541,19 +541,19 @@ class WidthDatacardMaker:
          self.normList.append(procNorm)
 
          #if procExtPdf is not None: procExtPdf.Print("v")
-         print "Last check on pdf value:",procPdf.getVal(None),"at"
+         print("Last check on pdf value:",procPdf.getVal(None))
          #if procExtPdf is not None: procExtPdf.Print("v")
          if self.KD1 is not None:
-            print "\t- KD1 =",self.KD1.getVal()
+            print("\t- KD1 =",self.KD1.getVal())
          if self.KD2 is not None:
-            print "\t- KD2 =",self.KD2.getVal()
+            print("\t- KD2 =",self.KD2.getVal())
          if self.KD3 is not None:
-            print "\t- KD3 =",self.KD3.getVal()
-         print "Last check on pdf norm:",procNorm.getVal()
-         print "\t- Rate = ",procRate.getVal()
-         print "\t- Lumi = ",self.theLumi.getVal()
+            print("\t- KD3 =",self.KD3.getVal())
+         print("Last check on pdf norm:",procNorm.getVal())
+         print("\t- Rate = ",procRate.getVal())
+         print("\t- Lumi = ",self.theLumi.getVal())
          if procRateExtra is not None:
-            print "\t- Extra rate = ",procRateExtra.getVal()
+            print("\t- Extra rate = ",procRateExtra.getVal())
 
          # Fix conditional dimension binning: For a mass distribution, toy generation might create some issues
          if globalCondDim>0 and not condDimsAdjusted:
@@ -565,7 +565,7 @@ class WidthDatacardMaker:
             if globalCondDim%5==0:
                condVars.append(self.KD3)
             for var in condVars:
-               print "Adjusting the binning of {}".format(var.GetName())
+               print("Adjusting the binning of {}".format(var.GetName()))
                varBinning=var.getBinning()
                varBinArray=varBinning.array()
                varNbins=varBinning.numBins()
@@ -588,28 +588,28 @@ class WidthDatacardMaker:
       self.GetData()
 
       # Check the pdfs
-      print "Now checking the pdfs"
+      print("Now checking the pdfs")
       self.CheckPdfs()
 
       # Plot the pdfs
-      print "Now plotting the pdfs and rates"
+      print("Now plotting the pdfs and rates")
       self.PlotPdfs()
       self.PlotRates()
 
       # Write the workspace
-      print "Now writing workspace"
+      print("Now writing the workspace")
       self.theWorkspaceFile = ROOT.TFile.Open(self.workspaceFileName,"recreate")
       self.theWorkspaceFile.WriteTObject(self.workspace)
       self.theWorkspaceFile.Close()
 
-      #print "Testing the workspace"
+      #print("Testing the workspace")
       #ftmp = ROOT.TFile.Open(self.workspaceFileName,"read")
       #wtmp = ftmp.Get("w")
       #wtmp.Print("v")
       #ftmp.Close()
 
       # Write datacards
-      print "Now writing datacards"
+      print("Now writing the data cards")
       self.WriteDatacard()
 
       # Garbage collection
@@ -623,17 +623,17 @@ class WidthDatacardMaker:
       data_obs = ROOT.RooDataSet("dummy", "dummy", self.dataVars)
       self.theDataFile = ROOT.TFile.Open(self.dataFileName,"read")
       if not self.theDataFile:
-         print "Data tree is not found!"
+         print("Data tree is not found!")
          self.theDataRDS = data_obs
       else:
          self.theDataTree = self.theDataFile.Get(self.dataTreeName)
          if not self.theDataTree:
-            print "File \"",self.dataFileName,"\" or tree \"",self.dataTreeName, "\" is not found."
+            print("File \"",self.dataFileName,"\" or tree \"",self.dataTreeName, "\" is not found.")
             self.theDataRDS = data_obs
          else:
             del(data_obs)
 
-            print "File \"",self.dataFileName,"\" and tree \"",self.dataTreeName,"\" are found. Extracting the data..."
+            print("File \"",self.dataFileName,"\" and tree \"",self.dataTreeName,"\" are found. Extracting the data...")
 
             dataHasMass=False
             if self.theDataTree.GetBranchStatus("mass"):
@@ -653,7 +653,7 @@ class WidthDatacardMaker:
             for ev in range(0,self.theDataTree.GetEntries()):
                self.theDataTree.GetEntry(ev)
                for name,var in dataScalars.iteritems():
-                  print "\t- Setting variable {} to {} in event {}".format(name,var[0],ev)
+                  print("\t- Setting variable {} to {} in event {}".format(name,var[0],ev))
                   self.theEqnsMaker.rrvars[name].setVal(var[0])
                data_obs.add(self.dataVars)
 
@@ -661,7 +661,7 @@ class WidthDatacardMaker:
                data_obs_rds = data_obs.reduce("{0}>={1} && {0}<{2}".format(self.mass.GetName(), FloatToString(self.mLow), FloatToString(self.mHigh)))
             else:
                data_obs_rds = data_obs
-               print "Data does not have ",self.mass.GetName(),"as a variable."
+               print("Data does not have ",self.mass.GetName(),"as a variable.")
             self.theDataRDS = data_obs_rds
       self.theDataRDS.SetName("data_obs")
       self.theDataRDS.Print("v")

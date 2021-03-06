@@ -42,7 +42,7 @@ class ExternalShapeHelper:
 
 # Open the shape files
    def openFile(self):
-      print "Opening file ",self.shapesFileName
+      print("Opening file ",self.shapesFileName)
       self.shapeFile = ROOT.TFile.Open(self.shapesFileName, "read")
       if self.shapeFile is None:
          raise RuntimeError("ExternalShapeHelper file {} is None!".format(self.shapesFileName))
@@ -66,7 +66,7 @@ class ExternalShapeHelper:
 
    def redirectRooAbsArgServers(self, theClient, var_in, var_out):
       theClient.redirectServers(ROOT.RooArgSet(var_out), False, False, False)
-      print "Attempting to redirect {} servers of {} ({} -> {}).".format(var_out.GetName(),theClient.GetName(),var_in,var_out)
+      print("Attempting to redirect {} servers of {} ({} -> {}).".format(var_out.GetName(),theClient.GetName(),var_in,var_out))
       if theClient.hasClients():
          clientsIter = theClient.clientIterator()
          client=clientsIter.Next()
@@ -108,12 +108,12 @@ class ExternalShapeHelper:
          if isConditional:
             shapeName = "{}_MassShape".format(procTplAlias)
             #shapeName = "MassShapeModel"
-            print "\t=> Attempting to get the pdf {} from the WS".format(shapeName)
+            print("\t=> Attempting to get the pdf {} from the WS".format(shapeName))
             pdf=self.theWS.pdf(shapeName)
             if pdf is None:
                raise RuntimeError("{} pdf is null!".format(shapeName))
             pdf.SetName("{}_{}_ExtMassShape".format(procname, self.shapeSuffix))
             pdf.SetTitle("{}_{}_ExtMassShape".format(procname, self.shapeSuffix))
-            print "Acquiring mass shape {} for process {}".format(shapeName, procname)
+            print("Acquiring mass shape {} for process {}".format(shapeName, procname))
             self.thePdfs[procname]=pdf
 
