@@ -18,16 +18,6 @@ class BSITemplateHelper:
       self.theChannelName = theMaker.theChannelName
       self.workspace = theMaker.workspace
 
-      # RooRealVars from the equations maker class
-      self.muF = theEqnsMaker.rrvars["muF"] # Could itself be a RooFormulaVar (e.g. Off-shell: muF = R*RF*x. On-shell: muF = R*RF)
-      self.muV = theEqnsMaker.rrvars["muV"] # Could itself be a RooFormulaVar (e.g. Off-shell: muV = R*RV*x. On-shell: muV = R*RV)
-      self.kbkg_gg = theEqnsMaker.rrvars["kbkg_gg"]
-      self.kbkg_VBF = theEqnsMaker.rrvars["kbkg_VBF"]
-      self.fai1 = theEqnsMaker.rrvars["fai1"]
-      self.phiai1 = theEqnsMaker.rrvars["phiai1"]
-      self.phia1_gg = theEqnsMaker.rrvars["phia1_gg"] # Could itself be a RooFormulaVar (e.g. phia1_gg = phia1+phi_SB_gg)
-      self.phia1_VBF = theEqnsMaker.rrvars["phia1_VBF"] # Could itself be a RooFormulaVar (e.g. phia1_VBF = phia1+phi_SB_VBF/2)
-
       self.mass = theMaker.mass
       self.KD1 = theMaker.KD1
       self.KD2 = theMaker.KD2
@@ -72,6 +62,7 @@ class BSITemplateHelper:
       self.isGGVVLikeCouplings = self.procname.lower().startswith("gg") or self.procname.lower().startswith("tt") or self.procname.lower().startswith("bb")
       self.isSigOnly = self.proctype==1
       self.useNoBSInt = self.isSigOnly # To be changed later
+      self.forceOnshell = False
       self.condDim = 0
 
       for procopt in self.procopts: # Loop over the options
@@ -81,6 +72,8 @@ class BSITemplateHelper:
             self.condDim = 2**int("kd1" in procoptl) * 3**int("kd2" in procoptl) * 5**int("kd3" in procoptl)
          if "nobsint" in procoptl and not self.isSigOnly: # For BSI, do not use interference terms
             self.useNoBSInt = True
+         if "forceonshell" in procoptl:
+            self.forceOnshell = True
 
       # Set conditional dimensions
       if self.condDim==1:
@@ -137,16 +130,26 @@ class BSITemplateHelper:
       self.VBF_T_Int_ai1_2_Re = None
       self.VBF_T_Int_ai1_2_Im = None
 
+      # RooRealVars from the equations maker class
+      self.kbkg_gg = theEqnsMaker.rrvars["kbkg_gg"]
+      self.kbkg_VBF = theEqnsMaker.rrvars["kbkg_VBF"]
+
    # BSI+AC FORMULAE
       # RooFormulaVars
       self.ggSigRFV_noMu_list = theEqnsMaker.ggSigRFV_noMu_list
       self.ggInterfRFV_noMu_list = theEqnsMaker.ggInterfRFV_noMu_list
       self.VBFSigRFV_noMu_list = theEqnsMaker.VBFSigRFV_noMu_list
       self.VBFInterfRFV_noMu_list = theEqnsMaker.VBFInterfRFV_noMu_list
-      self.ggSigRFV_list = theEqnsMaker.ggSigRFV_list
-      self.ggInterfRFV_list = theEqnsMaker.ggInterfRFV_list
-      self.VBFSigRFV_list = theEqnsMaker.VBFSigRFV_list
-      self.VBFInterfRFV_list = theEqnsMaker.VBFInterfRFV_list
+      if self.forceOnshell:
+         self.ggSigRFV_list = theEqnsMaker.ggSigRFV_onshellMu_list
+         self.ggInterfRFV_list = theEqnsMaker.ggInterfRFV_onshellMu_list
+         self.VBFSigRFV_list = theEqnsMaker.VBFSigRFV_onshellMu_list
+         self.VBFInterfRFV_list = theEqnsMaker.VBFInterfRFV_onshellMu_list
+      else:
+         self.ggSigRFV_list = theEqnsMaker.ggSigRFV_list
+         self.ggInterfRFV_list = theEqnsMaker.ggInterfRFV_list
+         self.VBFSigRFV_list = theEqnsMaker.VBFSigRFV_list
+         self.VBFInterfRFV_list = theEqnsMaker.VBFInterfRFV_list
 
    # PDF construction
       # Lists of template arguments

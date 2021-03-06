@@ -26,12 +26,6 @@ class SimpleTemplateHelper:
       self.KD2 = theMaker.KD2
       self.KD3 = theMaker.KD3
 
-      # RooRealVars from the equations maker class
-      self.muF = theEqnsMaker.rrvars["muF"] # Could itself be a RooFormulaVar (e.g. Off-shell: muF = R*RF*x. On-shell: muF = R*RF)
-      self.muV = theEqnsMaker.rrvars["muV"] # Could itself be a RooFormulaVar (e.g. Off-shell: muV = R*RV*x. On-shell: muV = R*RV)
-      self.kbkg_gg = theEqnsMaker.rrvars["kbkg_gg"]
-      self.kbkg_VBF = theEqnsMaker.rrvars["kbkg_VBF"]
-
       self.templateDir = options.templateDir
       self.dimensions = options.dimensions # Number of template dimensions>0
 
@@ -47,6 +41,7 @@ class SimpleTemplateHelper:
       self.procopts = theProcess[4]
       self.isBkgOnly = self.proctype==0
       self.isSigOnly = self.proctype==1
+      self.forceOnshell = False
       self.procTplAlias=self.procname
       self.condDim = 0
 
@@ -60,6 +55,8 @@ class SimpleTemplateHelper:
             self.condDim = 2**int("kd1" in procoptl) * 3**int("kd2" in procoptl) * 5**int("kd3" in procoptl)
          if "templatenamealias" in procoptl:
             self.procTplAlias = procopt.split('=')[1]
+         if "forceonshell" in procoptl:
+            self.forceOnshell = True
 
       if self.condDim==1:
          self.condDim=0
@@ -71,6 +68,16 @@ class SimpleTemplateHelper:
             self.condVars.add(self.KD2)
          if self.condDim%5==0:
             self.condVars.add(self.KD3)
+
+      # RooRealVars from the equations maker class
+      if self.forceOnshell:
+         self.muF = theEqnsMaker.rrvars["muF_onshell"] # Could itself be a RooFormulaVar (e.g. Off-shell: muF = R*RF*x. On-shell: muF = R*RF)
+         self.muV = theEqnsMaker.rrvars["muV_onshell"] # Could itself be a RooFormulaVar (e.g. Off-shell: muV = R*RV*x. On-shell: muV = R*RV)
+      else:
+         self.muF = theEqnsMaker.rrvars["muF"] # Could itself be a RooFormulaVar (e.g. Off-shell: muF = R*RF*x. On-shell: muF = R*RF)
+         self.muV = theEqnsMaker.rrvars["muV"] # Could itself be a RooFormulaVar (e.g. Off-shell: muV = R*RV*x. On-shell: muV = R*RV)
+      self.kbkg_gg = theEqnsMaker.rrvars["kbkg_gg"]
+      self.kbkg_VBF = theEqnsMaker.rrvars["kbkg_VBF"]
 
       self.templateFileName = templateFileName
       self.systName = systName
@@ -160,12 +167,20 @@ class SimpleTemplateHelper:
             self.theRate = ROOT.RooFormulaVar(RateName, "@0*abs(@1)", ROOT.RooArgList(self.theTpl.theRate, self.kbkg_gg))
          else:
             self.theRate = ROOT.RooFormulaVar(RateName, "@0*abs(@1)", ROOT.RooArgList(self.theTpl.theRate, self.muF))
-      elif "tth" in self.procname.lower() or "bbh" in self.procname.lower():
+      elif "tth" in self.procname.lower() or "bbh" in self.procname.lower() \
+         or "ttvv" in self.procname.lower() or "bbvv" in self.procname.lower() \
+         or "ttww" in self.procname.lower() or "bbww" in self.procname.lower() \
+         or "ttzz" in self.procname.lower() or "bbzz" in self.procname.lower():
          if self.isSigOnly:
             self.theRate = ROOT.RooFormulaVar(RateName, "@0*abs(@1)", ROOT.RooArgList(self.theTpl.theRate, self.muF))
          else:
             self.theRate = self.theTpl.theRate
-      elif "vbf" in self.procname.lower() or "zh" in self.procname.lower() or "wh" in self.procname.lower() or "vbs" in self.procname.lower() or "zzz" in self.procname.lower() or "wzz" in self.procname.lower():
+      elif "vbf" in self.procname.lower() \
+         or "zh" in self.procname.lower() or "wh" in self.procname.lower() \
+         or "vbs" in self.procname.lower() \
+         or "zvv" in self.procname.lower() or "wvv" in self.procname.lower() or "vvvv" in self.procname.lower() \
+         or "zzz" in self.procname.lower() or "wzz" in self.procname.lower() or "vvzz" in self.procname.lower() \
+         or "zww" in self.procname.lower() or "www" in self.procname.lower() or "vvww" in self.procname.lower():
          if self.isBkgOnly:
             self.theRate = ROOT.RooFormulaVar(RateName, "@0*abs(@1)", ROOT.RooArgList(self.theTpl.theRate, self.kbkg_VBF))
          else:

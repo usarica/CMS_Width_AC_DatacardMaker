@@ -332,6 +332,7 @@ class WidthDatacardMaker:
          procopts = proc[4]
          isConditional = False
          isDataDriven = ("zjets" in procname.lower() or "zx" in procname.lower())
+         removeIntrinsicLumi = False
          procnamefile = procname
          condNormVars=None # Unconditional variables which are not involved in conditional template construction
          condDim=0
@@ -352,6 +353,8 @@ class WidthDatacardMaker:
                procnamefile = procopt.split('=')[1]
             if "datadriven" in procoptl:
                isDataDriven = True
+            if "includeslumi" in procoptl:
+               removeIntrinsicLumi = True
 
          bunchNominal = None
          bunchVariations = []
@@ -524,11 +527,15 @@ class WidthDatacardMaker:
          if procRateExtra is None:
             if isDataDriven:
                procNorm = ROOT.RooFormulaVar(normname, "TMath::Max(@0,1e-15)", ROOT.RooArgList(procRate))
+            elif removeIntrinsicLumi:
+               procNorm = ROOT.RooFormulaVar(normname, "TMath::Max(@0*@1/{},1e-15)".format(FloatToString(self.theInputCard.lumi)), ROOT.RooArgList(procRate, self.theLumi))
             else:
                procNorm = ROOT.RooFormulaVar(normname, "TMath::Max(@0*@1,1e-15)", ROOT.RooArgList(procRate, self.theLumi))
          else:
             if isDataDriven:
                procNorm = ROOT.RooFormulaVar(normname, "TMath::Max(@0*@1,1e-15)", ROOT.RooArgList(procRate, procRateExtra))
+            elif removeIntrinsicLumi:
+               procNorm = ROOT.RooFormulaVar(normname, "TMath::Max(@0*@1*@2/{},1e-15)".format(FloatToString(self.theInputCard.lumi)), ROOT.RooArgList(procRate, procRateExtra, self.theLumi))
             else:
                procNorm = ROOT.RooFormulaVar(normname, "TMath::Max(@0*@1*@2,1e-15)", ROOT.RooArgList(procRate, procRateExtra, self.theLumi))
          self.normList.append(procNorm)
@@ -662,6 +669,8 @@ class WidthDatacardMaker:
 
 
    def WriteDatacard(self):
+      print("Being WriteDatacard...")
+
       self.theDatacardFile = open(self.datacardName, "wb")
       tmplist = self.workspaceFileName.split('/')
       nameWS = tmplist[len(tmplist)-1]
@@ -793,6 +802,7 @@ class WidthDatacardMaker:
             args.append(self.theEqnsMaker.rrvars["GHratio"])
          if len(args)>0:
             PlotRate(tmpnorm,args,self.plotsPathName)
+
 
    def GetProcessSystVars(self,procidname):
       args = []

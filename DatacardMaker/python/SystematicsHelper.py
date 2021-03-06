@@ -15,6 +15,8 @@ class SystematicsHelper:
    def __init__(self,theInputs):
       self.sqrts = theInputs.sqrts
       self.theSqrtsPeriod = theInputs.theSqrtsPeriod
+      self.theSqrts = theInputs.theSqrts
+      self.theSqrts_2015_2016 = theInputs.theSqrts_2015_2016
       self.channels = theInputs.channels
       self.systematics = theInputs.systematics
       self.systVars = []
@@ -68,10 +70,18 @@ class SystematicsHelper:
       return theDict
 
    def writeSystematics(self, theFile):
+      print("SystematicsHelper::writeSystematics: Writing the systematics to the data card:")
       for syst in self.systematics:
          systname = syst[0]
          if systname.lower() == "lumiunc":
             systname = "lumi_{}".format(self.theSqrtsPeriod)
+         elif systname.lower() == "lumiunc_sqrts":
+            systname = "lumi_{}".format(self.theSqrts)
+         elif systname.lower() == "lumiunc_2015_2016":
+            systname = "lumi_{}".format(self.theSqrts_2015_2016)
+
+         print("\t Writing {}...".format(systname))
+
          systtype = syst[1]
          systtype_ALT = systtype
          if (systtype == "template" or systtype == "quadN"):

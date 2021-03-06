@@ -180,6 +180,11 @@ class InputCardReader:
             if not self.isGoodEntry(self.dataperiod):
                raise RuntimeError("{0} is not set. Check inputs!".format("period"))
          self.theSqrtsPeriod=GetDataPeriodString(self.sqrts,self.dataperiod)
+         self.theSqrts=GetDataPeriodString(self.sqrts,None)
+         if self.sqrts==13:
+            self.theSqrts_2015_2016=GetDataPeriodString(self.sqrts,"2015_2016") # Needed for the special unc. for 2015 and 2016 corelated
+         else:
+            self.theSqrts_2015_2016=None
 
       if not self.isGoodEntry(self.lumi):
          raise RuntimeError("{0} is not set. Check inputs!".format("lumi"))

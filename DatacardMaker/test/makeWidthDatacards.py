@@ -42,22 +42,22 @@ class makeWidthDatacards:
                          dest='noX', default=True, help='no X11 windows')
 
       parser.add_option('-i', '--input', dest='inputDir',
-                         type='string', default="",    help='Inputs directory')
+                         type='string', default="", help='Inputs directory')
       parser.add_option('-t', '--templates', dest='templateDir',
                          type='string', default="", help='Directory of templates')
       parser.add_option('--extMassShapes', type='string', default=None, help='Directory of external mass shapes')
       parser.add_option('-a', '--append', dest='appendName',
-                         type='string', default="",    help='Append name for cards directory')
+                         type='string', default="", help='Append name for cards directory')
 
       parser.add_option('--coord', dest='coordinates',
-                         type='string', default="KD1:KD2:KD3",    help='Template dimensions (mass:KD1:KD2/3/int etc. Ignore the CMS_zz(*)_ prefix.)')
+                         type='string', default="KD1:KD2:KD3", help='Template dimensions (mass:KD1:KD2/3/int etc. Ignore the CMS_zz(*)_ prefix.)')
 
       parser.add_option('--GHmodel', type='int', dest='GHmodel', default=1,
                          help='GH model. 0: No GH in muF or muV, 1: Add GH/GHSM as a multiplicative factor, 2: Add GH as a multiplicative factor, -1: Add GH/GHSM as a divisive factor, -2: Add GH as a divisive factor')
       parser.add_option('--GHrefval', type='float', dest='GHrefval', default=4.07, help='GH MC reference')
 
       parser.add_option('-c', '--CatScheme', type='string', dest='iCatScheme', default='vbfvhcat',
-                         help='Categorization scheme. inclusive (or 0): Inclusive, vbfcat (or 1): VBF-tagged and untagged, vbfvhcat (or 2): VBF-, VH-tagged and untagged')
+                         help='Categorization scheme. See CategoryHelper.py for the index reference and naming conventions.')
 
       parser.add_option("--channel", dest="customChannels", type="string", action="append", help="Channels to run (default=all turned on)")
       parser.add_option("--category", dest="customCategories", type="string", action="append", help="Categories to run (default=all turned on)")
@@ -72,9 +72,9 @@ class makeWidthDatacards:
                          help='mPOLE: Pole mass for the Higgs')
 
       parser.add_option('--mLow', type='float', dest='mLow', default="220",
-                         help='mLow: Low m4l boundary (def=220)')
+                         help='mLow: Low mass boundary (def=220)')
       parser.add_option('--mHigh', type='float', dest='mHigh', default="1600",
-                         help='mHigh: High m4l boundary (def=1600)')
+                         help='mHigh: High mass boundary (def=1600)')
 
       parser.add_option('--checkpdfs', type="string", action="append", help='Check specified pdfs explicitly')
       parser.add_option('--writeoutput', action='store_true', default=False, help='Write output to file')
@@ -151,7 +151,7 @@ class makeWidthDatacards:
                print "makeWidthDatacards::creationLoop: Path to datacards:",pathToDatacards
                self.makeDirectory(pathToDatacards)
 
-               pathToPlots = "{0}/figs/{1}/hzz{2}_{3}/".format(theOutputDir, theInputCard.theSqrtsPeriod, theInputCard.decayChanName, catname)
+               pathToPlots = "{0}/figs/{1}/hto{2}_{3}/".format(theOutputDir, theInputCard.theSqrtsPeriod, theInputCard.decayChanName, catname)
                print "makeWidthDatacards::creationLoop: Path to plots:",pathToPlots
                self.makeDirectory(pathToPlots)
 
