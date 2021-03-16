@@ -490,6 +490,7 @@ class WidthDatacardMaker:
                if not shapeOnly:
                   morphRateVarList.add(systvar[2])
             procPdf = ROOT.VerticalInterpPdf(procname, procname, morphPdfList, morphPdfVarList,1.0, 2)
+            procPdf.setFloorVals(1e-100, 1e-100)
 
             ratename = bunchNominal.getTheRate().GetName() + "_AsymQuad"
             ratename = ratename.replace("_Nominal","")

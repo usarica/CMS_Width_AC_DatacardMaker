@@ -3,13 +3,26 @@
 date=$1
 hypo=$2
 year=$3
+tpltag=$4
+dcinputstag=$5
+hasBoostedVH=$6
 
 theCatScheme="nj012cat"
 theCatDir="CatScheme_Nj"
 theCats=( Nj_eq_0  Nj_eq_1 Nj_geq_2 )
-inputcards=/hadoop/cms/store/user/usarica/Offshell_2L2Nu/Worker/output/DatacardSpecs/210226/Offshell_inputs_13TeV_${year}/${theCatDir}/${hypo}
-tpldir=/hadoop/cms/store/user/usarica/Offshell_2L2Nu/Worker/output/Templates/210226/${theCatDir}/${hypo}/${year}
-outdirname=${date}_ZZ2L2Nu_${hypo}_${theCatScheme}
+if [[ $hasBoostedVH -eq 1 ]]; then
+  theCatScheme="nj012boostedhadvhcat"
+  theCatDir="CatScheme_Nj_BoostedHadVH"
+  theCats+=( BoostedHadVH)
+fi
+inputcards=/hadoop/cms/store/user/usarica/Offshell_2L2Nu/Worker/output/DatacardSpecs/${dcinputstag}/Offshell_inputs_13TeV_${year}/${theCatDir}/${hypo}
+tpldir=/hadoop/cms/store/user/usarica/Offshell_2L2Nu/Worker/output/Templates/${tpltag}/${theCatDir}/${hypo}/${year}
+outdirname=${date}_ZZ2L2Nu_InputTag_${dcinputstag}_TplTag_${tpltag}_${hypo}_${theCatScheme}
+
+if [[ "$(hostname)" == *"lxplus"* ]]; then
+  inputcards=${inputcards//'/hadoop/cms/store/user/usarica/Offshell_2L2Nu/Worker/output/'}
+  tpldir=${tpldir//'/hadoop/cms/store/user/usarica/Offshell_2L2Nu/Worker/output/'}
+fi
 
 for channel in 2e2nu 2mu2nu; do
   echo "--------------"
