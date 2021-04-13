@@ -226,6 +226,9 @@ TString getSystRename(TString const& systname, TString const& systLine, TString 
   if (res.Contains("lumi")) res = "lumiUnc";
   else if (res == "pdf_qq") res = "pdf_qqbar";
   else if (res == "QCDscale_ggVV_bonly") res = "kbkg_gg";
+  else if (res == "CMS_btag_comb") res = Form("CMS_btag_comb_%s_%s", strSqrts.Data(), strPeriod.Data());
+  else if (res == "CMS_eff_e") res = Form("CMS_eff_stat_e_%s_%s", strSqrts.Data(), strPeriod.Data());
+  else if (res == "CMS_eff_mu" || res == "CMS_eff_m") res = Form("CMS_eff_stat_mu_%s_%s", strSqrts.Data(), strPeriod.Data());
   else if (res == "CMS_zz4mu_zjets") res = "CMS_hzz4l_zz4mu_zjets";
   else if (res == "CMS_zz4e_zjets") res = "CMS_hzz4l_zz4e_zjets";
   else if (res == "CMS_zz2e2mu_zjets") res = "CMS_hzz4l_zz2e2mu_zjets";
@@ -360,7 +363,7 @@ void renameDataObservables(RooWorkspace* ws, RooDataSet* data){
   }
   delete coefIter;
 }
-void getDataTree(TString cinput){
+void getDataTree(TString cinput, TString coutput_main){
   TString strSqrtsPeriod, strSqrts, strPeriod;
   getSqrtsPeriod(cinput, strSqrtsPeriod, strSqrts, strPeriod);
 
@@ -401,7 +404,7 @@ void getDataTree(TString cinput){
   float* KD = new float[nvars];
   float mass;
 
-  TString coutput_data = "Decompilation/Data";
+  TString coutput_data = "Decompilation/Data/" + coutput_main;
   gSystem->Exec("mkdir -p " + coutput_data);
   TString coutput_root;
   TFile* foutput;
@@ -443,11 +446,11 @@ void getDataTree(TString cinput){
   foutput->Close();
   finput->Close();
 }
-void getTemplates(TString cinput, double lumiScale=1, bool copy_ggH_to_VVH=false, bool rescale_xsec=false, bool rescaleOffshellComponents=false, bool hasExtMassShapes=false){
+void getTemplates(TString cinput, TString coutput_main, double lumiScale=1, bool copy_ggH_to_VVH=false, bool rescale_xsec=false, bool rescaleOffshellComponents=false, bool hasExtMassShapes=false){
   TString strSqrtsPeriod, strSqrts, strPeriod;
   getSqrtsPeriod(cinput, strSqrtsPeriod, strSqrts, strPeriod);
 
-  getDataTree(cinput);
+  getDataTree(cinput, coutput_main);
 
   string strinput = cinput.Data();
   vector<string> splitinput;
@@ -455,9 +458,9 @@ void getTemplates(TString cinput, double lumiScale=1, bool copy_ggH_to_VVH=false
   strinput = splitinput.back(); splitinput.clear();
   splitOptionRecursive(strinput, splitinput, '/');
 
-  TString coutput_templates = "Decompilation/Templates";
-  TString coutput_inputs = "Decompilation/Inputs";
-  TString coutput_extshapes = "Decompilation/ExternalShapes";
+  TString coutput_templates = "Decompilation/Templates/" + coutput_main;
+  TString coutput_inputs = "Decompilation/Inputs/" + coutput_main;
+  TString coutput_extshapes = "Decompilation/ExternalShapes/" + coutput_main;
 
   gSystem->Exec("mkdir -p " + coutput_templates);
   gSystem->Exec("mkdir -p " + coutput_inputs);
@@ -500,6 +503,14 @@ void getTemplates(TString cinput, double lumiScale=1, bool copy_ggH_to_VVH=false
   };
   for (unsigned int v=0; v<6; v++){
     if (ws->var(varsToCheck[v])) ((RooRealVar*)ws->var(varsToCheck[v]))->setVal(1);
+  }
+  if (lumiScale<0.){
+    RooAbsReal* lumivar = (RooAbsReal*) ws->factory(Form("LUMI_%s", strSqrtsPeriod.Data())); // Use factory to get RooConstVars.
+    if (lumivar) lumiScale = lumivar->getVal();
+    else{
+      cout << "No lumi variable is found. Setting lumi scale to 1." << endl;
+      lumiScale = 1;
+    }
   }
   RooRealVar* MH = ws->var("MH");
   if (MH){ // Set MH to 125
@@ -565,7 +576,15 @@ void getTemplates(TString cinput, double lumiScale=1, bool copy_ggH_to_VVH=false
       string systtype = systdist.at(1);
       string accumulate="";
       cout << "Processing systematic " << systname << endl;
-      if (isShape || isLog){
+      if (systname == "kbkg_gg"){
+        // Directly add since this is a special systematic
+        for (unsigned int ip=2; ip<systdist.size(); ip++){
+          if (ip>2) accumulate += ":";
+          accumulate += systdist.at(ip);
+        }
+        paramSyst[systname] = accumulate;
+      }
+      else if (isShape || isLog){
         for (unsigned int ip=0; ip<procname.size(); ip++){
           string systline = systdist.at(ip+2);
           if (systline.find("-")==string::npos && systline!=""){
@@ -679,7 +698,10 @@ void getTemplates(TString cinput, double lumiScale=1, bool copy_ggH_to_VVH=false
     TString systName = syst->first.c_str();
     TString systLine = syst->second.c_str();
     systName = getSystRename(systName, systLine, strSqrts, strPeriod, strCategory, strChannel);
-    if (syst->second!="") tout << "systematic " << systName << " template " << syst->second << endl;
+    if (syst->second!=""){
+      if (systName == "kbkg_gg") tout << "systematic " << systName << " param " << syst->second << endl;
+      else tout << "systematic " << systName << " template " << syst->second << endl;
+    }
   }
 
   // Search for external shapes but do not record them
@@ -710,7 +732,7 @@ void getTemplates(TString cinput, double lumiScale=1, bool copy_ggH_to_VVH=false
       tplscale *= extrascale;
     }
 
-    TString coutput_root = Form("%s/HtoZZ%s_%s_FinalTemplates_%s_%s%s", coutput_templates.Data(), channame.c_str(), catname.c_str(), procname.at(ip).Data(), "Nominal", ".root");
+    TString coutput_root = Form("%s/Hto%s_%s_FinalTemplates_%s_%s%s", coutput_templates.Data(), channame.c_str(), catname.c_str(), procname.at(ip).Data(), "Nominal", ".root");
     TFile* foutput = TFile::Open(coutput_root, "recreate");
     switch (ndims){
     case 2:
@@ -755,6 +777,7 @@ void getTemplates(TString cinput, double lumiScale=1, bool copy_ggH_to_VVH=false
     foutput->Close();
 
     for (auto syst = procSpecs[procname.at(ip).Data()].systematics.begin(); syst != procSpecs[procname.at(ip).Data()].systematics.end(); ++syst){
+      if (syst->first == "kbkg_gg") continue; // kbkg_gg is special, so skip it here.
       if (syst->second.first=="param"){
         RooRealVar* systvar = (RooRealVar*)ws->var(syst->first.c_str());
         if (!systvar){
@@ -768,7 +791,7 @@ void getTemplates(TString cinput, double lumiScale=1, bool copy_ggH_to_VVH=false
           TString systName = syst->first.c_str();
           TString systLine = (syst->second.first + " " + syst->second.second).c_str();
           systName = getSystRename(systName, systLine, strSqrts, strPeriod, strCategory, strChannel);
-          coutput_root = Form("%s/HtoZZ%s_%s_FinalTemplates_%s_%s%s%s", coutput_templates.Data(), channame.c_str(), catname.c_str(), procname.at(ip).Data(), systName.Data(), (is==0 ? "Down" : "Up"), ".root");
+          coutput_root = Form("%s/Hto%s_%s_FinalTemplates_%s_%s%s%s", coutput_templates.Data(), channame.c_str(), catname.c_str(), procname.at(ip).Data(), systName.Data(), (is==0 ? "Down" : "Up"), ".root");
           foutput = TFile::Open(coutput_root, "recreate");
           switch (ndims){
           case 2:
@@ -820,7 +843,7 @@ void getTemplates(TString cinput, double lumiScale=1, bool copy_ggH_to_VVH=false
           TString systName = syst->first.c_str();
           TString systLine = (syst->second.first + " " + syst->second.second).c_str();
           systName = getSystRename(systName, systLine, strSqrts, strPeriod, strCategory, strChannel);
-          coutput_root = Form("%s/HtoZZ%s_%s_FinalTemplates_%s_%s%s%s", coutput_templates.Data(), channame.c_str(), catname.c_str(), procname.at(ip).Data(), systName.Data(), (is==0 ? "Down" : "Up"), ".root");
+          coutput_root = Form("%s/Hto%s_%s_FinalTemplates_%s_%s%s%s", coutput_templates.Data(), channame.c_str(), catname.c_str(), procname.at(ip).Data(), systName.Data(), (is==0 ? "Down" : "Up"), ".root");
           foutput = TFile::Open(coutput_root, "recreate");
           switch (ndims){
           case 2:
@@ -872,7 +895,7 @@ void getTemplates(TString cinput, double lumiScale=1, bool copy_ggH_to_VVH=false
 
   if (hasExtMassShapes){
     renameDataObservables(ws, data);
-    TString coutput_shapes = Form("%s/HtoZZ%s_%s_FinalMassShape_%s%s", coutput_extshapes.Data(), channame.c_str(), catname.c_str(), "AllProcesses", ".root");
+    TString coutput_shapes = Form("%s/Hto%s_%s_FinalMassShape_%s%s", coutput_extshapes.Data(), channame.c_str(), catname.c_str(), "AllProcesses", ".root");
     TFile* foutput_extshapes = TFile::Open(coutput_shapes, "recreate");
     RooWorkspace wws("w", "");
     for (unsigned int ip=0; ip<procname.size(); ip++){
