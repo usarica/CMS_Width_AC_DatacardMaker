@@ -45,7 +45,12 @@ class makeWidthDatacards:
                          type='string', default="", help='Inputs directory')
       parser.add_option('-t', '--templates', dest='templateDir',
                          type='string', default="", help='Directory of templates')
-      parser.add_option('--extMassShapes', type='string', default=None, help='Directory of external mass shapes')
+
+      parser.add_option('--extMassShapes',
+                         type='string', default=None, help='Directory of external mass shapes')
+      parser.add_option('--extMassShapeMassBinMult',
+                         type='int', default=100, help='Multiplier for the number of mass bins when external shapes are needed.')
+
       parser.add_option('-a', '--append', dest='appendName',
                          type='string', default="", help='Append name for cards directory')
 

@@ -226,6 +226,11 @@ class WidthDatacardMaker:
       # External mass shapes
       self.extMassShapesDir=self.options.extMassShapes
       self.hasExtMassShapes=(self.extMassShapesDir is not None)
+      self.extMassShapeMassBinMult = None
+      if self.hasExtMassShapes:
+         self.extMassShapeMassBinMult = self.options.extMassShapeMassBinMult
+         if self.extMassShapeMassBinMult<=0:
+            raise RuntimeError("Mass bin multiplier has to be a positive integer.")
       self.extShapeHandle=None
       if self.hasExtMassShapes:
          shapesFileNameMain = "Hto{}_{}_FinalMassShape_".format(self.theChannelName, self.catName)
@@ -245,6 +250,7 @@ class WidthDatacardMaker:
       self.KD1=None
       self.KD2=None
       self.KD3=None
+      self.dataWeight = eqnrrvars["weight"]
       self.dataVars = ROOT.RooArgSet()
       KDsHaveMass=False
       for coord in self.coordList:
@@ -361,6 +367,8 @@ class WidthDatacardMaker:
          procPdf = None # Using VerticalInterpPdf
          procRate = None # Using AsymQuad
          procNorm = None # procRate*theLumi
+
+         print("Acquiring process {} of type {}...".format(procname, proctype))
 
          quadNVars = []
 
@@ -566,12 +574,13 @@ class WidthDatacardMaker:
             if globalCondDim%5==0:
                condVars.append(self.KD3)
             for var in condVars:
-               print("Adjusting the binning of {}".format(var.GetName()))
                varBinning=var.getBinning()
                varBinArray=varBinning.array()
                varNbins=varBinning.numBins()
+               oldBinning=ROOT.RooBinning(varBinning)
                newBinning=ROOT.RooBinning(varBinning)
-               ndiv=100
+               ndiv=self.extMassShapeMassBinMult
+               print("Adjusting the binning of {} by dividing into {} subdivisions.".format(var.GetName(),ndiv))
                for ix in range(0,varNbins):
                   lowedge=varBinArray[ix]
                   highedge=varBinArray[ix+1]
@@ -579,6 +588,7 @@ class WidthDatacardMaker:
                   for iy in range(1,ndiv):
                      newBinning.addBoundary(lowedge+step*float(iy))
                var.setBinning(newBinning)
+               var.setBinning(oldBinning, "originalTemplateBinning")
             condDimsAdjusted=True
 
          # Import the pdf and rates for this process
@@ -624,7 +634,7 @@ class WidthDatacardMaker:
       data_obs = ROOT.RooDataSet("dummy", "dummy", self.dataVars)
       self.theDataFile = ROOT.TFile.Open(self.dataFileName,"read")
       if not self.theDataFile:
-         print("Data tree is not found!")
+         print("Data file {} is not found!".format(self.dataFileName))
          self.theDataRDS = data_obs
       else:
          self.theDataTree = self.theDataFile.Get(self.dataTreeName)
@@ -634,36 +644,53 @@ class WidthDatacardMaker:
          else:
             del(data_obs)
 
-            print("File \"",self.dataFileName,"\" and tree \"",self.dataTreeName,"\" are found. Extracting the data...")
+            if "TH" in self.theDataTree.ClassName(): # The data is binned
+               print("File \"",self.dataFileName,"\" and data histogram \"",self.dataTreeName,"\" are found. Extracting the data...")
 
-            dataHasMass=False
-            if self.theDataTree.GetBranchStatus("mass"):
-               self.dataVars.add(self.mass) # If mass is already present in list of data variables, this line does nothing.
-               dataHasMass=True
+               datasetName = "data_obs_full"
+               self.theDataRDS = ROOT.RooDataHist(datasetName, datasetName, ROOT.RooArgList(self.dataVars), self.theDataTree)
+            else: # The data is unbinned
+               print("File \"",self.dataFileName,"\" and tree \"",self.dataTreeName,"\" are found. Extracting the data...")
 
-            datasetName = "data_obs_full"
-            data_obs = ROOT.RooDataSet(datasetName, datasetName, self.dataVars)
+               dataHasMass=False
+               if self.theDataTree.GetBranchStatus("mass"):
+                  self.dataVars.add(self.mass) # If mass is already present in list of data variables, this line does nothing.
+                  dataHasMass=True
 
-            dataScalars = dict()
-            for coord in self.coordList:
-               dataScalars[coord] = array('f', [0])
-            if dataHasMass:
-               dataScalars["mass"] = array('f', [0])
-            for name,var in dataScalars.iteritems():
-               self.theDataTree.SetBranchAddress(name,var)
-            for ev in range(0,self.theDataTree.GetEntries()):
-               self.theDataTree.GetEntry(ev)
+               dataIsWeighted=False
+               if self.theDataTree.GetBranchStatus("weight"):
+                  print("\t- Data is weighted.")
+                  self.dataVars.add(self.dataWeight)
+                  dataIsWeighted=True
+
+               datasetName = "data_obs_full"
+               if not dataIsWeighted:
+                  data_obs = ROOT.RooDataSet(datasetName, datasetName, self.dataVars)
+               else:
+                  data_obs = ROOT.RooDataSet(datasetName, datasetName, self.dataVars, "weight")
+
+               dataScalars = dict()
+               for coord in self.coordList:
+                  dataScalars[coord] = array('f', [0])
+               if dataHasMass:
+                  dataScalars["mass"] = array('f', [0])
+               if dataIsWeighted:
+                  dataScalars["weight"] = array('f', [0])
                for name,var in dataScalars.iteritems():
-                  print("\t- Setting variable {} to {} in event {}".format(name,var[0],ev))
-                  self.theEqnsMaker.rrvars[name].setVal(var[0])
-               data_obs.add(self.dataVars)
+                  self.theDataTree.SetBranchAddress(name,var)
+               for ev in range(0,self.theDataTree.GetEntries()):
+                  self.theDataTree.GetEntry(ev)
+                  for name,var in dataScalars.iteritems():
+                     print("\t- Setting variable {} to {} in event {}".format(name,var[0],ev))
+                     self.theEqnsMaker.rrvars[name].setVal(var[0])
+                  data_obs.add(self.dataVars)
 
-            if dataHasMass:
-               data_obs_rds = data_obs.reduce("{0}>={1} && {0}<{2}".format(self.mass.GetName(), FloatToString(self.mLow), FloatToString(self.mHigh)))
-            else:
-               data_obs_rds = data_obs
-               print("Data does not have ",self.mass.GetName(),"as a variable.")
-            self.theDataRDS = data_obs_rds
+               if dataHasMass:
+                  data_obs_rds = data_obs.reduce("{0}>={1} && {0}<{2}".format(self.mass.GetName(), FloatToString(self.mLow), FloatToString(self.mHigh)))
+               else:
+                  data_obs_rds = data_obs
+                  print("Data does not have {} as a variable.".format(self.mass.GetName()))
+               self.theDataRDS = data_obs_rds
       self.theDataRDS.SetName("data_obs")
       self.theDataRDS.Print("v")
       getattr(self.workspace, 'import')(self.theDataRDS, ROOT.RooFit.Rename("data_obs"))
@@ -717,7 +744,7 @@ class WidthDatacardMaker:
       binname = "a{0:.0f}".format(self.channel)
 
       self.theDatacardFile.write("bin {} \n".format(binname))
-      self.theDatacardFile.write("observation {0:.0f} \n".format(int(self.theDataRDS.numEntries())))
+      self.theDatacardFile.write("observation {0:.0f} \n".format(int(self.theDataRDS.sumEntries())))
 
       self.theDatacardFile.write("------------\n")
 

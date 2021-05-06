@@ -111,23 +111,26 @@ unsigned int extractTemplates(process_spec& proc, RooDataSet* data, unordered_ma
   delete coefIter;
   delete parList;
 
+  RooBinning xbinning;
+  RooBinning ybinning;
+  RooBinning zbinning;
   RooCmdArg xcmd;
   if (deps.at(0)->getBins()>100){
-    RooBinning xbinning=RooBinning(deps.at(0)->getBins()/100, deps.at(0)->getMin(), deps.at(0)->getMax(), "plotbinningX");
+    xbinning=RooBinning(deps.at(0)->getBins()/100, deps.at(0)->getMin(), deps.at(0)->getMax(), "plotbinningX");
     xcmd = Binning(xbinning);
   }
   RooCmdArg ycmd;
   RooCmdArg zcmd;
   if (deps.size()>1){
     if (deps.at(1)->getBins()>100){
-      RooBinning ybinning=RooBinning(deps.at(1)->getBins()/100, deps.at(1)->getMin(), deps.at(1)->getMax(), "plotbinningY");
+      ybinning=RooBinning(deps.at(1)->getBins()/100, deps.at(1)->getMin(), deps.at(1)->getMax(), "plotbinningY");
       ycmd = YVar(*(deps.at(1)), Binning(ybinning));
     }
     else ycmd = YVar(*(deps.at(1)));
   }
   if (deps.size()>2){
     if (deps.at(2)->getBins()>100){
-      RooBinning zbinning=RooBinning(deps.at(2)->getBins()/100, deps.at(2)->getMin(), deps.at(2)->getMax(), "plotbinningZ");
+      zbinning=RooBinning(deps.at(2)->getBins()/100, deps.at(2)->getMin(), deps.at(2)->getMax(), "plotbinningZ");
       zcmd = ZVar(*(deps.at(2)), Binning(zbinning));
     }
     else zcmd = ZVar(*(deps.at(2)));

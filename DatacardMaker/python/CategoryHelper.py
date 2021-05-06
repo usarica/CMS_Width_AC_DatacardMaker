@@ -8,7 +8,8 @@ class CategoryHelper:
          "vbfcat": 1,
          "vbfvhcat": 2,
          "nj012cat": 3,
-         "nj012boostedhadvhcat": 4
+         "nj012boostedhadvhcat": 4,
+         "run2legacy4l": 5
       }
 
       try:
@@ -29,6 +30,13 @@ class CategoryHelper:
       elif(self.iCatScheme == self._catDict["vbfvhcat"]): # icat==0: VBF, ==1: VH, ==2: Untagged
          self.catNameList.append("JJVBFTagged")
          self.catNameList.append("HadVHTagged")
+         self.catNameList.append("Untagged")
+      elif(self.iCatScheme == self._catDict["run2legacy4l"]):
+         self.catNameList.append("VHLepttagged")
+         self.catNameList.append("VHHadrtagged")
+         self.catNameList.append("VBFtagged")
+         self.catNameList.append("VBF1jtagged")
+         self.catNameList.append("Boosted")
          self.catNameList.append("Untagged")
       elif(self.iCatScheme == self._catDict["nj012cat"]):
          self.catNameList.append("Nj_eq_0")

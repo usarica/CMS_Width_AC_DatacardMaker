@@ -177,7 +177,7 @@ class SimpleTemplateHelper:
             self.theRate = self.theTpl.theRate
       elif "vbf" in self.procname.lower() \
          or "zh" in self.procname.lower() or "wh" in self.procname.lower() \
-         or "vbs" in self.procname.lower() \
+         or "vbs" in self.procname.lower() or "_ew" in self.procname.lower() \
          or "zvv" in self.procname.lower() or "wvv" in self.procname.lower() or "vvvv" in self.procname.lower() \
          or "zzz" in self.procname.lower() or "wzz" in self.procname.lower() or "vvzz" in self.procname.lower() \
          or "zww" in self.procname.lower() or "www" in self.procname.lower() or "vvww" in self.procname.lower():

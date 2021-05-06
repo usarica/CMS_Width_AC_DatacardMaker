@@ -62,6 +62,11 @@ class EquationsMaker:
       var = ROOT.RooRealVar(varname, varname, 0., 0., 1.)
       var.setBins(30) # To be reset later
       self.rrvars["KD3"]=var
+      varname = "weight"
+      var = ROOT.RooRealVar(varname, varname, 1., 0., 10.)
+      var.removeMin()
+      var.removeMax()
+      self.rrvars["weight"]=var
 
       Rnames = [ "R", "RV", "RF", "R_{0:.0f}TeV".format(self.sqrts), "RV_{0:.0f}TeV".format(self.sqrts), "RF_{0:.0f}TeV".format(self.sqrts) ]
       Rlabels = [ "R", "RV", "RF", "Rsqrts", "RVsqrts", "RFsqrts" ]
