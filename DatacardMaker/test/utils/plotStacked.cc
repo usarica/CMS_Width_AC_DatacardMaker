@@ -419,7 +419,7 @@ void plotStacked(TString cinputdir, int onORoffshell=0, bool isEnriched=true, bo
   const unsigned int nsqrts = sqrtsnames.size();
   std::vector<TString> const catnames{
     "Untagged", "JJVBFTagged", "HadVHTagged", // 4l categories
-    "Nj_eq_0", "Nj_eq_1", "Nj_geq_2", "BoostedHadVH" // 2l2nu categories
+    "Nj_eq_0", "Nj_eq_1", "Nj_geq_2_pTmiss_lt_200", "Nj_geq_2_pTmiss_ge_200", "BoostedHadVH" // 2l2nu categories
   };
   const unsigned int ncats = catnames.size();
 
@@ -428,10 +428,12 @@ void plotStacked(TString cinputdir, int onORoffshell=0, bool isEnriched=true, bo
   // Determine alternative model parameters
   TString failabel="f_{ai}";
   TString ailabel="";
+  TString aiKDlabel="";
   TString aihypo="";
-  if (cinputdir.Contains("a3")){ failabel="f_{a3}"; ailabel="a_{3}"; aihypo="a3"; }
-  else if (cinputdir.Contains("a2")){ failabel="f_{a2}"; ailabel="a_{2}"; aihypo="a2"; }
-  else if (cinputdir.Contains("L1")){ failabel="f_{#Lambda1}"; ailabel="#Lambda_{1}"; aihypo="Lambda1"; }
+  if (cinputdir.Contains("a3")){ failabel="f_{a3}"; ailabel="a_{3}"; aiKDlabel=aihypo="a3"; }
+  else if (cinputdir.Contains("a2")){ failabel="f_{a2}"; ailabel="a_{2}"; aiKDlabel=aihypo="a2"; }
+  else if (cinputdir.Contains("L1")){ failabel="f_{#Lambda1}"; ailabel="#Lambda_{1}"; aiKDlabel="#Lambda1"; aihypo="Lambda1"; }
+  else if (cinputdir.Contains("SM")){ aiKDlabel="a2"; }
 
   // Determine alternative model parameters
   constexpr float GHref=4.07;
@@ -860,7 +862,7 @@ void plotStacked(TString cinputdir, int onORoffshell=0, bool isEnriched=true, bo
           }
         }
       }
-      else /*if (is_2l2nu)*/ varlabels.push_back(Form("D_{2jet}^{VBF,%s}", aihypo.Data()));
+      else /*if (is_2l2nu)*/ varlabels.push_back(Form("D_{2jet}^{VBF,%s}", aiKDlabel.Data()));
     }
 
     if (ndims==0) continue;
