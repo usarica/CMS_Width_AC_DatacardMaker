@@ -7,11 +7,11 @@ tpltag=$4
 dcinputstag=$5
 hasBoostedVH=$6
 
-theCatScheme="nj012cat"
+theCatScheme="nj012_2l2nu"
 theCatDir="CatScheme_Nj"
-theCats=( Nj_eq_0  Nj_eq_1 Nj_geq_2 )
+theCats=( Nj_eq_0  Nj_eq_1 Nj_geq_2_pTmiss_lt_200 Nj_geq_2_pTmiss_ge_200 )
 if [[ $hasBoostedVH -eq 1 ]]; then
-  theCatScheme="nj012boostedhadvhcat"
+  theCatScheme="nj012_boostedhadvh_2l2nu"
   theCatDir="CatScheme_Nj_BoostedHadVH"
   theCats+=( BoostedHadVH)
 fi
@@ -31,7 +31,7 @@ for channel in 2e2nu 2mu2nu; do
   for cat in "${theCats[@]}"; do
     echo "Category: $cat"
     theCoords="mass:KD1"
-    if [[ "$hypo" != "SM" ]] && [[ "$cat" == "Nj_geq_2" ]]; then
+    if [[ "$cat" == "Nj_geq_2"* ]]; then
       theCoords="mass:KD1:KD2"
     elif [[ "$cat" == "BoostedHadVH" ]]; then
       theCoords="mass"
@@ -46,7 +46,7 @@ for channel in 2e2nu 2mu2nu; do
 
     RUN_STATUS=$?
     if [[ ${RUN_STATUS} -ne 0 ]]; then
-      echo "Datacard compilation crashed  with error code ${RUN_STATUS}. Exiting..."
+      echo "Datacard compilation crashed with error code ${RUN_STATUS}. Exiting..."
       exit ${RUN_STATUS}
     fi
 

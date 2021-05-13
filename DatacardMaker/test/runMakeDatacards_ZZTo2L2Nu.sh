@@ -12,9 +12,9 @@ for hasBoostedVH in 0; do
       ./makeDatacards_ZZTo2L2Nu.run.sh $date $hypo $year $tpltag $dcinputstag $hasBoostedVH
     done
 
-    theCatScheme="nj012cat"
+    theCatScheme="nj012_2l2nu"
     if [[ $hasBoostedVH -eq 1 ]]; then
-      theCatScheme="nj012boostedhadvhcat"
+      theCatScheme="nj012_boostedhadvh_2l2nu"
     fi
     dirname=cards_${date}_ZZ2L2Nu_InputTag_${dcinputstag}_TplTag_${tpltag}_${hypo}_${theCatScheme}/HCG
 
