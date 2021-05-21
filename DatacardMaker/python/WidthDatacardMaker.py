@@ -654,6 +654,7 @@ class WidthDatacardMaker:
 
                dataHasMass=False
                if self.theDataTree.GetBranchStatus("mass"):
+                  print("\t- Data has the mass variable")
                   self.dataVars.add(self.mass) # If mass is already present in list of data variables, this line does nothing.
                   dataHasMass=True
 
@@ -680,24 +681,23 @@ class WidthDatacardMaker:
                   self.theDataTree.SetBranchAddress(name,var)
                for ev in range(0,self.theDataTree.GetEntries()):
                   self.theDataTree.GetEntry(ev)
+                  if dataHasMass:
+                     tmpval = dataScalars["mass"][0]
+                     if tmpval<self.mLow or tmpval>=self.mHigh:
+                        continue
                   for name,var in dataScalars.iteritems():
                      print("\t- Setting variable {} to {} in event {}".format(name,var[0],ev))
                      self.theEqnsMaker.rrvars[name].setVal(var[0])
                   data_obs.add(self.dataVars)
 
-               if dataHasMass:
-                  data_obs_rds = data_obs.reduce("{0}>={1} && {0}<{2}".format(self.mass.GetName(), FloatToString(self.mLow), FloatToString(self.mHigh)))
-               else:
-                  data_obs_rds = data_obs
-                  print("Data does not have {} as a variable.".format(self.mass.GetName()))
-               self.theDataRDS = data_obs_rds
+               self.theDataRDS = data_obs
       self.theDataRDS.SetName("data_obs")
       self.theDataRDS.Print("v")
       getattr(self.workspace, 'import')(self.theDataRDS, ROOT.RooFit.Rename("data_obs"))
 
 
    def WriteDatacard(self):
-      print("Being WriteDatacard...")
+      print("Begin WriteDatacard...")
 
       self.theDatacardFile = open(self.datacardName, "wb")
       tmplist = self.workspaceFileName.split('/')
