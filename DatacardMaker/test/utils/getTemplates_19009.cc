@@ -123,12 +123,12 @@ void process_spec::acquireTemplates(TFile* finput){
   else if (strACHypo=="L1"){
     strACHypoGName = "g1prime2";
     strACHypoPureName = "0L1";
-    scale = -12100.42/1000.;
+    scale = -12100.42/10000.;
   }
   else if (strACHypo=="L1ZGs"){
     strACHypoGName = "ghzgs1prime2";
     strACHypoPureName = "0L1Zg";
-    scale = -7613.351/1000.;
+    scale = -7613.351/10000.;
   }
   else if (strACHypo=="SM") useOnlySM = true;
   else{
@@ -142,7 +142,7 @@ void process_spec::acquireTemplates(TFile* finput){
     for (int i=0; i<=(!useOnlySM ? 2 : 0); i++){
       if (i==0) tplinputcorenames.push_back(name+"_0PM");
       else if (i==2) tplinputcorenames.push_back(name+"_"+strACHypoPureName);
-      else tplinputcorenames.push_back(name+Form("_g1%i%s%i", i, strACHypoGName.Data(), 2-i)); // Actual template name includes _negative, _positive as well
+      else tplinputcorenames.push_back(name+Form("_g1%i%s%i", 2-i, strACHypoGName.Data(), i)); // Actual template name includes _negative, _positive as well
 
       TString nname = Form("T_%s_Sig", name.Data());
       if (i>0) nname += Form("_ai1_%i", i);
@@ -154,7 +154,7 @@ void process_spec::acquireTemplates(TFile* finput){
     for (int i=0; i<=(!useOnlySM ? 4 : 0); i++){
       if (i==0) tplinputcorenames.push_back(name+"_0PM");
       else if (i==4) tplinputcorenames.push_back(name+"_"+strACHypoPureName);
-      else tplinputcorenames.push_back(name+Form("_g1%i%s%i", i, strACHypoGName.Data(), 4-i));
+      else tplinputcorenames.push_back(name+Form("_g1%i%s%i", 4-i, strACHypoGName.Data(), i));
 
       TString nname = Form("T_%s_Sig", name.Data());
       if (i>0) nname += Form("_ai1_%i", i);
@@ -371,6 +371,10 @@ TString getSystRename(TString const& systname, TString const& systLine, TString 
   else if (res == "pdf_As_qq" || res == "pdf_As_qqbar") res = "pdf_asmz_qqbar";
   else if (res == "pdf_Higgs_qq" || res == "pdf_Higgs_qqbar") res = "pdf_variation_Higgs_qqbar";
   else if (res == "pdf_As_Higgs_qq" || res == "pdf_As_Higgs_qqbar") res = "pdf_asmz_Higgs_qqbar";
+  else if (res == "pdf_Higgs_gg") res = "pdf_variation_Higgs_gg";
+  else if (res == "pdf_As_Higgs_gg") res = "pdf_asmz_Higgs_gg";
+  else if (res == "CMS_pythia_scale") res = "CMS_scale_pythia";
+  else if (res == "CMS_pythia_tune") res = "CMS_tune_pythia";
   else if (res.Contains("QCDscale_muF")) replaceString<TString, TString const>(res, "QCDscale_muF", "QCDscale_fac");
   else if (res.Contains("QCDscale_muR")) replaceString<TString, TString const>(res, "QCDscale_muR", "QCDscale_ren");
   else if (res == "CMS_scale_j") res = Form("CMS_scale_j_%s_%s", strSqrts.Data(), strPeriod.Data());
