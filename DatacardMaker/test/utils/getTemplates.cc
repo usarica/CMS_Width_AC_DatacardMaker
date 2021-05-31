@@ -237,7 +237,7 @@ TString getSystRename(TString const& systname, TString const& systLine, TString 
   else if (res == "CMS_res_j") res = Form("CMS_res_j_%s_%s", strSqrts.Data(), strPeriod.Data());
   else if (res == "CMS_btag_comb") res = Form("CMS_btag_comb_%s_%s", strSqrts.Data(), strPeriod.Data());
   else if (res == "CMS_eff_e") res = Form("CMS_eff_stat_e_%s_%s", strSqrts.Data(), strPeriod.Data());
-  else if (res == "CMS_eff_mu" || res == "CMS_eff_m") res = Form("CMS_eff_stat_mu_%s_%s", strSqrts.Data(), strPeriod.Data());
+  else if (res == "CMS_eff_mu" || res == "CMS_eff_m") res = Form("CMS_eff_stat_m_%s_%s", strSqrts.Data(), strPeriod.Data());
   else if (res == "CMS_zz4mu_zjets" || res == "CMS_hzz4l_zz4mu_zjets") res = Form("CMS_hzz4l_4mu_zjets_%s_%s", strSqrts.Data(), strPeriod.Data());
   else if (res == "CMS_zz4e_zjets" || res == "CMS_hzz4l_zz4e_zjets") res = Form("CMS_hzz4l_4e_zjets_%s_%s", strSqrts.Data(), strPeriod.Data());
   else if (res == "CMS_zz2e2mu_zjets" || res == "CMS_hzz4l_zz2e2mu_zjets") res = Form("CMS_hzz4l_2e2mu_zjets_%s_%s", strSqrts.Data(), strPeriod.Data());
