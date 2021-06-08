@@ -8,8 +8,9 @@ class CategoryHelper:
          "vbfcat": 1,
          "vbfvhcat": 2,
          "nj012_2l2nu": 3,
-         "nj012boostedhadvh_2l2nu": 4,
-         "run2legacy4l": 5
+         "nj012_boostedhadvh_2l2nu": 4,
+         "run2legacy4l": 5,
+         "nj012_3l1nu": 6
       }
 
       try:
@@ -49,6 +50,10 @@ class CategoryHelper:
          self.catNameList.append("Nj_geq_2_pTmiss_lt_200")
          self.catNameList.append("Nj_geq_2_pTmiss_ge_200")
          self.catNameList.append("BoostedHadVH")
+      elif(self.iCatScheme == self._catDict["nj012_3l1nu"]):
+         self.catNameList.append("Nj_eq_0")
+         self.catNameList.append("Nj_eq_1")
+         self.catNameList.append("Nj_geq_2")
       else: # Undefined categorization
          errormsg="CategoryHelper::init: Categorization scheme {} is not defined. The following enumerators need to be used:".format(self.iCatScheme)
          for key,val in self._catDict.iteritems():

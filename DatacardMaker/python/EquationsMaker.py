@@ -68,8 +68,16 @@ class EquationsMaker:
       var.removeMax()
       self.rrvars["weight"]=var
 
-      Rnames = [ "R", "RV", "RF", "R_{0:.0f}TeV".format(self.sqrts), "RV_{0:.0f}TeV".format(self.sqrts), "RF_{0:.0f}TeV".format(self.sqrts) ]
-      Rlabels = [ "R", "RV", "RF", "Rsqrts", "RVsqrts", "RFsqrts" ]
+      Rnames = [
+         "R", "RV", "RF", "R_{0:.0f}TeV".format(self.sqrts), "RV_{0:.0f}TeV".format(self.sqrts), "RF_{0:.0f}TeV".format(self.sqrts),
+         "r", "rv", "rf", "r_{0:.0f}TeV".format(self.sqrts), "rv_{0:.0f}TeV".format(self.sqrts), "rf_{0:.0f}TeV".format(self.sqrts),
+         "r_offshell", "rv_offshell", "rf_offshell", "r_offshell_{0:.0f}TeV".format(self.sqrts), "rv_offshell_{0:.0f}TeV".format(self.sqrts), "rf_offshell_{0:.0f}TeV".format(self.sqrts)
+      ]
+      Rlabels = [
+         "R", "RV", "RF", "Rsqrts", "RVsqrts", "RFsqrts",
+         "r", "rv", "rf", "rsqrts", "rvsqrts", "rfsqrts",
+         "r_offshell", "rv_offshell", "rf_offshell", "r_offshellsqrts", "rv_offshellsqrts", "rf_offshellsqrts"
+      ]
       for varname,varlabel in zip(Rnames,Rlabels):
          var = ROOT.RooRealVar(varname, varname, 1., 0., 400.)
          var.setVal(1)
@@ -155,32 +163,146 @@ class EquationsMaker:
    # Construct muF/V
       if self.GHmodel==1:
          self.GHmodelName="OnshellR_times_GGsm"
-         self.rrvars["muF"] = ROOT.RooFormulaVar("muF_{0}_{1:.0f}TeV".format(self.GHmodelName,self.sqrts), "@0*@1*@2*@3*@4", ROOT.RooArgList(self.rrvars["R"],self.rrvars["RF"], self.rrvars["Rsqrts"],self.rrvars["RFsqrts"], self.rrvars["GHratio"]))
-         self.rrvars["muV"] = ROOT.RooFormulaVar("muV_{0}_{1:.0f}TeV".format(self.GHmodelName,self.sqrts), "@0*@1*@2*@3*@4", ROOT.RooArgList(self.rrvars["R"],self.rrvars["RV"], self.rrvars["Rsqrts"],self.rrvars["RVsqrts"], self.rrvars["GHratio"]))
-         self.rrvars["muF_onshell"] = ROOT.RooFormulaVar("muF_OnshellR_only_{0:.0f}TeV".format(self.sqrts), "@0*@1*@2*@3", ROOT.RooArgList(self.rrvars["R"],self.rrvars["RF"], self.rrvars["Rsqrts"],self.rrvars["RFsqrts"]))
-         self.rrvars["muV_onshell"] = ROOT.RooFormulaVar("muV_OnshellR_only_{0:.0f}TeV".format(self.sqrts), "@0*@1*@2*@3", ROOT.RooArgList(self.rrvars["R"],self.rrvars["RV"], self.rrvars["Rsqrts"],self.rrvars["RVsqrts"]))
+         self.rrvars["muF"] = ROOT.RooFormulaVar(
+            "muF_{0}_{1:.0f}TeV".format(self.GHmodelName,self.sqrts),
+            "@0*@1*@2*@3 * @4*@5*@6*@7 * @8",
+            ROOT.RooArgList(
+               self.rrvars["R"],self.rrvars["RF"], self.rrvars["Rsqrts"],self.rrvars["RFsqrts"],
+               self.rrvars["r_offshell"],self.rrvars["rf_offshell"], self.rrvars["r_offshellsqrts"],self.rrvars["rf_offshellsqrts"],
+               self.rrvars["GHratio"]
+            )
+         )
+         self.rrvars["muV"] = ROOT.RooFormulaVar(
+            "muV_{0}_{1:.0f}TeV".format(self.GHmodelName,self.sqrts),
+            "@0*@1*@2*@3 * @4*@5*@6*@7 * @8",
+            ROOT.RooArgList(
+               self.rrvars["R"],self.rrvars["RV"], self.rrvars["Rsqrts"],self.rrvars["RVsqrts"],
+               self.rrvars["r_offshell"],self.rrvars["rv_offshell"], self.rrvars["r_offshellsqrts"],self.rrvars["rv_offshellsqrts"],
+               self.rrvars["GHratio"]
+            )
+         )
+         self.rrvars["muF_onshell"] = ROOT.RooFormulaVar(
+            "muF_OnshellR_only_{0:.0f}TeV".format(self.sqrts),
+            "@0*@1*@2*@3 * @4*@5*@6*@7",
+            ROOT.RooArgList(
+               self.rrvars["R"],self.rrvars["RF"], self.rrvars["Rsqrts"],self.rrvars["RFsqrts"],
+               self.rrvars["r"],self.rrvars["rf"], self.rrvars["rsqrts"],self.rrvars["rfsqrts"]
+            )
+         )
+         self.rrvars["muV_onshell"] = ROOT.RooFormulaVar(
+            "muV_OnshellR_only_{0:.0f}TeV".format(self.sqrts),
+            "@0*@1*@2*@3 * @4*@5*@6*@7",
+            ROOT.RooArgList(
+               self.rrvars["R"],self.rrvars["RV"], self.rrvars["Rsqrts"],self.rrvars["RVsqrts"],
+               self.rrvars["r"],self.rrvars["rv"], self.rrvars["rsqrts"],self.rrvars["rvsqrts"]
+            )
+         )
       elif self.GHmodel==-1:
          self.GHmodelName="OnshellR_over_GGsm"
-         self.rrvars["muF"] = ROOT.RooFormulaVar("muF_{0}_{1:.0f}TeV".format(self.GHmodelName,self.sqrts), "@0*@1*@2*@3/@4", ROOT.RooArgList(self.rrvars["R"],self.rrvars["RF"], self.rrvars["Rsqrts"],self.rrvars["RFsqrts"], self.rrvars["GHratio"]))
-         self.rrvars["muV"] = ROOT.RooFormulaVar("muV_{0}_{1:.0f}TeV".format(self.GHmodelName,self.sqrts), "@0*@1*@2*@3/@4", ROOT.RooArgList(self.rrvars["R"],self.rrvars["RV"], self.rrvars["Rsqrts"],self.rrvars["RVsqrts"], self.rrvars["GHratio"]))
+         self.rrvars["muF"] = ROOT.RooFormulaVar(
+            "muF_{0}_{1:.0f}TeV".format(self.GHmodelName,self.sqrts),
+            "@0*@1*@2*@3  * @4*@5*@6*@7 / @8",
+            ROOT.RooArgList(
+               self.rrvars["R"],self.rrvars["RF"], self.rrvars["Rsqrts"],self.rrvars["RFsqrts"],
+               self.rrvars["r"],self.rrvars["rf"], self.rrvars["rsqrts"],self.rrvars["rfsqrts"],
+               self.rrvars["GHratio"]
+            )
+         )
+         self.rrvars["muV"] = ROOT.RooFormulaVar(
+            "muV_{0}_{1:.0f}TeV".format(self.GHmodelName,self.sqrts),
+            "@0*@1*@2*@3  * @4*@5*@6*@7 / @8",
+            ROOT.RooArgList(
+               self.rrvars["R"],self.rrvars["RV"], self.rrvars["Rsqrts"],self.rrvars["RVsqrts"],
+               self.rrvars["r"],self.rrvars["rv"], self.rrvars["rsqrts"],self.rrvars["rvsqrts"],
+               self.rrvars["GHratio"]
+            )
+         )
          self.rrvars["muF_onshell"] = self.rrvars["muF"]
          self.rrvars["muV_onshell"] = self.rrvars["muV"]
       elif self.GHmodel==2:
          self.GHmodelName="OnshellR_times_GGsm_times_GHref"
-         self.rrvars["muF"] = ROOT.RooFormulaVar("muF_{0}_{1:.0f}TeV".format(self.GHmodelName,self.sqrts), "@0*@1*@2*@3*@4*@5", ROOT.RooArgList(self.rrvars["R"],self.rrvars["RF"], self.rrvars["Rsqrts"],self.rrvars["RFsqrts"], self.rrvars["GHratio"],self.rrvars["GHrefval"]))
-         self.rrvars["muV"] = ROOT.RooFormulaVar("muV_{0}_{1:.0f}TeV".format(self.GHmodelName,self.sqrts), "@0*@1*@2*@3*@4*@5", ROOT.RooArgList(self.rrvars["R"],self.rrvars["RV"], self.rrvars["Rsqrts"],self.rrvars["RVsqrts"], self.rrvars["GHratio"],self.rrvars["GHrefval"]))
-         self.rrvars["muF_onshell"] = ROOT.RooFormulaVar("muF_OnshellR_only_{0:.0f}TeV".format(self.sqrts), "@0*@1*@2*@3", ROOT.RooArgList(self.rrvars["R"],self.rrvars["RF"], self.rrvars["Rsqrts"],self.rrvars["RFsqrts"]))
-         self.rrvars["muV_onshell"] = ROOT.RooFormulaVar("muV_OnshellR_only_{0:.0f}TeV".format(self.sqrts), "@0*@1*@2*@3", ROOT.RooArgList(self.rrvars["R"],self.rrvars["RV"], self.rrvars["Rsqrts"],self.rrvars["RVsqrts"]))
+         tmpargs = ROOT.RooArgList(
+            self.rrvars["R"],self.rrvars["RF"], self.rrvars["Rsqrts"],self.rrvars["RFsqrts"],
+            self.rrvars["r"],self.rrvars["rf_offshell"], self.rrvars["r_offshellsqrts"],self.rrvars["rf_offshellsqrts"],
+            self.rrvars["GHratio"]
+         )
+         tmpargs.add(self.rrvars["GHrefval"])
+         self.rrvars["muF"] = ROOT.RooFormulaVar(
+            "muF_{0}_{1:.0f}TeV".format(self.GHmodelName,self.sqrts),
+            "@0*@1*@2*@3*@4*@5*@6*@7*@8*@9",
+            tmpargs
+         )
+         tmpargs = ROOT.RooArgList(
+            self.rrvars["R"],self.rrvars["RV"], self.rrvars["Rsqrts"],self.rrvars["RVsqrts"],
+            self.rrvars["r"],self.rrvars["rv_offshell"], self.rrvars["r_offshellsqrts"],self.rrvars["rv_offshellsqrts"],
+            self.rrvars["GHratio"]
+         )
+         tmpargs.add(self.rrvars["GHrefval"])
+         self.rrvars["muV"] = ROOT.RooFormulaVar(
+            "muV_{0}_{1:.0f}TeV".format(self.GHmodelName,self.sqrts),
+            "@0*@1*@2*@3*@4*@5*@6*@7*@8*@9",
+            tmpargs
+         )
+         self.rrvars["muF_onshell"] = ROOT.RooFormulaVar(
+            "muF_OnshellR_only_{0:.0f}TeV".format(self.sqrts),
+            "@0*@1*@2*@3 * @4*@5*@6*@7",
+            ROOT.RooArgList(
+               self.rrvars["R"],self.rrvars["RF"], self.rrvars["Rsqrts"],self.rrvars["RFsqrts"],
+               self.rrvars["r"],self.rrvars["rf"], self.rrvars["rsqrts"],self.rrvars["rfsqrts"]
+            )
+         )
+         self.rrvars["muV_onshell"] = ROOT.RooFormulaVar(
+            "muV_OnshellR_only_{0:.0f}TeV".format(self.sqrts),
+            "@0*@1*@2*@3 * @4*@5*@6*@7",
+            ROOT.RooArgList(
+               self.rrvars["R"],self.rrvars["RV"], self.rrvars["Rsqrts"],self.rrvars["RVsqrts"],
+               self.rrvars["r"],self.rrvars["rv"], self.rrvars["rsqrts"],self.rrvars["rvsqrts"]
+            )
+         )
       elif self.GHmodel==-2:
          self.GHmodelName="OnshellR_over_GGsm_over_GHref"
-         self.rrvars["muF"] = ROOT.RooFormulaVar("muF_{0}_{1:.0f}TeV".format(self.GHmodelName,self.sqrts), "@0*@1*@2*@3/(@4*@5)", ROOT.RooArgList(self.rrvars["R"],self.rrvars["RF"], self.rrvars["Rsqrts"],self.rrvars["RFsqrts"], self.rrvars["GHratio"],self.rrvars["GHrefval"]))
-         self.rrvars["muV"] = ROOT.RooFormulaVar("muV_{0}_{1:.0f}TeV".format(self.GHmodelName,self.sqrts), "@0*@1*@2*@3/(@4*@5)", ROOT.RooArgList(self.rrvars["R"],self.rrvars["RV"], self.rrvars["Rsqrts"],self.rrvars["RVsqrts"], self.rrvars["GHratio"],self.rrvars["GHrefval"]))
+         tmpargs = ROOT.RooArgList(
+               self.rrvars["R"],self.rrvars["RF"], self.rrvars["Rsqrts"],self.rrvars["RFsqrts"],
+               self.rrvars["r"],self.rrvars["rf"], self.rrvars["rsqrts"],self.rrvars["rfsqrts"],
+               self.rrvars["GHratio"]
+            )
+         tmpargs.add(self.rrvars["GHrefval"])
+         self.rrvars["muF"] = ROOT.RooFormulaVar(
+            "muF_{0}_{1:.0f}TeV".format(self.GHmodelName,self.sqrts),
+            "@0*@1*@2*@3 * @4*@5*@6*@7/(@8*@9)",
+            tmpargs
+         )
+         tmpargs = ROOT.RooArgList(
+               self.rrvars["R"],self.rrvars["RV"], self.rrvars["Rsqrts"],self.rrvars["RVsqrts"],
+               self.rrvars["r"],self.rrvars["rv"], self.rrvars["rsqrts"],self.rrvars["rvsqrts"],
+               self.rrvars["GHratio"]
+            )
+         tmpargs.add(self.rrvars["GHrefval"])
+         self.rrvars["muV"] = ROOT.RooFormulaVar(
+            "muV_{0}_{1:.0f}TeV".format(self.GHmodelName,self.sqrts),
+            "@0*@1*@2*@3 * @4*@5*@6*@7/(@8*@9)",
+            tmpargs
+         )
          self.rrvars["muF_onshell"] = self.rrvars["muF"]
          self.rrvars["muV_onshell"] = self.rrvars["muV"]
       else:
          self.GHmodelName="OnshellR_only"
-         self.rrvars["muF"] = ROOT.RooFormulaVar("muF_{0}_{1:.0f}TeV".format(self.GHmodelName,self.sqrts), "@0*@1*@2*@3", ROOT.RooArgList(self.rrvars["R"],self.rrvars["RF"], self.rrvars["Rsqrts"],self.rrvars["RFsqrts"]))
-         self.rrvars["muV"] = ROOT.RooFormulaVar("muV_{0}_{1:.0f}TeV".format(self.GHmodelName,self.sqrts), "@0*@1*@2*@3", ROOT.RooArgList(self.rrvars["R"],self.rrvars["RV"], self.rrvars["Rsqrts"],self.rrvars["RVsqrts"]))
+         self.rrvars["muF"] = ROOT.RooFormulaVar(
+            "muF_{0}_{1:.0f}TeV".format(self.GHmodelName,self.sqrts),
+            "@0*@1*@2*@3 * @4*@5*@6*@7",
+            ROOT.RooArgList(
+               self.rrvars["R"],self.rrvars["RF"], self.rrvars["Rsqrts"],self.rrvars["RFsqrts"],
+               self.rrvars["r"],self.rrvars["rf"], self.rrvars["rsqrts"],self.rrvars["rfsqrts"]
+            )
+         )
+         self.rrvars["muV"] = ROOT.RooFormulaVar(
+            "muV_{0}_{1:.0f}TeV".format(self.GHmodelName,self.sqrts),
+            "@0*@1*@2*@3 * @4*@5*@6*@7",
+            ROOT.RooArgList(
+               self.rrvars["R"],self.rrvars["RV"], self.rrvars["Rsqrts"],self.rrvars["RVsqrts"],
+               self.rrvars["r"],self.rrvars["rv"], self.rrvars["rsqrts"],self.rrvars["rvsqrts"]
+            )
+         )
          self.rrvars["muF_onshell"] = self.rrvars["muF"]
          self.rrvars["muV_onshell"] = self.rrvars["muV"]
 

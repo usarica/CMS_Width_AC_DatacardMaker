@@ -88,7 +88,9 @@ class InputCardReader:
             elif f[1] == "enumunu": self.decayChan = 7 # WW
             elif f[1] == "enuenu": self.decayChan = 8 # WW
             elif f[1] == "munumunu": self.decayChan = 9 # WW
-            else: raise RuntimeError("Unknown decay channel {0}, choices are 4mu, 4e, 2e2mu, 2mu2e, 2e2nu, 2mu2nu, enumunu, enuenu, or munumunu".format(f[1]))
+            elif f[1] == "2l1e": self.decayChan = 10 # ZW
+            elif f[1] == "2l1mu": self.decayChan = 11 # ZW
+            else: raise RuntimeError("Unknown decay channel {0}, choices are 4mu, 4e, 2e2mu, 2mu2e, 2e2nu, 2mu2nu, enumunu, enuenu, munumunu, 2l1e, 2l1mu".format(f[1]))
             self.decayChanName = f[1]
 
          if f[0].lower().startswith("category"):
@@ -183,8 +185,10 @@ class InputCardReader:
          self.theSqrts=GetDataPeriodString(self.sqrts,None)
          if self.sqrts==13:
             self.theSqrts_2015_2016=GetDataPeriodString(self.sqrts,"2015_2016") # Needed for the special unc. for 2015 and 2016 corelated
+            self.theSqrts_2017_2018=GetDataPeriodString(self.sqrts,"2017_2018") # Needed for the special unc. for 2017 and 2018 corelated
          else:
             self.theSqrts_2015_2016=None
+            self.theSqrts_2017_2018=None
 
       if not self.isGoodEntry(self.lumi):
          raise RuntimeError("{0} is not set. Check inputs!".format("lumi"))

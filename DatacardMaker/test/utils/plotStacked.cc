@@ -412,7 +412,7 @@ bool FileExists(const char* fname){
   return (stat(fname, &sb) == 0 && S_ISREG(sb.st_mode));
 }
 
-void plotStacked(TString cinputdir, int onORoffshell=0, bool isEnriched=true, bool markPreliminary=false){
+void plotStacked(TString cinputdir, int onORoffshell=0, bool isEnriched=true, bool markPreliminary=false, bool isBlind=false){
   gStyle->SetOptStat(0);
 
   std::vector<TString> const sqrtsnames{ "13TeV_2016", "13TeV_2017", "13TeV_2018" };
@@ -432,7 +432,7 @@ void plotStacked(TString cinputdir, int onORoffshell=0, bool isEnriched=true, bo
   TString aihypo="";
   if (cinputdir.Contains("a3")){ failabel="f_{a3}"; ailabel="a_{3}"; aiKDlabel=aihypo="a3"; }
   else if (cinputdir.Contains("a2")){ failabel="f_{a2}"; ailabel="a_{2}"; aiKDlabel=aihypo="a2"; }
-  else if (cinputdir.Contains("L1")){ failabel="f_{#Lambda1}"; ailabel="#Lambda_{1}"; aiKDlabel="#Lambda1"; aihypo="Lambda1"; }
+  else if (cinputdir.Contains("L1")){ failabel="f_{#Lambda1}"; ailabel="#Lambda_{1}"; aiKDlabel="#Lambda1"; aihypo="L1"; }
   else if (cinputdir.Contains("SM")){ aiKDlabel="a2"; }
 
   // Determine alternative model parameters
@@ -454,9 +454,9 @@ void plotStacked(TString cinputdir, int onORoffshell=0, bool isEnriched=true, bo
   }
   */
   if (onORoffshell==1){ // Offshell
-    if (cinputdir.Contains("a3")){ val_fai1ALT["fai1"]=0.01; val_fai1ALT["RV"]=getACMuV(cinputdir, val_fai1ALT["fai1"]); val_fai1ALT["RF"]=getACMuF(cinputdir, val_fai1ALT["fai1"]); }
-    else if (cinputdir.Contains("a2")){ val_fai1ALT["fai1"]=-0.01; val_fai1ALT["RV"]=getACMuV(cinputdir, val_fai1ALT["fai1"]); val_fai1ALT["RF"]=getACMuF(cinputdir, val_fai1ALT["fai1"]); }
-    else if (cinputdir.Contains("L1")){ val_fai1ALT["fai1"]=0.01; val_fai1ALT["RV"]=getACMuV(cinputdir, val_fai1ALT["fai1"]); val_fai1ALT["RF"]=getACMuF(cinputdir, val_fai1ALT["fai1"]); }
+    if (cinputdir.Contains("a3")){ val_fai1ALT["fai1"]=0.05; val_fai1ALT["RV"]=getACMuV(cinputdir, val_fai1ALT["fai1"]); val_fai1ALT["RF"]=getACMuF(cinputdir, val_fai1ALT["fai1"]); }
+    else if (cinputdir.Contains("a2")){ val_fai1ALT["fai1"]=-0.05; val_fai1ALT["RV"]=getACMuV(cinputdir, val_fai1ALT["fai1"]); val_fai1ALT["RF"]=getACMuF(cinputdir, val_fai1ALT["fai1"]); }
+    else if (cinputdir.Contains("L1")){ val_fai1ALT["fai1"]=0.05; val_fai1ALT["RV"]=getACMuV(cinputdir, val_fai1ALT["fai1"]); val_fai1ALT["RF"]=getACMuF(cinputdir, val_fai1ALT["fai1"]); }
     val_GGsmALT["RV"]=1; val_GGsmALT["RF"]=1; val_GGsmALT["GGsm"]=20./GHref;
   }
   else{ // Onshell
@@ -468,20 +468,27 @@ void plotStacked(TString cinputdir, int onORoffshell=0, bool isEnriched=true, bo
 
   for (unsigned int icat=0; icat<ncats; icat++){
     TString const& catname = catnames.at(icat);
-    unordered_map<TString, TH1F> procshape_1D;
-    unordered_map<TString, TH2F> procshape_2D;
-    unordered_map<TString, TH3F> procshape_3D;
     cout << "Acquiring shapes for category " << catname << endl;
-    unsigned int ndims=0;
 
     // Determine if the categoriy is a 4l or 2l2nu category
     // Set channel names accordingly
     bool const is_2l2nu = catname.Contains("Nj") || catname.Contains("BoostedHadVH");
     bool const is_4l = !is_2l2nu;
+
+    if (onORoffshell==0 && is_2l2nu){
+      cerr << "\t- Cannot have an on-shell category for 2l2nu! Skipping..." << endl;
+      continue;
+    }
+
     std::vector<TString> channames;
     if (is_2l2nu) channames = std::vector<TString>{ "2e2nu", "2mu2nu" };
     else /*if (is_4l)*/ channames = std::vector<TString>{ "4mu", "4e", "2e2mu" };
     const unsigned int nchans = channames.size();
+
+    unsigned int ndims=0;
+    unordered_map<TString, TH1F> procshape_1D;
+    unordered_map<TString, TH2F> procshape_2D;
+    unordered_map<TString, TH3F> procshape_3D;
 
     // Get process order/labels
     std::vector<TString> proc_order, proc_label;
@@ -787,7 +794,9 @@ void plotStacked(TString cinputdir, int onORoffshell=0, bool isEnriched=true, bo
           else if (catname=="HadVHTagged") varlabels.push_back("D_{bkg,m4l}^{VH+dec}");
         }
       }
-      else /*if (is_2l2nu)*/ varlabels.push_back("m_{T}^{ZZ} (GeV)");
+      else /*if (is_2l2nu)*/{
+        varlabels.push_back("m_{T}^{ZZ} (GeV)");
+      }
     }
     // KD2
     if (ndims>=2){
@@ -815,7 +824,9 @@ void plotStacked(TString cinputdir, int onORoffshell=0, bool isEnriched=true, bo
           }
         }
       }
-      else /*if (is_2l2nu)*/ varlabels.push_back(((catname=="Nj_geq_2" && is_2l2nu) ? "D_{2jet}^{VBF}" : "p_{T}^{miss} (GeV)"));
+      else /*if (is_2l2nu)*/{
+        varlabels.push_back(((catname.Contains("Nj_geq_2") && is_2l2nu) ? "D_{2jet}^{VBF}" : "p_{T}^{miss} (GeV)"));
+      }
     }
     // KD3
     if (ndims>=3){
@@ -862,7 +873,9 @@ void plotStacked(TString cinputdir, int onORoffshell=0, bool isEnriched=true, bo
           }
         }
       }
-      else /*if (is_2l2nu)*/ varlabels.push_back(Form("D_{2jet}^{VBF,%s}", aiKDlabel.Data()));
+      else /*if (is_2l2nu)*/{
+        varlabels.push_back(Form("D_{2jet}^{VBF,%s}", aiKDlabel.Data()));
+      }
     }
 
     if (ndims==0) continue;
@@ -874,13 +887,21 @@ void plotStacked(TString cinputdir, int onORoffshell=0, bool isEnriched=true, bo
     int massDim=-1;
     int kdDim=-1;
     for (unsigned int idim=0; idim<ndims; idim++){
-      if (varlabels.at(idim).Contains("D_{bkg}") || varlabels.at(idim).Contains("p_{T}^{miss}") || varlabels.at(idim)=="D_{2jet}^{VBF}") kdDim=idim;
       if (varlabels.at(idim).Contains("m_{4l}") || varlabels.at(idim).Contains("m_{T}^{ZZ}")) massDim=idim;
+      else if (
+        (is_4l && varlabels.at(idim).Contains("D_{bkg}"))
+        ||
+        (
+          is_2l2nu
+          && 
+          (varlabels.at(idim).Contains("p_{T}^{miss}") || varlabels.at(idim)=="D_{2jet}^{VBF}")
+          )
+        ) kdDim=idim;
     }
     cout << "Mass dim: " << massDim << endl;
     cout << "KD dim: " << kdDim << endl;
 
-    std::vector<float> cutvals(ndims, -1);
+    std::vector< std::vector<float> > cutvals(ndims, std::vector<float>(ndims, -1));
     unordered_map<TString, std::vector<TH1F*>> procdist; // The key is for the process label, and the vector is for the dimensions
     for (unsigned int idim=0; idim<ndims; idim++){
       TString dimname = Form("_KD%i", idim+1);
@@ -907,7 +928,7 @@ void plotStacked(TString cinputdir, int onORoffshell=0, bool isEnriched=true, bo
           int iy=1, iz=1;
           int jy=yaxis->GetNbins(), jz=zaxis->GetNbins();
           if (isEnriched){
-            const float valMassCut=(is_4l ? 340. : (is_2l2nu ? 350. : -1.));
+            const float valMassCut=(is_4l ? 340. : (is_2l2nu ? 450. : -1.));
             if (onORoffshell==1 && (int) idim!=massDim){ // Cut on mass
               if (massDim==0){
                 if (idim==1){ iz=zaxis->FindBin(valMassCut); }
@@ -921,7 +942,7 @@ void plotStacked(TString cinputdir, int onORoffshell=0, bool isEnriched=true, bo
                 if (idim==0){ iz=zaxis->FindBin(valMassCut); }
                 else if (idim==1){ iy=yaxis->FindBin(valMassCut); }
               }
-              cutvals.at(idim) = valMassCut;
+              cutvals.at(idim).at(massDim) = valMassCut;
             }
 
             const float valKDCut=(onORoffshell==1 ? (is_2l2nu ? 0.8 : 0.6) : 0.5);
@@ -938,7 +959,7 @@ void plotStacked(TString cinputdir, int onORoffshell=0, bool isEnriched=true, bo
                 if (idim==0){ iz=zaxis->FindBin(valKDCut); }
                 else if (idim==1){ iy=yaxis->FindBin(valKDCut); }
               }
-              cutvals.at(idim) = valKDCut;
+              cutvals.at(idim).at(kdDim) = valKDCut;
             }
           }
           cout << "Cutting y-axis in range " << iy << ", " << jy << endl;
@@ -971,15 +992,15 @@ void plotStacked(TString cinputdir, int onORoffshell=0, bool isEnriched=true, bo
           int iy=1;
           int jy=yaxis->GetNbins();
           if (isEnriched){
-            const float valMassCut=(is_4l ? 340. : (is_2l2nu ? 350. : -1.));
+            const float valMassCut=(is_4l ? 340. : (is_2l2nu ? 450. : -1.));
             if (onORoffshell==1 && (int) idim!=massDim){ // Cut on mass
               iy = yaxis->FindBin(valMassCut);
-              cutvals.at(idim) = valMassCut;
+              cutvals.at(idim).at(massDim) = valMassCut;
             }
             const float valKDCut=(onORoffshell==1 ? (varlabels.at(kdDim).Contains("p_{T}^{miss}") ? 200. : (is_2l2nu ? 0.8 : 0.6)) : 0.5);
             if ((int) idim!=kdDim){ // Cut on D_bkg
               iy = yaxis->FindBin(valKDCut);
-              cutvals.at(idim) = valKDCut;
+              cutvals.at(idim).at(kdDim) = valKDCut;
             }
           }
           cout << "Cutting y-axis in range " << iy << ", " << jy << endl;
@@ -1013,7 +1034,11 @@ void plotStacked(TString cinputdir, int onORoffshell=0, bool isEnriched=true, bo
     }
 
     for (auto& pp:procdist) cout << "Process " << pp.first << " has " << pp.second.size() << " projections." << endl;
-    for (auto& cutval:cutvals) cout << "Cut value " << cutval << " is defined." << endl;
+    for (unsigned short idim=0; idim<cutvals.size(); idim++){
+      cout << "Cut values defined for the projection on dimension " << idim << ": ";
+      for (unsigned short jdim=0; jdim<cutvals.at(idim).size(); jdim++) cout << (jdim>0 ? ", " : "") << cutvals.at(idim).at(jdim);
+      cout << endl;
+    }
 
     // Make a canvas for the legend
     {
@@ -1119,7 +1144,7 @@ void plotStacked(TString cinputdir, int onORoffshell=0, bool isEnriched=true, bo
           prochist->SetFillColor(proc_color[ip]);
           prochist->SetFillStyle(1001);
         }
-        prochist->SetLineWidth(2);
+        prochist->SetLineWidth(1);
 
         if (procname=="data") tgdata=getDataGraph(prochist);
       }
@@ -1210,7 +1235,7 @@ void plotStacked(TString cinputdir, int onORoffshell=0, bool isEnriched=true, bo
       canvas.cd();
       pads.push_back(
         new TPad(
-          Form("%s_top", canvas.GetName()), "",
+          Form("%s_bot", canvas.GetName()), "",
           0, 0, 1, 2./11. + 0.13 * 8./11. + 0.5/11.
         )
       );
@@ -1274,7 +1299,7 @@ void plotStacked(TString cinputdir, int onORoffshell=0, bool isEnriched=true, bo
       else if (catname=="HadVHTagged") strCatLabel="VH-tagged";
       else if (catname=="Nj_eq_0") strCatLabel="N_{j}=0";
       else if (catname=="Nj_eq_1") strCatLabel="N_{j}=1";
-      else if (catname=="Nj_geq_2") strCatLabel="N_{j}#geq2";
+      else if (catname.Contains("Nj_geq_2")) strCatLabel="N_{j}#geq2";
       else if (catname=="BoostedHadVH") strCatLabel="Boosted V #rightarrow J";
       if (ailabel!="") strCatLabel = strCatLabel + ", " + ailabel + " analysis";
       TPaveText pt_cat(0.20, 0.83, 0.40, 0.90, "brNDC");
@@ -1287,14 +1312,29 @@ void plotStacked(TString cinputdir, int onORoffshell=0, bool isEnriched=true, bo
       text->SetTextSize(0.044);
 
       TString strCutLabel;
-      if (idim!=massDim){
-        if (is_2l2nu) strCutLabel += "m_{T}^{ZZ}>=350 GeV";
-        else strCutLabel += "m_{4l}>=340 GeV";
+      if ((int) idim!=massDim && cutvals.at(idim).at(massDim)>0.){
+        TString strUnit = "GeV";
+        if (is_2l2nu) strCutLabel += "m_{T}^{ZZ}#geq";
+        else strCutLabel += "m_{4l}#geq";
+        strCutLabel += Form("%.0f", cutvals.at(idim).at(massDim));
+        if (strUnit!="") strCutLabel = strCutLabel + " " + strUnit;
       }
-      if (idim!=kdDim){
+      if (is_2l2nu && catname.Contains("Nj_geq_2")){
         if (strCutLabel!="") strCutLabel += ", ";
-        if (is_2l2nu) strCutLabel += (catname=="Nj_geq_2" ? "D_{2jet}^{VBF}>=0.8" : "p_{T}^{miss}>=200 GeV");
-        else strCutLabel += "D_{bkg}>=0.6";
+        if (catname.Contains("pTmiss_lt_200")) strCutLabel += "p_{T}^{miss}<200 GeV";
+        else if (catname.Contains("pTmiss_ge_200")) strCutLabel += "p_{T}^{miss}#geq200 GeV";
+      }
+      if ((int) idim!=kdDim && cutvals.at(idim).at(kdDim)>0.){
+        TString strUnit = "";
+        if (strCutLabel!="") strCutLabel += ", ";
+        if (is_2l2nu){
+          strCutLabel += (catname.Contains("Nj_geq_2") ? "D_{2jet}^{VBF}#geq" : "p_{T}^{miss}#geq");
+          if (!catname.Contains("Nj_geq_2")) strUnit = "GeV";
+        }
+        else strCutLabel += "D_{bkg}#geq";
+        if (cutvals.at(idim).at(kdDim)>1.) strCutLabel += Form("%.0f", cutvals.at(idim).at(kdDim));
+        else strCutLabel += Form("%.1f", cutvals.at(idim).at(kdDim));
+        if (strUnit!="") strCutLabel = strCutLabel + " " + strUnit;
       }
       TPaveText pt_cut(0.20, 0.75, 0.40, 0.83, "brNDC");
       pt_cut.SetBorderSize(0);
@@ -1366,7 +1406,7 @@ void plotStacked(TString cinputdir, int onORoffshell=0, bool isEnriched=true, bo
           prochist->SetFillColor(proc_color[ip]);
           prochist->SetFillStyle(1001);
         }
-        prochist->SetLineWidth(2);
+        prochist->SetLineWidth(1);
 
         cout << "\t- Adding overflow content" << endl;
         int binXlow = prochist->GetXaxis()->FindBin(xmin);
@@ -1452,10 +1492,10 @@ void plotStacked(TString cinputdir, int onORoffshell=0, bool isEnriched=true, bo
         cout << "\t- Drawing " << proc_order.at(ip-1) << endl;
         procdist[proc_order.at(ip-1)].at(idim)->Draw("histsame");
       }
-      if (tgdata && tgdata->GetN()>0) tgdata->Draw("e1psame");
+      if (tgdata && tgdata->GetN()>0 && !isBlind) tgdata->Draw("e1psame");
       pt.Draw();
       pt_cat.Draw();
-      if (isEnriched) pt_cut.Draw();
+      if (strCutLabel!="") pt_cut.Draw();
 
       canvas.cd();
       pads.back()->cd();
@@ -1484,7 +1524,7 @@ void plotStacked(TString cinputdir, int onORoffshell=0, bool isEnriched=true, bo
 
       canvas.Modified();
       canvas.Update();
-      canvas.SaveAs(TString(canvas.GetName())+".pdf");
+      canvas.SaveAs(TString(canvas.GetName()) + (isBlind ? "_blind" : "") + ".pdf");
       for (TH1F*& htmp:intermediateHistList) delete htmp;
       for (auto& pad:pads) pad->Close();
       canvas.Close();

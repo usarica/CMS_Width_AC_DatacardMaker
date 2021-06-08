@@ -4,7 +4,22 @@ date=$1
 hypo=$2
 year=$3
 
-inputcards=/afs/cern.ch/work/u/usarica/Offshell_2l2nu/datacards/hcgdcs/hig-19-009/Decompilation/Inputs/${hypo}
+getBestHCGDirectory(){
+  local dirmain=$1
+  local chkdirs=(
+  $(pwd) \
+    /home/users/usarica/work/Width_AC_Run2/2L2Nu_MiniAOD/datacards/CMSSW_10_2_22/src \
+    /afs/cern.ch/work/u/usarica/Offshell_2l2nu/datacards/hcgdcs \
+  )
+  for chkdir in "${chkdirs[@]}"; do
+    if [[ -e ${chkdir}/${dirmain} ]]; then
+      echo ${chkdir}/${dirmain}
+      break
+    fi
+  done
+}
+
+inputcards="$(getBestHCGDirectory hig-19-009/Decompilation/Inputs/${hypo})"
 inputcards=${inputcards}/Onshell_13TeV_${year}
 outdirname=${date}_ZZ4L_${hypo}_Onshell_19009
 if [[ ! -d ${inputcards} ]]; then
@@ -13,7 +28,6 @@ if [[ ! -d ${inputcards} ]]; then
 fi
 
 tpldir=${inputcards/Inputs/Templates}
-## FIXME: Data does not seem to respect counts, so we will have to figure out what is going wrong.
 #dataopt="-r dummydir"
 dataopt="-r ${inputcards/Inputs/Data}"
 
