@@ -17,6 +17,7 @@ class SystematicsHelper:
       self.theSqrtsPeriod = theInputs.theSqrtsPeriod
       self.theSqrts = theInputs.theSqrts
       self.theSqrts_2015_2016 = theInputs.theSqrts_2015_2016
+      self.theSqrts_2017_2018 = theInputs.theSqrts_2017_2018
       self.channels = theInputs.channels
       self.systematics = theInputs.systematics
       self.systVars = []
@@ -79,6 +80,8 @@ class SystematicsHelper:
             systname = "lumi_{}".format(self.theSqrts)
          elif systname.lower() == "lumiunc_2015_2016":
             systname = "lumi_{}".format(self.theSqrts_2015_2016)
+         elif systname.lower() == "lumiunc_2017_2018":
+            systname = "lumi_{}".format(self.theSqrts_2017_2018)
 
          print("\t Writing {}...".format(systname))
 

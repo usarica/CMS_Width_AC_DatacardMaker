@@ -383,7 +383,7 @@ TString getSystRename(TString const& systname, TString const& systLine, TString 
   else if (res == "EWcorr_qqZZ") res = "EWcorr_VV";
   else if (res == "CMS_btag_comb") res = Form("CMS_btag_comb_%s_%s", strSqrts.Data(), strPeriod.Data());
   else if (res == "CMS_eff_e") res = Form("CMS_eff_stat_e_%s_%s", strSqrts.Data(), strPeriod.Data());
-  else if (res == "CMS_eff_mu" || res == "CMS_eff_m") res = Form("CMS_eff_stat_mu_%s_%s", strSqrts.Data(), strPeriod.Data());
+  else if (res == "CMS_eff_mu" || res == "CMS_eff_m") res = Form("CMS_eff_altMC_m_%s", strSqrts.Data())/*Form("CMS_eff_stat_m_%s_%s", strSqrts.Data(), strPeriod.Data())*/;
   else if (res == "CMS_zz4mu_zjets" || res == "CMS_hzz4l_zz4mu_zjets" || res.BeginsWith("zjet_4mu")) res = Form("CMS_hzz4l_4mu_zjets_%s_%s", strSqrts.Data(), strPeriod.Data());
   else if (res == "CMS_zz4e_zjets" || res == "CMS_hzz4l_zz4e_zjets" || res.BeginsWith("zjet_4e")) res = Form("CMS_hzz4l_4e_zjets_%s_%s", strSqrts.Data(), strPeriod.Data());
   else if (res == "CMS_zz2e2mu_zjets" || res == "CMS_hzz4l_zz2e2mu_zjets" || res.BeginsWith("zjet_2e2mu")) res = Form("CMS_hzz4l_2e2mu_zjets_%s_%s", strSqrts.Data(), strPeriod.Data());
@@ -521,22 +521,27 @@ double getBestLumiCurrent(TString const& strPeriod){
   else return 1;
 }
 double getLumiUnc_Sqrts_Period(TString const& strSqrts, TString const& strPeriod){
-  if (strPeriod=="2015") return 0.012;
-  else if (strPeriod=="2016") return 0.018;
+  if (strPeriod=="2015") return 0.009;
+  else if (strPeriod=="2016") return 0.006;
   else if (strPeriod=="2017") return 0.020;
   else if (strPeriod=="2018") return 0.015;
   else return -1;
 }
 double getLumiUnc_Sqrts(TString const& strSqrts, TString const& strPeriod){
-  if (strPeriod=="2015") return 0.01643;
-  else if (strPeriod=="2016") return 0.01175;
-  else if (strPeriod=="2017") return 0.01114;
-  else if (strPeriod=="2018") return 0.02020;
+  if (strPeriod=="2015") return 0.00583;
+  else if (strPeriod=="2016") return 0.00625;
+  else if (strPeriod=="2017") return 0.00911;
+  else if (strPeriod=="2018") return 0.02022;
   else return -1;
 }
 double getLumiUnc_Sqrts_15_16(TString const& strSqrts, TString const& strPeriod){
-  if (strPeriod=="2015") return 0.01162;
-  else if (strPeriod=="2016") return 0.01249;
+  if (strPeriod=="2015") return 0.01114;
+  else if (strPeriod=="2016") return 0.00877;
+  else return -1;
+}
+double getLumiUnc_Sqrts_17_18(TString const& strSqrts, TString const& strPeriod){
+  if (strPeriod=="2017") return 0.006;
+  else if (strPeriod=="2018") return 0.002;
   else return -1;
 }
 
@@ -761,6 +766,7 @@ void getTemplates_19009(
     double lumiUnc_sqrts_period = getLumiUnc_Sqrts_Period(strSqrts, strPeriod);
     double lumiUnc_sqrts = getLumiUnc_Sqrts(strSqrts, strPeriod);
     double lumiUnc_sqrts_15_16 = getLumiUnc_Sqrts_15_16(strSqrts, strPeriod);
+    double lumiUnc_sqrts_17_18 = getLumiUnc_Sqrts_17_18(strSqrts, strPeriod);
     if (lumiUnc_sqrts_period>0.){
       tout << "systematic lumiUnc lnN";
       for (auto const& procname:procs_with_lnNLumiUnc) tout << " " << procname << ":" << 1.+lumiUnc_sqrts_period;
@@ -774,6 +780,11 @@ void getTemplates_19009(
     if (lumiUnc_sqrts_15_16>0.){
       tout << "systematic lumiUnc_2015_2016 lnN";
       for (auto const& procname:procs_with_lnNLumiUnc) tout << " " << procname << ":" << 1.+lumiUnc_sqrts_15_16;
+      tout << endl;
+    }
+    if (lumiUnc_sqrts_17_18>0.){
+      tout << "systematic lumiUnc_2017_2018 lnN";
+      for (auto const& procname:procs_with_lnNLumiUnc) tout << " " << procname << ":" << 1.+lumiUnc_sqrts_17_18;
       tout << endl;
     }
   }

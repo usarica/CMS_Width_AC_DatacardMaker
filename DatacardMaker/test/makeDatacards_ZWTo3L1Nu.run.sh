@@ -23,37 +23,33 @@ getBestDirectory(){
   done
 }
 
-theCatScheme="nj012_2l2nu"
+theCatScheme="nj012_3l1nu"
 theCatDir="CatScheme_Nj"
-theCats=( Nj_eq_0 Nj_eq_1 Nj_geq_2_pTmiss_lt_200 Nj_geq_2_pTmiss_ge_200 )
+theCats=( Nj_eq_0 Nj_eq_1 Nj_geq_2 )
 if [[ $hasBoostedVH -eq 1 ]]; then
-  theCatScheme="nj012_boostedhadvh_2l2nu"
-  theCatDir="CatScheme_Nj_BoostedHadVH"
-  theCats+=( BoostedHadVH)
+  echo "Boosted VH is not implemented in ZW final states."
+  exit 1
 fi
 
-inputcards="$(getBestDirectory output/DatacardSpecs/ZZTo2L2Nu/${dcinputstag}/Offshell_inputs_13TeV_${year}/${theCatDir}/${hypo})"
+inputcards="$(getBestDirectory output/DatacardSpecs/ZWTo3L1Nu/${dcinputstag}/Offshell_inputs_13TeV_${year}/${theCatDir}/${hypo})"
 tpldir="$(getBestDirectory output/Templates/${tpltag}/${theCatDir}/${hypo}/${year})"
-datadir="$(getBestDirectory output/DCDataTrees_ZZTo2L2Nu/${datainputtag}/${theCatDir}/${hypo})"
+#datadir="$(getBestDirectory output/DCDataTrees_ZWTo3L1Nu/${datainputtag}/${theCatDir}/${hypo})"
+datadir="$(getBestDirectory output/DCDataTrees_ZWTo3L1Nu/${datainputtag}/${theCatDir})"
 
-outdirname=${date}_ZZ2L2Nu_InputTag_${dcinputstag}_TplTag_${tpltag}_${hypo}_${theCatScheme}
-mLowVal=300
-if [[ "$tpltag" == "210508" ]] || [[ "$tpltag" == "210515" ]]; then
-  mLowVal=200
-fi
+echo "Inputs: $inputcards"
+echo "Templates: $tpldir"
+echo "Data: $datadir"
 
-for channel in 2e2nu 2mu2nu; do
+outdirname=${date}_ZW3L1Nu_InputTag_${dcinputstag}_TplTag_${tpltag}_${hypo}_${theCatScheme}
+mLowVal=150
+
+for channel in 2l1e 2l1mu; do
   echo "--------------"
   echo "Channel: ${channel}"
   echo "--------------"
   for cat in "${theCats[@]}"; do
     echo "Category: $cat"
-    theCoords="mass:KD1"
-    if [[ "$cat" == "Nj_geq_2"* ]]; then
-      theCoords="mass:KD1:KD2"
-    elif [[ "$cat" == "BoostedHadVH" ]]; then
-      theCoords="mass"
-    fi
+    theCoords="mass"
     echo "Coordinates = ${theCoords}"
 
     if [[ "$hypo" == "SM" ]]; then
