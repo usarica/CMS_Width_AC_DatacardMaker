@@ -438,8 +438,12 @@ double getBestLumiOld(TString const& strPeriod){
   else return 1;
 }
 double getBestLumiCurrent(TString const& strPeriod){
-  if (strPeriod=="2015") return 2.7;
-  else if (strPeriod=="2016") return 35.921875596;
+  // 2015:
+  // 25 ns: brilcalc lumi -u /fb --normtag /cvmfs/cms-bril.cern.ch/cms-lumi-pog/Normtags/normtag_PHYSICS.json -i /afs/cern.ch/cms/CAF/CMSCOMM/COMM_DQM/certification/Collisions15/13TeV/Reprocessing/Cert_13TeV_16Dec2015ReReco_Collisions15_25ns_JSON_v2.txt
+  // 50 ns: brilcalc lumi -u /fb --normtag /cvmfs/cms-bril.cern.ch/cms-lumi-pog/Normtags/normtag_PHYSICS.json -i /afs/cern.ch/cms/CAF/CMSCOMM/COMM_DQM/certification/Collisions15/13TeV/Reprocessing/Cert_13TeV_16Dec2015ReReco_Collisions15_50ns_JSON.txt
+  // 2016: brilcalc lumi -u /fb --normtag /cvmfs/cms-bril.cern.ch/cms-lumi-pog/Normtags/normtag_PHYSICS.json -i /afs/cern.ch/cms/CAF/CMSCOMM/COMM_DQM/certification/Collisions16/13TeV/ReReco/Final/Cert_271036-284044_13TeV_ReReco_07Aug2017_Collisions16_JSON.txt
+  if (strPeriod=="2015") return 2.273773037 + 0.069811943;
+  else if (strPeriod=="2016") return 36.326450;
   else if (strPeriod=="2017") return 41.529152052;
   else if (strPeriod=="2018") return 59.740565209;
   else return 1;
