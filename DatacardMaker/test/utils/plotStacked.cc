@@ -32,6 +32,7 @@
 #include "RooCmdArg.h"
 #include "RooGlobalFunc.h"
 #include "RooRealVar.h"
+#include "RooConstVar.h"
 #include "RooArgSet.h"
 #include "RooDataSet.h"
 #include "RooGaussModel.h"
@@ -42,8 +43,11 @@
 #include "RooBinning.h"
 #include "RooPlot.h"
 #include "RooNumIntConfig.h"
+#include "RooFitResult.h"
 #include "RooWorkspace.h"
 #include "QuantFuncMathCore.h"
+#include <HiggsAnalysis/CombinedLimit/interface/AsymPow.h>
+
 
 namespace std{
 
@@ -63,12 +67,22 @@ struct process_spec{
   RooAbsReal* norm;
   double rate;
   TString name;
+  std::vector<RooAbsReal*> rateModifiers;
 
   process_spec() : pdf(0), norm(0), rate(0){}
   process_spec(TString name_, double rate_) : pdf(nullptr), norm(nullptr), rate(rate_), name(name_){}
   process_spec(RooAbsPdf* pdf_, RooAbsReal* norm_, double rate_) : pdf(pdf_), norm(norm_), rate(rate_), name(pdf->GetName()){}
   process_spec(const process_spec& other) : pdf(other.pdf), norm(other.norm), rate(other.rate), name(other.name){}
+
+  void setRateModifiers(std::vector<RooAbsReal*> const& vlist){ rateModifiers=vlist; }
+  double getExtraNorm();
 };
+double process_spec::getExtraNorm(){
+  double res = 1;
+  for (auto const& var:rateModifiers) res *= var->getVal();
+  return res;
+}
+
 
 template <typename T> void divideBinWidth(T* histo);
 template<> void divideBinWidth<TH1F>(TH1F* histo);
@@ -85,6 +99,12 @@ TH1F* getHistogramSlice(TH1F const* histo, TString newname);
 TH1F* getHistogramSlice(TH2F const* histo, unsigned char XDirection, int iy, int jy, TString newname="");
 TH1F* getHistogramSlice(TH3F const* histo, unsigned char XDirection, int iy, int jy, int iz, int jz, TString newname=""); // "y" and "z" are cylical, so if Xdirection==1 (Y), "y"=Z and "z"=X
 TH2F* getHistogramSlice(TH3F const* histo, unsigned char XDirection, unsigned char YDirection, int iz, int jz, TString newname="");
+
+
+void splitOption(const string rawoption, string& wish, string& value, char delimiter);
+void splitOptionRecursive(const string rawoption, vector<string>& splitoptions, char delimiter);
+void splitOption(const TString rawoption, TString& wish, TString& value, char delimiter);
+void splitOptionRecursive(const TString rawoption, vector<TString>& splitoptions, char delimiter);
 
 
 unsigned int extractTemplates(process_spec& proc, RooDataSet* data, unordered_map<TString, TH1F>& procshape_1D, unordered_map<TString, TH2F>& procshape_2D, unordered_map<TString, TH3F>& procshape_3D, TString newname=""){
@@ -144,7 +164,7 @@ unsigned int extractTemplates(process_spec& proc, RooDataSet* data, unordered_ma
   if (ndims==3){
     TH3F* tpl=(TH3F*) proc.pdf->createHistogram(tplname+"_Copy", *(deps.at(0)), xcmd, ycmd, zcmd);
     multiplyBinWidth(tpl);
-    double normval = proc.rate; if (proc.norm) normval *= proc.norm->getVal();
+    double normval = proc.rate * proc.getExtraNorm(); if (proc.norm) normval *= proc.norm->getVal();
     double integral = tpl->Integral();
     double scale = normval/integral;
     cout << "Scaling template " << tplname << " by " << normval << " / " << integral << endl;
@@ -171,7 +191,7 @@ unsigned int extractTemplates(process_spec& proc, RooDataSet* data, unordered_ma
   else if (ndims==2){
     TH2F* tpl=(TH2F*) proc.pdf->createHistogram(tplname+"_Copy", *(deps.at(0)), xcmd, ycmd, zcmd);
     multiplyBinWidth(tpl);
-    double normval = proc.rate; if (proc.norm) normval *= proc.norm->getVal();
+    double normval = proc.rate * proc.getExtraNorm(); if (proc.norm) normval *= proc.norm->getVal();
     double integral = tpl->Integral();
     double scale = normval/integral;
     cout << "Scaling template " << tplname << " by " << normval << " / " << integral << endl;
@@ -198,7 +218,7 @@ unsigned int extractTemplates(process_spec& proc, RooDataSet* data, unordered_ma
   else if (ndims==1){
     TH1F* tpl=(TH1F*) proc.pdf->createHistogram(tplname+"_Copy", *(deps.at(0)), xcmd, ycmd, zcmd);
     multiplyBinWidth(tpl);
-    double normval = proc.rate; if (proc.norm) normval *= proc.norm->getVal();
+    double normval = proc.rate * proc.getExtraNorm(); if (proc.norm) normval *= proc.norm->getVal();
     double integral = tpl->Integral();
     double scale = normval/integral;
     cout << "Scaling template " << tplname << " by " << normval << " / " << integral << endl;
@@ -331,9 +351,9 @@ unsigned int extractDataTemplates(process_spec& proc, RooDataSet* data, unordere
 
 float getACMuF(TString cinputdir, float fai1){
   float res=1;
-  if (cinputdir.Contains("a3")) res = 1;
-  else if (cinputdir.Contains("a2")) res = sqrt((1.-fabs(fai1))*fabs(fai1))*TMath::Sign(1., fai1)*(1065.55457-2.*290.58626)/290.58626+1.;
-  else if (cinputdir.Contains("L1")) res = sqrt((1.-fabs(fai1))*fabs(fai1))*TMath::Sign(1., fai1)*(9.618383-2.*290.58626)/290.58626+1.;
+  if (cinputdir.Contains("/a3")) res = 1;
+  else if (cinputdir.Contains("/a2")) res = sqrt((1.-fabs(fai1))*fabs(fai1))*TMath::Sign(1., fai1)*(1065.55457-2.*290.58626)/290.58626+1.;
+  else if (cinputdir.Contains("/L1")) res = sqrt((1.-fabs(fai1))*fabs(fai1))*TMath::Sign(1., fai1)*(9.618383-2.*290.58626)/290.58626+1.;
   cout << "getACMuF result = " << 1./res << endl;
   return 1./res;
 }
@@ -342,11 +362,15 @@ float getACMuV(TString cinputdir, float fai1){
   float fai1_intcoef=sqrt((1.-fabs(fai1))*fabs(fai1))*TMath::Sign(1., fai1);
   float fai1_pureSMcoef=(1.-fabs(fai1));
   float fai1_pureBSMcoef=fabs(fai1);
-  if (cinputdir.Contains("a3")) res /= fai1_pureSMcoef + fai1_pureBSMcoef*pow(2.55052/0.297979018705, 2);
-  else if (cinputdir.Contains("a2")) res /= fai1_pureSMcoef + fai1_pureBSMcoef*pow(1.65684/0.27196538, 2) + fai1_intcoef*(2207.73/968.674-2.)*pow(1.65684/0.27196538, 1);
-  else if (cinputdir.Contains("L1")) res /= fai1_pureSMcoef + fai1_pureBSMcoef*pow(12100.42/2158.21307286, 2) + fai1_intcoef*(2861.213/968.674-2.)*pow(12100.42/2158.21307286, 1);
+  if (cinputdir.Contains("/a3")) res /= fai1_pureSMcoef + fai1_pureBSMcoef*pow(2.55052/0.297979018705, 2);
+  else if (cinputdir.Contains("/a2")) res /= fai1_pureSMcoef + fai1_pureBSMcoef*pow(1.65684/0.27196538, 2) + fai1_intcoef*(2207.73/968.674-2.)*pow(1.65684/0.27196538, 1);
+  else if (cinputdir.Contains("/L1")) res /= fai1_pureSMcoef + fai1_pureBSMcoef*pow(12100.42/2158.21307286, 2) + fai1_intcoef*(2861.213/968.674-2.)*pow(12100.42/2158.21307286, 1);
   cout << "getACMuV result = " << res << endl;
   return res;
+}
+void setControlVariableValue(std::unordered_map<TString, RooRealVar*> const& controlVars, TString const& key, double value){
+  auto it_var = controlVars.find(key);
+  if (it_var!=controlVars.end() && it_var->second) it_var->second->setVal(value);
 }
 
 TString getFractionString(float fai1){
@@ -412,16 +436,35 @@ bool FileExists(const char* fname){
   return (stat(fname, &sb) == 0 && S_ISREG(sb.st_mode));
 }
 
-void plotStacked(TString cinputdir, int onORoffshell=0, bool isEnriched=true, bool markPreliminary=false, bool isBlind=false){
+void plotStacked(TString cinputdir, int onORoffshell=0, bool isEnriched=true, bool markPreliminary=false, bool isBlind=false, TString strFitResultFile=""){
   gStyle->SetOptStat(0);
+
+  TString cinputdir_lower = cinputdir; cinputdir_lower.ToLower();
+  bool const is_2l2nu = cinputdir_lower.Contains("2l2nu");
+  bool const is_3l1nu = cinputdir_lower.Contains("3l1nu");
+  bool const is_4l = !is_2l2nu && !is_3l1nu;
 
   std::vector<TString> const sqrtsnames{ "13TeV_2016", "13TeV_2017", "13TeV_2018" };
   const unsigned int nsqrts = sqrtsnames.size();
-  std::vector<TString> const catnames{
-    "Untagged", "JJVBFTagged", "HadVHTagged", // 4l categories
-    "Nj_eq_0", "Nj_eq_1", "Nj_geq_2_pTmiss_lt_200", "Nj_geq_2_pTmiss_ge_200", "BoostedHadVH" // 2l2nu categories
-  };
+  std::vector<TString> catnames;
+  if (is_4l) catnames = std::vector<TString>{ "Untagged", "JJVBFTagged", "HadVHTagged" };
+  else if (is_2l2nu) catnames = std::vector<TString>{ "Nj_eq_0", "Nj_eq_1", "Nj_geq_2_pTmiss_lt_200", "Nj_geq_2_pTmiss_ge_200" };
+  else if (is_3l1nu) catnames = std::vector<TString>{ "Nj_eq_0", "Nj_eq_1", "Nj_geq_2" };
+  else return;
   const unsigned int ncats = catnames.size();
+
+  if (onORoffshell==0 && !is_4l){
+    cerr << "\t- Cannot have an on-shell category for non-4l final states! Skipping..." << endl;
+    return;
+  }
+
+  std::vector<TString> channames;
+  if (is_2l2nu) channames = std::vector<TString>{ "2e2nu", "2mu2nu" };
+  else if (is_3l1nu) channames = std::vector<TString>{ "2l1e", "2l1mu" };
+  else /*if (is_4l)*/ channames = std::vector<TString>{ "4mu", "4e", "2e2mu" };
+  const unsigned int nchans = channames.size();
+
+  bool const isPostFit = (strFitResultFile!="");
 
   TDirectory* curdir = gDirectory;
 
@@ -430,60 +473,74 @@ void plotStacked(TString cinputdir, int onORoffshell=0, bool isEnriched=true, bo
   TString ailabel="";
   TString aiKDlabel="";
   TString aihypo="";
-  if (cinputdir.Contains("a3")){ failabel="f_{a3}"; ailabel="a_{3}"; aiKDlabel=aihypo="a3"; }
-  else if (cinputdir.Contains("a2")){ failabel="f_{a2}"; ailabel="a_{2}"; aiKDlabel=aihypo="a2"; }
-  else if (cinputdir.Contains("L1")){ failabel="f_{#Lambda1}"; ailabel="#Lambda_{1}"; aiKDlabel="#Lambda1"; aihypo="L1"; }
-  else if (cinputdir.Contains("SM")){ aiKDlabel="a2"; }
+  if (cinputdir.Contains("/a3")){ failabel="f_{a3}"; ailabel="a_{3}"; aiKDlabel=aihypo="a3"; }
+  else if (cinputdir.Contains("/a2")){ failabel="f_{a2}"; ailabel="a_{2}"; aiKDlabel=aihypo="a2"; }
+  else if (cinputdir.Contains("/L1")){ failabel="f_{#Lambda1}"; ailabel="#Lambda_{1}"; aiKDlabel="#Lambda1"; aihypo="L1"; }
+  else if (cinputdir.Contains("/SM")){ aiKDlabel="a2"; }
 
   // Determine alternative model parameters
-  constexpr float GHref=4.07;
-  unordered_map<TString, float> val_fai1ALT; val_fai1ALT["RV"]=1; val_fai1ALT["RF"]=1; val_fai1ALT["fai1"]=0;
-  unordered_map<TString, float> val_GGsmALT; val_GGsmALT["RV"]=1; val_GGsmALT["RF"]=1; val_GGsmALT["GGsm"]=1;
+  constexpr double GHref = 4.07;
+  unordered_map<TString, double> val_fai1ALT; val_fai1ALT["RV"]=1; val_fai1ALT["RF"]=1; val_fai1ALT["fai1"]=0;
+  unordered_map<TString, double> val_GGsmALT; val_GGsmALT["RV"]=1; val_GGsmALT["RF"]=1; val_GGsmALT["GGsm"]=1;
   /*
   if (onORoffshell==1){ // Offshell
-    if (cinputdir.Contains("a3")){ val_fai1ALT["RV"]=0.22; val_fai1ALT["RF"]=1.06; val_fai1ALT["fai1"]=0.01; }
-    else if (cinputdir.Contains("a2")){ val_fai1ALT["RV"]=0.3; val_fai1ALT["RF"]=1.3; val_fai1ALT["fai1"]=-0.015; }
-    else if (cinputdir.Contains("L1")){ val_fai1ALT["RV"]=0.1; val_fai1ALT["RF"]=0.85; val_fai1ALT["fai1"]=0.015; }
+    if (cinputdir.Contains("/a3")){ val_fai1ALT["RV"]=0.22; val_fai1ALT["RF"]=1.06; val_fai1ALT["fai1"]=0.01; }
+    else if (cinputdir.Contains("/a2")){ val_fai1ALT["RV"]=0.3; val_fai1ALT["RF"]=1.3; val_fai1ALT["fai1"]=-0.015; }
+    else if (cinputdir.Contains("/L1")){ val_fai1ALT["RV"]=0.1; val_fai1ALT["RF"]=0.85; val_fai1ALT["fai1"]=0.015; }
     val_GGsmALT["RV"]=0.29; val_GGsmALT["RF"]=0.88; val_GGsmALT["GGsm"]=14./GHref;
   }
   else{ // Onshell
-    if (cinputdir.Contains("a3")){ val_fai1ALT["RV"]=0.22; val_fai1ALT["RF"]=1.06; val_fai1ALT["fai1"]=0.01; }
-    else if (cinputdir.Contains("a2")){ val_fai1ALT["RV"]=0.3; val_fai1ALT["RF"]=1.3; val_fai1ALT["fai1"]=-0.015; }
-    else if (cinputdir.Contains("L1")){ val_fai1ALT["RV"]=0.1; val_fai1ALT["RF"]=0.85; val_fai1ALT["fai1"]=0.015; }
+    if (cinputdir.Contains("/a3")){ val_fai1ALT["RV"]=0.22; val_fai1ALT["RF"]=1.06; val_fai1ALT["fai1"]=0.01; }
+    else if (cinputdir.Contains("/a2")){ val_fai1ALT["RV"]=0.3; val_fai1ALT["RF"]=1.3; val_fai1ALT["fai1"]=-0.015; }
+    else if (cinputdir.Contains("/L1")){ val_fai1ALT["RV"]=0.1; val_fai1ALT["RF"]=0.85; val_fai1ALT["fai1"]=0.015; }
     else{ val_GGsmALT["RV"]=0.29; val_GGsmALT["RF"]=0.88; val_GGsmALT["GGsm"]=1; }
   }
   */
   if (onORoffshell==1){ // Offshell
-    if (cinputdir.Contains("a3")){ val_fai1ALT["fai1"]=0.05; val_fai1ALT["RV"]=getACMuV(cinputdir, val_fai1ALT["fai1"]); val_fai1ALT["RF"]=getACMuF(cinputdir, val_fai1ALT["fai1"]); }
-    else if (cinputdir.Contains("a2")){ val_fai1ALT["fai1"]=-0.05; val_fai1ALT["RV"]=getACMuV(cinputdir, val_fai1ALT["fai1"]); val_fai1ALT["RF"]=getACMuF(cinputdir, val_fai1ALT["fai1"]); }
-    else if (cinputdir.Contains("L1")){ val_fai1ALT["fai1"]=0.05; val_fai1ALT["RV"]=getACMuV(cinputdir, val_fai1ALT["fai1"]); val_fai1ALT["RF"]=getACMuF(cinputdir, val_fai1ALT["fai1"]); }
-    val_GGsmALT["RV"]=1; val_GGsmALT["RF"]=1; val_GGsmALT["GGsm"]=20./GHref;
+    if (is_4l || is_2l2nu){
+      if (cinputdir.Contains("/a3")){ val_fai1ALT["fai1"]=0.05; val_fai1ALT["RV"]=getACMuV(cinputdir, val_fai1ALT["fai1"]); val_fai1ALT["RF"]=getACMuF(cinputdir, val_fai1ALT["fai1"]); }
+      else if (cinputdir.Contains("/a2")){ val_fai1ALT["fai1"]=0.05; val_fai1ALT["RV"]=getACMuV(cinputdir, val_fai1ALT["fai1"]); val_fai1ALT["RF"]=getACMuF(cinputdir, val_fai1ALT["fai1"]); }
+      else if (cinputdir.Contains("/L1")){ val_fai1ALT["fai1"]=0.05; val_fai1ALT["RV"]=getACMuV(cinputdir, val_fai1ALT["fai1"]); val_fai1ALT["RF"]=getACMuF(cinputdir, val_fai1ALT["fai1"]); }
+      val_GGsmALT["RV"]=1; val_GGsmALT["RF"]=1; val_GGsmALT["GGsm"]=20./GHref;
+    }
+    else if (is_3l1nu){
+      if (cinputdir.Contains("/a3")){ val_fai1ALT["fai1"]=1; val_fai1ALT["RV"]=getACMuV(cinputdir, val_fai1ALT["fai1"]); val_fai1ALT["RF"]=getACMuF(cinputdir, val_fai1ALT["fai1"]); }
+      else if (cinputdir.Contains("/a2")){ val_fai1ALT["fai1"]=1; val_fai1ALT["RV"]=getACMuV(cinputdir, val_fai1ALT["fai1"]); val_fai1ALT["RF"]=getACMuF(cinputdir, val_fai1ALT["fai1"]); }
+      else if (cinputdir.Contains("/L1")){ val_fai1ALT["fai1"]=1; val_fai1ALT["RV"]=getACMuV(cinputdir, val_fai1ALT["fai1"]); val_fai1ALT["RF"]=getACMuF(cinputdir, val_fai1ALT["fai1"]); }
+      val_GGsmALT["RV"]=1; val_GGsmALT["RF"]=1; val_GGsmALT["GGsm"]=2000./GHref;
+    }
   }
   else{ // Onshell
-    if (cinputdir.Contains("a3")){ val_fai1ALT["fai1"]=0.5; val_fai1ALT["RV"]=getACMuV(cinputdir, val_fai1ALT["fai1"]); val_fai1ALT["RF"]=getACMuF(cinputdir, val_fai1ALT["fai1"]); }
-    else if (cinputdir.Contains("a2")){ val_fai1ALT["fai1"]=-0.5; val_fai1ALT["RV"]=getACMuV(cinputdir, val_fai1ALT["fai1"]); val_fai1ALT["RF"]=getACMuF(cinputdir, val_fai1ALT["fai1"]); }
-    else if (cinputdir.Contains("L1")){ val_fai1ALT["fai1"]=0.5; val_fai1ALT["RV"]=getACMuV(cinputdir, val_fai1ALT["fai1"]); val_fai1ALT["RF"]=getACMuF(cinputdir, val_fai1ALT["fai1"]); }
+    if (cinputdir.Contains("/a3")){ val_fai1ALT["fai1"]=0.5; val_fai1ALT["RV"]=getACMuV(cinputdir, val_fai1ALT["fai1"]); val_fai1ALT["RF"]=getACMuF(cinputdir, val_fai1ALT["fai1"]); }
+    else if (cinputdir.Contains("/a2")){ val_fai1ALT["fai1"]=-0.5; val_fai1ALT["RV"]=getACMuV(cinputdir, val_fai1ALT["fai1"]); val_fai1ALT["RF"]=getACMuF(cinputdir, val_fai1ALT["fai1"]); }
+    else if (cinputdir.Contains("/L1")){ val_fai1ALT["fai1"]=0.5; val_fai1ALT["RV"]=getACMuV(cinputdir, val_fai1ALT["fai1"]); val_fai1ALT["RF"]=getACMuF(cinputdir, val_fai1ALT["fai1"]); }
     else{ val_GGsmALT["RV"]=0.29; val_GGsmALT["RF"]=0.88; val_GGsmALT["GGsm"]=1; }
+  }
+
+  std::unordered_map<TString, double> postfit_vals_map;
+  if (isPostFit){
+    TFile* finput_postfit = TFile::Open(strFitResultFile, "read");
+    RooFitResult* fitResult = dynamic_cast<RooFitResult*>(finput_postfit->Get("fit_mdf"));
+    RooArgList const& finalFloatPars = fitResult->floatParsFinal();
+    TIterator* it = nullptr;
+    it = finalFloatPars.createIterator();
+    RooAbsArg* var;
+    while ((var = (RooAbsArg*) it->Next())){
+      RooRealVar* rvar = dynamic_cast<RooRealVar*>(var);
+      if (rvar){
+        TString strvar = rvar->GetName();
+        double val = rvar->getVal();
+        postfit_vals_map[strvar] = val;
+      }
+    }
+    delete it;
+    finput_postfit->Close();
+    curdir->cd();
   }
 
   for (unsigned int icat=0; icat<ncats; icat++){
     TString const& catname = catnames.at(icat);
     cout << "Acquiring shapes for category " << catname << endl;
-
-    // Determine if the categoriy is a 4l or 2l2nu category
-    // Set channel names accordingly
-    bool const is_2l2nu = catname.Contains("Nj") || catname.Contains("BoostedHadVH");
-    bool const is_4l = !is_2l2nu;
-
-    if (onORoffshell==0 && is_2l2nu){
-      cerr << "\t- Cannot have an on-shell category for 2l2nu! Skipping..." << endl;
-      continue;
-    }
-
-    std::vector<TString> channames;
-    if (is_2l2nu) channames = std::vector<TString>{ "2e2nu", "2mu2nu" };
-    else /*if (is_4l)*/ channames = std::vector<TString>{ "4mu", "4e", "2e2mu" };
-    const unsigned int nchans = channames.size();
 
     unsigned int ndims=0;
     unordered_map<TString, TH1F> procshape_1D;
@@ -497,15 +554,19 @@ void plotStacked(TString cinputdir, int onORoffshell=0, bool isEnriched=true, bo
     if (is_4l){
       if (onORoffshell==1){ // Offshell
         proc_order=std::vector<TString>{ "Zjets", "qqZZ", "VVZZ_offshell", "ggZZ_offshell", "total_GGsmALT" };
-        if (!cinputdir.Contains("SM")) proc_order.push_back("total_fai1ALT");
+        if (!cinputdir.Contains("/SM")) proc_order.push_back("total_fai1ALT");
       }
       else{
         proc_order=std::vector<TString>{ "zjets", "bkg_zz", "VVZZ", "ggH", "total_fai1ALT" };
       }
     }
-    else{
+    else if (is_2l2nu){
       proc_order=std::vector<TString>{ "tZX", "qqZZ_offshell", "qqWZ_offshell", "NRB_2l2nu", "InstrMET", "VVVV_onshell", "VVVV_offshell", "ggZZ_offshell", "total_GGsmALT" };
-      if (!cinputdir.Contains("SM")) proc_order.push_back("total_fai1ALT");
+      if (!cinputdir.Contains("/SM")) proc_order.push_back("total_fai1ALT");
+    }
+    else if (is_3l1nu){
+      proc_order=std::vector<TString>{ "tWX", "tZX", "ttbar_2l2nu", "qqZG", "DY_2l", "qqZZ", "qqWZ", "VVVV_onshell", "VVVV_offshell", "total_GGsmALT" };
+      if (!cinputdir.Contains("/SM")) proc_order.push_back("total_fai1ALT");
     }
     proc_order.push_back("data");
     for (auto const& p:proc_order){
@@ -544,12 +605,12 @@ void plotStacked(TString cinputdir, int onORoffshell=0, bool isEnriched=true, bo
         }
         else cerr << p << " is unmatched for labeling!" << endl;
       }
-      else{
+      else if (is_2l2nu){
         if (p=="qqZZ_offshell"){ proc_color.push_back(int(TColor::GetColor("#99ccff"))); proc_label.push_back("q#bar{q}#rightarrowZZ bkg."); proc_code.push_back(0); }
         else if (p=="qqWZ_offshell"){ proc_color.push_back(int(kBlue)); proc_label.push_back("q#bar{q}#rightarrowWZ bkg."); proc_code.push_back(0); }
         else if (p=="InstrMET"){ proc_color.push_back(int(TColor::GetColor("#669966"))); proc_label.push_back("Instr. p_{T}^{miss}"); proc_code.push_back(0); }
         else if (p=="NRB_2l2nu"){ proc_color.push_back(int(kGray+1)); proc_label.push_back("Nonresonant bkg."); proc_code.push_back(0); }
-        else if (p=="tZX"){ proc_color.push_back(int(kOrange-6)); proc_label.push_back("tZ+X"); proc_code.push_back(0); }
+        else if (p=="tZX"){ proc_color.push_back(int(kOrange-6)); proc_label.push_back("tZ+X bkg."); proc_code.push_back(0); }
         else if (p=="ggZZ_offshell"){
           proc_color.push_back(int(TColor::GetColor("#ffdcdc")));
           proc_label.push_back("gg SM total"); proc_code.push_back(2);
@@ -565,6 +626,38 @@ void plotStacked(TString cinputdir, int onORoffshell=0, bool isEnriched=true, bo
         else if (p.Contains("ALT")){
           if (onORoffshell==1){ // Offshell
             if (p.Contains("GGsmALT")){ proc_label.push_back(Form("Total (f_{ai}=0, #Gamma_{H}=%s MeV)", getFractionString(val_GGsmALT["GGsm"]*GHref).Data())); proc_color.push_back(int(kCyan+2)); proc_code.push_back(-2); }
+            else if (p.Contains("fai1ALT")){ proc_label.push_back(Form("Total (f_{ai}=%s, #Gamma_{H}=#Gamma_{H}^{SM})", getFractionString(val_fai1ALT["fai1"]).Data())); proc_color.push_back(int(kViolet)); proc_code.push_back(-2); }
+          }
+          else{ // Onshell
+            if (p.Contains("fai1ALT")){ proc_label.push_back(Form("Total, %s=%s", failabel.Data(), getFractionString(val_fai1ALT["fai1"]).Data())); proc_color.push_back(int(kViolet)); proc_code.push_back(-1); }
+          }
+        }
+        else if (p=="data"){
+          proc_color.push_back(int(kBlack));
+          proc_code.push_back(-99);
+          proc_label.push_back("Observed");
+        }
+        else cerr << p << " is unmatched for labeling!" << endl;
+      }
+      else if (is_3l1nu){
+        if (p=="qqZZ"){ proc_color.push_back(int(TColor::GetColor("#99ccff"))); proc_label.push_back("q#bar{q}#rightarrowZZ bkg."); proc_code.push_back(0); }
+        else if (p=="qqWZ"){ proc_color.push_back(int(kBlue)); proc_label.push_back("q#bar{q}#rightarrowWZ bkg."); proc_code.push_back(0); }
+        else if (p=="qqZG"){ proc_color.push_back(int(TColor::GetColor("#f1c232"))); proc_label.push_back("q#bar{q}#rightarrowZ#gamma bkg."); proc_code.push_back(0); }
+        else if (p=="DY_2l"){ proc_color.push_back(int(TColor::GetColor("#669966"))); proc_label.push_back("Drell-Yan bkg."); proc_code.push_back(0); }
+        else if (p=="ttbar_2l2nu"){ proc_color.push_back(int(kGray+1)); proc_label.push_back("t#bar{t} bkg."); proc_code.push_back(0); }
+        else if (p=="tZX"){ proc_color.push_back(int(kOrange-6)); proc_label.push_back("tZ+X bkg."); proc_code.push_back(0); }
+        else if (p=="tWX"){ proc_color.push_back(int(TColor::GetColor("#674ea7"))); proc_label.push_back("tW+X bkg."); proc_code.push_back(0); }
+        else if (p=="VVVV_offshell"){
+          proc_color.push_back(int(TColor::GetColor("#ff9b9b")));
+          proc_label.push_back("EW SM total (off-shell)"); proc_code.push_back(1);
+        }
+        else if (p=="VVVV_onshell"){
+          proc_color.push_back(int(kPink+9));
+          proc_label.push_back("EW SM total (on-shell)"); proc_code.push_back(1);
+        }
+        else if (p.Contains("ALT")){
+          if (onORoffshell==1){ // Offshell
+            if (p.Contains("GGsmALT")){ proc_label.push_back(Form("Total (f_{ai}=0, #Gamma_{H}=%s GeV)", getFractionString(val_GGsmALT["GGsm"]*GHref/1000.).Data())); proc_color.push_back(int(kCyan+2)); proc_code.push_back(-2); }
             else if (p.Contains("fai1ALT")){ proc_label.push_back(Form("Total (f_{ai}=%s, #Gamma_{H}=#Gamma_{H}^{SM})", getFractionString(val_fai1ALT["fai1"]).Data())); proc_color.push_back(int(kViolet)); proc_code.push_back(-2); }
           }
           else{ // Onshell
@@ -594,6 +687,9 @@ void plotStacked(TString cinputdir, int onORoffshell=0, bool isEnriched=true, bo
 
         vector<TString> procname;
         vector<double> procrate;
+        vector<RooRealVar*> lnNmodvars;
+        vector<RooConstVar*> kappavars;
+        unordered_map<TString, std::vector<RooAbsReal*>> procname_rateModifier_map;
 
         // Get process names
         ifstream tin(cinput_dc.Data());
@@ -604,6 +700,7 @@ void plotStacked(TString cinputdir, int onORoffshell=0, bool isEnriched=true, bo
         while (chars_array){
           procname.push_back(TString(chars_array));
           chars_array = strtok(NULL, " ");
+          procname_rateModifier_map[procname.back()] = std::vector<RooAbsReal*>();
         }
         // Get process rates
         while (string(line).find("rate")==string::npos) tin.getline(line, 512);
@@ -612,6 +709,48 @@ void plotStacked(TString cinputdir, int onORoffshell=0, bool isEnriched=true, bo
         while (chars_array){
           procrate.push_back(atof(chars_array));
           chars_array = strtok(NULL, " ");
+        }
+        // Get lnN systematics
+        while (!tin.eof()){
+          tin.getline(line, 512);
+
+          string strline = line;
+          std::replace(strline.begin(), strline.end(), ',', ' ');
+          strline.erase(std::remove(strline.begin(), strline.end(), '['), strline.end());
+          strline.erase(std::remove(strline.begin(), strline.end(), ']'), strline.end());
+
+          bool isLog = strline.find("lnN")!=string::npos;
+          if (isLog){
+            vector<string> systdist;
+            splitOptionRecursive(strline, systdist, ' ');
+            string systname = systdist.at(0);
+            string systtype = systdist.at(1);
+            string accumulate="";
+            cout << "Processing systematic " << systname << endl;
+            RooRealVar* systvar = new RooRealVar(systname.data(), "", 0, -7, 7); lnNmodvars.push_back(systvar);
+            for (unsigned int ip=0; ip<procname.size(); ip++){
+              string systline = systdist.at(ip+2);
+              TString const& pname = procname.at(ip);
+              auto& rateModifiers = procname_rateModifier_map.find(pname)->second;
+              if (systline.find("-")==string::npos && systline!=""){
+                double kdn=1, kup=1;
+                if (systline.find("/")!=std::string::npos){
+                  string ssf, ssl;
+                  splitOption(systline, ssf, ssl, '/');
+                  kdn = stod(ssf);
+                  kup = stod(ssl);
+                }
+                else{
+                  kup = stod(systline);
+                  kdn = 1./kup;
+                }
+                RooConstVar* var_kdn = new RooConstVar(Form("%s_%s_kdn", systname.data(), pname.Data()), "", kdn); kappavars.push_back(var_kdn);
+                RooConstVar* var_kup = new RooConstVar(Form("%s_%s_kup", systname.data(), pname.Data()), "", kup); kappavars.push_back(var_kup);
+                AsymPow* tmpvar = new AsymPow(Form("%s_%s", systname.data(), pname.Data()), "", *var_kdn, *var_kup, *systvar);
+                rateModifiers.push_back((RooAbsReal*) tmpvar);
+              }
+            }
+          }
         }
         tin.close();
         assert(procrate.size()==procname.size());
@@ -622,7 +761,9 @@ void plotStacked(TString cinputdir, int onORoffshell=0, bool isEnriched=true, bo
           std::vector<double>::iterator it_rate=procrate.begin();
           for (TString const& pname:procname){
             cout << "Process " << pname << " is found in the datacard" << endl;
-            procSpecs[pname]=process_spec(pname, *it_rate);
+            procSpecs[pname] = process_spec(pname, *it_rate);
+            auto const& rateModifiers = procname_rateModifier_map.find(pname)->second;
+            procSpecs[pname].setRateModifiers(rateModifiers);
             it_rate++;
           }
         }
@@ -630,14 +771,33 @@ void plotStacked(TString cinputdir, int onORoffshell=0, bool isEnriched=true, bo
         // Open the input
         TFile* finput = TFile::Open(cinput_file, "read");
         RooWorkspace* ws = (RooWorkspace*) finput->Get("w");
+
+        // Set postfit values first if they are present.
+        for (auto const& pp:postfit_vals_map){
+          RooRealVar* tmpvar = dynamic_cast<RooRealVar*>(ws->var(pp.first));
+          if (tmpvar){
+            cout << "\t- Setting " << pp.first << " = " << pp.second << " in the workspace." << endl;
+            tmpvar->setVal(pp.second);
+          }
+
+          for (auto const& lnNmodvar:lnNmodvars){
+            if (TString(lnNmodvar->GetName()) == pp.first){
+              cout << "\t- Setting " << pp.first << " = " << pp.second << " in the list of lnN nuisances." << endl;
+              lnNmodvar->setVal(pp.second);
+            }
+          }
+        }
         unordered_map<TString, RooRealVar*> controlVars;
         TString varsToCheck[10]={
           "R", "RF", "RF_13TeV", "RV", "RV_13TeV", "R_13TeV", "CMS_zz4l_fai1", "GGsm", "kbkg_gg", "kbkg_VBF"
         };
         for (unsigned int v=0; v<10; v++){
-          controlVars[varsToCheck[v]]=ws->var(varsToCheck[v]);
+          controlVars[varsToCheck[v]] = ws->var(varsToCheck[v]);
           if (controlVars[varsToCheck[v]]){
-            if (varsToCheck[v]!="CMS_zz4l_fai1") controlVars[varsToCheck[v]]->setVal(1);
+            if (varsToCheck[v]!="CMS_zz4l_fai1"){
+              controlVars[varsToCheck[v]]->setVal(1);
+              if (varsToCheck[v]=="GGsm") controlVars[varsToCheck[v]]->removeRange();
+            }
             else controlVars[varsToCheck[v]]->setVal(0);
           }
           else cerr << varsToCheck[v] << " could not be found!" << endl;
@@ -656,7 +816,7 @@ void plotStacked(TString cinputdir, int onORoffshell=0, bool isEnriched=true, bo
           procSpecs[pname].pdf=pdf;
           procSpecs[pname].norm=norm;
 
-          if (!cinputdir.Contains("SM") && !onORoffshell){ // AC onshell
+          if (!cinputdir.Contains("/SM") && !onORoffshell){ // AC onshell
             if (pname.Contains("ggZZ")){
               controlVars["kbkg_gg"]->setVal(0);
               ndims = extractTemplates(procSpecs[pname], data, procshape_1D, procshape_2D, procshape_3D, "ggH");
@@ -739,47 +899,55 @@ void plotStacked(TString cinputdir, int onORoffshell=0, bool isEnriched=true, bo
             ndims = extractTemplates(procSpecs[pname], data, procshape_1D, procshape_2D, procshape_3D, "bkg_zz");
           }
           else if (onORoffshell && (pname.Contains("ggZZ_offshell") || pname.Contains("VVZZ_offshell") || pname.Contains("VVVV_offshell"))){ // Off-shell process
-            controlVars["GGsm"]->setVal(val_GGsmALT["GGsm"]);
-            controlVars["RV"]->setVal(val_GGsmALT["RV"]);
-            controlVars["RF"]->setVal(val_GGsmALT["RF"]);
+            setControlVariableValue(controlVars, "GGsm", val_GGsmALT["GGsm"]);
+            setControlVariableValue(controlVars, "RV", val_GGsmALT["RV"]);
+            setControlVariableValue(controlVars, "RF", val_GGsmALT["RF"]);
             ndims = extractTemplates(procSpecs[pname], data, procshape_1D, procshape_2D, procshape_3D, "total_GGsmALT");
-            controlVars["GGsm"]->setVal(1);
-            controlVars["RV"]->setVal(1);
-            controlVars["RF"]->setVal(1);
+            setControlVariableValue(controlVars, "GGsm", 1);
+            setControlVariableValue(controlVars, "RV", 1);
+            setControlVariableValue(controlVars, "RF", 1);
 
-            if (!cinputdir.Contains("SM")){
-              controlVars["CMS_zz4l_fai1"]->setVal(val_fai1ALT["fai1"]);
-              controlVars["RV"]->setVal(val_fai1ALT["RV"]);
-              controlVars["RF"]->setVal(val_fai1ALT["RF"]);
+            if (!cinputdir.Contains("/SM")){
+              setControlVariableValue(controlVars, "CMS_zz4l_fai1", val_fai1ALT["CMS_zz4l_fai1"]);
+              setControlVariableValue(controlVars, "RV", val_fai1ALT["RV"]);
+              setControlVariableValue(controlVars, "RF", val_fai1ALT["RF"]);
               ndims = extractTemplates(procSpecs[pname], data, procshape_1D, procshape_2D, procshape_3D, "total_fai1ALT");
-              controlVars["CMS_zz4l_fai1"]->setVal(0);
-              controlVars["RV"]->setVal(1);
-              controlVars["RF"]->setVal(1);
+              setControlVariableValue(controlVars, "CMS_zz4l_fai1", 0);
+              setControlVariableValue(controlVars, "RV", 1);
+              setControlVariableValue(controlVars, "RF", 1);
             }
           }
-          else if (onORoffshell && (pname.Contains("ggZZ_onshell") || pname.Contains("VVZZ_onshell") || pname.Contains("VVVV_onshell"))){ // On-shell process in off-shell data card
-            controlVars["RV"]->setVal(val_GGsmALT["RV"]);
-            controlVars["RF"]->setVal(val_GGsmALT["RF"]);
+          else if (onORoffshell && (pname.Contains("ggZZ_onshell") || pname.Contains("VVZZ_onshell") || pname.Contains("VVVV_onshell"))){ // On-shell process in off-shell data cards
+            setControlVariableValue(controlVars, "RV", val_GGsmALT["RV"]);
+            setControlVariableValue(controlVars, "RF", val_GGsmALT["RF"]);
             ndims = extractTemplates(procSpecs[pname], data, procshape_1D, procshape_2D, procshape_3D, "total_GGsmALT");
-            controlVars["RV"]->setVal(1);
-            controlVars["RF"]->setVal(1);
+            setControlVariableValue(controlVars, "RV", 1);
+            setControlVariableValue(controlVars, "RF", 1);
 
-            if (!cinputdir.Contains("SM")){
-              controlVars["CMS_zz4l_fai1"]->setVal(val_fai1ALT["fai1"]);
-              controlVars["RV"]->setVal(val_fai1ALT["RV"]);
-              controlVars["RF"]->setVal(val_fai1ALT["RF"]);
+            if (!cinputdir.Contains("/SM")){
+              setControlVariableValue(controlVars, "CMS_zz4l_fai1", val_fai1ALT["CMS_zz4l_fai1"]);
+              setControlVariableValue(controlVars, "RV", val_fai1ALT["RV"]);
+              setControlVariableValue(controlVars, "RF", val_fai1ALT["RF"]);
               ndims = extractTemplates(procSpecs[pname], data, procshape_1D, procshape_2D, procshape_3D, "total_fai1ALT");
-              controlVars["CMS_zz4l_fai1"]->setVal(0);
-              controlVars["RV"]->setVal(1);
-              controlVars["RF"]->setVal(1);
+              setControlVariableValue(controlVars, "CMS_zz4l_fai1", 0);
+              setControlVariableValue(controlVars, "RV", 1);
+              setControlVariableValue(controlVars, "RF", 1);
             }
           }
 
           ndims = extractTemplates(procSpecs[pname], data, procshape_1D, procshape_2D, procshape_3D);
         }
         extractDataTemplates(procSpecs[procname.front()], data, procshape_1D, procshape_2D, procshape_3D, "data");
+
         finput->Close();
         curdir->cd();
+
+        // Clean up rate modifiers
+        for (auto& pp:procname_rateModifier_map){
+          for (auto& ppp:pp.second) delete ppp;
+        }
+        for (auto& vv:kappavars) delete vv;
+        for (auto& vv:lnNmodvars) delete vv;
       }
     }
 
@@ -787,94 +955,105 @@ void plotStacked(TString cinputdir, int onORoffshell=0, bool isEnriched=true, bo
     // KD1
     if (ndims>=1){
       if (is_4l){
-        if (onORoffshell==1 || cinputdir.Contains("SM")) varlabels.push_back("m_{4l} (GeV)");
+        if (onORoffshell==1 || cinputdir.Contains("/SM")) varlabels.push_back("m_{4l} (GeV)");
         else{ // On-shell AC
           if (catname=="Untagged") varlabels.push_back("D_{bkg}");
           else if (catname=="JJVBFTagged") varlabels.push_back("D_{bkg,m4l}^{VBF+dec}");
           else if (catname=="HadVHTagged") varlabels.push_back("D_{bkg,m4l}^{VH+dec}");
         }
       }
-      else /*if (is_2l2nu)*/{
+      else if (is_2l2nu){
         varlabels.push_back("m_{T}^{ZZ} (GeV)");
+      }
+      else if (is_3l1nu){
+        varlabels.push_back("m_{T}^{WZ} (GeV)");
       }
     }
     // KD2
     if (ndims>=2){
       if (is_4l){
-        if (onORoffshell==1 || cinputdir.Contains("SM")){
+        if (onORoffshell==1 || cinputdir.Contains("/SM")){
           if (catname=="Untagged") varlabels.push_back("D_{bkg}^{kin}");
           else if (catname=="JJVBFTagged") varlabels.push_back("D_{bkg}^{VBF+dec}");
           else if (catname=="HadVHTagged") varlabels.push_back("D_{bkg}^{VH+dec}");
         }
         else{ // On-shell AC
           if (catname=="Untagged"){
-            if (cinputdir.Contains("a3")) varlabels.push_back("D_{0-}^{dec}");
-            else if (cinputdir.Contains("a2")) varlabels.push_back("D_{0h+}^{dec}");
-            else if (cinputdir.Contains("L1")) varlabels.push_back("D_{#Lambda1}^{dec}");
+            if (cinputdir.Contains("/a3")) varlabels.push_back("D_{0-}^{dec}");
+            else if (cinputdir.Contains("/a2")) varlabels.push_back("D_{0h+}^{dec}");
+            else if (cinputdir.Contains("/L1")) varlabels.push_back("D_{#Lambda1}^{dec}");
           }
           else if (catname=="JJVBFTagged"){
-            if (cinputdir.Contains("a3")) varlabels.push_back("D_{0-}^{VBF+dec}");
-            else if (cinputdir.Contains("a2")) varlabels.push_back("D_{0h+}^{VBF+dec}");
-            else if (cinputdir.Contains("L1")) varlabels.push_back("D_{#Lambda1}^{VBF+dec}");
+            if (cinputdir.Contains("/a3")) varlabels.push_back("D_{0-}^{VBF+dec}");
+            else if (cinputdir.Contains("/a2")) varlabels.push_back("D_{0h+}^{VBF+dec}");
+            else if (cinputdir.Contains("/L1")) varlabels.push_back("D_{#Lambda1}^{VBF+dec}");
           }
           else if (catname=="HadVHTagged"){
-            if (cinputdir.Contains("a3")) varlabels.push_back("D_{0-}^{VH+dec}");
-            else if (cinputdir.Contains("a2")) varlabels.push_back("D_{0h+}^{VH+dec}");
-            else if (cinputdir.Contains("L1")) varlabels.push_back("D_{#Lambda1}^{VH+dec}");
+            if (cinputdir.Contains("/a3")) varlabels.push_back("D_{0-}^{VH+dec}");
+            else if (cinputdir.Contains("/a2")) varlabels.push_back("D_{0h+}^{VH+dec}");
+            else if (cinputdir.Contains("/L1")) varlabels.push_back("D_{#Lambda1}^{VH+dec}");
           }
         }
       }
-      else /*if (is_2l2nu)*/{
+      else if (is_2l2nu){
         varlabels.push_back(((catname.Contains("Nj_geq_2") && is_2l2nu) ? "D_{2jet}^{VBF}" : "p_{T}^{miss} (GeV)"));
+      }
+      else if (is_3l1nu){
+        cerr << "Second dimension is not implemented in 3l1nu." << endl;
+        exit(1);
       }
     }
     // KD3
     if (ndims>=3){
       if (is_4l){
         if (onORoffshell==1){
-          if (cinputdir.Contains("SM")){
+          if (cinputdir.Contains("/SM")){
             if (catname=="Untagged") varlabels.push_back("D_{bsi}^{gg,dec}");
             else if (catname=="JJVBFTagged") varlabels.push_back("D_{bsi}^{VBF+dec}");
             else if (catname=="HadVHTagged") varlabels.push_back("D_{bsi}^{VH+dec}");
           }
           else{
             if (catname=="Untagged"){
-              if (cinputdir.Contains("a3")) varlabels.push_back("D_{0-}^{dec}");
-              else if (cinputdir.Contains("a2")) varlabels.push_back("D_{0h+}^{dec}");
-              else if (cinputdir.Contains("L1")) varlabels.push_back("D_{#Lambda1}^{dec}");
+              if (cinputdir.Contains("/a3")) varlabels.push_back("D_{0-}^{dec}");
+              else if (cinputdir.Contains("/a2")) varlabels.push_back("D_{0h+}^{dec}");
+              else if (cinputdir.Contains("/L1")) varlabels.push_back("D_{#Lambda1}^{dec}");
             }
             else if (catname=="JJVBFTagged"){
-              if (cinputdir.Contains("a3")) varlabels.push_back("D_{0-}^{VBF+dec}");
-              else if (cinputdir.Contains("a2")) varlabels.push_back("D_{0h+}^{VBF+dec}");
-              else if (cinputdir.Contains("L1")) varlabels.push_back("D_{#Lambda1}^{VBF+dec}");
+              if (cinputdir.Contains("/a3")) varlabels.push_back("D_{0-}^{VBF+dec}");
+              else if (cinputdir.Contains("/a2")) varlabels.push_back("D_{0h+}^{VBF+dec}");
+              else if (cinputdir.Contains("/L1")) varlabels.push_back("D_{#Lambda1}^{VBF+dec}");
             }
             else if (catname=="HadVHTagged"){
-              if (cinputdir.Contains("a3")) varlabels.push_back("D_{0-}^{VH+dec}");
-              else if (cinputdir.Contains("a2")) varlabels.push_back("D_{0h+}^{VH+dec}");
-              else if (cinputdir.Contains("L1")) varlabels.push_back("D_{#Lambda1}^{VH+dec}");
+              if (cinputdir.Contains("/a3")) varlabels.push_back("D_{0-}^{VH+dec}");
+              else if (cinputdir.Contains("/a2")) varlabels.push_back("D_{0h+}^{VH+dec}");
+              else if (cinputdir.Contains("/L1")) varlabels.push_back("D_{#Lambda1}^{VH+dec}");
             }
           }
         }
         else{ // On-shell AC
           if (catname=="Untagged"){
-            if (cinputdir.Contains("a3")) varlabels.push_back("D_{CP}^{dec}");
-            else if (cinputdir.Contains("a2")) varlabels.push_back("D_{int}^{dec}");
-            else if (cinputdir.Contains("L1")) varlabels.push_back("D_{0h+}^{dec}");
+            if (cinputdir.Contains("/a3")) varlabels.push_back("D_{CP}^{dec}");
+            else if (cinputdir.Contains("/a2")) varlabels.push_back("D_{int}^{dec}");
+            else if (cinputdir.Contains("/L1")) varlabels.push_back("D_{0h+}^{dec}");
           }
           else if (catname=="JJVBFTagged"){
-            if (cinputdir.Contains("a3")) varlabels.push_back("D_{CP}^{VBF}");
-            else if (cinputdir.Contains("a2")) varlabels.push_back("D_{int}^{VBF}");
-            else if (cinputdir.Contains("L1")) varlabels.push_back("D_{0h+}^{VBF+dec}");
+            if (cinputdir.Contains("/a3")) varlabels.push_back("D_{CP}^{VBF}");
+            else if (cinputdir.Contains("/a2")) varlabels.push_back("D_{int}^{VBF}");
+            else if (cinputdir.Contains("/L1")) varlabels.push_back("D_{0h+}^{VBF+dec}");
           }
           else if (catname=="HadVHTagged"){
-            if (cinputdir.Contains("a3")) varlabels.push_back("D_{CP}^{VH}");
-            else if (cinputdir.Contains("a2")) varlabels.push_back("D_{int}^{VH}");
-            else if (cinputdir.Contains("L1")) varlabels.push_back("D_{0h+}^{VH+dec}");
+            if (cinputdir.Contains("/a3")) varlabels.push_back("D_{CP}^{VH}");
+            else if (cinputdir.Contains("/a2")) varlabels.push_back("D_{int}^{VH}");
+            else if (cinputdir.Contains("/L1")) varlabels.push_back("D_{0h+}^{VH+dec}");
           }
         }
       }
-      else /*if (is_2l2nu)*/{
+      else if (is_2l2nu){
         varlabels.push_back(Form("D_{2jet}^{VBF,%s}", aiKDlabel.Data()));
+      }
+      else if (is_3l1nu){
+        cerr << "Third dimension is not implemented in 3l1nu." << endl;
+        exit(1);
       }
     }
 
@@ -887,7 +1066,7 @@ void plotStacked(TString cinputdir, int onORoffshell=0, bool isEnriched=true, bo
     int massDim=-1;
     int kdDim=-1;
     for (unsigned int idim=0; idim<ndims; idim++){
-      if (varlabels.at(idim).Contains("m_{4l}") || varlabels.at(idim).Contains("m_{T}^{ZZ}")) massDim=idim;
+      if (varlabels.at(idim).Contains("m_{4l}") || varlabels.at(idim).Contains("m_{T}^{ZZ}") || varlabels.at(idim).Contains("m_{T}^{WZ}")) massDim=idim;
       else if (
         (is_4l && varlabels.at(idim).Contains("D_{bkg}"))
         ||
@@ -928,7 +1107,7 @@ void plotStacked(TString cinputdir, int onORoffshell=0, bool isEnriched=true, bo
           int iy=1, iz=1;
           int jy=yaxis->GetNbins(), jz=zaxis->GetNbins();
           if (isEnriched){
-            const float valMassCut=(is_4l ? 340. : (is_2l2nu ? 450. : -1.));
+            const float valMassCut=(is_4l ? 340. : (is_2l2nu ? 450. : (is_3l1nu ? 400. : -1.)));
             if (onORoffshell==1 && (int) idim!=massDim){ // Cut on mass
               if (massDim==0){
                 if (idim==1){ iz=zaxis->FindBin(valMassCut); }
@@ -992,7 +1171,7 @@ void plotStacked(TString cinputdir, int onORoffshell=0, bool isEnriched=true, bo
           int iy=1;
           int jy=yaxis->GetNbins();
           if (isEnriched){
-            const float valMassCut=(is_4l ? 340. : (is_2l2nu ? 450. : -1.));
+            const float valMassCut=(is_4l ? 340. : (is_2l2nu ? 450. : (is_3l1nu ? 400. : -1.)));
             if (onORoffshell==1 && (int) idim!=massDim){ // Cut on mass
               iy = yaxis->FindBin(valMassCut);
               cutvals.at(idim).at(massDim) = valMassCut;
@@ -1043,8 +1222,10 @@ void plotStacked(TString cinputdir, int onORoffshell=0, bool isEnriched=true, bo
     // Make a canvas for the legend
     {
       unsigned int nleft=0;
-      for (auto const& pc:proc_code){
-        if (pc!=0) nleft++;
+      for (unsigned int ip=0; ip<proc_order.size(); ip++){
+        TString const& procname = proc_order.at(ip);
+        auto const& proccode = proc_code.at(ip);
+        if (proccode!=0 || (is_3l1nu && procname=="ttbar_2l2nu")) nleft++;
       }
       unsigned int nright = proc_order.size()-nleft;
 
@@ -1152,18 +1333,19 @@ void plotStacked(TString cinputdir, int onORoffshell=0, bool isEnriched=true, bo
       for (unsigned int ip=proc_order.size(); ip>0; ip--){
         TString const& procname = proc_order.at(ip-1);
         TString const& proclabel = proc_label.at(ip-1);
+        auto const& proccode = proc_code.at(ip-1);
         cout << "Adding process " << procname << " to legend..." << endl;
         TH1F*& prochist = procdist[procname].front();
         if (!prochist) cout << procname << " histogram is null!" << endl;
 
         TLegend* legend_chosen = nullptr;
-        if (proc_code.at(ip-1)==0){
-          legend_chosen = &legend_right;
-          cout << "\t- Plotting on the right..." << endl;
-        }
-        else{
+        if (proccode!=0 || (is_3l1nu && procname=="ttbar_2l2nu")){
           legend_chosen = &legend_left;
           cout << "\t- Plotting on the left..." << endl;
+        }
+        else{
+          legend_chosen = &legend_right;
+          cout << "\t- Plotting on the right..." << endl;
         }
 
         if (proclabel=="Total SM" || procname.Contains("ALT")) legend_chosen->AddEntry(prochist, proc_label.at(ip-1), "l");
@@ -1186,13 +1368,15 @@ void plotStacked(TString cinputdir, int onORoffshell=0, bool isEnriched=true, bo
       TString dimname = Form("_KD%i", idim+1);
       cout << "Ploting dimension " << idim << "..." << endl;
 
-      for (unsigned int ip=1; ip<proc_order.size(); ip++){
-        if (!proc_order.at(ip).Contains("ALT") && proc_order.at(ip)!="data") procdist[proc_order.at(ip)].at(idim)->Add(procdist[proc_order.at(ip-1)].at(idim));
-        else if (proc_order.at(ip)!="data"){
-          for (unsigned int jp=ip-1; jp>0; jp--){
-            if (proc_code[jp]==0){
-              procdist[proc_order.at(ip)].at(idim)->Add(procdist[proc_order.at(jp)].at(idim)); // Add the first bkg process and break
-              break;
+      for (unsigned int ip=0; ip<proc_order.size(); ip++){
+        if (ip>0){
+          if (!proc_order.at(ip).Contains("ALT") && proc_order.at(ip)!="data") procdist[proc_order.at(ip)].at(idim)->Add(procdist[proc_order.at(ip-1)].at(idim));
+          else if (proc_order.at(ip)!="data"){
+            for (unsigned int jp=ip-1; jp>0; jp--){
+              if (proc_code[jp]==0){
+                procdist[proc_order.at(ip)].at(idim)->Add(procdist[proc_order.at(jp)].at(idim)); // Add the first bkg process and break
+                break;
+              }
             }
           }
         }
@@ -1203,8 +1387,9 @@ void plotStacked(TString cinputdir, int onORoffshell=0, bool isEnriched=true, bo
       //if (onORoffshell==1 && (int) idim==massDim){ for (auto proc:proc_order) divideBinWidth(procdist[proc]); }
 
       // Draw
+      cout << "Creating the canvas..." << endl;
       TCanvas canvas(
-        TString((isEnriched ? "c_SignalEnriched_" : "c_")) + TString((markPreliminary ? "Preliminary_" : "")) + (onORoffshell ? "Offshell_" : "Onshell_") + catname + "_" + (aihypo=="" ? "SM" : aihypo.Data()) + dimname,
+        TString((isEnriched ? "c_SignalEnriched_" : "c_")) + TString((markPreliminary ? "Preliminary_" : "")) + (onORoffshell ? "Offshell_" : "Onshell_") + catname + "_" + (aihypo=="" ? "SM" : aihypo.Data()) + dimname + (!isPostFit ? "" : "_postfit"),
         "", 8, 30, 800, 1100
       );
       canvas.cd();
@@ -1224,6 +1409,7 @@ void plotStacked(TString cinputdir, int onORoffshell=0, bool isEnriched=true, bo
       canvas.SetFrameBorderMode(0);
       */
 
+      cout << "\t- Creating the pads..." << endl;
       std::vector<TPad*> pads;
       canvas.cd();
       pads.push_back(
@@ -1262,7 +1448,7 @@ void plotStacked(TString cinputdir, int onORoffshell=0, bool isEnriched=true, bo
           pad->SetFrameBorderMode(0);
           pad->SetFrameFillStyle(0);
           pad->SetFrameBorderMode(0);
-          if (varlabels.at(idim).Contains("m_{T}^{ZZ}") || varlabels.at(idim).Contains("p_{T}^{miss}")) pad->SetLogx(true);
+          if (varlabels.at(idim).Contains("m_{T}^{ZZ}") || varlabels.at(idim).Contains("m_{T}^{WZ}") || varlabels.at(idim).Contains("p_{T}^{miss}")) pad->SetLogx(true);
           canvas.cd();
           ipad++;
         }
@@ -1284,7 +1470,7 @@ void plotStacked(TString cinputdir, int onORoffshell=0, bool isEnriched=true, bo
         text = pt.AddText(0.165, 0.42, "#font[52]{Preliminary}");
         text->SetTextSize(0.0315);
       }
-      else if (onORoffshell==1 && !(isEnriched && ((cinputdir.Contains("SM") && idim!=1) || (cinputdir.Contains("a3") && idim==1)))){
+      else if (onORoffshell==1 && !(isEnriched && ((cinputdir.Contains("/SM") && idim!=1) || (cinputdir.Contains("/a3") && idim==1)))){
         text = pt.AddText(0.165, 0.42, "#font[52]{Supplementary}");
         text->SetTextSize(0.0315);
       }
@@ -1302,6 +1488,7 @@ void plotStacked(TString cinputdir, int onORoffshell=0, bool isEnriched=true, bo
       else if (catname.Contains("Nj_geq_2")) strCatLabel="N_{j}#geq2";
       else if (catname=="BoostedHadVH") strCatLabel="Boosted V #rightarrow J";
       if (ailabel!="") strCatLabel = strCatLabel + ", " + ailabel + " analysis";
+      if (isPostFit) strCatLabel = strCatLabel + " (postfit)";
       TPaveText pt_cat(0.20, 0.83, 0.40, 0.90, "brNDC");
       pt_cat.SetBorderSize(0);
       pt_cat.SetFillStyle(0);
@@ -1311,10 +1498,12 @@ void plotStacked(TString cinputdir, int onORoffshell=0, bool isEnriched=true, bo
       text = pt_cat.AddText(0.02, 0.45, strCatLabel);
       text->SetTextSize(0.044);
 
+      cout << "\t- Preparing the cut label..." << endl;
       TString strCutLabel;
-      if ((int) idim!=massDim && cutvals.at(idim).at(massDim)>0.){
+      if ((int) idim!=massDim && massDim>=0 && cutvals.at(idim).at(massDim)>0.){
         TString strUnit = "GeV";
         if (is_2l2nu) strCutLabel += "m_{T}^{ZZ}#geq";
+        else if (is_3l1nu) strCutLabel += "m_{T}^{WZ}#geq";
         else strCutLabel += "m_{4l}#geq";
         strCutLabel += Form("%.0f", cutvals.at(idim).at(massDim));
         if (strUnit!="") strCutLabel = strCutLabel + " " + strUnit;
@@ -1324,7 +1513,7 @@ void plotStacked(TString cinputdir, int onORoffshell=0, bool isEnriched=true, bo
         if (catname.Contains("pTmiss_lt_200")) strCutLabel += "p_{T}^{miss}<200 GeV";
         else if (catname.Contains("pTmiss_ge_200")) strCutLabel += "p_{T}^{miss}#geq200 GeV";
       }
-      if ((int) idim!=kdDim && cutvals.at(idim).at(kdDim)>0.){
+      if ((int) idim!=kdDim && kdDim>=0 && cutvals.at(idim).at(kdDim)>0.){
         TString strUnit = "";
         if (strCutLabel!="") strCutLabel += ", ";
         if (is_2l2nu){
@@ -1846,4 +2035,43 @@ TH2F* getHistogramSlice(TH3F const* histo, unsigned char XDirection, unsigned ch
   }
 
   return res;
+}
+
+void splitOption(const string rawoption, string& wish, string& value, char delimiter){
+  size_t posEq = rawoption.find(delimiter);
+  if (posEq!=string::npos){
+    wish=rawoption;
+    value=rawoption.substr(posEq+1);
+    wish.erase(wish.begin()+posEq, wish.end());
+    while (value.find(delimiter)==0) value=value.substr(1);
+  }
+  else{
+    wish="";
+    value=rawoption;
+  }
+}
+void splitOptionRecursive(const string rawoption, vector<string>& splitoptions, char delimiter){
+  string suboption=rawoption, result=rawoption;
+  string remnant;
+  while (result!=""){
+    splitOption(suboption, result, remnant, delimiter);
+    if (result!="") splitoptions.push_back(result);
+    suboption = remnant;
+  }
+  if (remnant!="") splitoptions.push_back(remnant);
+}
+
+void splitOption(const TString rawoption, TString& wish, TString& value, char delimiter){
+  string srawoption = rawoption.Data();
+  string swish, svalue;
+  splitOption(srawoption, swish, svalue, delimiter);
+  wish = swish.data();
+  value = svalue.data();
+}
+void splitOptionRecursive(const TString rawoption, vector<TString>& splitoptions, char delimiter){
+  string srawoption = rawoption.Data();
+  vector<string> soptions;
+  splitOptionRecursive(srawoption, soptions, delimiter);
+  splitoptions.clear(); splitoptions.reserve(soptions.size());
+  for (auto const& sopt:soptions) splitoptions.push_back(sopt.data());
 }
