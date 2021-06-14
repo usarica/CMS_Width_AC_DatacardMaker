@@ -42,7 +42,9 @@ class EquationsMaker:
       self.rrvars["MH"]=var
 
       # LUMI
-      var = ROOT.RooConstVar("LUMI_{0}".format(self.theSqrtsPeriod), "LUMI_{0}".format(self.theSqrtsPeriod), self.lumi)
+      var = ROOT.RooRealVar("LUMI_{0}".format(self.theSqrtsPeriod), "LUMI_{0}".format(self.theSqrtsPeriod), self.lumi)
+      var.setConstant(True)
+      var.removeRange()
       self.rrvars["lumi"]=var
 
    # Variables for the template dimensions
