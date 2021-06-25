@@ -46,6 +46,9 @@ def run_single(args,grid_user,jobmaindir,batchscript,condorsite,run_arg,run_mode
    elif run_mode.lower() == "impact_fits":
       jobdir = jobmaindir+"/job_{}".format(run_arg)
       run_args = [ run_arg ]
+   elif run_mode.lower() == "toygen":
+      jobdir = jobmaindir+"/job_{}".format(run_arg)
+      run_args = [ run_arg ]
 
    if len(run_args) == 0:
       raise RuntimeError("Job arguments list is empty.")
@@ -128,6 +131,7 @@ def run(args):
 
    use_likelihood = (args.npoints is not None)
    use_impacts = (args.impact_parsfile is not None)
+   use_gentoys = (args.generate_ntoys is not None)
 
    run_args = []
    run_mode = None
@@ -196,6 +200,12 @@ def run(args):
             if par != "":
                run_args.append(par)
 
+   elif use_gentoys:
+      run_mode = "toygen"
+      seed_begin = 100
+      for itoy in range(0,args.generate_ntoys):
+         run_args.append(seed_begin + itoy)
+
    print("Running in mode {}...".format(run_mode))
 
    pool = mp.Pool(nthreads)
@@ -223,15 +233,18 @@ if __name__ == "__main__":
    parser.add_argument("--lastpoint", type=int, help="Index of the last point (default=None)", required=False, default=None)
    parser.add_argument("--point_distribution", type=str, help="Distribution of points, can be 'left-aligned', 'centered', 'right-aligned', or 'uniform' (default)", required=False, default='uniform')
    parser.add_argument("--impact_parsfile", type=str, help="File that lists the parameters to run impacts", required=False, default=None)
+   parser.add_argument("--generate_ntoys", type=int, help="Number of toys to generate", required=False, default=None)
    parser.add_argument("--required_memory", type=str, help="Required RAM for the job", required=False, default="2048M")
    parser.add_argument("--precompiled_tar", type=str, help="Precompiled tar file", required=False, default=None)
    parser.add_argument("--use_cloud", action="store_true", help="Use cloud computing submission", required=False)
 
    args = parser.parse_args()
-   if args.npoints is None and args.impact_parsfile is None:
-      raise RuntimeError("You must specify either a likelihood run or an impacts run.")
+   if args.npoints is None and args.impact_parsfile is None and args.generate_ntoys is None:
+      raise RuntimeError("You must specify a likelihood, an impacts, or a toy generation run.")
    elif args.npoints is not None and args.npoints < 0:
       raise RuntimeError("You must specify npoints>=0 for the likelihood run.")
+   elif args.generate_ntoys is not None and args.generate_ntoys <= 0:
+      raise RuntimeError("Number of toys to generate should be greater than 0.")
 
    if (args.firstpoint is not None or args.lastpoint is not None) and args.point_distribution.lower() != 'uniform':
       raise RuntimeError("First and last points are only implemented for the uniform point distribution at the moment.")
