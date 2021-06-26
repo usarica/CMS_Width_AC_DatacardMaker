@@ -54,6 +54,10 @@ def run_single(args,grid_user,jobmaindir,batchscript,condorsite,run_arg,run_mode
       jobdir = jobmaindir+"/job_{}".format(run_arg[0])
       run_args = [ run_arg[0] ]
       extra_uploads.append("toysfile.root:{}".format(run_arg[1]))
+   elif run_mode.lower() == "singlefit":
+      jobdir = jobmaindir+"/job_{}".format(run_arg[0])
+      run_args = [ run_arg[0] ]
+      extra_uploads.append("toysfile.root:{}".format(run_arg[1]))
 
 
    if len(run_args) == 0:
@@ -139,6 +143,7 @@ def run(args):
    use_impacts = (args.impact_parsfile is not None)
    use_gentoys = (args.generate_ntoys is not None)
    use_GoF = args.run_GoF
+   use_SingleFit = args.run_SingleFit
 
    run_args = []
    run_mode = None
@@ -221,6 +226,15 @@ def run(args):
             run_args.append([itoy, args.toysdir + '/' + fname])
             itoy = itoy+1
 
+   elif use_SingleFit:
+      # Workflow is the same as a GoF test, but keep the case separate in case it needs to specialize later on
+      run_mode = "singlefit"
+      itoy=0
+      for fname in os.listdir(args.toysdir):
+         if ".root" in fname:
+            run_args.append([itoy, args.toysdir + '/' + fname])
+            itoy = itoy+1
+
    print("Running in mode {}...".format(run_mode))
 
    pool = mp.Pool(nthreads)
@@ -250,20 +264,21 @@ if __name__ == "__main__":
    parser.add_argument("--impact_parsfile", type=str, help="File that lists the parameters to run impacts", required=False, default=None)
    parser.add_argument("--generate_ntoys", type=int, help="Number of toys to generate", required=False, default=None)
    parser.add_argument("--run_GoF", action="store_true", help="Run the GoF tests, requires --toysdir as well.", required=False)
+   parser.add_argument("--run_SingleFit", action="store_true", help="Run a single toy fit, requires --toysdir as well.", required=False)
    parser.add_argument("--toysdir", type=str, help="Directory of single toys", required=False, default=None)
    parser.add_argument("--required_memory", type=str, help="Required RAM for the job", required=False, default="2048M")
    parser.add_argument("--precompiled_tar", type=str, help="Precompiled tar file", required=False, default=None)
    parser.add_argument("--use_cloud", action="store_true", help="Use cloud computing submission", required=False)
 
    args = parser.parse_args()
-   if args.npoints is None and args.impact_parsfile is None and args.generate_ntoys is None and not args.run_GoF:
-      raise RuntimeError("You must specify a likelihood, an impacts, or a toy generation run, or run the GoF tests.")
+   if args.npoints is None and args.impact_parsfile is None and args.generate_ntoys is None and not args.run_GoF and not args.run_SingleFit:
+      raise RuntimeError("You must specify a likelihood, an impacts, or a toy generation run, or run the GoF tests/single fits.")
    elif args.npoints is not None and args.npoints < 0:
       raise RuntimeError("You must specify npoints>=0 for the likelihood run.")
    elif args.generate_ntoys is not None and args.generate_ntoys <= 0:
       raise RuntimeError("Number of toys to generate should be greater than 0.")
-   elif args.run_GoF and args.toysdir is None:
-      raise RuntimeError("GoF runs need a toys directory.")
+   elif (args.run_GoF or args.run_SingleFit) and args.toysdir is None:
+      raise RuntimeError("GoF and single fit runs need a toys directory.")
 
    if (args.firstpoint is not None or args.lastpoint is not None) and args.point_distribution.lower() != 'uniform':
       raise RuntimeError("First and last points are only implemented for the uniform point distribution at the moment.")
