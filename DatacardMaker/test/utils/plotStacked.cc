@@ -13,7 +13,6 @@
 #include "TMatrixD.h"
 #include "TFile.h"
 #include "TSystem.h"
-#include "TFile.h"
 #include "TLegend.h"
 #include "TPaveText.h"
 #include "TText.h"
@@ -429,14 +428,31 @@ TGraphAsymmErrors* getDataGraph(TH1F* hdata){
   return tgdata;
 }
 
-
 bool FileExists(const char* fname){
   if (!fname) return false;
   struct stat sb;
   return (stat(fname, &sb) == 0 && S_ISREG(sb.st_mode));
 }
 
-void plotStacked(TString cinputdir, int onORoffshell=0, bool isEnriched=true, bool markPreliminary=false, bool isBlind=false, TString strFitResultFile=""){
+void getParameterErrors(RooRealVar const& par, double& errLo, double& errHi){
+  double errSym = par.getError();
+  double errAsym[2]={ errSym, errSym };
+  if (par.hasAsymError()){
+    errAsym[0] = std::abs(par.getAsymErrorLo()); // This value is negative.
+    errAsym[1] = std::abs(par.getAsymErrorHi());
+  }
+  errLo = errAsym[0];
+  errHi = errAsym[1];
+}
+
+
+void plotStacked(
+  TString cinputdir,
+  int onORoffshell=0, bool isEnriched=true, bool markPreliminary=false,
+  bool useLogY=false,
+  bool isBlind=false, bool addObsRatio=false,
+  TString strFitResultFile="", TString strPostfit=""
+){
   gStyle->SetOptStat(0);
 
   TString cinputdir_lower = cinputdir; cinputdir_lower.ToLower();
@@ -466,6 +482,11 @@ void plotStacked(TString cinputdir, int onORoffshell=0, bool isEnriched=true, bo
 
   bool const isPostFit = (strFitResultFile!="");
 
+  if (addObsRatio){
+    if (!isPostFit){ cerr << "Ratio plots must include a fit result." << endl; return; }
+    if (isBlind){ cerr << "Ratio plots must use unblinded results." << endl; return; }
+  }
+
   TDirectory* curdir = gDirectory;
 
   // Determine alternative model parameters
@@ -473,9 +494,9 @@ void plotStacked(TString cinputdir, int onORoffshell=0, bool isEnriched=true, bo
   TString ailabel="";
   TString aiKDlabel="";
   TString aihypo="";
-  if (cinputdir.Contains("/a3")){ failabel="f_{a3}"; ailabel="a_{3}"; aiKDlabel=aihypo="a3"; }
-  else if (cinputdir.Contains("/a2")){ failabel="f_{a2}"; ailabel="a_{2}"; aiKDlabel=aihypo="a2"; }
-  else if (cinputdir.Contains("/L1")){ failabel="f_{#Lambda1}"; ailabel="#Lambda_{1}"; aiKDlabel="#Lambda1"; aihypo="L1"; }
+  if (cinputdir.Contains("/a3")){ failabel="#bar{f}_{a3}"; ailabel="a_{3}"; aiKDlabel=aihypo="a3"; }
+  else if (cinputdir.Contains("/a2")){ failabel="#bar{f}_{a2}"; ailabel="a_{2}"; aiKDlabel=aihypo="a2"; }
+  else if (cinputdir.Contains("/L1")){ failabel="#bar{f}_{#Lambda1}"; ailabel="#Lambda_{1}"; aiKDlabel="#Lambda1"; aihypo="L1"; }
   else if (cinputdir.Contains("/SM")){ aiKDlabel="a2"; }
 
   // Determine alternative model parameters
@@ -517,7 +538,7 @@ void plotStacked(TString cinputdir, int onORoffshell=0, bool isEnriched=true, bo
     else{ val_GGsmALT["RV"]=0.29; val_GGsmALT["RF"]=0.88; val_GGsmALT["GGsm"]=1; }
   }
 
-  std::unordered_map<TString, double> postfit_vals_map;
+  std::unordered_map<TString, std::pair<double, std::pair<double, double>> > postfit_vals_map;
   if (isPostFit){
     TFile* finput_postfit = TFile::Open(strFitResultFile, "read");
     RooFitResult* fitResult = dynamic_cast<RooFitResult*>(finput_postfit->Get("fit_mdf"));
@@ -530,7 +551,9 @@ void plotStacked(TString cinputdir, int onORoffshell=0, bool isEnriched=true, bo
       if (rvar){
         TString strvar = rvar->GetName();
         double val = rvar->getVal();
-        postfit_vals_map[strvar] = val;
+        double err_dn, err_up;
+        getParameterErrors(*rvar, err_dn, err_up);
+        postfit_vals_map[strvar] = std::pair<double, std::pair<double, double>>(val, std::pair<double, double>(val-err_dn, val+err_up));
       }
     }
     delete it;
@@ -591,7 +614,10 @@ void plotStacked(TString cinputdir, int onORoffshell=0, bool isEnriched=true, bo
         }
         else if (p.Contains("ALT")){
           if (onORoffshell==1){ // Offshell
-            if (p.Contains("GGsmALT")){ proc_label.push_back(Form("Total (f_{ai}=0, #Gamma_{H}=%s MeV)", getFractionString(val_GGsmALT["GGsm"]*GHref).Data())); proc_color.push_back(int(kCyan+2)); proc_code.push_back(-2); }
+            if (p.Contains("GGsmALT")){
+              proc_label.push_back(Form("Total (%s#Gamma_{H}=%s MeV)", (aihypo=="" ? "" : "f_{ai}=0, "), getFractionString(val_GGsmALT["GGsm"]*GHref).Data()));
+              proc_color.push_back(int(kCyan+2)); proc_code.push_back(-2);
+            }
             else if (p.Contains("fai1ALT")){ proc_label.push_back(Form("Total (%s=%s, #Gamma_{H}=#Gamma_{H}^{SM})", failabel.Data(), getFractionString(val_fai1ALT["fai1"]).Data())); proc_color.push_back(int(kViolet)); proc_code.push_back(-2); }
           }
           else{ // Onshell
@@ -606,11 +632,11 @@ void plotStacked(TString cinputdir, int onORoffshell=0, bool isEnriched=true, bo
         else cerr << p << " is unmatched for labeling!" << endl;
       }
       else if (is_2l2nu){
-        if (p=="qqZZ_offshell"){ proc_color.push_back(int(TColor::GetColor("#99ccff"))); proc_label.push_back("q#bar{q}#rightarrowZZ bkg."); proc_code.push_back(0); }
-        else if (p=="qqWZ_offshell"){ proc_color.push_back(int(kBlue)); proc_label.push_back("q#bar{q}#rightarrowWZ bkg."); proc_code.push_back(0); }
+        if (p=="qqZZ_offshell"){ proc_color.push_back(int(TColor::GetColor("#99ccff"))); proc_label.push_back("q#bar{q}#rightarrowZZ"); proc_code.push_back(0); }
+        else if (p=="qqWZ_offshell"){ proc_color.push_back(int(kBlue)); proc_label.push_back("q#bar{q}#rightarrowWZ"); proc_code.push_back(0); }
         else if (p=="InstrMET"){ proc_color.push_back(int(TColor::GetColor("#669966"))); proc_label.push_back("Instr. p_{T}^{miss}"); proc_code.push_back(0); }
-        else if (p=="NRB_2l2nu"){ proc_color.push_back(int(kGray+1)); proc_label.push_back("Nonresonant bkg."); proc_code.push_back(0); }
-        else if (p=="tZX"){ proc_color.push_back(int(kOrange-6)); proc_label.push_back("tZ+X bkg."); proc_code.push_back(0); }
+        else if (p=="NRB_2l2nu"){ proc_color.push_back(int(kGray+1)); proc_label.push_back("Nonresonant"); proc_code.push_back(0); }
+        else if (p=="tZX"){ proc_color.push_back(int(kOrange-6)); proc_label.push_back("tZ+X"); proc_code.push_back(0); }
         else if (p=="ggZZ_offshell"){
           proc_color.push_back(int(TColor::GetColor("#ffdcdc")));
           proc_label.push_back("gg SM total"); proc_code.push_back(2);
@@ -625,8 +651,11 @@ void plotStacked(TString cinputdir, int onORoffshell=0, bool isEnriched=true, bo
         }
         else if (p.Contains("ALT")){
           if (onORoffshell==1){ // Offshell
-            if (p.Contains("GGsmALT")){ proc_label.push_back(Form("Total (f_{ai}=0, #Gamma_{H}=%s MeV)", getFractionString(val_GGsmALT["GGsm"]*GHref).Data())); proc_color.push_back(int(kCyan+2)); proc_code.push_back(-2); }
-            else if (p.Contains("fai1ALT")){ proc_label.push_back(Form("Total (f_{ai}=%s, #Gamma_{H}=#Gamma_{H}^{SM})", getFractionString(val_fai1ALT["fai1"]).Data())); proc_color.push_back(int(kViolet)); proc_code.push_back(-2); }
+            if (p.Contains("GGsmALT")){
+              proc_label.push_back(Form("Total (%s#Gamma_{H}=%s MeV)", (aihypo=="" ? "" : "f_{ai}=0, "), getFractionString(val_GGsmALT["GGsm"]*GHref).Data()));
+              proc_color.push_back(int(kCyan+2)); proc_code.push_back(-2);
+            }
+            else if (p.Contains("fai1ALT")){ proc_label.push_back(Form("Total (#bar{f}_{ai}=%s, #Gamma_{H}=#Gamma_{H}^{SM})", getFractionString(val_fai1ALT["fai1"]).Data())); proc_color.push_back(int(kViolet)); proc_code.push_back(-2); }
           }
           else{ // Onshell
             if (p.Contains("fai1ALT")){ proc_label.push_back(Form("Total, %s=%s", failabel.Data(), getFractionString(val_fai1ALT["fai1"]).Data())); proc_color.push_back(int(kViolet)); proc_code.push_back(-1); }
@@ -640,13 +669,13 @@ void plotStacked(TString cinputdir, int onORoffshell=0, bool isEnriched=true, bo
         else cerr << p << " is unmatched for labeling!" << endl;
       }
       else if (is_3l1nu){
-        if (p=="qqZZ"){ proc_color.push_back(int(TColor::GetColor("#99ccff"))); proc_label.push_back("q#bar{q}#rightarrowZZ bkg."); proc_code.push_back(0); }
-        else if (p=="qqWZ"){ proc_color.push_back(int(kBlue)); proc_label.push_back("q#bar{q}#rightarrowWZ bkg."); proc_code.push_back(0); }
-        else if (p=="qqZG"){ proc_color.push_back(int(TColor::GetColor("#f1c232"))); proc_label.push_back("q#bar{q}#rightarrowZ#gamma bkg."); proc_code.push_back(0); }
-        else if (p=="DY_2l"){ proc_color.push_back(int(TColor::GetColor("#669966"))); proc_label.push_back("Drell-Yan bkg."); proc_code.push_back(0); }
-        else if (p=="ttbar_2l2nu"){ proc_color.push_back(int(kGray+1)); proc_label.push_back("t#bar{t} bkg."); proc_code.push_back(0); }
-        else if (p=="tZX"){ proc_color.push_back(int(kOrange-6)); proc_label.push_back("tZ+X bkg."); proc_code.push_back(0); }
-        else if (p=="tWX"){ proc_color.push_back(int(TColor::GetColor("#674ea7"))); proc_label.push_back("tW+X bkg."); proc_code.push_back(0); }
+        if (p=="qqZZ"){ proc_color.push_back(int(TColor::GetColor("#99ccff"))); proc_label.push_back("q#bar{q}#rightarrowZZ"); proc_code.push_back(0); }
+        else if (p=="qqWZ"){ proc_color.push_back(int(kBlue)); proc_label.push_back("q#bar{q}#rightarrowWZ"); proc_code.push_back(0); }
+        else if (p=="qqZG"){ proc_color.push_back(int(TColor::GetColor("#f1c232"))); proc_label.push_back("q#bar{q}#rightarrowZ#gamma"); proc_code.push_back(0); }
+        else if (p=="DY_2l"){ proc_color.push_back(int(TColor::GetColor("#669966"))); proc_label.push_back("Drell-Yan"); proc_code.push_back(0); }
+        else if (p=="ttbar_2l2nu"){ proc_color.push_back(int(kGray+1)); proc_label.push_back("t#bar{t}"); proc_code.push_back(0); }
+        else if (p=="tZX"){ proc_color.push_back(int(kOrange-6)); proc_label.push_back("tZ+X"); proc_code.push_back(0); }
+        else if (p=="tWX"){ proc_color.push_back(int(TColor::GetColor("#674ea7"))); proc_label.push_back("tW+X"); proc_code.push_back(0); }
         else if (p=="VVVV_offshell"){
           proc_color.push_back(int(TColor::GetColor("#ff9b9b")));
           proc_label.push_back("EW SM total (off-shell)"); proc_code.push_back(1);
@@ -657,8 +686,11 @@ void plotStacked(TString cinputdir, int onORoffshell=0, bool isEnriched=true, bo
         }
         else if (p.Contains("ALT")){
           if (onORoffshell==1){ // Offshell
-            if (p.Contains("GGsmALT")){ proc_label.push_back(Form("Total (f_{ai}=0, #Gamma_{H}=%s GeV)", getFractionString(val_GGsmALT["GGsm"]*GHref/1000.).Data())); proc_color.push_back(int(kCyan+2)); proc_code.push_back(-2); }
-            else if (p.Contains("fai1ALT")){ proc_label.push_back(Form("Total (f_{ai}=%s, #Gamma_{H}=#Gamma_{H}^{SM})", getFractionString(val_fai1ALT["fai1"]).Data())); proc_color.push_back(int(kViolet)); proc_code.push_back(-2); }
+            if (p.Contains("GGsmALT")){
+              proc_label.push_back(Form("Total (%s#Gamma_{H}=%s GeV)", (aihypo=="" ? "" : "f_{ai}=0, "), getFractionString(val_GGsmALT["GGsm"]*GHref/1000.).Data()));
+              proc_color.push_back(int(kCyan+2)); proc_code.push_back(-2);
+            }
+            else if (p.Contains("fai1ALT")){ proc_label.push_back(Form("Total (#bar{f}_{ai}=%s, #Gamma_{H}=#Gamma_{H}^{SM})", getFractionString(val_fai1ALT["fai1"]).Data())); proc_color.push_back(int(kViolet)); proc_code.push_back(-2); }
           }
           else{ // Onshell
             if (p.Contains("fai1ALT")){ proc_label.push_back(Form("Total, %s=%s", failabel.Data(), getFractionString(val_fai1ALT["fai1"]).Data())); proc_color.push_back(int(kViolet)); proc_code.push_back(-1); }
@@ -775,15 +807,20 @@ void plotStacked(TString cinputdir, int onORoffshell=0, bool isEnriched=true, bo
         // Set postfit values first if they are present.
         for (auto const& pp:postfit_vals_map){
           RooRealVar* tmpvar = dynamic_cast<RooRealVar*>(ws->var(pp.first));
+          double const& vnom = pp.second.first;
+          double const& vlow = pp.second.second.first;
+          double const& vhigh = pp.second.second.second;
           if (tmpvar){
-            cout << "\t- Setting " << pp.first << " = " << pp.second << " in the workspace." << endl;
-            tmpvar->setVal(pp.second);
+            cout << "\t- Setting " << pp.first << " = " << vnom << "[" << vlow << ", " << vhigh << "] in the workspace." << endl;
+            tmpvar->setVal(vnom);
+            tmpvar->setAsymError(vlow-vnom, vhigh-vnom);
           }
 
           for (auto const& lnNmodvar:lnNmodvars){
             if (TString(lnNmodvar->GetName()) == pp.first){
-              cout << "\t- Setting " << pp.first << " = " << pp.second << " in the list of lnN nuisances." << endl;
-              lnNmodvar->setVal(pp.second);
+              cout << "\t- Setting " << pp.first << " = " << vnom << "[" << vlow << ", " << vhigh << "] in the list of lnN nuisances." << endl;
+              lnNmodvar->setVal(vnom);
+              lnNmodvar->setAsymError(vlow-vnom, vhigh-vnom);
             }
           }
         }
@@ -803,6 +840,12 @@ void plotStacked(TString cinputdir, int onORoffshell=0, bool isEnriched=true, bo
           else cerr << varsToCheck[v] << " could not be found!" << endl;
         }
         RooDataSet* data = (RooDataSet*) ws->data("data_obs");
+
+        // FIXME: HACK lumi 2016 here
+        {
+          RooRealVar* var_lumi_13TeV_2016 = dynamic_cast<RooRealVar*>(ws->var("LUMI_13TeV_2016"));
+          if (var_lumi_13TeV_2016) var_lumi_13TeV_2016->setVal(36.326450);
+        }
 
         // Get process pdfs
         for (auto const& pname:procname){
@@ -1389,7 +1432,7 @@ void plotStacked(TString cinputdir, int onORoffshell=0, bool isEnriched=true, bo
       // Draw
       cout << "Creating the canvas..." << endl;
       TCanvas canvas(
-        TString((isEnriched ? "c_SignalEnriched_" : "c_")) + TString((markPreliminary ? "Preliminary_" : "")) + (onORoffshell ? "Offshell_" : "Onshell_") + catname + "_" + (aihypo=="" ? "SM" : aihypo.Data()) + dimname + (!isPostFit ? "" : "_postfit"),
+        TString((isEnriched ? "c_SignalEnriched_" : "c_")) + TString((markPreliminary ? "Preliminary_" : "")) + (onORoffshell ? "Offshell_" : "Onshell_") + catname + "_" + (aihypo=="" ? "SM" : aihypo.Data()) + dimname + (!isPostFit ? "" : "_postfit") + (!useLogY ? "" : "_LogY"),
         "", 8, 30, 800, 1100
       );
       canvas.cd();
@@ -1448,7 +1491,10 @@ void plotStacked(TString cinputdir, int onORoffshell=0, bool isEnriched=true, bo
           pad->SetFrameBorderMode(0);
           pad->SetFrameFillStyle(0);
           pad->SetFrameBorderMode(0);
-          if (varlabels.at(idim).Contains("m_{T}^{ZZ}") || varlabels.at(idim).Contains("m_{T}^{WZ}") || varlabels.at(idim).Contains("p_{T}^{miss}")) pad->SetLogx(true);
+          if (varlabels.at(idim).Contains("m_{T}^{ZZ}") || varlabels.at(idim).Contains("m_{T}^{WZ}") || varlabels.at(idim).Contains("p_{T}^{miss}")){
+            pad->SetLogx(true);
+            if (useLogY && ipad==0) pad->SetLogy(true);
+          }
           canvas.cd();
           ipad++;
         }
@@ -1475,8 +1521,8 @@ void plotStacked(TString cinputdir, int onORoffshell=0, bool isEnriched=true, bo
         text->SetTextSize(0.0315);
       }
       int theSqrts=13;
-      TString cErgTev = Form("#font[42]{137.2 fb^{-1} (%i TeV)}", theSqrts);
-      text = pt.AddText(0.78, 0.45, cErgTev);
+      TString cErgTev = Form("#font[42]{138 fb^{-1} (%i TeV)}", theSqrts);
+      text = pt.AddText(0.86, 0.45, cErgTev);
       text->SetTextSize(0.0315);
 
       TString strCatLabel;
@@ -1488,7 +1534,12 @@ void plotStacked(TString cinputdir, int onORoffshell=0, bool isEnriched=true, bo
       else if (catname.Contains("Nj_geq_2")) strCatLabel="N_{j}#geq2";
       else if (catname=="BoostedHadVH") strCatLabel="Boosted V #rightarrow J";
       if (ailabel!="") strCatLabel = strCatLabel + ", " + ailabel + " analysis";
-      if (isPostFit) strCatLabel = strCatLabel + " (postfit)";
+      if (isPostFit){
+        if (strPostfit=="") strCatLabel = strCatLabel + " (postfit)";
+        else strCatLabel = strCatLabel + Form(" (%s)", strPostfit.Data());
+      }
+      else if (strPostfit!="") strCatLabel = strCatLabel + Form(" (%s)", strPostfit.Data());
+
       TPaveText pt_cat(0.20, 0.83, 0.40, 0.90, "brNDC");
       pt_cat.SetBorderSize(0);
       pt_cat.SetFillStyle(0);
@@ -1535,6 +1586,7 @@ void plotStacked(TString cinputdir, int onORoffshell=0, bool isEnriched=true, bo
       text->SetTextSize(0.044);
 
       float ymax=-1, ymin=-1;
+      if (useLogY) ymin=9e9;
       float xmin=-1, xmax=-1;
       TGraphAsymmErrors* tgdata=nullptr;
       for (unsigned int ip=0; ip<proc_order.size(); ip++){
@@ -1633,6 +1685,7 @@ void plotStacked(TString cinputdir, int onORoffshell=0, bool isEnriched=true, bo
             float bc = prochist->GetBinContent(ix);
             if (bc!=0.){
               ymax = std::max(bc, ymax);
+              ymin = std::min(bc, ymin);
             }
           }
         }
@@ -1643,8 +1696,12 @@ void plotStacked(TString cinputdir, int onORoffshell=0, bool isEnriched=true, bo
             cout << "\t\t- Np = " << tgdata->GetN() << endl;
             for (int ipoint=0; ipoint<tgdata->GetN(); ipoint++){
               float bc = tgdata->GetY()[ipoint]+tgdata->GetEYhigh()[ipoint];
+              float bc_low = tgdata->GetY()[ipoint]-std::abs(tgdata->GetEYlow()[ipoint]);
               if (bc!=0.){
                 ymax = std::max(bc, ymax);
+              }
+              if (bc_low!=0.){
+                ymin = std::min(bc_low, ymin);
               }
             }
             cout << "\t\t- Success!" << endl;
@@ -1652,9 +1709,9 @@ void plotStacked(TString cinputdir, int onORoffshell=0, bool isEnriched=true, bo
           else cout << "-t-t- Failure!" << endl;
         }
       }
-      ymin=0;
+      if (!useLogY) ymin=0;
 
-      float ymaxfactor = 1.25;
+      float ymaxfactor = (!useLogY ? 1.25 : 250.);
       float yminfactor = 1;
 
       vector<TH1F*> intermediateHistList;

@@ -69,6 +69,7 @@ std::vector<TString> lsdir(TString const& indir){
 
 
 void fixHistogram(TH2F*& hist){
+  cout << "Running histogram fix..." << endl;
   const int nx = hist->GetNbinsX();
   const int ny = hist->GetNbinsY();
   // ix, 1
@@ -145,12 +146,16 @@ TH2F* getHistogramFromTree(TTree* tree, TString const strxvar, TString const str
     tree->SetBranchAddress("deltaNLL", &deltaNLL);
     var_t minNLL=1e9;
     var_t minX, minY;
+    cout << "Looping over the tree to find minimum -2dNLL..." << endl;
     for (int ev=0; ev<tree->GetEntries(); ev++){
       tree->GetEntry(ev);
       deltaNLL = deltaNLL*2.;
       if (deltaNLL<0.) continue;
       minNLL = std::min(minNLL, deltaNLL);
     }
+    std::cout << "Minimum deltaNLL = " << minNLL << std::endl;
+
+    cout << "Looping over the tree to find the list of points..." << endl;
     for (int ev=0; ev<tree->GetEntries(); ev++){
       tree->GetEntry(ev);
       var_t xval = xvar;
@@ -161,13 +166,13 @@ TH2F* getHistogramFromTree(TTree* tree, TString const strxvar, TString const str
       if (minNLL!=deltaNLL){
         bool doAdd=true;
         doAdd &= !((strxvar=="GGsm" && xval>21.) || (stryvar=="GGsm" && yval>21.));
+        doAdd &= !((strxvar=="rf_offshell" && xval>3.) || (stryvar=="rf_offshell" && yval>3.));
         if (doAdd){
           addByLowest(xvalList, xval, true);
           addByLowest(yvalList, yval, true);
         }
       }
     }
-    std::cout << "Minimum deltaNLL = " << minNLL << std::endl;
     var_t xmin=xvalList.front();
     var_t xmax=xvalList.back();
     var_t ymin=yvalList.front();
@@ -185,7 +190,9 @@ TH2F* getHistogramFromTree(TTree* tree, TString const strxvar, TString const str
     for (unsigned int i=0; i<yvalList.size()-1; i++) addByLowest(yBoundList, float((yvalList.at(i)+yvalList.at(i+1))/2.), true);
     addByLowest(yBoundList, float(yvalList.at(0) - (yvalList.at(1)-yvalList.at(0))/2.), true);
     addByLowest(yBoundList, float(yvalList.at(yvalList.size()-1) + (yvalList.at(yvalList.size()-1)-yvalList.at(yvalList.size()-2))/2.), true);
+
     res = new TH2F(Form("gr_%s_%s", strxvar.Data(), stryvar.Data()), "", xvalList.size(), xBoundList.data(), yvalList.size(), yBoundList.data());
+    cout << "Looping over the tree to fill the histogram..." << endl;
     for (int ev=0; ev<tree->GetEntries(); ev++){
       tree->GetEntry(ev);
       var_t xval = xvar;
@@ -208,10 +215,15 @@ TH2F* getHistogramFromTree(TTree* tree, TString const strxvar, TString const str
 TString getVariableLabel(TString const strvar, TString const strachypo){
   if (strvar=="deltaNLL") return "-2 #Delta lnL";
   else if (strvar=="GGsm") return "#Gamma_{H} (MeV)";
+  else if (strvar=="R" || strvar=="r_offshell") return "#mu^{off-shell}";
+  else if (strvar=="RF" || strvar=="rf_offshell") return "#mu_{F}^{off-shell}";
+  else if (strvar=="RV" || strvar=="rv_offshell") return "#mu_{V}^{off-shell}";
   else if (strvar=="CMS_zz4l_fai1"){
     TString strai=strachypo.Data();
+    if (strachypo=="L1") strai="Lambda1";
     if (strai.Contains("Lambda")) strai.Prepend("#");
-    return Form("f_{%s} cos(#phi_{#lower[-0.2]{%s}})", strai.Data(), strai.Data());
+    //return Form("f_{%s} cos(#phi_{#lower[-0.2]{%s}})", strai.Data(), strai.Data());
+    return Form("#bar{f}_{%s}", strai.Data());
   }
   else return strvar;
 }
@@ -223,13 +235,12 @@ void plotScan2D(TString const indir, TString const strxvar, TString const stryva
   gStyle->SetPadRightMargin(0.20);
   gROOT->ForceStyle();
 
-  TChain* tree=new TChain("limit");
-  vector<TString> lsdirs = lsdir("./");
-  for (auto const& strdir:lsdirs){
-    if (strdir.Contains(indir)){
-      vector<TString> lscontent = lsdir(strdir);
-      for (auto const& s:lscontent){ if (s.Contains(".root")) tree->Add(strdir+"/"+s); }
-    }
+  TChain* tree = new TChain("limit");
+  {
+    int nfiles = 0;
+    std::vector<TString> strappendlist{ "", "_UCSD", "_uscms", "_centeredScan", "_centered", "_more", "_morelow", "_uscms_more", "_centeredScan_more", "_centered_more" };
+    for (auto const& strappend:strappendlist) nfiles += tree->Add(indir + strappend + "/*.root");
+    cout << "Added " << nfiles << " files for " << indir << "..." << endl;
   }
   TH2F* hh = getHistogramFromTree(tree, strxvar, stryvar);
 
@@ -268,14 +279,21 @@ void plotScan2D(TString const indir, TString const strxvar, TString const stryva
     cout << "95% CL contour is processed" << endl;
   }
 
+  double bestx, besty;
   TGraph* best = bestFit(tree,strxvar,stryvar);
   if (!best) cout << "ERROR: Best fit not found!" << endl;
-  else cout << "Best fit is acquired" << endl;
-  if (strxvar=="GGsm") best->GetX()[0] *= 4.07;
-  best->SetMarkerStyle(5);
-  best->SetMarkerSize(1.5);
+  else{
+    cout << "Best fit is acquired" << endl;
+    if (strxvar=="GGsm") best->GetX()[0] *= 4.07;
+    if (stryvar=="GGsm") best->GetY()[0] *= 4.07;
+    best->GetPoint(0, bestx, besty);
 
-  TString canvasname = Form("c_%s%s%s_%sVS%s", indir.Data(), (strachypo!="" ? "_" : ""), strachypo.Data(), stryvar.Data(), strxvar.Data());
+    cout << "Best fit: " << bestx << ", " << besty << endl;
+    best->SetMarkerStyle(5);
+    best->SetMarkerSize(1.5);
+  }
+
+  TString canvasname = Form("cCompare_%sVS%s_%s", strxvar.Data(), stryvar.Data(), strachypo.Data());
   TCanvas* c = new TCanvas(canvasname, "", 1000, 800);
   c->SetFillColor(0);
   c->SetBorderMode(0);
@@ -288,9 +306,6 @@ void plotScan2D(TString const indir, TString const strxvar, TString const stryva
   c->SetFrameFillStyle(0);
   c->SetFrameBorderMode(0);
 
-  double bestx,besty;
-  best->GetPoint(0,bestx,besty);
-
   hh->GetXaxis()->SetLabelSize(0.04);
   hh->GetXaxis()->SetRangeUser(0., 20.);
   hh->GetXaxis()->CenterTitle();
@@ -299,17 +314,17 @@ void plotScan2D(TString const indir, TString const strxvar, TString const stryva
   hh->GetYaxis()->CenterTitle();
 
    
-  TLegend *l = new TLegend(0.635,0.58,0.835,0.78);
+  TLegend *l = new TLegend(0.635,0.72,0.835,0.92);
   l->SetBorderSize(0);
   l->SetFillStyle(0);
   l->SetTextFont(42);
   if (g95) l->AddEntry(g95,"95% CL","l");
   if (g68) l->AddEntry(g68,"68% CL","l");
-  l->AddEntry(best,"Best Fit","p");
+  l->AddEntry(best,"Best fit","p");
   c->cd();
   hh->Draw("colz");
-  if (g95) g95->Draw("Csame");
-  if (g68) g68->Draw("Csame");
+  if (g95) g95->Draw("csame");
+  if (g68) g68->Draw("csame");
 
 
   TMarker m;
@@ -319,35 +334,37 @@ void plotScan2D(TString const indir, TString const strxvar, TString const stryva
   //  m.SetMarkerSize(1.5);
   //  m.SetMarkerColor(kBlack);
   //  m.SetMarkerStyle(5);
-  m.DrawMarker(4.07, 0);
+  m.DrawMarker(1, 1);
   l->AddEntry(&m, "SM", "p");
   best->Draw("Psame");
   l->Draw();
 
   TText* text=nullptr;
-  TPaveText* ptc = new TPaveText(0.635, 0.84, 0.92, 0.94, "brNDC");
+  TPaveText* ptc = new TPaveText(0.22, 0.85, 0.37, 0.95, "brNDC");
   ptc->SetBorderSize(0);
   ptc->SetFillStyle(0);
   ptc->SetTextAlign(12);
   ptc->SetTextFont(42);
   ptc->SetTextSize(0.04);
-  text = ptc->AddText(0.02, 0.45, "#font[61]{CMS}");
+  text = ptc->AddText(0.02, 0.5, "#font[61]{CMS}");
   //text = ptc->AddText(0.12, 0.42, "#font[52]{Preliminary}");
   text->SetTextSize(0.06);
   ptc->Draw();
 
-	TPaveText* pt = new TPaveText(0.15,0.955,0.92,1,"brNDC");
+	TPaveText* pt = new TPaveText(0.15,0.955,0.8,1,"brNDC");
 	pt->SetBorderSize(0);
 	pt->SetFillStyle(0);
-	pt->SetTextAlign(12);
+	pt->SetTextAlign(32);
 	pt->SetTextFont(42);
 	pt->SetTextSize(0.04);
   float lumi2011=5.1;
   float lumi2012=19.7;
   float lumi2015=2.7;
   float lumi201617=77.5;
+  float lumi20161718=138;
   //text = pt->AddText(0.68, 0.45, Form("#font[42]{%.1f fb^{-1} (13 TeV)}", lumi201617+0.05));
-  text = pt->AddText(0.2, 0.45, Form("#font[42]{%.1f fb^{-1} (7 TeV) + %.1f fb^{-1} (8 TeV) + %.1f fb^{-1} (13 TeV)}", lumi2011, lumi2012, lumi2015+lumi201617+0.05));
+  //text = pt->AddText(0.2, 0.45, Form("#font[42]{%.1f fb^{-1} (7 TeV) + %.1f fb^{-1} (8 TeV) + %.1f fb^{-1} (13 TeV)}", lumi2011, lumi2012, lumi2015+lumi201617+0.05));
+  text = pt->AddText(0.999, 0.5, Form("#font[42]{%.0f fb^{-1} (13 TeV)}", lumi20161718));
   text->SetTextSize(0.0315);
   pt->Draw();
 
@@ -363,8 +380,8 @@ void plotScan2D(TString const indir, TString const strxvar, TString const stryva
 	text->SetTextAngle(90);
 	pt2->Draw();
 
-  c->SaveAs(indir+"/"+canvasname+".pdf");
-  c->SaveAs(indir+"/"+canvasname+".png");
+  c->SaveAs(canvasname+".pdf");
+  c->SaveAs(canvasname+".png");
 
   delete pt2;
   delete pt;
