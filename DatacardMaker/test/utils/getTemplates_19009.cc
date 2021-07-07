@@ -506,6 +506,75 @@ void getDataTree(TFile* finput, TString coutput){
 }
 
 
+void amendBkgLogNSysts(std::unordered_map<std::string, std::string>& logSyst, TString const& strSqrts, TString const& strPeriod, TString const& strCategory, TString const& strChannel){
+  bool const apply_VH_to_EWBkg = (strCategory.Contains("VHHadr") || strCategory.Contains("VHLept") || strCategory.Contains("Untagged"));
+  std::string const procref_EWBkg = (apply_VH_to_EWBkg ? "VH" : "qqH");
+
+  std::unordered_map<std::string, std::vector<std::string>> systname_proclist_map;
+  for (auto const& sline:logSyst){
+    auto const& systname = sline.first;
+    auto const& systline = sline.second;
+
+    std::vector<std::string> splitline;
+    splitOptionRecursive(systline, splitline, ' ');
+
+    std::vector<std::string> proclist;
+    proclist.reserve(splitline.size());
+    for (auto const& strsyst:splitline){
+      std::vector<std::string> splitsyst;
+      splitOptionRecursive(strsyst, splitsyst, ':');
+      proclist.push_back(splitsyst.front());
+    }
+
+    systname_proclist_map[systname] = proclist;
+  }
+
+  for (auto const& pp:systname_proclist_map){
+    auto const& strsystname = pp.first;
+    auto const& proclist = pp.second;
+    auto& strsystline = logSyst.find(strsystname)->second;
+    TString systName = strsystname.c_str();
+    TString systLine = strsystline.c_str();
+    systName = getSystRename(systName, systLine, strSqrts, strPeriod, strCategory, strChannel);
+
+    std::vector<std::string> splitline;
+    splitOptionRecursive(strsystline, splitline, ' ');
+
+    if (systName=="QCDscale_ren_ggH" || systName=="QCDscale_fac_ggH" || systName=="pdf_variation_Higgs_gg" || systName=="pdf_asmz_Higgs_gg"){
+      if (std::find(proclist.begin(), proclist.end(), "bkg_ggzz")!=proclist.end()) continue;
+
+      for (auto ssline:splitline){
+        if (ssline.find("ggH")!=std::string::npos){
+          replaceString<std::string, std::string const>(ssline, "ggH", "bkg_ggzz");
+          strsystline = strsystline + " " + ssline;
+          break;
+        }
+      }
+    }
+    else if (
+      ((systName=="QCDscale_ren_VH" || systName=="QCDscale_fac_VH") && apply_VH_to_EWBkg)
+      ||
+      ((systName=="QCDscale_ren_qqH" || systName=="QCDscale_fac_qqH") && !apply_VH_to_EWBkg)
+      ||
+      systName=="pdf_variation_Higgs_qqbar" || systName=="pdf_asmz_Higgs_qqbar"
+      ||
+      systName=="CMS_scale_pythia" || systName=="CMS_tune_pythia"
+      ){
+      if (std::find(proclist.begin(), proclist.end(), "bkg_ew")!=proclist.end()) continue;
+
+      for (auto ssline:splitline){
+        if (ssline.find(procref_EWBkg)!=std::string::npos){
+          replaceString<std::string, std::string const>(ssline, procref_EWBkg, "bkg_ew");
+          strsystline = strsystline + " " + ssline;
+          break;
+        }
+      }
+    }
+  }
+
+}
+
+
 double getBestLumiOld(TString const& strPeriod){
   if (strPeriod=="2015") return 2.7;
   else if (strPeriod=="2016") return 35.921875594646;
@@ -519,7 +588,9 @@ double getBestLumiCurrent(TString const& strPeriod){
   // 50 ns: brilcalc lumi -u /fb --normtag /cvmfs/cms-bril.cern.ch/cms-lumi-pog/Normtags/normtag_PHYSICS.json -i /afs/cern.ch/cms/CAF/CMSCOMM/COMM_DQM/certification/Collisions15/13TeV/Reprocessing/Cert_13TeV_16Dec2015ReReco_Collisions15_50ns_JSON.txt
   // 2016: brilcalc lumi -u /fb --normtag /cvmfs/cms-bril.cern.ch/cms-lumi-pog/Normtags/normtag_PHYSICS.json -i /afs/cern.ch/cms/CAF/CMSCOMM/COMM_DQM/certification/Collisions16/13TeV/ReReco/Final/Cert_271036-284044_13TeV_ReReco_07Aug2017_Collisions16_JSON.txt
   if (strPeriod=="2015") return 2.273773037 + 0.069811943;
-  else if (strPeriod=="2016") return 36.326450;
+  // FIXME: Needs to be switched to 36.32 when everything else is centrally updated.
+  else if (strPeriod=="2016") return 35.921875594646;
+  //else if (strPeriod=="2016") return 36.326450;
   else if (strPeriod=="2017") return 41.529152052;
   else if (strPeriod=="2018") return 59.740565209;
   else return 1;
@@ -716,6 +787,13 @@ void getTemplates_19009(
               procs_with_lnNLumiUnc.push_back(procname);
               if (replaceLumiUnc) continue;
             }
+
+            // FIXME: THIS IS A VERY AD HOC FIX THAT IS NOT QUITE RIGHT!
+            if (systname=="QCDscale_ren_ggH" || systname=="QCDscale_muR_ggH") systline = "1.046/0.933";
+
+            // FIXME: ttH Pythia tune uncertainties do not make any sense. They go in the same direction and are very small (~0.15).
+            if (procname=="ttH" && systname.find("pythia")!=std::string::npos && systname.find("tune")!=std::string::npos) continue;
+
             std::replace(systline.begin(), systline.end(), '/', ':');
             procSpecs[procname.Data()].setSystematic(systname, systtype, systline);
             if (isShape) accumulate += string(procname.Data()) + ":0:1 ";
@@ -733,6 +811,11 @@ void getTemplates_19009(
   cout << "Process specification keys: ";
   for (auto it=procSpecs.begin(); it!=procSpecs.end(); it++) cout << it->first << " ";
   cout << endl;
+
+
+  // Amend lnN uncertainties in bkg_ew and bkg_ggzz.
+  amendBkgLogNSysts(logSyst, strSqrts, strPeriod, strCategory, strChannel);
+
 
   // Write input file
   if (strSqrts!=""){
