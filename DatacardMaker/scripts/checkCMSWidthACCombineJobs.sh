@@ -28,6 +28,11 @@ for farg in "$@"; do
   fi
 done
 
+declare -i skipuploadcheck=0
+if [[ "$(hostname)" == *"uscms.org"* ]]; then
+  skipuploadcheck=1
+fi
+
 
 declare -i nOK=0
 declare -i nCOPYFAIL=0
@@ -178,13 +183,17 @@ checkDirectory(){
     if [[ $size_resb -gt 0 ]] && [[ $size_resb -eq $size_rese ]] && [[ $size_resb -eq $size_ress ]] && [[ $size_resb -eq $size_resf ]]; then
       {
       local nOutputExist=0
-      for rf in "${resf[@]}";do
-        rf="${rf//*'OUTPUTFILE: '}"
+      if [[ $skipuploadcheck -eq 0 ]]; then
+        for rf in "${resf[@]}";do
+          rf="${rf//*'OUTPUTFILE: '}"
 
-        if [[ -s $rf ]];then
-          let nOutputExist=${nOutputExist}+1
-        fi
-      done
+          if [[ -s $rf ]]; then
+            let nOutputExist=${nOutputExist}+1
+          fi
+        done
+      else
+        nOutputExist=$size_resf
+      fi
       if [[ $nOutputExist -eq $size_resf ]];then
         echo "Job $jobnumber for $d ran successfully with $nOutputExist files."
         let nOK=$nOK+1

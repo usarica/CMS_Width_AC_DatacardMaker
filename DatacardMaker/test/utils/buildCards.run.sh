@@ -48,5 +48,10 @@ else
   runCmd="${runCmd} --PO=offshell"
 fi
 
+if [[ "$opt" == *"AddChannelMasks"* ]]; then
+  echo "Adding channel masks..."
+  runCmd="${runCmd} --channel-masks"
+fi
+
 echo "Command: ${runCmd}"
 ${runCmd}

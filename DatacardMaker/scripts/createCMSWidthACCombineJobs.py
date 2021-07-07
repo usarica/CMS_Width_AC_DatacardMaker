@@ -35,6 +35,7 @@ def getVOMSProxy():
 def run_single(args,grid_user,jobmaindir,batchscript,condorsite,run_arg,run_mode):
    wsfile = args.wsfile
    run_args = []
+   extra_uploads = args.extra_upload
    condoroutdir="/hadoop/cms/store/user/{}/Offshell_2L2Nu/Worker/output/WidthACFits/{}".format(grid_user,args.date)
    jobdir = None
 
@@ -46,6 +47,18 @@ def run_single(args,grid_user,jobmaindir,batchscript,condorsite,run_arg,run_mode
    elif run_mode.lower() == "impact_fits":
       jobdir = jobmaindir+"/job_{}".format(run_arg)
       run_args = [ run_arg ]
+   elif run_mode.lower() == "toygen":
+      jobdir = jobmaindir+"/job_{}".format(run_arg)
+      run_args = [ run_arg ]
+   elif run_mode.lower() == "gof":
+      jobdir = jobmaindir+"/job_{}".format(run_arg[0])
+      run_args = [ run_arg[0] ]
+      extra_uploads.append("toysfile.root:{}".format(run_arg[1]))
+   elif run_mode.lower() == "singlefit":
+      jobdir = jobmaindir+"/job_{}".format(run_arg[0])
+      run_args = [ run_arg[0] ]
+      extra_uploads.append("toysfile.root:{}".format(run_arg[1]))
+
 
    if len(run_args) == 0:
       raise RuntimeError("Job arguments list is empty.")
@@ -82,7 +95,7 @@ def run_single(args,grid_user,jobmaindir,batchscript,condorsite,run_arg,run_mode
       runCmd = runCmd + " --dry"
    for key,val in jobargs.iteritems():
       runCmd = runCmd + " --{}={}".format(key,val)
-   for fdict in args.extra_upload:
+   for fdict in extra_uploads:
       runCmd = runCmd + " --extra_upload={}".format(fdict)
    for run_arg in run_args:
       runCmd = runCmd + " --job_arg={}".format(run_arg)
@@ -121,10 +134,16 @@ def run(args):
    jobmaindir=curdir+"/tasks/{}".format(args.date)
    makeDirectory(jobmaindir)
    if not os.path.exists("{}/cmswidthac.tar".format(jobmaindir)) or args.remake:
-      os.system("cd {}; createCMSWidthACDatacardTarball.sh; cd -;".format(jobmaindir))
+      if args.precompiled_tar is not None and args.precompiled_tar!="" and os.path.exists(args.precompiled_tar):
+         os.system("cp {} {}/cmswidthac.tar".format(args.precompiled_tar, jobmaindir))
+      else:
+         os.system("cd {}; createCMSWidthACDatacardTarball.sh; cd -;".format(jobmaindir))
 
    use_likelihood = (args.npoints is not None)
    use_impacts = (args.impact_parsfile is not None)
+   use_gentoys = (args.generate_ntoys is not None)
+   use_GoF = args.run_GoF
+   use_SingleFit = args.run_SingleFit
 
    run_args = []
    run_mode = None
@@ -132,6 +151,8 @@ def run(args):
       run_mode = "nll"
       if args.point_distribution == 'uniform':
          for ipoint in range(0, args.npoints):
+            if (args.firstpoint is not None and ipoint<args.firstpoint) or (args.lastpoint is not None and ipoint>args.lastpoint):
+               continue
             run_args.append(ipoint)
       elif args.point_distribution == 'left-aligned':
          npoints_original = args.npoints
@@ -191,6 +212,29 @@ def run(args):
             if par != "":
                run_args.append(par)
 
+   elif use_gentoys:
+      run_mode = "toygen"
+      seed_begin = 100
+      for itoy in range(0,args.generate_ntoys):
+         run_args.append(seed_begin + itoy)
+
+   elif use_GoF:
+      run_mode = "gof"
+      itoy=0
+      for fname in os.listdir(args.toysdir):
+         if ".root" in fname:
+            run_args.append([itoy, args.toysdir + '/' + fname])
+            itoy = itoy+1
+
+   elif use_SingleFit:
+      # Workflow is the same as a GoF test, but keep the case separate in case it needs to specialize later on
+      run_mode = "singlefit"
+      itoy=0
+      for fname in os.listdir(args.toysdir):
+         if ".root" in fname:
+            run_args.append([itoy, args.toysdir + '/' + fname])
+            itoy = itoy+1
+
    print("Running in mode {}...".format(run_mode))
 
    pool = mp.Pool(nthreads)
@@ -214,16 +258,30 @@ if __name__ == "__main__":
    parser.add_argument("--extra_upload", action="append", help="Extra uploads. Must be in the format [link_name]:[file_name]", required=False, default=[])
    parser.add_argument("--extra_args", action="append", help="Extra arguments to the executable. Can be any string.", required=False, default=[])
    parser.add_argument("--npoints", type=int, help="Number of points to submit", required=False, default=None)
+   parser.add_argument("--firstpoint", type=int, help="Index of the first point (default=None)", required=False, default=None)
+   parser.add_argument("--lastpoint", type=int, help="Index of the last point (default=None)", required=False, default=None)
    parser.add_argument("--point_distribution", type=str, help="Distribution of points, can be 'left-aligned', 'centered', 'right-aligned', or 'uniform' (default)", required=False, default='uniform')
    parser.add_argument("--impact_parsfile", type=str, help="File that lists the parameters to run impacts", required=False, default=None)
+   parser.add_argument("--generate_ntoys", type=int, help="Number of toys to generate", required=False, default=None)
+   parser.add_argument("--run_GoF", action="store_true", help="Run the GoF tests, requires --toysdir as well.", required=False)
+   parser.add_argument("--run_SingleFit", action="store_true", help="Run a single toy fit, requires --toysdir as well.", required=False)
+   parser.add_argument("--toysdir", type=str, help="Directory of single toys", required=False, default=None)
    parser.add_argument("--required_memory", type=str, help="Required RAM for the job", required=False, default="2048M")
+   parser.add_argument("--precompiled_tar", type=str, help="Precompiled tar file", required=False, default=None)
    parser.add_argument("--use_cloud", action="store_true", help="Use cloud computing submission", required=False)
 
    args = parser.parse_args()
-   if args.npoints is None and args.impact_parsfile is None:
-      raise RuntimeError("You must specify either a likelihood run or an impacts run.")
+   if args.npoints is None and args.impact_parsfile is None and args.generate_ntoys is None and not args.run_GoF and not args.run_SingleFit:
+      raise RuntimeError("You must specify a likelihood, an impacts, or a toy generation run, or run the GoF tests/single fits.")
    elif args.npoints is not None and args.npoints < 0:
       raise RuntimeError("You must specify npoints>=0 for the likelihood run.")
+   elif args.generate_ntoys is not None and args.generate_ntoys <= 0:
+      raise RuntimeError("Number of toys to generate should be greater than 0.")
+   elif (args.run_GoF or args.run_SingleFit) and args.toysdir is None:
+      raise RuntimeError("GoF and single fit runs need a toys directory.")
+
+   if (args.firstpoint is not None or args.lastpoint is not None) and args.point_distribution.lower() != 'uniform':
+      raise RuntimeError("First and last points are only implemented for the uniform point distribution at the moment.")
 
    args.point_distribution = args.point_distribution.lower()
 
