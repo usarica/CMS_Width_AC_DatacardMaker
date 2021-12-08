@@ -47,6 +47,7 @@
 #include "RooWorkspace.h"
 #include <HiggsAnalysis/CombinedLimit/interface/AsymPow.h>
 #include <IvyFramework/IvyDataTools/interface/HelperFunctions.h>
+#include <IvyFramework/IvyDataTools/interface/HostHelpersCore.h>
 
 
 using namespace RooFit;
@@ -59,45 +60,84 @@ struct process_spec{
   TString name;
   std::vector<RooAbsReal*> rateModifiers;
 
+  std::unordered_map<TString, TH1F*> syst_h1D_map;
+  std::unordered_map<TString, TH2F*> syst_h2D_map;
+  std::unordered_map<TString, TH3F*> syst_h3D_map;
+
   process_spec() : pdf(0), norm(0), rate(0){}
   process_spec(TString name_, double rate_) : pdf(nullptr), norm(nullptr), rate(rate_), name(name_){}
   process_spec(RooAbsPdf* pdf_, RooAbsReal* norm_, double rate_) : pdf(pdf_), norm(norm_), rate(rate_), name(pdf->GetName()){}
   process_spec(const process_spec& other) : pdf(other.pdf), norm(other.norm), rate(other.rate), name(other.name){}
+  ~process_spec();
 
   void setRateModifiers(std::vector<RooAbsReal*> const& vlist){ rateModifiers=vlist; }
   double getExtraNorm();
+
+  bool dependsOn(RooAbsReal* var);
+
+  void setDistribution(TH1F* tpl, TString const& procname);
+  void setDistribution(TH2F* tpl, TString const& procname);
+  void setDistribution(TH3F* tpl, TString const& procname);
 };
+process_spec::~process_spec(){
+  for (auto& pp:syst_h1D_map) delete pp.second;
+  for (auto& pp:syst_h2D_map) delete pp.second;
+  for (auto& pp:syst_h3D_map) delete pp.second;
+}
+
 double process_spec::getExtraNorm(){
   double res = 1;
   for (auto const& var:rateModifiers) res *= var->getVal();
   return res;
 }
 
+bool process_spec::dependsOn(RooAbsReal* var){
+  bool res = false;
+  if (!res && pdf) res |= pdf->dependsOn(*var);
+  if (!res && norm) res |= norm->dependsOn(*var);
+  for (auto const& rateModifier:rateModifiers){
+    if (!res) res |= rateModifier->dependsOn(*var);
+  }
+  return res;
+}
 
-template <typename T> void divideBinWidth(T* histo);
-template<> void divideBinWidth<TH1F>(TH1F* histo);
-template<> void divideBinWidth<TH2F>(TH2F* histo);
-template<> void divideBinWidth<TH3F>(TH3F* histo);
-template <typename T> void multiplyBinWidth(T* histo);
-template<> void multiplyBinWidth<TH1F>(TH1F* histo);
-template<> void multiplyBinWidth<TH2F>(TH2F* histo);
-template<> void multiplyBinWidth<TH3F>(TH3F* histo);
-template <typename T> double getHistogramIntegralAndError(T const* histo, int ix, int jx, bool useWidth, double* error=nullptr);
-template <typename T> double getHistogramIntegralAndError(T const* histo, int ix, int jx, int iy, int jy, bool useWidth, double* error=nullptr);
-template <typename T> double getHistogramIntegralAndError(T const* histo, int ix, int jx, int iy, int jy, int iz, int jz, bool useWidth, double* error=nullptr);
-TH1F* getHistogramSlice(TH1F const* histo, TString newname);
-TH1F* getHistogramSlice(TH2F const* histo, unsigned char XDirection, int iy, int jy, TString newname="");
-TH1F* getHistogramSlice(TH3F const* histo, unsigned char XDirection, int iy, int jy, int iz, int jz, TString newname=""); // "y" and "z" are cylical, so if Xdirection==1 (Y), "y"=Z and "z"=X
-TH2F* getHistogramSlice(TH3F const* histo, unsigned char XDirection, unsigned char YDirection, int iz, int jz, TString newname="");
+void process_spec::setDistribution(TH1F* tpl, TString const& procname){
+  if (syst_h1D_map.find(procname)!=syst_h1D_map.end()){
+    cerr << "syst_h1D_map[" << name << "] already contains " << procname << "." << endl;
+    exit(1);
+  }
+  TH1F* tplnew = new TH1F(*tpl); tplnew->SetName(procname);
+  syst_h1D_map[procname] = tplnew;
+}
+void process_spec::setDistribution(TH2F* tpl, TString const& procname){
+  if (syst_h2D_map.find(procname)!=syst_h2D_map.end()){
+    cerr << "syst_h2D_map[" << name << "] already contains " << procname << "." << endl;
+    exit(1);
+  }
+  TH2F* tplnew = new TH2F(*tpl); tplnew->SetName(procname);
+  syst_h2D_map[procname] = tplnew;
+}
+void process_spec::setDistribution(TH3F* tpl, TString const& procname){
+  if (syst_h3D_map.find(procname)!=syst_h3D_map.end()){
+    cerr << "syst_h3D_map[" << name << "] already contains " << procname << "." << endl;
+    exit(1);
+  }
+  TH3F* tplnew = new TH3F(*tpl); tplnew->SetName(procname);
+  syst_h3D_map[procname] = tplnew;
+}
 
 
-void splitOption(const string rawoption, string& wish, string& value, char delimiter);
-void splitOptionRecursive(const string rawoption, vector<string>& splitoptions, char delimiter);
-void splitOption(const TString rawoption, TString& wish, TString& value, char delimiter);
-void splitOptionRecursive(const TString rawoption, vector<TString>& splitoptions, char delimiter);
+
+using namespace HelperFunctions;
 
 
-unsigned int extractTemplates(process_spec& proc, RooDataSet* data, unordered_map<TString, TH1F>& procshape_1D, unordered_map<TString, TH2F>& procshape_2D, unordered_map<TString, TH3F>& procshape_3D, TString newname=""){
+
+unsigned int extractTemplates(
+  process_spec& proc, RooDataSet* data,
+  unordered_map<TString, TH1F>& procshape_1D, unordered_map<TString, TH2F>& procshape_2D, unordered_map<TString, TH3F>& procshape_3D,
+  TString newname="",
+  bool forceAddShapeToProcSpec=false
+){
   vector<RooRealVar*> deps;
   RooArgSet* depList = proc.pdf->getDependents(data);
   TIterator* coefIter = depList->createIterator();
@@ -146,8 +186,12 @@ unsigned int extractTemplates(process_spec& proc, RooDataSet* data, unordered_ma
     else zcmd = ZVar(*(deps.at(2)));
   }
 
+  bool addShapeToProcSpec = true;
   TString procname=proc.name;
-  if (newname!="") procname=newname;
+  if (newname!=""){
+    procname=newname;
+    addShapeToProcSpec = forceAddShapeToProcSpec;
+  }
   TString tplname = "T_";
   tplname += procname;
 
@@ -158,10 +202,12 @@ unsigned int extractTemplates(process_spec& proc, RooDataSet* data, unordered_ma
     double integral = tpl->Integral();
     double scale = normval/integral;
     cout << "Scaling template " << tplname << " by " << normval << " / " << integral << endl;
-    tpl->SetName(tplname);
+
     tpl->SetTitle("");
     tpl->Scale(scale);
     cout << procname << " contribution final integral = " << getHistogramIntegralAndError(tpl, 1, tpl->GetNbinsX(), 1, tpl->GetNbinsY(), 1, tpl->GetNbinsZ(), false, nullptr) << "?=" << normval << endl;
+
+    if (addShapeToProcSpec) proc.setDistribution(tpl, procname);
 
     bool isAdded=false;
     for (auto it=procshape_3D.begin(); it!=procshape_3D.end(); it++){
@@ -185,10 +231,12 @@ unsigned int extractTemplates(process_spec& proc, RooDataSet* data, unordered_ma
     double integral = tpl->Integral();
     double scale = normval/integral;
     cout << "Scaling template " << tplname << " by " << normval << " / " << integral << endl;
-    tpl->SetName(tplname);
+
     tpl->SetTitle("");
     tpl->Scale(scale);
     cout << procname << " contribution final integral = " << getHistogramIntegralAndError(tpl, 1, tpl->GetNbinsX(), 1, tpl->GetNbinsY(), false, nullptr) << "?=" << normval << endl;
+
+    if (addShapeToProcSpec) proc.setDistribution(tpl, procname);
 
     bool isAdded=false;
     for (auto it=procshape_2D.begin(); it!=procshape_2D.end(); it++){
@@ -212,10 +260,12 @@ unsigned int extractTemplates(process_spec& proc, RooDataSet* data, unordered_ma
     double integral = tpl->Integral();
     double scale = normval/integral;
     cout << "Scaling template " << tplname << " by " << normval << " / " << integral << endl;
-    tpl->SetName(tplname);
+
     tpl->SetTitle("");
     tpl->Scale(scale);
     cout << procname << " contribution final integral = " << getHistogramIntegralAndError(tpl, 1, tpl->GetNbinsX(), false, nullptr) << "?=" << normval << endl;
+
+    if (addShapeToProcSpec) proc.setDistribution(tpl, procname);
 
     bool isAdded=false;
     for (auto it=procshape_1D.begin(); it!=procshape_1D.end(); it++){
@@ -339,6 +389,83 @@ unsigned int extractDataTemplates(process_spec& proc, RooDataSet* data, unordere
 }
 
 
+bool isTrueNuisance(TString const& nuisname){
+  return !(
+    nuisname.BeginsWith("RF") || nuisname.BeginsWith("RV") || nuisname.BeginsWith("R_") || nuisname=="R"
+    ||
+    nuisname.BeginsWith("rf") || nuisname.BeginsWith("rv") || nuisname.BeginsWith("r_") || nuisname=="r"
+    ||
+    nuisname=="CMS_zz4l_fai1" || nuisname=="GGsm"
+    );
+}
+
+std::unordered_map<TString, std::pair<RooRealVar*, RooRealVar*>> getZippedNuisanceMap(
+  std::vector<RooRealVar*> const& nuisanceVars,
+  std::vector<RooRealVar*> const& lnNmodvars
+){
+  std::unordered_map<TString, std::pair<RooRealVar*, RooRealVar*>> res;
+  for (auto const& nuis:nuisanceVars){
+    TString nuisname = nuis->GetName();
+    res[nuisname] = std::pair<RooRealVar*, RooRealVar*>(nuis, nullptr);
+  }
+  for (auto const& nuis:lnNmodvars){
+    TString nuisname = nuis->GetName();
+    auto it = res.find(nuisname);
+    if (it!=res.end()) it->second.second = nuis;
+    else res[nuisname] = std::pair<RooRealVar*, RooRealVar*>(nullptr, nuis);
+  }
+  return res;
+}
+
+void extractTemplateSystVariations(
+  process_spec& proc, RooDataSet* data,
+  std::unordered_map<TString, std::pair<RooRealVar*, RooRealVar*>> const& zipped_nuisances,
+  std::unordered_map<TString, std::pair<double, std::pair<double, double>> > const& postfit_vals_map
+){
+  std::unordered_map<TString, TH1F> dummymap_1D;
+  std::unordered_map<TString, TH2F> dummymap_2D;
+  std::unordered_map<TString, TH3F> dummymap_3D;
+  TString const& procname = proc.name;
+  for (auto const& nuisname_nuispair_pair:zipped_nuisances){
+    TString nuisname = nuisname_nuispair_pair.first;
+    // These are POIs, not nuisances. Skip them.
+    if (!isTrueNuisance(nuisname)) continue;
+    
+    RooRealVar* nuis_shape = nuisname_nuispair_pair.second.first;
+    RooRealVar* nuis_norm = nuisname_nuispair_pair.second.second;
+    if (
+      !(
+        (nuis_shape && proc.dependsOn(nuis_shape))
+        ||
+        (nuis_norm && proc.dependsOn(nuis_norm))
+        )
+      ) continue;
+
+    auto const& postfit_vals = postfit_vals_map.find(nuisname)->second;
+    double const& vnom = postfit_vals.first;
+    double const& vdn = postfit_vals.second.first;
+    double const& vup = postfit_vals.second.second;
+
+    TString strhname;
+
+    strhname = Form("%s_%s_Down", procname.Data(), nuisname.Data());
+    if (nuis_shape) nuis_shape->setVal(vdn);
+    if (nuis_norm) nuis_norm->setVal(vdn);
+    cout << "\t- Extracting " << strhname << " at " << nuisname << "=" << vdn << "..." << endl;
+    extractTemplates(proc, data, dummymap_1D, dummymap_2D, dummymap_3D, strhname, true);
+
+    strhname = Form("%s_%s_Up", procname.Data(), nuisname.Data());
+    if (nuis_shape) nuis_shape->setVal(vup);
+    if (nuis_norm) nuis_norm->setVal(vup);
+    cout << "\t- Extracting " << strhname << " at " << nuisname << "=" << vup << "..." << endl;
+    extractTemplates(proc, data, dummymap_1D, dummymap_2D, dummymap_3D, strhname, true);
+
+    if (nuis_shape) nuis_shape->setVal(vnom);
+    if (nuis_norm) nuis_norm->setVal(vnom);
+  }
+}
+
+
 float getACMuF(TString cinputdir, float fai1){
   float res=1;
   if (cinputdir.Contains("/a3")) res = 1;
@@ -391,12 +518,6 @@ TGraphAsymmErrors* getDataGraph(TH1F* hdata, bool errorsOnZero=false){
   }
   else cout << "Data histogram is null." << endl;
   return tgdata;
-}
-
-bool FileExists(const char* fname){
-  if (!fname) return false;
-  struct stat sb;
-  return (stat(fname, &sb) == 0 && S_ISREG(sb.st_mode));
 }
 
 void getParameterErrors(RooRealVar const& par, double& errLo, double& errHi){
@@ -733,8 +854,8 @@ void plotStacked(
         TString cinput_main = cinputdir + "/" + sqrtsname + "/hto" + channame + "_" + catname;
         TString cinput_file = cinput_main + ".input.root";
         TString cinput_dc = cinput_main + ".txt";
-        if (!FileExists(cinput_file)){ cout << "File " << cinput_file << " does not exist. Skipping this channel..." << endl; continue; }
-        else if (!FileExists(cinput_dc)){ cout << "File " << cinput_dc << " does not exist. Skipping this channel..." << endl; continue; }
+        if (!HostHelpers::FileExists(cinput_file)){ cout << "File " << cinput_file << " does not exist. Skipping this channel..." << endl; continue; }
+        else if (!HostHelpers::FileExists(cinput_dc)){ cout << "File " << cinput_dc << " does not exist. Skipping this channel..." << endl; continue; }
 
         vector<TString> procname;
         vector<double> procrate;
@@ -773,7 +894,7 @@ void plotStacked(
           bool isLog = strline.find("lnN")!=string::npos;
           if (isLog){
             vector<string> systdist;
-            splitOptionRecursive(strline, systdist, ' ');
+            splitOptionRecursive(strline, systdist, ' ', false);
             string systname = systdist.at(0);
             string systtype = systdist.at(1);
             string accumulate="";
@@ -819,9 +940,13 @@ void plotStacked(
           }
         }
 
+        cout << "Opening the workspace file " << cinput_file << "..." << endl;
+
         // Open the input
         TFile* finput = TFile::Open(cinput_file, "read");
         RooWorkspace* ws = (RooWorkspace*) finput->Get("w");
+
+        std::vector<RooRealVar*> nuisanceVars;
 
         // Set postfit values first if they are present.
         for (auto const& pp:postfit_vals_map){
@@ -830,6 +955,7 @@ void plotStacked(
           double const& vlow = pp.second.second.first;
           double const& vhigh = pp.second.second.second;
           if (tmpvar){
+            nuisanceVars.push_back(tmpvar);
             cout << "\t- Setting " << pp.first << " = " << vnom << "[" << vlow << ", " << vhigh << "] in the workspace." << endl;
             tmpvar->setVal(vnom);
             tmpvar->setAsymError(vlow-vnom, vhigh-vnom);
@@ -843,20 +969,24 @@ void plotStacked(
             }
           }
         }
+        cout << "Building the zipped map..." << endl;
+        std::unordered_map<TString, std::pair<RooRealVar*, RooRealVar*>> zipped_nuisances = getZippedNuisanceMap(nuisanceVars, lnNmodvars);
+
         unordered_map<TString, RooRealVar*> controlVars;
-        TString varsToCheck[10]={
+        std::vector<TString> varsToCheck{
           "R", "RF", "RF_13TeV", "RV", "RV_13TeV", "R_13TeV", "CMS_zz4l_fai1", "GGsm", "kbkg_gg", "kbkg_VBF"
         };
-        for (unsigned int v=0; v<10; v++){
-          controlVars[varsToCheck[v]] = ws->var(varsToCheck[v]);
-          if (controlVars[varsToCheck[v]]){
-            if (varsToCheck[v]!="CMS_zz4l_fai1"){
-              controlVars[varsToCheck[v]]->setVal(1);
-              if (varsToCheck[v]=="GGsm") controlVars[varsToCheck[v]]->removeRange();
+        for (auto const& strvar:varsToCheck){
+          RooRealVar* tmpvar = ws->var(strvar);
+          controlVars[strvar] = tmpvar;
+          if (tmpvar){
+            if (strvar!="CMS_zz4l_fai1"){
+              tmpvar->setVal(1);
+              if (strvar=="GGsm") tmpvar->removeRange();
             }
-            else controlVars[varsToCheck[v]]->setVal(0);
+            else tmpvar->setVal(0);
           }
-          else cerr << varsToCheck[v] << " could not be found!" << endl;
+          else cerr << strvar << " could not be found!" << endl;
         }
         RooDataSet* data = (RooDataSet*) ws->data("data_obs");
 
@@ -970,7 +1100,7 @@ void plotStacked(
             setControlVariableValue(controlVars, "RF", 1);
 
             if (!cinputdir.Contains("/SM")){
-              setControlVariableValue(controlVars, "CMS_zz4l_fai1", val_fai1ALT["CMS_zz4l_fai1"]);
+              setControlVariableValue(controlVars, "CMS_zz4l_fai1", val_fai1ALT["fai1"]);
               setControlVariableValue(controlVars, "RV", val_fai1ALT["RV"]);
               setControlVariableValue(controlVars, "RF", val_fai1ALT["RF"]);
               ndims = extractTemplates(procSpecs[pname], data, procshape_1D, procshape_2D, procshape_3D, "total_fai1ALT");
@@ -987,7 +1117,7 @@ void plotStacked(
             setControlVariableValue(controlVars, "RF", 1);
 
             if (!cinputdir.Contains("/SM")){
-              setControlVariableValue(controlVars, "CMS_zz4l_fai1", val_fai1ALT["CMS_zz4l_fai1"]);
+              setControlVariableValue(controlVars, "CMS_zz4l_fai1", val_fai1ALT["fai1"]);
               setControlVariableValue(controlVars, "RV", val_fai1ALT["RV"]);
               setControlVariableValue(controlVars, "RF", val_fai1ALT["RF"]);
               ndims = extractTemplates(procSpecs[pname], data, procshape_1D, procshape_2D, procshape_3D, "total_fai1ALT");
@@ -998,6 +1128,7 @@ void plotStacked(
           }
 
           ndims = extractTemplates(procSpecs[pname], data, procshape_1D, procshape_2D, procshape_3D);
+          if (addObsRatio) extractTemplateSystVariations(procSpecs[pname], data, zipped_nuisances, postfit_vals_map);
         }
         extractDataTemplates(procSpecs[procname.front()], data, procshape_1D, procshape_2D, procshape_3D, "data");
 
@@ -1835,351 +1966,4 @@ void plotStacked(
     }
 
   }
-}
-
-
-template<> void divideBinWidth<TH1F>(TH1F* histo){
-  TAxis const* xaxis = histo->GetXaxis();
-  for (int binx=1; binx<=histo->GetNbinsX(); binx++){
-    float binwidthX = xaxis->GetBinWidth(binx);
-    histo->SetBinContent(binx, histo->GetBinContent(binx)/binwidthX);
-    histo->SetBinError(binx, histo->GetBinError(binx)/binwidthX);
-  }
-}
-template<> void divideBinWidth<TH2F>(TH2F* histo){
-  TAxis const* xaxis = histo->GetXaxis();
-  TAxis const* yaxis = histo->GetYaxis();
-  for (int binx=1; binx<=histo->GetNbinsX(); binx++){
-    float binwidthX = xaxis->GetBinWidth(binx);
-    for (int biny=1; biny<=histo->GetNbinsY(); biny++){
-      float binwidthY = yaxis->GetBinWidth(biny);
-      float binwidth=binwidthX*binwidthY;
-      histo->SetBinContent(binx, biny, histo->GetBinContent(binx, biny)/binwidth);
-      histo->SetBinError(binx, biny, histo->GetBinError(binx, biny)/binwidth);
-    }
-  }
-}
-template<> void divideBinWidth<TH3F>(TH3F* histo){
-  TAxis const* xaxis = histo->GetXaxis();
-  TAxis const* yaxis = histo->GetYaxis();
-  TAxis const* zaxis = histo->GetZaxis();
-  for (int binx=1; binx<=histo->GetNbinsX(); binx++){
-    float binwidthX = xaxis->GetBinWidth(binx);
-    for (int biny=1; biny<=histo->GetNbinsY(); biny++){
-      float binwidthY = yaxis->GetBinWidth(biny);
-      for (int binz=1; binz<=histo->GetNbinsZ(); binz++){
-        float binwidthZ = zaxis->GetBinWidth(binz);
-        float binwidth=binwidthX*binwidthY*binwidthZ;
-        histo->SetBinContent(binx, biny, binz, histo->GetBinContent(binx, biny, binz)/binwidth);
-        histo->SetBinError(binx, biny, binz, histo->GetBinError(binx, biny, binz)/binwidth);
-      }
-    }
-  }
-}
-
-template<> void multiplyBinWidth<TH1F>(TH1F* histo){
-  TAxis const* xaxis = histo->GetXaxis();
-  for (int binx=1; binx<=histo->GetNbinsX(); binx++){
-    float binwidthX = xaxis->GetBinWidth(binx);
-    histo->SetBinContent(binx, histo->GetBinContent(binx)*binwidthX);
-    histo->SetBinError(binx, histo->GetBinError(binx)*binwidthX);
-  }
-}
-template<> void multiplyBinWidth<TH2F>(TH2F* histo){
-  TAxis const* xaxis = histo->GetXaxis();
-  TAxis const* yaxis = histo->GetYaxis();
-  for (int binx=1; binx<=histo->GetNbinsX(); binx++){
-    float binwidthX = xaxis->GetBinWidth(binx);
-    for (int biny=1; biny<=histo->GetNbinsY(); biny++){
-      float binwidthY = yaxis->GetBinWidth(biny);
-      float binwidth=binwidthX*binwidthY;
-      histo->SetBinContent(binx, biny, histo->GetBinContent(binx, biny)*binwidth);
-      histo->SetBinError(binx, biny, histo->GetBinError(binx, biny)*binwidth);
-    }
-  }
-}
-template<> void multiplyBinWidth<TH3F>(TH3F* histo){
-  TAxis const* xaxis = histo->GetXaxis();
-  TAxis const* yaxis = histo->GetYaxis();
-  TAxis const* zaxis = histo->GetZaxis();
-  for (int binx=1; binx<=histo->GetNbinsX(); binx++){
-    float binwidthX = xaxis->GetBinWidth(binx);
-    for (int biny=1; biny<=histo->GetNbinsY(); biny++){
-      float binwidthY = yaxis->GetBinWidth(biny);
-      for (int binz=1; binz<=histo->GetNbinsZ(); binz++){
-        float binwidthZ = zaxis->GetBinWidth(binz);
-        float binwidth=binwidthX*binwidthY*binwidthZ;
-        histo->SetBinContent(binx, biny, binz, histo->GetBinContent(binx, biny, binz)*binwidth);
-        histo->SetBinError(binx, biny, binz, histo->GetBinError(binx, biny, binz)*binwidth);
-      }
-    }
-  }
-}
-
-template <typename T> double getHistogramIntegralAndError(T const* histo, int ix, int jx, bool useWidth, double* error){
-  double res=0;
-  double reserror=0;
-  if (histo){
-    if (!useWidth) res=histo->IntegralAndError(ix, jx, reserror, "");
-    else{
-      int xb[2]={ std::max(1, std::min(histo->GetNbinsX(), ix)), std::max(1, std::min(histo->GetNbinsX(), jx)) };
-
-      res=histo->IntegralAndError(xb[0], xb[1], reserror, "width");
-
-      double integralinside, integralerrorinside;
-      integralinside=histo->IntegralAndError(xb[0], xb[1], integralerrorinside, "");
-
-      double integraloutside, integralerroroutside;
-      integraloutside=histo->IntegralAndError(ix, jx, integralerroroutside, "");
-
-      res = res + integraloutside - integralinside;
-      reserror = sqrt(std::max(0., pow(reserror, 2) + pow(integralerroroutside, 2) - pow(integralerrorinside, 2)));
-    }
-  }
-  if (error) *error=reserror;
-  return res;
-}
-template <typename T> double getHistogramIntegralAndError(T const* histo, int ix, int jx, int iy, int jy, bool useWidth, double* error){
-  double res=0;
-  double reserror=0;
-  if (histo){
-    if (!useWidth) res=histo->IntegralAndError(ix, jx, iy, jy, reserror, "");
-    else{
-      int xb[2]={ std::max(1, std::min(histo->GetNbinsX(), ix)), std::max(1, std::min(histo->GetNbinsX(), jx)) };
-      int yb[2]={ std::max(1, std::min(histo->GetNbinsY(), iy)), std::max(1, std::min(histo->GetNbinsY(), jy)) };
-
-      res=histo->IntegralAndError(xb[0], xb[1], yb[0], yb[1], reserror, "width");
-
-      double integralinside, integralerrorinside;
-      integralinside=histo->IntegralAndError(xb[0], xb[1], yb[0], yb[1], integralerrorinside, "");
-
-      double integraloutside, integralerroroutside;
-      integraloutside=histo->IntegralAndError(ix, jx, iy, jy, integralerroroutside, "");
-
-      res = res + integraloutside - integralinside;
-      reserror = sqrt(std::max(0., pow(reserror, 2) + pow(integralerroroutside, 2) - pow(integralerrorinside, 2)));
-    }
-  }
-  if (error) *error=reserror;
-  return res;
-}
-template <typename T> double getHistogramIntegralAndError(T const* histo, int ix, int jx, int iy, int jy, int iz, int jz, bool useWidth, double* error){
-  double res=0;
-  double reserror=0;
-  if (histo){
-    if (!useWidth) res=histo->IntegralAndError(ix, jx, iy, jy, iz, jz, reserror, "");
-    else{
-      int xb[2]={ std::max(1, std::min(histo->GetNbinsX(), ix)), std::max(1, std::min(histo->GetNbinsX(), jx)) };
-      int yb[2]={ std::max(1, std::min(histo->GetNbinsY(), iy)), std::max(1, std::min(histo->GetNbinsY(), jy)) };
-      int zb[2]={ std::max(1, std::min(histo->GetNbinsZ(), iz)), std::max(1, std::min(histo->GetNbinsZ(), jz)) };
-
-      res=histo->IntegralAndError(xb[0], xb[1], yb[0], yb[1], zb[0], zb[1], reserror, "width");
-
-      double integralinside, integralerrorinside;
-      integralinside=histo->IntegralAndError(xb[0], xb[1], yb[0], yb[1], zb[0], zb[1], integralerrorinside, "");
-
-      double integraloutside, integralerroroutside;
-      integraloutside=histo->IntegralAndError(ix, jx, iy, jy, iz, jz, integralerroroutside, "");
-
-      res = res + integraloutside - integralinside;
-      reserror = sqrt(std::max(0., pow(reserror, 2) + pow(integralerroroutside, 2) - pow(integralerrorinside, 2)));
-    }
-  }
-  if (error) *error=reserror;
-  return res;
-}
-
-TH1F* getHistogramSlice(TH1F const* histo, TString newname){
-  if (!histo) return nullptr;
-  if (newname=="") newname=Form("Slice_%s", histo->GetName());
-
-  const TAxis* xaxis=histo->GetXaxis();
-  vector<float> bins;
-  for (int i=1; i<=xaxis->GetNbins()+1; i++) bins.push_back(xaxis->GetBinLowEdge(i));
-  TH1F* res = new TH1F(newname, "", bins.size()-1, bins.data());
-
-  for (int ii=0; ii<=xaxis->GetNbins()+1; ii++){
-    double integral=0, integralerror=0;
-    integral = getHistogramIntegralAndError(histo, ii, ii, false, &integralerror);
-    res->SetBinContent(ii, integral);
-    res->SetBinError(ii, integralerror);
-  }
-
-  return res;
-}
-TH1F* getHistogramSlice(TH2F const* histo, unsigned char XDirection, int iy, int jy, TString newname){
-  if (!histo || XDirection>=2) return nullptr;
-  if (newname=="") newname=Form("Slice_%s_%i_%i_%s", (XDirection==0 ? "X" : "Y"), iy, jy, histo->GetName());
-
-  const TAxis* xaxis=histo->GetXaxis();
-  const TAxis* yaxis=histo->GetYaxis();
-  vector<float> bins;
-  if (XDirection==0){
-    for (int i=1; i<=xaxis->GetNbins()+1; i++) bins.push_back(xaxis->GetBinLowEdge(i));
-    iy = std::max(0, iy); jy = std::min(yaxis->GetNbins()+1, jy);
-  }
-  else{
-    for (int i=1; i<=yaxis->GetNbins()+1; i++) bins.push_back(yaxis->GetBinLowEdge(i));
-    iy = std::max(0, iy); jy = std::min(xaxis->GetNbins()+1, jy);
-  }
-  if (iy>jy) cerr << "getHistogramSlice: iy>jy!" << endl;
-  TH1F* res = new TH1F(newname, "", bins.size()-1, bins.data());
-
-  if (XDirection==0){
-    for (int ii=0; ii<=xaxis->GetNbins()+1; ii++){
-      double integral=0, integralerror=0;
-      integral = getHistogramIntegralAndError(histo, ii, ii, iy, jy, false, &integralerror);
-      res->SetBinContent(ii, integral);
-      res->SetBinError(ii, integralerror);
-    }
-  }
-  else{
-    for (int ii=0; ii<=yaxis->GetNbins()+1; ii++){
-      double integral=0, integralerror=0;
-      integral = getHistogramIntegralAndError(histo, iy, jy, ii, ii, false, &integralerror);
-      res->SetBinContent(ii, integral);
-      res->SetBinError(ii, integralerror);
-    }
-  }
-
-  return res;
-}
-TH1F* getHistogramSlice(TH3F const* histo, unsigned char XDirection, int iy, int jy, int iz, int jz, TString newname){
-  if (!histo || XDirection>=3) return nullptr;
-  if (newname=="") newname=Form("Slice_%s_%i_%i_%i_%i_%s", (XDirection==0 ? "X" : (XDirection==1 ? "Y" : "Z")), iy, jy, iz, jz, histo->GetName());
-
-  const TAxis* xaxis;
-  const TAxis* yaxis;
-  const TAxis* zaxis;
-  vector<float> bins;
-  if (XDirection==0){
-    xaxis=histo->GetXaxis();
-    yaxis=histo->GetYaxis();
-    zaxis=histo->GetZaxis();
-  }
-  else if (XDirection==1){
-    xaxis=histo->GetYaxis();
-    yaxis=histo->GetZaxis();
-    zaxis=histo->GetXaxis();
-  }
-  else{
-    xaxis=histo->GetZaxis();
-    yaxis=histo->GetXaxis();
-    zaxis=histo->GetYaxis();
-  }
-  for (int i=1; i<=xaxis->GetNbins()+1; i++) bins.push_back(xaxis->GetBinLowEdge(i));
-  iy = std::max(0, iy); jy = std::min(yaxis->GetNbins()+1, jy);
-  iz = std::max(0, iz); jz = std::min(zaxis->GetNbins()+1, jz);
-  if (iy>jy) cerr << "getHistogramSlice: iy>jy!" << endl;
-  if (iz>jz) cerr << "getHistogramSlice: iz>jz!" << endl;
-  TH1F* res = new TH1F(newname, "", bins.size()-1, bins.data());
-
-  for (int ii=0; ii<=xaxis->GetNbins()+1; ii++){
-    double integral=0, integralerror=0;
-    int IX, JX, IY, JY, IZ, JZ;
-    if (XDirection==0){
-      IX=ii; JX=ii;
-      IY=iy; JY=jy;
-      IZ=iz; JZ=jz;
-    }
-    else if (XDirection==1){
-      IX=iz; JX=jz;
-      IY=ii; JY=ii;
-      IZ=iy; JZ=jy;
-    }
-    else{
-      IX=iy; JX=jy;
-      IY=iz; JY=jz;
-      IZ=ii; JZ=ii;
-    }
-    integral = getHistogramIntegralAndError(histo, IX, JX, IY, JY, IZ, JZ, false, &integralerror);
-    res->SetBinContent(ii, integral);
-    res->SetBinError(ii, integralerror);
-  }
-
-  return res;
-}
-TH2F* getHistogramSlice(TH3F const* histo, unsigned char XDirection, unsigned char YDirection, int iz, int jz, TString newname){
-  if (!histo || XDirection==YDirection || XDirection>=3 || YDirection>=3) return nullptr;
-  if (newname=="") newname=Form("Slice_%s%s_%i_%i_%s", (XDirection==0 ? "X" : (XDirection==1 ? "Y" : "Z")), (YDirection==0 ? "X" : (YDirection==1 ? "Y" : "Z")), iz, jz, histo->GetName());
-
-  unsigned char ZDirection=3-XDirection-YDirection; // 0+1+2=3
-  const TAxis* xaxis;
-  const TAxis* yaxis;
-  const TAxis* zaxis;
-  vector<float> xbins, ybins;
-  if (XDirection==0) xaxis=histo->GetXaxis();
-  else if (XDirection==1) xaxis=histo->GetYaxis();
-  else xaxis=histo->GetZaxis();
-  if (YDirection==0) yaxis=histo->GetXaxis();
-  else if (YDirection==1) yaxis=histo->GetYaxis();
-  else yaxis=histo->GetZaxis();
-  if (ZDirection==0) zaxis=histo->GetXaxis();
-  else if (ZDirection==1) zaxis=histo->GetYaxis();
-  else zaxis=histo->GetZaxis();
-
-  for (int i=1; i<=xaxis->GetNbins()+1; i++) xbins.push_back(xaxis->GetBinLowEdge(i));
-  for (int i=1; i<=yaxis->GetNbins()+1; i++) ybins.push_back(yaxis->GetBinLowEdge(i));
-  iz = std::max(0, iz); std::min(zaxis->GetNbins()+1, jz);
-  TH2F* res = new TH2F(newname, "", xbins.size()-1, xbins.data(), ybins.size()-1, ybins.data());
-
-  for (int ii=0; ii<=xaxis->GetNbins()+1; ii++){
-    for (int jj=0; jj<=yaxis->GetNbins()+1; jj++){
-      double integral=0, integralerror=0;
-      int IX=0, JX=0, IY=0, JY=0, IZ=0, JZ=0;
-      if (XDirection==0){ IX=ii; JX=ii; }
-      else if (XDirection==1){ IY=ii; JY=ii; }
-      else{ IZ=ii; JZ=ii; }
-      if (YDirection==0){ IX=jj; JX=jj; }
-      else if (YDirection==1){ IY=jj; JY=jj; }
-      else{ IZ=jj; JZ=jj; }
-      if (ZDirection==0){ IX=iz; JX=jz; }
-      else if (ZDirection==1){ IY=iz; JY=jz; }
-      else{ IZ=iz; JZ=jz; }
-      integral = getHistogramIntegralAndError(histo, IX, JX, IY, JY, IZ, JZ, false, &integralerror);
-      res->SetBinContent(ii, jj, integral);
-      res->SetBinError(ii, jj, integralerror);
-    }
-  }
-
-  return res;
-}
-
-void splitOption(const string rawoption, string& wish, string& value, char delimiter){
-  size_t posEq = rawoption.find(delimiter);
-  if (posEq!=string::npos){
-    wish=rawoption;
-    value=rawoption.substr(posEq+1);
-    wish.erase(wish.begin()+posEq, wish.end());
-    while (value.find(delimiter)==0) value=value.substr(1);
-  }
-  else{
-    wish="";
-    value=rawoption;
-  }
-}
-void splitOptionRecursive(const string rawoption, vector<string>& splitoptions, char delimiter){
-  string suboption=rawoption, result=rawoption;
-  string remnant;
-  while (result!=""){
-    splitOption(suboption, result, remnant, delimiter);
-    if (result!="") splitoptions.push_back(result);
-    suboption = remnant;
-  }
-  if (remnant!="") splitoptions.push_back(remnant);
-}
-
-void splitOption(const TString rawoption, TString& wish, TString& value, char delimiter){
-  string srawoption = rawoption.Data();
-  string swish, svalue;
-  splitOption(srawoption, swish, svalue, delimiter);
-  wish = swish.data();
-  value = svalue.data();
-}
-void splitOptionRecursive(const TString rawoption, vector<TString>& splitoptions, char delimiter){
-  string srawoption = rawoption.Data();
-  vector<string> soptions;
-  splitOptionRecursive(srawoption, soptions, delimiter);
-  splitoptions.clear(); splitoptions.reserve(soptions.size());
-  for (auto const& sopt:soptions) splitoptions.push_back(sopt.data());
 }

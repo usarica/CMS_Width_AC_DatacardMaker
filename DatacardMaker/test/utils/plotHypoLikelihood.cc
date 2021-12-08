@@ -46,6 +46,8 @@
 #include "RooWorkspace.h"
 #include "QuantFuncMathCore.h"
 #include <HiggsAnalysis/CombinedLimit/interface/AsymPow.h>
+#include <IvyFramework/IvyDataTools/interface/HelperFunctions.h>
+#include <IvyFramework/IvyDataTools/interface/HostHelpersCore.h>
 
 
 namespace std{
@@ -101,8 +103,11 @@ double process_spec::getExtraNorm(){
 
 bool process_spec::dependsOn(RooAbsReal* var){
   bool res = false;
-  if (!res && pdf) res = pdf->dependsOn(*var);
-  if (!res && norm) res = pdf->dependsOn(*var);
+  if (!res && pdf) res |= pdf->dependsOn(*var);
+  if (!res && norm) res |= norm->dependsOn(*var);
+  for (auto const& rateModifier:rateModifiers){
+    if (!res) res |= rateModifier->dependsOn(*var);
+  }
   return res;
 }
 
@@ -132,85 +137,9 @@ void process_spec::setDistribution(TH3F* tpl, TString const& procname){
 }
 
 
-template<typename T, typename U> bool replaceString(T& strinput, U strTakeOut, U strPutIn);
-template<> bool replaceString<TString, const TString>(TString& strinput, const TString strTakeOut, const TString strPutIn){
-  Ssiz_t ipos=strinput.Index(strTakeOut);
-  if (ipos!=-1){ strinput.Replace(ipos, strTakeOut.Length(), strPutIn); return true; }
-  else return false;
-}
-template<> bool replaceString<TString, const char*>(TString& strinput, const char* strTakeOut, const char* strPutIn){
-  Ssiz_t ipos=strinput.Index(strTakeOut);
-  if (ipos!=-1){ strinput.Replace(ipos, strlen(strTakeOut), strPutIn); return true; }
-  else return false;
-}
-template<> bool replaceString<std::string, const std::string>(std::string& strinput, const std::string strTakeOut, const std::string strPutIn){
-  std::string::size_type ipos=strinput.find(strTakeOut);
-  if (ipos!=std::string::npos){ strinput.replace(ipos, strTakeOut.length(), strPutIn); return true; }
-  else return false;
-}
-template<> bool replaceString<std::string, const char*>(std::string& strinput, const char* strTakeOut, const char* strPutIn){
-  std::string::size_type ipos=strinput.find(strTakeOut);
-  if (ipos!=std::string::npos){ strinput.replace(ipos, strlen(strTakeOut), strPutIn); return true; }
-  else return false;
-}
 
+using namespace HelperFunctions;
 
-template <typename T> void divideBinWidth(T* histo);
-template<> void divideBinWidth<TH1F>(TH1F* histo);
-template<> void divideBinWidth<TH2F>(TH2F* histo);
-template<> void divideBinWidth<TH3F>(TH3F* histo);
-template <typename T> void multiplyBinWidth(T* histo);
-template<> void multiplyBinWidth<TH1F>(TH1F* histo);
-template<> void multiplyBinWidth<TH2F>(TH2F* histo);
-template<> void multiplyBinWidth<TH3F>(TH3F* histo);
-template <typename T> double getHistogramIntegralAndError(T const* histo, int ix, int jx, bool useWidth, double* error=nullptr);
-template <typename T> double getHistogramIntegralAndError(T const* histo, int ix, int jx, int iy, int jy, bool useWidth, double* error=nullptr);
-template <typename T> double getHistogramIntegralAndError(T const* histo, int ix, int jx, int iy, int jy, int iz, int jz, bool useWidth, double* error=nullptr);
-TH1F* getHistogramSlice(TH1F const* histo, TString newname);
-TH1F* getHistogramSlice(TH2F const* histo, unsigned char XDirection, int iy, int jy, TString newname="");
-TH1F* getHistogramSlice(TH3F const* histo, unsigned char XDirection, int iy, int jy, int iz, int jz, TString newname=""); // "y" and "z" are cylical, so if Xdirection==1 (Y), "y"=Z and "z"=X
-TH2F* getHistogramSlice(TH3F const* histo, unsigned char XDirection, unsigned char YDirection, int iz, int jz, TString newname="");
-
-TH1F* flattenHistogram(TH1F const* histo, TString newname){
-  TString strnewname = newname;
-  if (newname=="") strnewname = Form("%s_flat", histo->GetName());
-  int nbins = histo->GetNbinsX();
-  TH1F* hnew = new TH1F(strnewname, histo->GetTitle(), nbins, 0, nbins);
-  for (int ix=1; ix<=nbins; ix++) hnew->SetBinContent(ix, histo->GetBinContent(ix));
-  return hnew;
-}
-TH1F* flattenHistogram(TH2F const* histo, TString newname){
-  TString strnewname = newname;
-  if (newname=="") strnewname = Form("%s_flat", histo->GetName());
-  int nbins = histo->GetNbinsX()*histo->GetNbinsY();
-  TH1F* hnew = new TH1F(strnewname, histo->GetTitle(), nbins, 0, nbins);
-  for (int ix=1; ix<=histo->GetNbinsX(); ix++){
-    for (int iy=1; iy<=histo->GetNbinsY(); iy++){
-      hnew->SetBinContent(ix, iy, histo->GetBinContent(ix, iy));
-    }
-  }
-  return hnew;
-}
-TH1F* flattenHistogram(TH3F const* histo, TString newname){
-  TString strnewname = newname;
-  if (newname=="") strnewname = Form("%s_flat", histo->GetName());
-  int nbins = histo->GetNbinsX()*histo->GetNbinsY()*histo->GetNbinsZ();
-  TH1F* hnew = new TH1F(strnewname, histo->GetTitle(), nbins, 0, nbins);
-  for (int ix=1; ix<=histo->GetNbinsX(); ix++){
-    for (int iy=1; iy<=histo->GetNbinsY(); iy++){
-      for (int iz=1; iz<=histo->GetNbinsZ(); iz++){
-        hnew->SetBinContent(ix, iy, iz, histo->GetBinContent(ix, iy, iz));
-      }
-    }
-  }
-  return hnew;
-}
-
-
-void splitOption(const string rawoption, string& wish, string& value, char delimiter);
-void splitOptionRecursive(const string rawoption, vector<string>& splitoptions, char delimiter);
-void splitOption(const TString rawoption, TString& wish, TString& value, char delimiter);
-void splitOptionRecursive(const TString rawoption, vector<TString>& splitoptions, char delimiter);
 
 
 unsigned int extractTemplates(
@@ -480,22 +409,47 @@ bool isTrueNuisance(TString const& nuisname){
     );
 }
 
-void extractTemplateSystVariations(
-  //unsigned int const& ndims,
-  process_spec& proc, RooDataSet* data,
-
+std::unordered_map<TString, std::pair<RooRealVar*, RooRealVar*>> getZippedNuisanceMap(
   std::vector<RooRealVar*> const& nuisanceVars,
+  std::vector<RooRealVar*> const& lnNmodvars
+){
+  std::unordered_map<TString, std::pair<RooRealVar*, RooRealVar*>> res;
+  for (auto const& nuis:nuisanceVars){
+    TString nuisname = nuis->GetName();
+    res[nuisname] = std::pair<RooRealVar*, RooRealVar*>(nuis, nullptr);
+  }
+  for (auto const& nuis:lnNmodvars){
+    TString nuisname = nuis->GetName();
+    auto it = res.find(nuisname);
+    if (it!=res.end()) it->second.second = nuis;
+    else res[nuisname] = std::pair<RooRealVar*, RooRealVar*>(nullptr, nuis);
+  }
+  return res;
+}
+
+void extractTemplateSystVariations(
+  process_spec& proc, RooDataSet* data,
+  std::unordered_map<TString, std::pair<RooRealVar*, RooRealVar*>> const& zipped_nuisances,
   std::unordered_map<TString, std::pair<double, std::pair<double, double>> > const& postfit_vals_map
 ){
   std::unordered_map<TString, TH1F> dummymap_1D;
   std::unordered_map<TString, TH2F> dummymap_2D;
   std::unordered_map<TString, TH3F> dummymap_3D;
   TString const& procname = proc.name;
-  for (auto const& nuis:nuisanceVars){
-    TString nuisname = nuis->GetName();
+  for (auto const& nuisname_nuispair_pair:zipped_nuisances){
+    TString nuisname = nuisname_nuispair_pair.first;
     // These are POIs, not nuisances. Skip them.
     if (!isTrueNuisance(nuisname)) continue;
-    if (!proc.dependsOn(nuis)) continue;
+
+    RooRealVar* nuis_shape = nuisname_nuispair_pair.second.first;
+    RooRealVar* nuis_norm = nuisname_nuispair_pair.second.second;
+    if (
+      !(
+        (nuis_shape && proc.dependsOn(nuis_shape))
+        ||
+        (nuis_norm && proc.dependsOn(nuis_norm))
+        )
+      ) continue;
 
     auto const& postfit_vals = postfit_vals_map.find(nuisname)->second;
     double const& vnom = postfit_vals.first;
@@ -505,16 +459,19 @@ void extractTemplateSystVariations(
     TString strhname;
 
     strhname = Form("%s_%s_Down", procname.Data(), nuisname.Data());
-    nuis->setVal(vdn);
-    cout << "\t- Extracting " << strhname << " at " << nuis->GetName() << "=" << vdn << "..." << endl;
+    if (nuis_shape) nuis_shape->setVal(vdn);
+    if (nuis_norm) nuis_norm->setVal(vdn);
+    cout << "\t- Extracting " << strhname << " at " << nuisname << "=" << vdn << "..." << endl;
     extractTemplates(proc, data, dummymap_1D, dummymap_2D, dummymap_3D, strhname, true);
 
     strhname = Form("%s_%s_Up", procname.Data(), nuisname.Data());
-    nuis->setVal(vup);
-    cout << "\t- Extracting " << strhname << " at " << nuis->GetName() << "=" << vup << "..." << endl;
+    if (nuis_shape) nuis_shape->setVal(vup);
+    if (nuis_norm) nuis_norm->setVal(vup);
+    cout << "\t- Extracting " << strhname << " at " << nuisname << "=" << vup << "..." << endl;
     extractTemplates(proc, data, dummymap_1D, dummymap_2D, dummymap_3D, strhname, true);
 
-    nuis->setVal(vnom);
+    if (nuis_shape) nuis_shape->setVal(vnom);
+    if (nuis_norm) nuis_norm->setVal(vnom);
   }
 }
 
@@ -591,12 +548,6 @@ TGraphAsymmErrors* getDataGraph(TH1F* hdata, bool addZeroBins){
   else cout << "Data histogram is null." << endl;
 
   return tgdata;
-}
-
-bool FileExists(const char* fname){
-  if (!fname) return false;
-  struct stat sb;
-  return (stat(fname, &sb) == 0 && S_ISREG(sb.st_mode));
 }
 
 void getParameterErrors(RooRealVar const& par, double& errLo, double& errHi){
@@ -727,8 +678,8 @@ void plotHypoLikelihood(
           TString cinput_main = cinputdir + "/Offshell_" + sqrtsname + "/hto" + channame + "_" + catname;
           TString cinput_file = cinput_main + ".input.root";
           TString cinput_dc = cinput_main + ".txt";
-          if (!FileExists(cinput_file)){ cout << "File " << cinput_file << " does not exist. Skipping this channel..." << endl; continue; }
-          else if (!FileExists(cinput_dc)){ cout << "File " << cinput_dc << " does not exist. Skipping this channel..." << endl; continue; }
+          if (!HostHelpers::FileExists(cinput_file)){ cout << "File " << cinput_file << " does not exist. Skipping this channel..." << endl; continue; }
+          else if (!HostHelpers::FileExists(cinput_dc)){ cout << "File " << cinput_dc << " does not exist. Skipping this channel..." << endl; continue; }
 
           vector<TString> procname;
           vector<double> procrate;
@@ -779,7 +730,7 @@ void plotHypoLikelihood(
             bool isLog = strline.find("lnN")!=string::npos;
             if (isLog){
               vector<string> systdist;
-              splitOptionRecursive(strline, systdist, ' ');
+              splitOptionRecursive(strline, systdist, ' ', false);
               string systname = systdist.at(0);
               string systtype = systdist.at(1);
               string accumulate="";
@@ -852,20 +803,23 @@ void plotHypoLikelihood(
               }
             }
           }
+          std::unordered_map<TString, std::pair<RooRealVar*, RooRealVar*>> zipped_nuisances = getZippedNuisanceMap(nuisanceVars, lnNmodvars);
+
           unordered_map<TString, RooRealVar*> controlVars;
-          TString varsToCheck[10]={
+          std::vector<TString> varsToCheck{
             "R", "RF", "RF_13TeV", "RV", "RV_13TeV", "R_13TeV", "CMS_zz4l_fai1", "GGsm", "kbkg_gg", "kbkg_VBF"
           };
-          for (unsigned int v=0; v<10; v++){
-            controlVars[varsToCheck[v]] = ws->var(varsToCheck[v]);
-            if (controlVars[varsToCheck[v]]){
-              if (varsToCheck[v]!="CMS_zz4l_fai1"){
-                controlVars[varsToCheck[v]]->setVal(1);
-                if (varsToCheck[v]=="GGsm") controlVars[varsToCheck[v]]->removeRange();
+          for (auto const& strvar:varsToCheck){
+            RooRealVar* tmpvar = ws->var(strvar);
+            controlVars[strvar] = tmpvar;
+            if (tmpvar){
+              if (strvar!="CMS_zz4l_fai1"){
+                tmpvar->setVal(1);
+                if (strvar=="GGsm") tmpvar->removeRange();
               }
-              else controlVars[varsToCheck[v]]->setVal(0);
+              else tmpvar->setVal(0);
             }
-            else cerr << varsToCheck[v] << " could not be found!" << endl;
+            else cerr << strvar << " could not be found!" << endl;
           }
           RooDataSet* data = (RooDataSet*) ws->data("data_obs");
 
@@ -943,7 +897,7 @@ void plotHypoLikelihood(
             }
 
             ndims = extractTemplates(procSpecs[pname], data, procshape_1D, procshape_2D, procshape_3D, "total_BestFit");
-            extractTemplateSystVariations(procSpecs[pname], data, nuisanceVars, postfit_vals_map);
+            extractTemplateSystVariations(procSpecs[pname], data, zipped_nuisances, postfit_vals_map);
           }
           extractDataTemplates(procSpecs[procname.front()], data, procshape_1D, procshape_2D, procshape_3D, "data");
 
@@ -1565,351 +1519,4 @@ void plotHypoLikelihood(
     delete systband.first;
     delete systband.second;
   }
-}
-
-
-template<> void divideBinWidth<TH1F>(TH1F* histo){
-  TAxis const* xaxis = histo->GetXaxis();
-  for (int binx=1; binx<=histo->GetNbinsX(); binx++){
-    float binwidthX = xaxis->GetBinWidth(binx);
-    histo->SetBinContent(binx, histo->GetBinContent(binx)/binwidthX);
-    histo->SetBinError(binx, histo->GetBinError(binx)/binwidthX);
-  }
-}
-template<> void divideBinWidth<TH2F>(TH2F* histo){
-  TAxis const* xaxis = histo->GetXaxis();
-  TAxis const* yaxis = histo->GetYaxis();
-  for (int binx=1; binx<=histo->GetNbinsX(); binx++){
-    float binwidthX = xaxis->GetBinWidth(binx);
-    for (int biny=1; biny<=histo->GetNbinsY(); biny++){
-      float binwidthY = yaxis->GetBinWidth(biny);
-      float binwidth=binwidthX*binwidthY;
-      histo->SetBinContent(binx, biny, histo->GetBinContent(binx, biny)/binwidth);
-      histo->SetBinError(binx, biny, histo->GetBinError(binx, biny)/binwidth);
-    }
-  }
-}
-template<> void divideBinWidth<TH3F>(TH3F* histo){
-  TAxis const* xaxis = histo->GetXaxis();
-  TAxis const* yaxis = histo->GetYaxis();
-  TAxis const* zaxis = histo->GetZaxis();
-  for (int binx=1; binx<=histo->GetNbinsX(); binx++){
-    float binwidthX = xaxis->GetBinWidth(binx);
-    for (int biny=1; biny<=histo->GetNbinsY(); biny++){
-      float binwidthY = yaxis->GetBinWidth(biny);
-      for (int binz=1; binz<=histo->GetNbinsZ(); binz++){
-        float binwidthZ = zaxis->GetBinWidth(binz);
-        float binwidth=binwidthX*binwidthY*binwidthZ;
-        histo->SetBinContent(binx, biny, binz, histo->GetBinContent(binx, biny, binz)/binwidth);
-        histo->SetBinError(binx, biny, binz, histo->GetBinError(binx, biny, binz)/binwidth);
-      }
-    }
-  }
-}
-
-template<> void multiplyBinWidth<TH1F>(TH1F* histo){
-  TAxis const* xaxis = histo->GetXaxis();
-  for (int binx=1; binx<=histo->GetNbinsX(); binx++){
-    float binwidthX = xaxis->GetBinWidth(binx);
-    histo->SetBinContent(binx, histo->GetBinContent(binx)*binwidthX);
-    histo->SetBinError(binx, histo->GetBinError(binx)*binwidthX);
-  }
-}
-template<> void multiplyBinWidth<TH2F>(TH2F* histo){
-  TAxis const* xaxis = histo->GetXaxis();
-  TAxis const* yaxis = histo->GetYaxis();
-  for (int binx=1; binx<=histo->GetNbinsX(); binx++){
-    float binwidthX = xaxis->GetBinWidth(binx);
-    for (int biny=1; biny<=histo->GetNbinsY(); biny++){
-      float binwidthY = yaxis->GetBinWidth(biny);
-      float binwidth=binwidthX*binwidthY;
-      histo->SetBinContent(binx, biny, histo->GetBinContent(binx, biny)*binwidth);
-      histo->SetBinError(binx, biny, histo->GetBinError(binx, biny)*binwidth);
-    }
-  }
-}
-template<> void multiplyBinWidth<TH3F>(TH3F* histo){
-  TAxis const* xaxis = histo->GetXaxis();
-  TAxis const* yaxis = histo->GetYaxis();
-  TAxis const* zaxis = histo->GetZaxis();
-  for (int binx=1; binx<=histo->GetNbinsX(); binx++){
-    float binwidthX = xaxis->GetBinWidth(binx);
-    for (int biny=1; biny<=histo->GetNbinsY(); biny++){
-      float binwidthY = yaxis->GetBinWidth(biny);
-      for (int binz=1; binz<=histo->GetNbinsZ(); binz++){
-        float binwidthZ = zaxis->GetBinWidth(binz);
-        float binwidth=binwidthX*binwidthY*binwidthZ;
-        histo->SetBinContent(binx, biny, binz, histo->GetBinContent(binx, biny, binz)*binwidth);
-        histo->SetBinError(binx, biny, binz, histo->GetBinError(binx, biny, binz)*binwidth);
-      }
-    }
-  }
-}
-
-template <typename T> double getHistogramIntegralAndError(T const* histo, int ix, int jx, bool useWidth, double* error){
-  double res=0;
-  double reserror=0;
-  if (histo){
-    if (!useWidth) res=histo->IntegralAndError(ix, jx, reserror, "");
-    else{
-      int xb[2]={ std::max(1, std::min(histo->GetNbinsX(), ix)), std::max(1, std::min(histo->GetNbinsX(), jx)) };
-
-      res=histo->IntegralAndError(xb[0], xb[1], reserror, "width");
-
-      double integralinside, integralerrorinside;
-      integralinside=histo->IntegralAndError(xb[0], xb[1], integralerrorinside, "");
-
-      double integraloutside, integralerroroutside;
-      integraloutside=histo->IntegralAndError(ix, jx, integralerroroutside, "");
-
-      res = res + integraloutside - integralinside;
-      reserror = sqrt(std::max(0., pow(reserror, 2) + pow(integralerroroutside, 2) - pow(integralerrorinside, 2)));
-    }
-  }
-  if (error) *error=reserror;
-  return res;
-}
-template <typename T> double getHistogramIntegralAndError(T const* histo, int ix, int jx, int iy, int jy, bool useWidth, double* error){
-  double res=0;
-  double reserror=0;
-  if (histo){
-    if (!useWidth) res=histo->IntegralAndError(ix, jx, iy, jy, reserror, "");
-    else{
-      int xb[2]={ std::max(1, std::min(histo->GetNbinsX(), ix)), std::max(1, std::min(histo->GetNbinsX(), jx)) };
-      int yb[2]={ std::max(1, std::min(histo->GetNbinsY(), iy)), std::max(1, std::min(histo->GetNbinsY(), jy)) };
-
-      res=histo->IntegralAndError(xb[0], xb[1], yb[0], yb[1], reserror, "width");
-
-      double integralinside, integralerrorinside;
-      integralinside=histo->IntegralAndError(xb[0], xb[1], yb[0], yb[1], integralerrorinside, "");
-
-      double integraloutside, integralerroroutside;
-      integraloutside=histo->IntegralAndError(ix, jx, iy, jy, integralerroroutside, "");
-
-      res = res + integraloutside - integralinside;
-      reserror = sqrt(std::max(0., pow(reserror, 2) + pow(integralerroroutside, 2) - pow(integralerrorinside, 2)));
-    }
-  }
-  if (error) *error=reserror;
-  return res;
-}
-template <typename T> double getHistogramIntegralAndError(T const* histo, int ix, int jx, int iy, int jy, int iz, int jz, bool useWidth, double* error){
-  double res=0;
-  double reserror=0;
-  if (histo){
-    if (!useWidth) res=histo->IntegralAndError(ix, jx, iy, jy, iz, jz, reserror, "");
-    else{
-      int xb[2]={ std::max(1, std::min(histo->GetNbinsX(), ix)), std::max(1, std::min(histo->GetNbinsX(), jx)) };
-      int yb[2]={ std::max(1, std::min(histo->GetNbinsY(), iy)), std::max(1, std::min(histo->GetNbinsY(), jy)) };
-      int zb[2]={ std::max(1, std::min(histo->GetNbinsZ(), iz)), std::max(1, std::min(histo->GetNbinsZ(), jz)) };
-
-      res=histo->IntegralAndError(xb[0], xb[1], yb[0], yb[1], zb[0], zb[1], reserror, "width");
-
-      double integralinside, integralerrorinside;
-      integralinside=histo->IntegralAndError(xb[0], xb[1], yb[0], yb[1], zb[0], zb[1], integralerrorinside, "");
-
-      double integraloutside, integralerroroutside;
-      integraloutside=histo->IntegralAndError(ix, jx, iy, jy, iz, jz, integralerroroutside, "");
-
-      res = res + integraloutside - integralinside;
-      reserror = sqrt(std::max(0., pow(reserror, 2) + pow(integralerroroutside, 2) - pow(integralerrorinside, 2)));
-    }
-  }
-  if (error) *error=reserror;
-  return res;
-}
-
-TH1F* getHistogramSlice(TH1F const* histo, TString newname){
-  if (!histo) return nullptr;
-  if (newname=="") newname=Form("Slice_%s", histo->GetName());
-
-  const TAxis* xaxis=histo->GetXaxis();
-  vector<float> bins;
-  for (int i=1; i<=xaxis->GetNbins()+1; i++) bins.push_back(xaxis->GetBinLowEdge(i));
-  TH1F* res = new TH1F(newname, "", bins.size()-1, bins.data());
-
-  for (int ii=0; ii<=xaxis->GetNbins()+1; ii++){
-    double integral=0, integralerror=0;
-    integral = getHistogramIntegralAndError(histo, ii, ii, false, &integralerror);
-    res->SetBinContent(ii, integral);
-    res->SetBinError(ii, integralerror);
-  }
-
-  return res;
-}
-TH1F* getHistogramSlice(TH2F const* histo, unsigned char XDirection, int iy, int jy, TString newname){
-  if (!histo || XDirection>=2) return nullptr;
-  if (newname=="") newname=Form("Slice_%s_%i_%i_%s", (XDirection==0 ? "X" : "Y"), iy, jy, histo->GetName());
-
-  const TAxis* xaxis=histo->GetXaxis();
-  const TAxis* yaxis=histo->GetYaxis();
-  vector<float> bins;
-  if (XDirection==0){
-    for (int i=1; i<=xaxis->GetNbins()+1; i++) bins.push_back(xaxis->GetBinLowEdge(i));
-    iy = std::max(0, iy); jy = std::min(yaxis->GetNbins()+1, jy);
-  }
-  else{
-    for (int i=1; i<=yaxis->GetNbins()+1; i++) bins.push_back(yaxis->GetBinLowEdge(i));
-    iy = std::max(0, iy); jy = std::min(xaxis->GetNbins()+1, jy);
-  }
-  if (iy>jy) cerr << "getHistogramSlice: iy>jy!" << endl;
-  TH1F* res = new TH1F(newname, "", bins.size()-1, bins.data());
-
-  if (XDirection==0){
-    for (int ii=0; ii<=xaxis->GetNbins()+1; ii++){
-      double integral=0, integralerror=0;
-      integral = getHistogramIntegralAndError(histo, ii, ii, iy, jy, false, &integralerror);
-      res->SetBinContent(ii, integral);
-      res->SetBinError(ii, integralerror);
-    }
-  }
-  else{
-    for (int ii=0; ii<=yaxis->GetNbins()+1; ii++){
-      double integral=0, integralerror=0;
-      integral = getHistogramIntegralAndError(histo, iy, jy, ii, ii, false, &integralerror);
-      res->SetBinContent(ii, integral);
-      res->SetBinError(ii, integralerror);
-    }
-  }
-
-  return res;
-}
-TH1F* getHistogramSlice(TH3F const* histo, unsigned char XDirection, int iy, int jy, int iz, int jz, TString newname){
-  if (!histo || XDirection>=3) return nullptr;
-  if (newname=="") newname=Form("Slice_%s_%i_%i_%i_%i_%s", (XDirection==0 ? "X" : (XDirection==1 ? "Y" : "Z")), iy, jy, iz, jz, histo->GetName());
-
-  const TAxis* xaxis;
-  const TAxis* yaxis;
-  const TAxis* zaxis;
-  vector<float> bins;
-  if (XDirection==0){
-    xaxis=histo->GetXaxis();
-    yaxis=histo->GetYaxis();
-    zaxis=histo->GetZaxis();
-  }
-  else if (XDirection==1){
-    xaxis=histo->GetYaxis();
-    yaxis=histo->GetZaxis();
-    zaxis=histo->GetXaxis();
-  }
-  else{
-    xaxis=histo->GetZaxis();
-    yaxis=histo->GetXaxis();
-    zaxis=histo->GetYaxis();
-  }
-  for (int i=1; i<=xaxis->GetNbins()+1; i++) bins.push_back(xaxis->GetBinLowEdge(i));
-  iy = std::max(0, iy); jy = std::min(yaxis->GetNbins()+1, jy);
-  iz = std::max(0, iz); jz = std::min(zaxis->GetNbins()+1, jz);
-  if (iy>jy) cerr << "getHistogramSlice: iy>jy!" << endl;
-  if (iz>jz) cerr << "getHistogramSlice: iz>jz!" << endl;
-  TH1F* res = new TH1F(newname, "", bins.size()-1, bins.data());
-
-  for (int ii=0; ii<=xaxis->GetNbins()+1; ii++){
-    double integral=0, integralerror=0;
-    int IX, JX, IY, JY, IZ, JZ;
-    if (XDirection==0){
-      IX=ii; JX=ii;
-      IY=iy; JY=jy;
-      IZ=iz; JZ=jz;
-    }
-    else if (XDirection==1){
-      IX=iz; JX=jz;
-      IY=ii; JY=ii;
-      IZ=iy; JZ=jy;
-    }
-    else{
-      IX=iy; JX=jy;
-      IY=iz; JY=jz;
-      IZ=ii; JZ=ii;
-    }
-    integral = getHistogramIntegralAndError(histo, IX, JX, IY, JY, IZ, JZ, false, &integralerror);
-    res->SetBinContent(ii, integral);
-    res->SetBinError(ii, integralerror);
-  }
-
-  return res;
-}
-TH2F* getHistogramSlice(TH3F const* histo, unsigned char XDirection, unsigned char YDirection, int iz, int jz, TString newname){
-  if (!histo || XDirection==YDirection || XDirection>=3 || YDirection>=3) return nullptr;
-  if (newname=="") newname=Form("Slice_%s%s_%i_%i_%s", (XDirection==0 ? "X" : (XDirection==1 ? "Y" : "Z")), (YDirection==0 ? "X" : (YDirection==1 ? "Y" : "Z")), iz, jz, histo->GetName());
-
-  unsigned char ZDirection=3-XDirection-YDirection; // 0+1+2=3
-  const TAxis* xaxis;
-  const TAxis* yaxis;
-  const TAxis* zaxis;
-  vector<float> xbins, ybins;
-  if (XDirection==0) xaxis=histo->GetXaxis();
-  else if (XDirection==1) xaxis=histo->GetYaxis();
-  else xaxis=histo->GetZaxis();
-  if (YDirection==0) yaxis=histo->GetXaxis();
-  else if (YDirection==1) yaxis=histo->GetYaxis();
-  else yaxis=histo->GetZaxis();
-  if (ZDirection==0) zaxis=histo->GetXaxis();
-  else if (ZDirection==1) zaxis=histo->GetYaxis();
-  else zaxis=histo->GetZaxis();
-
-  for (int i=1; i<=xaxis->GetNbins()+1; i++) xbins.push_back(xaxis->GetBinLowEdge(i));
-  for (int i=1; i<=yaxis->GetNbins()+1; i++) ybins.push_back(yaxis->GetBinLowEdge(i));
-  iz = std::max(0, iz); std::min(zaxis->GetNbins()+1, jz);
-  TH2F* res = new TH2F(newname, "", xbins.size()-1, xbins.data(), ybins.size()-1, ybins.data());
-
-  for (int ii=0; ii<=xaxis->GetNbins()+1; ii++){
-    for (int jj=0; jj<=yaxis->GetNbins()+1; jj++){
-      double integral=0, integralerror=0;
-      int IX=0, JX=0, IY=0, JY=0, IZ=0, JZ=0;
-      if (XDirection==0){ IX=ii; JX=ii; }
-      else if (XDirection==1){ IY=ii; JY=ii; }
-      else{ IZ=ii; JZ=ii; }
-      if (YDirection==0){ IX=jj; JX=jj; }
-      else if (YDirection==1){ IY=jj; JY=jj; }
-      else{ IZ=jj; JZ=jj; }
-      if (ZDirection==0){ IX=iz; JX=jz; }
-      else if (ZDirection==1){ IY=iz; JY=jz; }
-      else{ IZ=iz; JZ=jz; }
-      integral = getHistogramIntegralAndError(histo, IX, JX, IY, JY, IZ, JZ, false, &integralerror);
-      res->SetBinContent(ii, jj, integral);
-      res->SetBinError(ii, jj, integralerror);
-    }
-  }
-
-  return res;
-}
-
-void splitOption(const string rawoption, string& wish, string& value, char delimiter){
-  size_t posEq = rawoption.find(delimiter);
-  if (posEq!=string::npos){
-    wish=rawoption;
-    value=rawoption.substr(posEq+1);
-    wish.erase(wish.begin()+posEq, wish.end());
-    while (value.find(delimiter)==0) value=value.substr(1);
-  }
-  else{
-    wish="";
-    value=rawoption;
-  }
-}
-void splitOptionRecursive(const string rawoption, vector<string>& splitoptions, char delimiter){
-  string suboption=rawoption, result=rawoption;
-  string remnant;
-  while (result!=""){
-    splitOption(suboption, result, remnant, delimiter);
-    if (result!="") splitoptions.push_back(result);
-    suboption = remnant;
-  }
-  if (remnant!="") splitoptions.push_back(remnant);
-}
-
-void splitOption(const TString rawoption, TString& wish, TString& value, char delimiter){
-  string srawoption = rawoption.Data();
-  string swish, svalue;
-  splitOption(srawoption, swish, svalue, delimiter);
-  wish = swish.data();
-  value = svalue.data();
-}
-void splitOptionRecursive(const TString rawoption, vector<TString>& splitoptions, char delimiter){
-  string srawoption = rawoption.Data();
-  vector<string> soptions;
-  splitOptionRecursive(srawoption, soptions, delimiter);
-  splitoptions.clear(); splitoptions.reserve(soptions.size());
-  for (auto const& sopt:soptions) splitoptions.push_back(sopt.data());
 }
