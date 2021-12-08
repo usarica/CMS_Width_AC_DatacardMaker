@@ -3,6 +3,8 @@
   gSystem->AddIncludePath("-I$CMSSW_BASE/interface/");
   gSystem->AddIncludePath("-I$CMSSW_BASE/src/");
   gSystem->AddIncludePath("-I$CMSSW_BASE/src/HiggsAnalysis/CombinedLimit/interface/");
+  gSystem->AddIncludePath("-I$CMSSW_BASE/src/IvyFramework/IvyDataTools/interface/");
   gSystem->Load("libRooFit");
   gSystem->Load("libHiggsAnalysisCombinedLimit.so");
+  gSystem->Load("libIvyFrameworkIvyDataTools.so");
 }

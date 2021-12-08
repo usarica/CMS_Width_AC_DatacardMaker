@@ -13,7 +13,7 @@ import subprocess
 import socket
 from datetime import date
 from optparse import OptionParser
-from CMSDataTools.AnalysisTree.TranslateStringBetweenPythonAndShell import *
+from IvyFramework.IvyDataTools.TranslateStringBetweenPythonAndShell import *
 
 
 class BatchManager:

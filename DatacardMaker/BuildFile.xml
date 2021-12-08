@@ -6,6 +6,7 @@
 <use name="roostats"/>
 
 <use name="HiggsAnalysis/CombinedLimit"/>
+<use name="IvyFramework/IvyDataTools"/>
 
 <export>
    <lib name="1"/>

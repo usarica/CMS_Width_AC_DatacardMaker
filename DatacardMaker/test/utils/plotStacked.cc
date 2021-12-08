@@ -25,6 +25,7 @@
 #include "TH3F.h"
 #include "TAxis.h"
 #include "TGaxis.h"
+#include "TLine.h"
 #include "TString.h"
 #include "TChain.h"
 #include "TGraphAsymmErrors.h"
@@ -44,19 +45,9 @@
 #include "RooNumIntConfig.h"
 #include "RooFitResult.h"
 #include "RooWorkspace.h"
-#include "QuantFuncMathCore.h"
 #include <HiggsAnalysis/CombinedLimit/interface/AsymPow.h>
+#include <IvyFramework/IvyDataTools/interface/HelperFunctions.h>
 
-
-namespace std{
-
-  template<> struct hash<TString>{
-    typedef TString argument_type;
-    typedef size_t result_type;
-    result_type operator()(argument_type const& arg) const{ return hash<string>{}(arg.Data()); }
-  };
-
-}
 
 using namespace RooFit;
 using namespace std;
@@ -380,38 +371,17 @@ TString getFractionString(float fai1){
 }
 
 
-TGraphAsymmErrors* getDataGraph(TH1F* hdata){
+TGraphAsymmErrors* getDataGraph(TH1F* hdata, bool errorsOnZero=false){
   TGraphAsymmErrors* tgdata = nullptr;
   if (hdata){
-    int ndata = 0;
-    double xx_data[999];
-    double xu_data[999];
-    double xd_data[999];
-    double yy_data[999];
-    double yu_data[999];
-    double yd_data[999];
-    double rr_data[999];
-    double ru_data[999];
-    double rd_data[999];
-    const double quant = (1.0 - 0.6827) / 2.0;
-    double integral_data = 1;
-
-    for (int bin = 1; bin <= hdata->GetNbinsX(); bin++){
-      double bincenter = hdata->GetBinCenter(bin);
-      double bincontent = hdata->GetBinContent(bin);
-
-      if (bincontent > 0.){
-        xx_data[ndata] = bincenter;
-        yy_data[ndata] = bincontent / integral_data;
-        xu_data[ndata] = 0;
-        xd_data[ndata] = 0;
-        yu_data[ndata] = (ROOT::Math::chisquared_quantile_c(quant, 2 * (bincontent + 1)) / 2. - bincontent) / integral_data;
-        yd_data[ndata] = ((bincontent == 0) ? 0 : (bincontent - ROOT::Math::chisquared_quantile_c(1 - quant, 2 * bincontent) / 2.)) / integral_data;
-        ndata++;
-      }
+    TH1F* htmp = (TH1F*) hdata->Clone("__data_tmp__");
+    for (int bin = 1; bin <= htmp->GetNbinsX(); bin++){
+      double bincontent = htmp->GetBinContent(bin);
+      if (bincontent>=0.) htmp->SetBinError(bin, std::sqrt(bincontent));
+      else htmp->SetBinError(bin, 0);
     }
-    cout << "Number of graph points: " << ndata << endl;
-    tgdata = new TGraphAsymmErrors(ndata, xx_data, yy_data, xd_data, xu_data, yd_data, yu_data);
+    HelperFunctions::convertTH1FToTGraphAsymmErrors(htmp, tgdata, errorsOnZero, true, false);
+    delete htmp;
     tgdata->SetName("tgdata");
     tgdata->SetMarkerSize(1.2);
     tgdata->SetMarkerStyle(20);
@@ -420,11 +390,6 @@ TGraphAsymmErrors* getDataGraph(TH1F* hdata){
     tgdata->SetLineWidth(1);
   }
   else cout << "Data histogram is null." << endl;
-  //if (tgdata){
-  //  cout << tgdata->GetName() << " graph is not null!" << endl;
-  //  cout << "\t- Np = " << tgdata->GetN() << endl;
-  //  for (int ip=0; ip<tgdata->GetN(); ip++) cout << "Point " << ip << ": ( " << tgdata->GetX()[ip] << ", " << tgdata->GetY()[ip] << " )" << endl;
-  //}
   return tgdata;
 }
 
@@ -453,6 +418,60 @@ void plotStacked(
   bool isBlind=false, bool addObsRatio=false,
   TString strFitResultFile="", TString strPostfit=""
 ){
+  // Magic numbers
+  constexpr double npixels_stdframe_xy = 800;
+  constexpr double relmargin_frame_left = 0.20;
+  constexpr double relmargin_frame_right = 0.05;
+  constexpr double relmargin_frame_CMS = 0.07;
+  constexpr double relmargin_frame_XTitle = 0.15;
+  constexpr double relmargin_frame_separation = 0.1;
+  constexpr double relsize_frame_ratio = 0.2;
+  constexpr double relsize_frame_composition = 0.2;
+  constexpr double npixels_pad_xy = 800;
+  constexpr double relsize_CMSlogo = 0.98;
+  constexpr double relsize_CMSlogo_sqrts = 0.8;
+  constexpr double relsize_XYTitle = 0.9;
+  constexpr double relsize_XYLabel = 0.8;
+  constexpr double offset_xlabel = 0.004;
+  constexpr double offset_ylabel = 0.007;
+  constexpr double offset_xtitle = 1.09;
+  constexpr double offset_ytitle = 1.3;
+
+  unsigned int npads = 2;
+  if (addObsRatio) npads++;
+  const double npixels_CMSlogo = npixels_stdframe_xy*relmargin_frame_CMS*relsize_CMSlogo;
+  const double npixels_CMSlogo_sqrts = npixels_CMSlogo*relsize_CMSlogo_sqrts;
+  const double npixels_XYTitle = npixels_CMSlogo*relsize_XYTitle;
+  const double npixels_XYLabel = npixels_CMSlogo*relsize_XYLabel;
+
+  const double npixels_x = int(
+    npixels_stdframe_xy*(
+      1.
+      + relmargin_frame_left
+      + relmargin_frame_right
+      ) + 0.5
+    );
+  const double npixels_pad_top = int(
+    npixels_stdframe_xy*(
+      relmargin_frame_CMS
+      + 1.
+      + relmargin_frame_separation/2.
+      ) + 0.5
+    );
+  const double npixels_pad_bot = int(
+    npixels_stdframe_xy*(
+      relmargin_frame_separation/2.
+      + relsize_frame_composition
+      + relmargin_frame_XTitle
+      ) + 0.5
+    );
+  const double npixels_pad_ratio = int(
+    npixels_stdframe_xy*(
+      relmargin_frame_separation + relsize_frame_ratio
+      ) + 0.5
+    );
+  const double npixels_y = npixels_pad_top + npixels_pad_bot + (npads==3 ? npixels_pad_ratio : 0.);
+
   gStyle->SetOptStat(0);
 
   TString cinputdir_lower = cinputdir; cinputdir_lower.ToLower();
@@ -633,7 +652,7 @@ void plotStacked(
       }
       else if (is_2l2nu){
         if (p=="qqZZ_offshell"){ proc_color.push_back(int(TColor::GetColor("#99ccff"))); proc_label.push_back("q#bar{q}#rightarrowZZ"); proc_code.push_back(0); }
-        else if (p=="qqWZ_offshell"){ proc_color.push_back(int(kBlue)); proc_label.push_back("q#bar{q}#rightarrowWZ"); proc_code.push_back(0); }
+        else if (p=="qqWZ_offshell"){ proc_color.push_back(int(TColor::GetColor("#00ff00"))); proc_label.push_back("q#bar{q}#rightarrowWZ"); proc_code.push_back(0); }
         else if (p=="InstrMET"){ proc_color.push_back(int(TColor::GetColor("#669966"))); proc_label.push_back("Instr. p_{T}^{miss}"); proc_code.push_back(0); }
         else if (p=="NRB_2l2nu"){ proc_color.push_back(int(kGray+1)); proc_label.push_back("Nonresonant"); proc_code.push_back(0); }
         else if (p=="tZX"){ proc_color.push_back(int(kOrange-6)); proc_label.push_back("tZ+X"); proc_code.push_back(0); }
@@ -670,7 +689,7 @@ void plotStacked(
       }
       else if (is_3l1nu){
         if (p=="qqZZ"){ proc_color.push_back(int(TColor::GetColor("#99ccff"))); proc_label.push_back("q#bar{q}#rightarrowZZ"); proc_code.push_back(0); }
-        else if (p=="qqWZ"){ proc_color.push_back(int(kBlue)); proc_label.push_back("q#bar{q}#rightarrowWZ"); proc_code.push_back(0); }
+        else if (p=="qqWZ"){ proc_color.push_back(int(TColor::GetColor("#00ff00"))); proc_label.push_back("q#bar{q}#rightarrowWZ"); proc_code.push_back(0); }
         else if (p=="qqZG"){ proc_color.push_back(int(TColor::GetColor("#f1c232"))); proc_label.push_back("q#bar{q}#rightarrowZ#gamma"); proc_code.push_back(0); }
         else if (p=="DY_2l"){ proc_color.push_back(int(TColor::GetColor("#669966"))); proc_label.push_back("Drell-Yan"); proc_code.push_back(0); }
         else if (p=="ttbar_2l2nu"){ proc_color.push_back(int(kGray+1)); proc_label.push_back("t#bar{t}"); proc_code.push_back(0); }
@@ -711,7 +730,7 @@ void plotStacked(
       for (unsigned int is=0; is<nsqrts; is++){
         TString const& sqrtsname = sqrtsnames.at(is);
         cout << "\t- Data period:  " << sqrtsname << endl;
-        TString cinput_main = cinputdir + "/" + (onORoffshell ? "Offshell_" : "Onshell_") + sqrtsname + "/hto" + channame + "_" + catname;
+        TString cinput_main = cinputdir + "/" + sqrtsname + "/hto" + channame + "_" + catname;
         TString cinput_file = cinput_main + ".input.root";
         TString cinput_dc = cinput_main + ".txt";
         if (!FileExists(cinput_file)){ cout << "File " << cinput_file << " does not exist. Skipping this channel..." << endl; continue; }
@@ -1431,43 +1450,44 @@ void plotStacked(
 
       // Draw
       cout << "Creating the canvas..." << endl;
+
       TCanvas canvas(
         TString((isEnriched ? "c_SignalEnriched_" : "c_")) + TString((markPreliminary ? "Preliminary_" : "")) + (onORoffshell ? "Offshell_" : "Onshell_") + catname + "_" + (aihypo=="" ? "SM" : aihypo.Data()) + dimname + (!isPostFit ? "" : "_postfit") + (!useLogY ? "" : "_LogY"),
-        "", 8, 30, 800, 1100
+        "", 8, 30, npixels_x, npixels_y
       );
       canvas.cd();
-      /*
-      canvas.SetFillColor(0);
-      canvas.SetBorderMode(0);
-      canvas.SetBorderSize(2);
-      canvas.SetTickx(1);
-      canvas.SetTicky(1);
-      canvas.SetLeftMargin(0.17);
-      canvas.SetRightMargin(0.05);
-      canvas.SetTopMargin(0.07);
-      canvas.SetBottomMargin(0.13);
-      canvas.SetFrameFillStyle(0);
-      canvas.SetFrameBorderMode(0);
-      canvas.SetFrameFillStyle(0);
-      canvas.SetFrameBorderMode(0);
-      */
 
       cout << "\t- Creating the pads..." << endl;
+      TPad* pad_main = nullptr;
+      TPad* pad_ratio = nullptr;
+      TPad* pad_comp = nullptr;
       std::vector<TPad*> pads;
       canvas.cd();
       pads.push_back(
         new TPad(
           Form("%s_top", canvas.GetName()), "",
-          0, 2./11. + 0.13 * 8./11. + 0.5/11., 1, 1
+          0, (1.-npixels_pad_top/npixels_y), 1, 1
         )
       );
+      pad_main = pads.back();
+      if (addObsRatio){
+        canvas.cd();
+        pads.push_back(
+          new TPad(
+            Form("%s_rat", canvas.GetName()), "",
+            0, npixels_pad_bot/npixels_y, 1, (1.-npixels_pad_top/npixels_y)
+          )
+        );
+        pad_ratio = pads.back();
+      }
       canvas.cd();
       pads.push_back(
         new TPad(
-          Form("%s_bot", canvas.GetName()), "",
-          0, 0, 1, 2./11. + 0.13 * 8./11. + 0.5/11.
+          Form("%s_comp", canvas.GetName()), "",
+          0, 0, 1, npixels_pad_bot/npixels_y
         )
       );
+      pad_comp = pads.back();
       {
         unsigned int ipad=0;
         for (auto& pad:pads){
@@ -1475,55 +1495,70 @@ void plotStacked(
           pad->SetFillColor(0);
           pad->SetBorderMode(0);
           pad->SetBorderSize(2);
+          pad->SetFrameFillStyle(0);
+          pad->SetFrameBorderMode(0);
           pad->SetTickx(1);
           pad->SetTicky(1);
-          pad->SetLeftMargin(0.17);
-          pad->SetRightMargin(0.05);
-          if (ipad==0){
-            pad->SetTopMargin(0.07*800./(1100.*(1.-(2./11. + 0.13 * 8./11. + 0.5/11.))));
-            pad->SetBottomMargin(0.5/11.);
+          pad->SetLeftMargin(relmargin_frame_left/(1.+relmargin_frame_left+relmargin_frame_right));
+          pad->SetRightMargin(relmargin_frame_right/(1.+relmargin_frame_left+relmargin_frame_right));
+          if (pad==pad_main){
+            pad->SetTopMargin(npixels_stdframe_xy*relmargin_frame_CMS/npixels_pad_top);
+            pad->SetBottomMargin(npixels_stdframe_xy*relmargin_frame_separation/2./npixels_pad_top);
+          }
+          else if (pad==pad_comp){
+            pad->SetTopMargin(npixels_stdframe_xy*relmargin_frame_separation/2./npixels_pad_bot);
+            pad->SetBottomMargin(npixels_stdframe_xy*relmargin_frame_XTitle/npixels_pad_bot);
           }
           else{
-            pad->SetTopMargin(0.5/11.);
-            pad->SetBottomMargin(0.13*800./(1100.*(2./11. + 0.13 * 8./11. + 0.5/11.)));
+            pad->SetTopMargin(npixels_stdframe_xy*relmargin_frame_separation/2./npixels_pad_ratio);
+            pad->SetBottomMargin(npixels_stdframe_xy*relmargin_frame_separation/2./npixels_pad_ratio);
           }
-          pad->SetFrameFillStyle(0);
-          pad->SetFrameBorderMode(0);
-          pad->SetFrameFillStyle(0);
-          pad->SetFrameBorderMode(0);
           if (varlabels.at(idim).Contains("m_{T}^{ZZ}") || varlabels.at(idim).Contains("m_{T}^{WZ}") || varlabels.at(idim).Contains("p_{T}^{miss}")){
             pad->SetLogx(true);
-            if (useLogY && ipad==0) pad->SetLogy(true);
+            if (useLogY && pad==pad_main) pad->SetLogy(true);
           }
           canvas.cd();
           ipad++;
         }
       }
       // Draw in reverse order
-      pads.back()->Draw();
-      pads.front()->Draw();
+      for (auto rit=pads.rbegin(); rit!=pads.rend(); rit++) (*rit)->Draw();
 
       TText* text;
-      TPaveText pt(0.15, 0.93, 0.85, 1, "brNDC");
+      TPaveText pt(
+        npixels_stdframe_xy*relmargin_frame_left/npixels_x,
+        1.-(npixels_stdframe_xy*relmargin_frame_CMS-1)/npixels_y,
+        1.-npixels_stdframe_xy*relmargin_frame_right/npixels_x,
+        1,
+        "brNDC"
+      );
       pt.SetBorderSize(0);
       pt.SetFillStyle(0);
-      pt.SetTextAlign(12);
-      pt.SetTextFont(42);
-      pt.SetTextSize(0.045);
-      text = pt.AddText(0.025, 0.45, "#font[61]{CMS}");
-      text->SetTextSize(0.044);
+      pt.SetTextAlign(22);
+      pt.SetTextFont(43);
+      cout << "Size of the CMS logo: " << npixels_CMSlogo << endl;
+      text = pt.AddText(0.001, 0.5, "CMS");
+      text->SetTextFont(63);
+      text->SetTextSize(npixels_CMSlogo);
+      text->SetTextAlign(12);
       if (markPreliminary){
-        text = pt.AddText(0.165, 0.42, "#font[52]{Preliminary}");
-        text->SetTextSize(0.0315);
+        text = pt.AddText(npixels_CMSlogo*2.2/npixels_pad_xy, 0.45, "Preliminary");
+        text->SetTextFont(53);
+        text->SetTextSize(npixels_CMSlogo*relsize_CMSlogo_sqrts);
+        text->SetTextAlign(12);
       }
       else if (onORoffshell==1 && !(isEnriched && ((cinputdir.Contains("/SM") && idim!=1) || (cinputdir.Contains("/a3") && idim==1)))){
-        text = pt.AddText(0.165, 0.42, "#font[52]{Supplementary}");
-        text->SetTextSize(0.0315);
+        text = pt.AddText(npixels_CMSlogo*2.2/npixels_pad_xy, 0.45, "Supplementary");
+        text->SetTextFont(53);
+        text->SetTextSize(npixels_CMSlogo*relsize_CMSlogo_sqrts);
+        text->SetTextAlign(12);
       }
       int theSqrts=13;
-      TString cErgTev = Form("#font[42]{138 fb^{-1} (%i TeV)}", theSqrts);
-      text = pt.AddText(0.86, 0.45, cErgTev);
-      text->SetTextSize(0.0315);
+      TString cErgTev = Form("138 fb^{-1} (%i TeV)", theSqrts);
+      text = pt.AddText(0.999, 0.45, cErgTev);
+      text->SetTextFont(43);
+      text->SetTextSize(npixels_CMSlogo*relsize_CMSlogo_sqrts);
+      text->SetTextAlign(32);
 
       TString strCatLabel;
       if (catname=="Untagged") strCatLabel="Untagged";
@@ -1540,14 +1575,19 @@ void plotStacked(
       }
       else if (strPostfit!="") strCatLabel = strCatLabel + Form(" (%s)", strPostfit.Data());
 
-      TPaveText pt_cat(0.20, 0.83, 0.40, 0.90, "brNDC");
+      TPaveText pt_cat(
+        npixels_stdframe_xy*relmargin_frame_left/npixels_x,
+        (npixels_y - npixels_stdframe_xy*relmargin_frame_CMS-1 - 0.03*npixels_stdframe_xy - npixels_XYTitle*1.25)/npixels_y,
+        1.-npixels_stdframe_xy*relmargin_frame_right/npixels_x,
+        (npixels_y - npixels_stdframe_xy*relmargin_frame_CMS-1 - 0.03*npixels_stdframe_xy)/npixels_y,
+        "brNDC"
+      );
       pt_cat.SetBorderSize(0);
       pt_cat.SetFillStyle(0);
       pt_cat.SetTextAlign(12);
-      pt_cat.SetTextFont(42);
-      pt_cat.SetTextSize(0.03);
-      text = pt_cat.AddText(0.02, 0.45, strCatLabel);
-      text->SetTextSize(0.044);
+      pt_cat.SetTextFont(43);
+      pt_cat.SetTextSize(npixels_XYTitle);
+      text = pt_cat.AddText(0.05, 0.45, strCatLabel);
 
       cout << "\t- Preparing the cut label..." << endl;
       TString strCutLabel;
@@ -1576,14 +1616,19 @@ void plotStacked(
         else strCutLabel += Form("%.1f", cutvals.at(idim).at(kdDim));
         if (strUnit!="") strCutLabel = strCutLabel + " " + strUnit;
       }
-      TPaveText pt_cut(0.20, 0.75, 0.40, 0.83, "brNDC");
+      TPaveText pt_cut(
+        npixels_stdframe_xy*relmargin_frame_left/npixels_x,
+        (npixels_y - npixels_stdframe_xy*relmargin_frame_CMS-1 - 0.03*npixels_stdframe_xy - npixels_XYTitle*2.*1.25)/npixels_y,
+        1.-npixels_stdframe_xy*relmargin_frame_right/npixels_x,
+        (npixels_y - npixels_stdframe_xy*relmargin_frame_CMS-1 - 0.03*npixels_stdframe_xy - npixels_XYTitle*1.25)/npixels_y,
+        "brNDC"
+      );
       pt_cut.SetBorderSize(0);
       pt_cut.SetFillStyle(0);
       pt_cut.SetTextAlign(12);
-      pt_cut.SetTextFont(42);
-      pt_cut.SetTextSize(0.03);
-      text = pt_cut.AddText(0.02, 0.45, strCutLabel);
-      text->SetTextSize(0.044);
+      pt_cut.SetTextFont(43);
+      pt_cut.SetTextSize(npixels_XYTitle);
+      text = pt_cut.AddText(0.05, 0.45, strCutLabel);
 
       float ymax=-1, ymin=-1;
       if (useLogY) ymin=9e9;
@@ -1663,19 +1708,19 @@ void plotStacked(
         }
         prochist->GetXaxis()->SetRangeUser(xmin, xmax);
         prochist->GetXaxis()->SetNdivisions(505);
-        prochist->GetXaxis()->SetLabelFont(42);
-        prochist->GetXaxis()->SetLabelOffset(0.007);
-        prochist->GetXaxis()->SetLabelSize(0.04);
-        prochist->GetXaxis()->SetTitleSize(0.06);
-        prochist->GetXaxis()->SetTitleOffset(0.9);
+        prochist->GetXaxis()->SetLabelFont(43);
+        prochist->GetXaxis()->SetLabelOffset(offset_xlabel);
+        prochist->GetXaxis()->SetLabelSize(npixels_XYLabel);
         prochist->GetXaxis()->SetTitleFont(42);
+        prochist->GetXaxis()->SetTitleSize(npixels_XYTitle/npixels_pad_top);
+        prochist->GetXaxis()->SetTitleOffset(offset_xtitle);
         prochist->GetYaxis()->SetNdivisions(505);
-        prochist->GetYaxis()->SetLabelFont(42);
-        prochist->GetYaxis()->SetLabelOffset(0.007);
-        prochist->GetYaxis()->SetLabelSize(0.04);
-        prochist->GetYaxis()->SetTitleSize(0.06);
-        prochist->GetYaxis()->SetTitleOffset(1.1);
+        prochist->GetYaxis()->SetLabelFont(43);
+        prochist->GetYaxis()->SetLabelOffset(offset_ylabel);
+        prochist->GetYaxis()->SetLabelSize(npixels_XYLabel);
         prochist->GetYaxis()->SetTitleFont(42);
+        prochist->GetYaxis()->SetTitleSize(npixels_XYTitle/npixels_pad_top);
+        prochist->GetYaxis()->SetTitleOffset(offset_ytitle);
         prochist->GetYaxis()->SetTitle("Events / bin");
         prochist->GetYaxis()->CenterTitle();
         prochist->GetXaxis()->CenterTitle();
@@ -1716,7 +1761,7 @@ void plotStacked(
 
       vector<TH1F*> intermediateHistList;
       canvas.cd();
-      pads.front()->cd();
+      pad_main->cd();
       bool drawfirst=true;
       for (unsigned int ip=proc_order.size(); ip>0; ip--){
         TString const& procname = proc_order.at(ip-1);
@@ -1739,12 +1784,13 @@ void plotStacked(
         procdist[proc_order.at(ip-1)].at(idim)->Draw("histsame");
       }
       if (tgdata && tgdata->GetN()>0 && !isBlind) tgdata->Draw("e1psame");
+
+      canvas.cd();
       pt.Draw();
       pt_cat.Draw();
       if (strCutLabel!="") pt_cut.Draw();
 
-      canvas.cd();
-      pads.back()->cd();
+      pad_comp->cd();
       drawfirst=false;
       for (int ix=1; ix<=intermediateHistList.front()->GetNbinsX(); ix++){
         double bc_sum = intermediateHistList.front()->GetBinContent(ix);
@@ -1752,12 +1798,17 @@ void plotStacked(
       }
       for (auto& hh:intermediateHistList){
         hh->GetYaxis()->SetRangeUser(0, 1);
-        hh->GetXaxis()->SetLabelSize(0.04*800./(1100.*(2./11. + 0.13 * 8./11. + 0.5/11.)));
-        hh->GetXaxis()->SetTitleSize(0.06*800./(1100.*(2./11. + 0.13 * 8./11. + 0.5/11.)));
-        hh->GetYaxis()->SetLabelSize(0.04*800./(1100.*(2./11. + 0.13 * 8./11. + 0.5/11.)));
-        hh->GetYaxis()->SetTitleSize(0.06*800./(1100.*(2./11. + 0.13 * 8./11. + 0.5/11.)));
-        hh->GetYaxis()->SetTitle("Ratio");
-        hh->GetYaxis()->SetTitleOffset(1.1*(2./11. + 0.13 * 8./11. + 0.5/11.) / (1.-(2./11. + 0.13 * 8./11. + 0.5/11.)));
+        hh->GetYaxis()->SetNdivisions(504);
+        hh->GetYaxis()->SetTitle("Comp.");
+        //hh->GetYaxis()->SetTitleOffset(1.1*(2./11. + 0.13 * 8./11. + 0.5/11.) / (1.-(2./11. + 0.13 * 8./11. + 0.5/11.)));
+
+        hh->GetXaxis()->SetTitleFont(42);
+        hh->GetXaxis()->SetTitleSize(npixels_XYTitle/npixels_pad_bot);
+        hh->GetXaxis()->SetTitleOffset(offset_xtitle);
+        hh->GetYaxis()->SetTitleFont(42);
+        hh->GetYaxis()->SetTitleSize(npixels_XYTitle/npixels_pad_bot);
+        hh->GetYaxis()->SetTitleOffset(offset_ytitle*(npixels_pad_bot/npixels_pad_top));
+
         hh->Draw((drawfirst ? "hist" : "histsame"));
         drawfirst=false;
       }
