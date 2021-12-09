@@ -710,6 +710,10 @@ void plotStacked(
     unordered_map<TString, TH2F> procshape_2D;
     unordered_map<TString, TH3F> procshape_3D;
 
+    unordered_map<TString, std::pair<TH1F, TH1F>> syst_totalshape_map_1D;
+    unordered_map<TString, std::pair<TH2F, TH2F>> syst_totalshape_map_2D;
+    unordered_map<TString, std::pair<TH3F, TH3F>> syst_totalshape_map_3D;
+
     // Get process order/labels
     std::vector<TString> proc_order, proc_label;
     std::vector<int> proc_color;
@@ -1132,6 +1136,95 @@ void plotStacked(
         }
         extractDataTemplates(procSpecs[procname.front()], data, procshape_1D, procshape_2D, procshape_3D, "data");
 
+        if (addObsRatio){
+          for (auto const& pp:procSpecs){
+            auto const& proc = pp.second;
+            auto const& pname = proc.name;
+            switch (ndims){
+            case 1:
+            {
+              auto const& hist_nom = proc.syst_h1D_map.find(pname)->second;
+              for (auto const& hhpp:proc.syst_h1D_map){
+                TString systname = hhpp.first;
+                if (!systname.Contains("Down") && !systname.Contains("Up")) continue;
+                auto const& syst_hist = hhpp.second;
+                bool const isDn = systname.Contains("Down");
+                replaceString<TString, TString const>(systname, "_Down", "");
+                replaceString<TString, TString const>(systname, "_Up", "");
+                replaceString<TString, TString const>(systname, Form("%s_", pname.Data()), "");
+                auto it_syst_totalshape_map = syst_totalshape_map_1D.find(systname);
+                if (it_syst_totalshape_map==syst_totalshape_map_1D.end()){
+                  TH1F* htmp_dn = (TH1F*) syst_hist->Clone(systname + "_Down"); htmp_dn->Reset("ICESM");
+                  TH1F* htmp_up = (TH1F*) syst_hist->Clone(systname + "_Up"); htmp_up->Reset("ICESM");
+                  syst_totalshape_map_1D[systname] = std::pair<TH1F, TH1F>(*htmp_dn, *htmp_up);
+                  delete htmp_dn;
+                  delete htmp_up;
+                  it_syst_totalshape_map = syst_totalshape_map_1D.find(systname);
+                }
+                auto& target_hist = (isDn ? it_syst_totalshape_map->second.first : it_syst_totalshape_map->second.second);
+                target_hist.Add(syst_hist, 1.);
+                target_hist.Add(hist_nom, -1.);
+              }
+              break;
+            }
+            case 2:
+            {
+              auto const& hist_nom = proc.syst_h2D_map.find(pname)->second;
+              for (auto const& hhpp:proc.syst_h2D_map){
+                TString systname = hhpp.first;
+                if (!systname.Contains("Down") && !systname.Contains("Up")) continue;
+                auto const& syst_hist = hhpp.second;
+                bool const isDn = systname.Contains("Down");
+                replaceString<TString, TString const>(systname, "_Down", "");
+                replaceString<TString, TString const>(systname, "_Up", "");
+                replaceString<TString, TString const>(systname, Form("%s_", pname.Data()), "");
+                auto it_syst_totalshape_map = syst_totalshape_map_2D.find(systname);
+                if (it_syst_totalshape_map==syst_totalshape_map_2D.end()){
+                  TH2F* htmp_dn = (TH2F*) syst_hist->Clone(systname + "_Down"); htmp_dn->Reset("ICESM");
+                  TH2F* htmp_up = (TH2F*) syst_hist->Clone(systname + "_Up"); htmp_up->Reset("ICESM");
+                  syst_totalshape_map_2D[systname] = std::pair<TH2F, TH2F>(*htmp_dn, *htmp_up);
+                  delete htmp_dn;
+                  delete htmp_up;
+                  it_syst_totalshape_map = syst_totalshape_map_2D.find(systname);
+                }
+                auto& target_hist = (isDn ? it_syst_totalshape_map->second.first : it_syst_totalshape_map->second.second);
+                target_hist.Add(syst_hist, 1.);
+                target_hist.Add(hist_nom, -1.);
+              }
+              break;
+            }
+            case 3:
+            {
+              auto const& hist_nom = proc.syst_h3D_map.find(pname)->second;
+              for (auto const& hhpp:proc.syst_h3D_map){
+                TString systname = hhpp.first;
+                if (!systname.Contains("Down") && !systname.Contains("Up")) continue;
+                auto const& syst_hist = hhpp.second;
+                bool const isDn = systname.Contains("Down");
+                replaceString<TString, TString const>(systname, "_Down", "");
+                replaceString<TString, TString const>(systname, "_Up", "");
+                replaceString<TString, TString const>(systname, Form("%s_", pname.Data()), "");
+                auto it_syst_totalshape_map = syst_totalshape_map_3D.find(systname);
+                if (it_syst_totalshape_map==syst_totalshape_map_3D.end()){
+                  TH3F* htmp_dn = (TH3F*) syst_hist->Clone(systname + "_Down"); htmp_dn->Reset("ICESM");
+                  TH3F* htmp_up = (TH3F*) syst_hist->Clone(systname + "_Up"); htmp_up->Reset("ICESM");
+                  syst_totalshape_map_3D[systname] = std::pair<TH3F, TH3F>(*htmp_dn, *htmp_up);
+                  delete htmp_dn;
+                  delete htmp_up;
+                  it_syst_totalshape_map = syst_totalshape_map_3D.find(systname);
+                }
+                auto& target_hist = (isDn ? it_syst_totalshape_map->second.first : it_syst_totalshape_map->second.second);
+                target_hist.Add(syst_hist, 1.);
+                target_hist.Add(hist_nom, -1.);
+              }
+              break;
+            }
+            default:
+              break;
+            }
+          }
+        }
+
         finput->Close();
         curdir->cd();
 
@@ -1275,9 +1368,11 @@ void plotStacked(
 
     std::vector< std::vector<float> > cutvals(ndims, std::vector<float>(ndims, -1));
     unordered_map<TString, std::vector<TH1F*>> procdist; // The key is for the process label, and the vector is for the dimensions
+    std::vector<std::pair<TH1F*, TH1F*>> totalsysts(ndims, std::pair<TH1F*, TH1F*>(nullptr, nullptr)); // Dn/Up variations of each dimension
     for (unsigned int idim=0; idim<ndims; idim++){
       TString dimname = Form("_KD%i", idim+1);
       cout << "Preparing projections on dimension " << idim << "..." << endl;
+      bool needSysts = true;
       if (ndims==3){
         for (auto it=procshape_3D.begin(); it!=procshape_3D.end(); it++){
           TH3F* hist = &(it->second);
@@ -1317,7 +1412,7 @@ void plotStacked(
               cutvals.at(idim).at(massDim) = valMassCut;
             }
 
-            const float valKDCut=(onORoffshell==1 ? (is_2l2nu ? 0.8 : 0.6) : 0.5);
+            const float valKDCut=(onORoffshell==1 ? (varlabels.at(kdDim).Contains("p_{T}^{miss}") ? 200. : (is_2l2nu ? 0.8 : 0.6)) : 0.5);
             if ((int) idim!=kdDim){ // Cut on D_bkg
               if (kdDim==0){
                 if (idim==1){ iz=zaxis->FindBin(valKDCut); }
@@ -1347,6 +1442,41 @@ void plotStacked(
           if (procdist.find(it->first)==procdist.end()) procdist[it->first] = std::vector<TH1F*>();
           procdist[it->first].push_back(htmp);
           cout << "\t\t- Final histogram integral: " << getHistogramIntegralAndError(procdist[it->first].back(), 1, procdist[it->first].back()->GetNbinsX(), false, nullptr) << endl;
+
+          if (addObsRatio && needSysts){
+            auto& totalsysthists = totalsysts.at(idim);
+            for (auto syst_totalshape:syst_totalshape_map_3D){
+              TH1F* htmp_dn=getHistogramSlice(
+                &(syst_totalshape.second.first), idim,
+                iy, jy, iz, jz,
+                syst_totalshape.first + "_" + dimname + "_hist_dn"
+              );
+              htmp_dn->GetXaxis()->SetTitle(varlabels.at(idim));
+              TH1F* htmp_up=getHistogramSlice(
+                &(syst_totalshape.second.second), idim,
+                iy, jy, iz, jz,
+                syst_totalshape.first + "_" + dimname + "_hist_up"
+              );
+              htmp_up->GetXaxis()->SetTitle(varlabels.at(idim));
+
+              if (!totalsysthists.first){
+                totalsysthists.first = (TH1F*) htmp_dn->Clone(Form("allsysts_%s_dn", dimname.Data())); totalsysthists.first->Reset("ICESM");
+                totalsysthists.second = (TH1F*) htmp_up->Clone(Form("allsysts_%s_up", dimname.Data())); totalsysthists.second->Reset("ICESM");
+              }
+
+              for (int ix=1; ix<=htmp->GetNbinsX(); ix++){
+                double bdn = htmp_dn->GetBinContent(ix);
+                double bup = htmp_up->GetBinContent(ix);
+                if (bdn>bup) std::swap(bdn, bup);
+                totalsysthists.first->SetBinContent(ix, -std::sqrt(std::pow(totalsysthists.first->GetBinContent(ix), 2) + std::pow(std::min(0., bdn), 2)));
+                totalsysthists.second->SetBinContent(ix, std::sqrt(std::pow(totalsysthists.second->GetBinContent(ix), 2) + std::pow(std::max(0., bup), 2)));
+              }
+
+              delete htmp_dn;
+              delete htmp_up;
+            }
+            needSysts = false;
+          }
         }
       }
       else if (ndims==2){
@@ -1387,6 +1517,41 @@ void plotStacked(
           if (procdist.find(it->first)==procdist.end()) procdist[it->first] = std::vector<TH1F*>();
           procdist[it->first].push_back(htmp);
           cout << "\t\t- Final histogram integral: " << getHistogramIntegralAndError(procdist[it->first].back(), 1, procdist[it->first].back()->GetNbinsX(), false, nullptr) << endl;
+
+          if (addObsRatio && needSysts){
+            auto& totalsysthists = totalsysts.at(idim);
+            for (auto syst_totalshape:syst_totalshape_map_2D){
+              TH1F* htmp_dn=getHistogramSlice(
+                &(syst_totalshape.second.first), idim,
+                iy, jy,
+                syst_totalshape.first + "_" + dimname + "_hist_dn"
+              );
+              htmp_dn->GetXaxis()->SetTitle(varlabels.at(idim));
+              TH1F* htmp_up=getHistogramSlice(
+                &(syst_totalshape.second.second), idim,
+                iy, jy,
+                syst_totalshape.first + "_" + dimname + "_hist_up"
+              );
+              htmp_up->GetXaxis()->SetTitle(varlabels.at(idim));
+
+              if (!totalsysthists.first){
+                totalsysthists.first = (TH1F*) htmp_dn->Clone(Form("allsysts_%s_dn", dimname.Data())); totalsysthists.first->Reset("ICESM");
+                totalsysthists.second = (TH1F*) htmp_up->Clone(Form("allsysts_%s_up", dimname.Data())); totalsysthists.second->Reset("ICESM");
+              }
+
+              for (int ix=1; ix<=htmp->GetNbinsX(); ix++){
+                double bdn = htmp_dn->GetBinContent(ix);
+                double bup = htmp_up->GetBinContent(ix);
+                if (bdn>bup) std::swap(bdn, bup);
+                totalsysthists.first->SetBinContent(ix, -std::sqrt(std::pow(totalsysthists.first->GetBinContent(ix), 2) + std::pow(std::min(0., bdn), 2)));
+                totalsysthists.second->SetBinContent(ix, std::sqrt(std::pow(totalsysthists.second->GetBinContent(ix), 2) + std::pow(std::max(0., bup), 2)));
+              }
+
+              delete htmp_dn;
+              delete htmp_up;
+            }
+            needSysts = false;
+          }
         }
       }
       else{
@@ -1401,6 +1566,39 @@ void plotStacked(
           if (procdist.find(it->first)==procdist.end()) procdist[it->first] = std::vector<TH1F*>();
           procdist[it->first].push_back(htmp);
           cout << "\t\t- Final histogram integral: " << getHistogramIntegralAndError(procdist[it->first].back(), 1, procdist[it->first].back()->GetNbinsX(), false, nullptr) << endl;
+
+          if (addObsRatio && needSysts){
+            auto& totalsysthists = totalsysts.at(idim);
+            for (auto syst_totalshape:syst_totalshape_map_1D){
+              TH1F* htmp_dn=getHistogramSlice(
+                &(syst_totalshape.second.first),
+                syst_totalshape.first + "_" + dimname + "_hist_dn"
+              );
+              htmp_dn->GetXaxis()->SetTitle(varlabels.at(idim));
+              TH1F* htmp_up=getHistogramSlice(
+                &(syst_totalshape.second.second),
+                syst_totalshape.first + "_" + dimname + "_hist_up"
+              );
+              htmp_up->GetXaxis()->SetTitle(varlabels.at(idim));
+
+              if (!totalsysthists.first){
+                totalsysthists.first = (TH1F*) htmp_dn->Clone(Form("allsysts_%s_dn", dimname.Data())); totalsysthists.first->Reset("ICESM");
+                totalsysthists.second = (TH1F*) htmp_up->Clone(Form("allsysts_%s_up", dimname.Data())); totalsysthists.second->Reset("ICESM");
+              }
+
+              for (int ix=1; ix<=htmp->GetNbinsX(); ix++){
+                double bdn = htmp_dn->GetBinContent(ix);
+                double bup = htmp_up->GetBinContent(ix);
+                if (bdn>bup) std::swap(bdn, bup);
+                totalsysthists.first->SetBinContent(ix, -std::sqrt(std::pow(totalsysthists.first->GetBinContent(ix), 2) + std::pow(std::min(0., bdn), 2)));
+                totalsysthists.second->SetBinContent(ix, std::sqrt(std::pow(totalsysthists.second->GetBinContent(ix), 2) + std::pow(std::max(0., bup), 2)));
+              }
+
+              delete htmp_dn;
+              delete htmp_up;
+            }
+            needSysts = false;
+          }
         }
       }
     }
@@ -1561,9 +1759,15 @@ void plotStacked(
       TString dimname = Form("_KD%i", idim+1);
       cout << "Ploting dimension " << idim << "..." << endl;
 
+      auto& systband = totalsysts.at(idim);
+      TH1F* hsum_nominal = nullptr;
+      std::vector<TH1F*> hlist_ALT;
       for (unsigned int ip=0; ip<proc_order.size(); ip++){
         if (ip>0){
-          if (!proc_order.at(ip).Contains("ALT") && proc_order.at(ip)!="data") procdist[proc_order.at(ip)].at(idim)->Add(procdist[proc_order.at(ip-1)].at(idim));
+          if (!proc_order.at(ip).Contains("ALT") && proc_order.at(ip)!="data"){
+            procdist[proc_order.at(ip)].at(idim)->Add(procdist[proc_order.at(ip-1)].at(idim));
+            hsum_nominal = procdist[proc_order.at(ip)].at(idim);
+          }
           else if (proc_order.at(ip)!="data"){
             for (unsigned int jp=ip-1; jp>0; jp--){
               if (proc_code[jp]==0){
@@ -1571,9 +1775,30 @@ void plotStacked(
                 break;
               }
             }
+            hlist_ALT.push_back(procdist[proc_order.at(ip)].at(idim));
           }
         }
         cout << proc_order.at(ip) << " integral: " << getHistogramIntegralAndError(procdist[proc_order.at(ip)].at(idim), 1, procdist[proc_order.at(ip)].at(idim)->GetNbinsX(), false, nullptr) << endl;
+      }
+
+      TGraphAsymmErrors* tg_systband = nullptr;
+      if (addObsRatio){
+        std::vector<double> xx, xl, xh, yy, yl, yh;
+        for (int ix=1; ix<=hsum_nominal->GetNbinsX(); ix++){
+          xx.push_back(hsum_nominal->GetXaxis()->GetBinCenter(ix));
+          xl.push_back(-hsum_nominal->GetXaxis()->GetBinLowEdge(ix) + xx.back());
+          xh.push_back(hsum_nominal->GetXaxis()->GetBinUpEdge(ix) - xx.back());
+          yy.push_back(hsum_nominal->GetBinContent(ix));
+          yl.push_back(-systband.first->GetBinContent(ix));
+          yh.push_back(systband.second->GetBinContent(ix));
+        }
+        tg_systband = new TGraphAsymmErrors(xx.size(), xx.data(), yy.data(), xl.data(), xh.data(), yl.data(), yh.data());
+        tg_systband->SetName("tg_systband");
+        tg_systband->SetTitle("");
+        tg_systband->SetLineColor(kBlack);
+        tg_systband->SetMarkerColor(kBlack);
+        tg_systband->SetFillColor(kBlack);
+        tg_systband->SetFillStyle(3345);
       }
 
       // Divide by bin width when plotting off-shell mass
@@ -1765,6 +1990,7 @@ void plotStacked(
       if (useLogY) ymin=9e9;
       float xmin=-1, xmax=-1;
       TGraphAsymmErrors* tgdata=nullptr;
+      TGraphAsymmErrors* tgdata_withZeros=nullptr;
       for (unsigned int ip=0; ip<proc_order.size(); ip++){
         TString const& procname = proc_order.at(ip);
         TString const& proclabel = proc_label.at(ip);
@@ -1867,7 +2093,8 @@ void plotStacked(
         }
         else{
           cout << "\t- Obtaining " << procname << " graph" << endl;
-          tgdata=getDataGraph(prochist);
+          tgdata=getDataGraph(prochist, false);
+          tgdata_withZeros = getDataGraph(prochist, true);
           if (tgdata){
             cout << "\t\t- Np = " << tgdata->GetN() << endl;
             for (int ipoint=0; ipoint<tgdata->GetN(); ipoint++){
@@ -1885,6 +2112,15 @@ void plotStacked(
           else cout << "-t-t- Failure!" << endl;
         }
       }
+      if (tg_systband){
+        for (int ipoint=0; ipoint<tg_systband->GetN(); ipoint++){
+          float bc = tg_systband->GetY()[ipoint]+tg_systband->GetEYhigh()[ipoint];
+          float bc_low = tg_systband->GetY()[ipoint]-std::abs(tg_systband->GetEYlow()[ipoint]);
+          ymax = std::max(bc, ymax);
+          ymin = std::min(bc_low, ymin);
+        }
+      }
+
       if (!useLogY) ymin=0;
 
       float ymaxfactor = (!useLogY ? 1.25 : 250.);
@@ -1908,6 +2144,8 @@ void plotStacked(
         prochist->Draw((drawfirst ? "hist" : "histsame"));
         drawfirst=false;
       }
+      // Draw error bands
+      if (tg_systband) tg_systband->Draw("2same");
       // Re-draw ALT
       for (unsigned int ip=proc_order.size(); ip>0; ip--){
         if (!proc_order.at(ip-1).Contains("ALT")) continue;
@@ -1944,6 +2182,18 @@ void plotStacked(
         drawfirst=false;
       }
 
+
+      canvas.cd();
+
+      TGraphAsymmErrors* tg_systband_unit = nullptr;
+      TGraphAsymmErrors* tgdata_withZeros_unit = nullptr;
+      TH1F* hdummy_ratio = nullptr;
+      std::vector<TH1F*> hlist_ALT_dummy;
+
+      pad_ratio->cd();
+      drawfirst=false;
+
+
       for (auto& pad:pads){
         pad->RedrawAxis();
         pad->Modified();
@@ -1958,11 +2208,14 @@ void plotStacked(
       canvas.Close();
       curdir->cd();
 
+      delete tgdata_withZeros;
       delete tgdata;
       for (auto it=procdist.begin(); it!=procdist.end(); it++){
         cout << "\t- Deleting histogram " << it->second.at(idim)->GetName() << endl;
         delete it->second.at(idim);
       }
+      delete systband.first;
+      delete systband.second;
     }
 
   }
