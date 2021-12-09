@@ -625,6 +625,17 @@ void plotStacked(
     );
   const double npixels_y = npixels_pad_top + npixels_pad_bot + (npads==3 ? npixels_pad_ratio : 0.);
 
+  constexpr double relmargin_top_legend = 0.1;
+  constexpr double relmargin_bottom_legend = 0.1;
+  constexpr double relmargin_left_legend = 0.05;
+  constexpr double relmargin_right_legend = 0.05;
+  constexpr double relsize_x_legend = 0.35;
+  const double relsize_space_legend = 1. - relmargin_left_legend - relmargin_right_legend - 2.*relsize_x_legend;
+  const double legend_size_mult = std::max(80.*(1.+relmargin_frame_left+relmargin_frame_right), npixels_XYTitle*1.1)/80.;
+  const double npixels_perentry_y_legend = 80.*legend_size_mult; // This is for 5 entries along the vertical.
+  const double npixels_x_legend = 280.*npixels_perentry_y_legend/80.;
+  const double npixels_x_canvas_legend = npixels_x_legend/relsize_x_legend;
+
   const bool markPreliminary = markPreliminary_Supplementary==1;
   const bool markSupplementary = markPreliminary_Supplementary==2;
 
@@ -1935,18 +1946,6 @@ void plotStacked(
       unsigned int nright = proc_order.size()-nleft;
 
       TString strLegendCanvasNameCore = TString((onORoffshell ? "Offshell_" : "Onshell_")) + strChannelPlotLabel + "_" + (aihypo=="" ? "SM" : aihypo.Data()) + (markPreliminary ? "_Preliminary" : (markSupplementary ? "_Supplementary" : ""));
-
-
-      constexpr double relmargin_top_legend = 0.1;
-      constexpr double relmargin_bottom_legend = 0.1;
-      constexpr double relmargin_left_legend = 0.05;
-      constexpr double relmargin_right_legend = 0.05;
-      constexpr double relsize_x_legend = 0.35;
-      const double relsize_space_legend = 1. - relmargin_left_legend - relmargin_right_legend - 2.*relsize_x_legend;
-      const double legend_size_mult = std::max(80.*(1.+relmargin_frame_left+relmargin_frame_right), npixels_XYTitle*1.1)/80.;
-      const double npixels_perentry_y_legend = 80.*legend_size_mult; // This is for 5 entries along the vertical.
-      const double npixels_x_legend = 280.*npixels_perentry_y_legend/80.;
-      const double npixels_x_canvas_legend = npixels_x_legend/relsize_x_legend;
 
       const unsigned int nmax_legend = std::max(nleft, nright);
       const double npixels_y_canvas_legend = npixels_perentry_y_legend*nmax_legend/(1. - relmargin_top_legend - relmargin_bottom_legend);
