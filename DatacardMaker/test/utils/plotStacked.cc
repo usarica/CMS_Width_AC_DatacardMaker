@@ -127,6 +127,33 @@ void process_spec::setDistribution(TH3F* tpl, TString const& procname){
 }
 
 
+void replaceLastBinBoundary(TH1F* histo){
+  std::vector<double> boundaries;
+  for (int ix=1; ix<=histo->GetNbinsX()+1; ix++) boundaries.push_back(histo->GetBinLowEdge(ix));
+  unsigned int nb = boundaries.size();
+  if (boundaries.back()>=1e4) boundaries.back() = 2.*boundaries.at(nb-2) - boundaries.at(nb-3);
+
+  TString hname = histo->GetName();
+  TH1F* res = new TH1F(Form("%s_replaceLastBinBoundary", hname.Data()), histo->GetTitle(), nb-1, boundaries.data()); res->Sumw2();
+  res->GetXaxis()->SetTitle(histo->GetXaxis()->GetTitle());
+  res->GetYaxis()->SetTitle(histo->GetYaxis()->GetTitle());
+  res->SetLineColor(histo->GetLineColor());
+  res->SetMarkerColor(histo->GetMarkerColor());
+  res->SetFillColor(histo->GetFillColor());
+  res->SetLineStyle(histo->GetLineStyle());
+  res->SetMarkerStyle(histo->GetMarkerStyle());
+  res->SetFillStyle(histo->GetFillStyle());
+  res->SetLineWidth(histo->GetLineWidth());
+  for (unsigned int ix=1; ix<=nb-1; ix++){
+    res->SetBinContent(ix, histo->GetBinContent(ix));
+    res->SetBinError(ix, histo->GetBinError(ix));
+  }
+  *histo = *res;
+  delete res;
+
+  histo->SetName(hname);
+}
+
 
 using namespace HelperFunctions;
 
@@ -534,10 +561,15 @@ void getParameterErrors(RooRealVar const& par, double& errLo, double& errHi){
 
 void plotStacked(
   TString cinputdir,
-  int onORoffshell=0, bool isEnriched=true, bool markPreliminary=false,
+  int onORoffshell=0, bool isEnriched=true, unsigned char markPreliminary_Supplementary=0,
   bool useLogY=false,
   bool isBlind=false, bool addObsRatio=false,
-  TString strFitResultFile="", TString strPostfit=""
+  TString strFitResultFile_SM="",
+  TString strFitResultFile_GGsmALT="",
+  TString strFitResultFile_NoOffshellALT="",
+  TString strFitResultFile_fai1ALT="",
+  TString strFitResultFile_BestFitALT="",
+  TString strPostfit=""
 ){
   // Magic numbers
   constexpr double npixels_stdframe_xy = 800;
@@ -593,12 +625,24 @@ void plotStacked(
     );
   const double npixels_y = npixels_pad_top + npixels_pad_bot + (npads==3 ? npixels_pad_ratio : 0.);
 
+  const bool markPreliminary = markPreliminary_Supplementary==1;
+  const bool markSupplementary = markPreliminary_Supplementary==2;
+
   gStyle->SetOptStat(0);
 
   TString cinputdir_lower = cinputdir; cinputdir_lower.ToLower();
   bool const is_2l2nu = cinputdir_lower.Contains("2l2nu");
   bool const is_3l1nu = cinputdir_lower.Contains("3l1nu");
   bool const is_4l = !is_2l2nu && !is_3l1nu;
+
+  TString strChannelPlotLabel;
+  if (is_4l) strChannelPlotLabel = "ZZTo4L";
+  else if (is_2l2nu) strChannelPlotLabel = "ZZTo2L2Nu";
+  else if (is_3l1nu) strChannelPlotLabel = "ZWTo3L1Nu";
+  else{
+    cerr << "\t- Cannot identify channel plot label." << endl;
+    return;
+  }
 
   std::vector<TString> const sqrtsnames{ "13TeV_2016", "13TeV_2017", "13TeV_2018" };
   const unsigned int nsqrts = sqrtsnames.size();
@@ -620,7 +664,8 @@ void plotStacked(
   else /*if (is_4l)*/ channames = std::vector<TString>{ "4mu", "4e", "2e2mu" };
   const unsigned int nchans = channames.size();
 
-  bool const isPostFit = (strFitResultFile!="");
+  bool const isPostFit = (strFitResultFile_SM!="");
+  bool const hasBestFit = (isPostFit && strFitResultFile_BestFitALT!="");
 
   if (addObsRatio){
     if (!isPostFit){ cerr << "Ratio plots must include a fit result." << endl; return; }
@@ -634,15 +679,18 @@ void plotStacked(
   TString ailabel="";
   TString aiKDlabel="";
   TString aihypo="";
-  if (cinputdir.Contains("/a3")){ failabel="#bar{f}_{a3}"; ailabel="a_{3}"; aiKDlabel=aihypo="a3"; }
-  else if (cinputdir.Contains("/a2")){ failabel="#bar{f}_{a2}"; ailabel="a_{2}"; aiKDlabel=aihypo="a2"; }
-  else if (cinputdir.Contains("/L1")){ failabel="#bar{f}_{#Lambda1}"; ailabel="#Lambda_{1}"; aiKDlabel="#Lambda1"; aihypo="L1"; }
+  if (cinputdir.Contains("/a3")){ failabel="f_{a3}"; ailabel="a_{3}"; aiKDlabel=aihypo="a3"; }
+  else if (cinputdir.Contains("/a2")){ failabel="f_{a2}"; ailabel="a_{2}"; aiKDlabel=aihypo="a2"; }
+  else if (cinputdir.Contains("/L1")){ failabel="f_{#Lambda1}"; ailabel="#Lambda_{1}"; aiKDlabel="#Lambda1"; aihypo="L1"; }
   else if (cinputdir.Contains("/SM")){ aiKDlabel="a2"; }
 
   // Determine alternative model parameters
   constexpr double GHref = 4.07;
-  unordered_map<TString, double> val_fai1ALT; val_fai1ALT["RV"]=1; val_fai1ALT["RF"]=1; val_fai1ALT["fai1"]=0;
-  unordered_map<TString, double> val_GGsmALT; val_GGsmALT["RV"]=1; val_GGsmALT["RF"]=1; val_GGsmALT["GGsm"]=1;
+  unordered_map<TString, double> val_default; val_default["RV"]=1; val_default["RF"]=1; val_default["GGsm"]=1; val_default["fai1"]=0;
+  unordered_map<TString, double> val_fai1ALT;
+  unordered_map<TString, double> val_GGsmALT;
+  unordered_map<TString, double> val_NoOffshellALT;
+  unordered_map<TString, double> val_BestFitALT;
   /*
   if (onORoffshell==1){ // Offshell
     if (cinputdir.Contains("/a3")){ val_fai1ALT["RV"]=0.22; val_fai1ALT["RF"]=1.06; val_fai1ALT["fai1"]=0.01; }
@@ -659,28 +707,32 @@ void plotStacked(
   */
   if (onORoffshell==1){ // Offshell
     if (is_4l || is_2l2nu){
-      if (cinputdir.Contains("/a3")){ val_fai1ALT["fai1"]=0.05; val_fai1ALT["RV"]=getACMuV(cinputdir, val_fai1ALT["fai1"]); val_fai1ALT["RF"]=getACMuF(cinputdir, val_fai1ALT["fai1"]); }
-      else if (cinputdir.Contains("/a2")){ val_fai1ALT["fai1"]=0.05; val_fai1ALT["RV"]=getACMuV(cinputdir, val_fai1ALT["fai1"]); val_fai1ALT["RF"]=getACMuF(cinputdir, val_fai1ALT["fai1"]); }
-      else if (cinputdir.Contains("/L1")){ val_fai1ALT["fai1"]=0.05; val_fai1ALT["RV"]=getACMuV(cinputdir, val_fai1ALT["fai1"]); val_fai1ALT["RF"]=getACMuF(cinputdir, val_fai1ALT["fai1"]); }
-      val_GGsmALT["RV"]=1; val_GGsmALT["RF"]=1; val_GGsmALT["GGsm"]=20./GHref;
+      if (cinputdir.Contains("/a3")){ val_fai1ALT=val_default; val_fai1ALT["fai1"]=0.05; val_fai1ALT["RV"]=getACMuV(cinputdir, val_fai1ALT["fai1"]); val_fai1ALT["RF"]=getACMuF(cinputdir, val_fai1ALT["fai1"]); }
+      else if (cinputdir.Contains("/a2")){ val_fai1ALT=val_default; val_fai1ALT["fai1"]=0.05; val_fai1ALT["RV"]=getACMuV(cinputdir, val_fai1ALT["fai1"]); val_fai1ALT["RF"]=getACMuF(cinputdir, val_fai1ALT["fai1"]); }
+      else if (cinputdir.Contains("/L1")){ val_fai1ALT=val_default; val_fai1ALT["fai1"]=0.05; val_fai1ALT["RV"]=getACMuV(cinputdir, val_fai1ALT["fai1"]); val_fai1ALT["RF"]=getACMuF(cinputdir, val_fai1ALT["fai1"]); }
+      val_GGsmALT=val_default; val_GGsmALT["GGsm"]=20./GHref;
+      val_NoOffshellALT=val_default; val_NoOffshellALT["GGsm"]=0;
+      if (hasBestFit) val_BestFitALT=val_default;
     }
     else if (is_3l1nu){
-      if (cinputdir.Contains("/a3")){ val_fai1ALT["fai1"]=1; val_fai1ALT["RV"]=getACMuV(cinputdir, val_fai1ALT["fai1"]); val_fai1ALT["RF"]=getACMuF(cinputdir, val_fai1ALT["fai1"]); }
-      else if (cinputdir.Contains("/a2")){ val_fai1ALT["fai1"]=1; val_fai1ALT["RV"]=getACMuV(cinputdir, val_fai1ALT["fai1"]); val_fai1ALT["RF"]=getACMuF(cinputdir, val_fai1ALT["fai1"]); }
-      else if (cinputdir.Contains("/L1")){ val_fai1ALT["fai1"]=1; val_fai1ALT["RV"]=getACMuV(cinputdir, val_fai1ALT["fai1"]); val_fai1ALT["RF"]=getACMuF(cinputdir, val_fai1ALT["fai1"]); }
-      val_GGsmALT["RV"]=1; val_GGsmALT["RF"]=1; val_GGsmALT["GGsm"]=2000./GHref;
+      if (cinputdir.Contains("/a3")){ val_fai1ALT=val_default; val_fai1ALT["fai1"]=1; val_fai1ALT["RV"]=getACMuV(cinputdir, val_fai1ALT["fai1"]); val_fai1ALT["RF"]=getACMuF(cinputdir, val_fai1ALT["fai1"]); }
+      else if (cinputdir.Contains("/a2")){ val_fai1ALT=val_default; val_fai1ALT["fai1"]=1; val_fai1ALT["RV"]=getACMuV(cinputdir, val_fai1ALT["fai1"]); val_fai1ALT["RF"]=getACMuF(cinputdir, val_fai1ALT["fai1"]); }
+      else if (cinputdir.Contains("/L1")){ val_fai1ALT=val_default; val_fai1ALT["fai1"]=1; val_fai1ALT["RV"]=getACMuV(cinputdir, val_fai1ALT["fai1"]); val_fai1ALT["RF"]=getACMuF(cinputdir, val_fai1ALT["fai1"]); }
     }
   }
   else{ // Onshell
-    if (cinputdir.Contains("/a3")){ val_fai1ALT["fai1"]=0.5; val_fai1ALT["RV"]=getACMuV(cinputdir, val_fai1ALT["fai1"]); val_fai1ALT["RF"]=getACMuF(cinputdir, val_fai1ALT["fai1"]); }
-    else if (cinputdir.Contains("/a2")){ val_fai1ALT["fai1"]=-0.5; val_fai1ALT["RV"]=getACMuV(cinputdir, val_fai1ALT["fai1"]); val_fai1ALT["RF"]=getACMuF(cinputdir, val_fai1ALT["fai1"]); }
-    else if (cinputdir.Contains("/L1")){ val_fai1ALT["fai1"]=0.5; val_fai1ALT["RV"]=getACMuV(cinputdir, val_fai1ALT["fai1"]); val_fai1ALT["RF"]=getACMuF(cinputdir, val_fai1ALT["fai1"]); }
-    else{ val_GGsmALT["RV"]=0.29; val_GGsmALT["RF"]=0.88; val_GGsmALT["GGsm"]=1; }
+    if (cinputdir.Contains("/a3")){ val_fai1ALT=val_default; val_fai1ALT["fai1"]=0.5; val_fai1ALT["RV"]=getACMuV(cinputdir, val_fai1ALT["fai1"]); val_fai1ALT["RF"]=getACMuF(cinputdir, val_fai1ALT["fai1"]); }
+    else if (cinputdir.Contains("/a2")){ val_fai1ALT=val_default; val_fai1ALT["fai1"]=-0.5; val_fai1ALT["RV"]=getACMuV(cinputdir, val_fai1ALT["fai1"]); val_fai1ALT["RF"]=getACMuF(cinputdir, val_fai1ALT["fai1"]); }
+    else if (cinputdir.Contains("/L1")){ val_fai1ALT=val_default; val_fai1ALT["fai1"]=0.5; val_fai1ALT["RV"]=getACMuV(cinputdir, val_fai1ALT["fai1"]); val_fai1ALT["RF"]=getACMuF(cinputdir, val_fai1ALT["fai1"]); }
   }
 
-  std::unordered_map<TString, std::pair<double, std::pair<double, double>> > postfit_vals_map;
-  if (isPostFit){
-    TFile* finput_postfit = TFile::Open(strFitResultFile, "read");
+  std::unordered_map<TString, std::pair<double, std::pair<double, double>> > postfit_vals_SM_map;
+  std::unordered_map<TString, std::pair<double, std::pair<double, double>> > postfit_vals_GGsmALT_map;
+  std::unordered_map<TString, std::pair<double, std::pair<double, double>> > postfit_vals_NoOffshellALT_map;
+  std::unordered_map<TString, std::pair<double, std::pair<double, double>> > postfit_vals_fai1ALT_map;
+  std::unordered_map<TString, std::pair<double, std::pair<double, double>> > postfit_vals_BestFitALT_map;
+  if (isPostFit && strFitResultFile_SM!=""){
+    TFile* finput_postfit = TFile::Open(strFitResultFile_SM, "read");
     RooFitResult* fitResult = dynamic_cast<RooFitResult*>(finput_postfit->Get("fit_mdf"));
     RooArgList const& finalFloatPars = fitResult->floatParsFinal();
     TIterator* it = nullptr;
@@ -693,7 +745,95 @@ void plotStacked(
         double val = rvar->getVal();
         double err_dn, err_up;
         getParameterErrors(*rvar, err_dn, err_up);
-        postfit_vals_map[strvar] = std::pair<double, std::pair<double, double>>(val, std::pair<double, double>(val-err_dn, val+err_up));
+        postfit_vals_SM_map[strvar] = std::pair<double, std::pair<double, double>>(val, std::pair<double, double>(val-err_dn, val+err_up));
+      }
+    }
+    delete it;
+    finput_postfit->Close();
+    curdir->cd();
+  }
+  postfit_vals_GGsmALT_map = postfit_vals_SM_map;
+  if (isPostFit && strFitResultFile_GGsmALT!=""){
+    TFile* finput_postfit = TFile::Open(strFitResultFile_GGsmALT, "read");
+    RooFitResult* fitResult = dynamic_cast<RooFitResult*>(finput_postfit->Get("fit_mdf"));
+    RooArgList const& finalFloatPars = fitResult->floatParsFinal();
+    TIterator* it = nullptr;
+    it = finalFloatPars.createIterator();
+    RooAbsArg* var;
+    while ((var = (RooAbsArg*) it->Next())){
+      RooRealVar* rvar = dynamic_cast<RooRealVar*>(var);
+      if (rvar){
+        TString strvar = rvar->GetName();
+        double val = rvar->getVal();
+        double err_dn, err_up;
+        getParameterErrors(*rvar, err_dn, err_up);
+        postfit_vals_GGsmALT_map[strvar] = std::pair<double, std::pair<double, double>>(val, std::pair<double, double>(val-err_dn, val+err_up));
+      }
+    }
+    delete it;
+    finput_postfit->Close();
+    curdir->cd();
+  }
+  postfit_vals_NoOffshellALT_map = postfit_vals_SM_map;
+  if (isPostFit && strFitResultFile_NoOffshellALT!=""){
+    TFile* finput_postfit = TFile::Open(strFitResultFile_NoOffshellALT, "read");
+    RooFitResult* fitResult = dynamic_cast<RooFitResult*>(finput_postfit->Get("fit_mdf"));
+    RooArgList const& finalFloatPars = fitResult->floatParsFinal();
+    TIterator* it = nullptr;
+    it = finalFloatPars.createIterator();
+    RooAbsArg* var;
+    while ((var = (RooAbsArg*) it->Next())){
+      RooRealVar* rvar = dynamic_cast<RooRealVar*>(var);
+      if (rvar){
+        TString strvar = rvar->GetName();
+        double val = rvar->getVal();
+        double err_dn, err_up;
+        getParameterErrors(*rvar, err_dn, err_up);
+        postfit_vals_NoOffshellALT_map[strvar] = std::pair<double, std::pair<double, double>>(val, std::pair<double, double>(val-err_dn, val+err_up));
+      }
+    }
+    delete it;
+    finput_postfit->Close();
+    curdir->cd();
+  }
+  postfit_vals_fai1ALT_map = postfit_vals_SM_map;
+  if (isPostFit && strFitResultFile_fai1ALT!=""){
+    TFile* finput_postfit = TFile::Open(strFitResultFile_fai1ALT, "read");
+    RooFitResult* fitResult = dynamic_cast<RooFitResult*>(finput_postfit->Get("fit_mdf"));
+    RooArgList const& finalFloatPars = fitResult->floatParsFinal();
+    TIterator* it = nullptr;
+    it = finalFloatPars.createIterator();
+    RooAbsArg* var;
+    while ((var = (RooAbsArg*) it->Next())){
+      RooRealVar* rvar = dynamic_cast<RooRealVar*>(var);
+      if (rvar){
+        TString strvar = rvar->GetName();
+        double val = rvar->getVal();
+        double err_dn, err_up;
+        getParameterErrors(*rvar, err_dn, err_up);
+        postfit_vals_fai1ALT_map[strvar] = std::pair<double, std::pair<double, double>>(val, std::pair<double, double>(val-err_dn, val+err_up));
+      }
+    }
+    delete it;
+    finput_postfit->Close();
+    curdir->cd();
+  }
+  postfit_vals_BestFitALT_map = postfit_vals_SM_map;
+  if (isPostFit && strFitResultFile_BestFitALT!=""){
+    TFile* finput_postfit = TFile::Open(strFitResultFile_BestFitALT, "read");
+    RooFitResult* fitResult = dynamic_cast<RooFitResult*>(finput_postfit->Get("fit_mdf"));
+    RooArgList const& finalFloatPars = fitResult->floatParsFinal();
+    TIterator* it = nullptr;
+    it = finalFloatPars.createIterator();
+    RooAbsArg* var;
+    while ((var = (RooAbsArg*) it->Next())){
+      RooRealVar* rvar = dynamic_cast<RooRealVar*>(var);
+      if (rvar){
+        TString strvar = rvar->GetName();
+        double val = rvar->getVal();
+        double err_dn, err_up;
+        getParameterErrors(*rvar, err_dn, err_up);
+        postfit_vals_BestFitALT_map[strvar] = std::pair<double, std::pair<double, double>>(val, std::pair<double, double>(val-err_dn, val+err_up));
       }
     }
     delete it;
@@ -720,20 +860,24 @@ void plotStacked(
     std::vector<int> proc_code;
     if (is_4l){
       if (onORoffshell==1){ // Offshell
-        proc_order=std::vector<TString>{ "Zjets", "qqZZ", "VVZZ_offshell", "ggZZ_offshell", "total_GGsmALT" };
+        proc_order=std::vector<TString>{ "Zjets", "qqZZ", "VVZZ_offshell", "ggZZ_offshell", "total_GGsmALT", "total_NoOffshellALT" };
         if (!cinputdir.Contains("/SM")) proc_order.push_back("total_fai1ALT");
+        if (hasBestFit) proc_order.push_back("total_BestFitALT");
       }
       else{
         proc_order=std::vector<TString>{ "zjets", "bkg_zz", "VVZZ", "ggH", "total_fai1ALT" };
       }
     }
     else if (is_2l2nu){
-      proc_order=std::vector<TString>{ "tZX", "qqZZ_offshell", "qqWZ_offshell", "NRB_2l2nu", "InstrMET", "VVVV_onshell", "VVVV_offshell", "ggZZ_offshell", "total_GGsmALT" };
+      //proc_order=std::vector<TString>{ "tZX", "qqZZ_offshell", "qqWZ_offshell", "NRB_2l2nu", "InstrMET", "VVVV_onshell", "VVVV_offshell", "ggZZ_offshell", "total_NoOffshellALT", "total_GGsmALT" };
+      proc_order=std::vector<TString>{ "tZX", "qqWZ_offshell", "qqZZ_offshell", "NRB_2l2nu", "InstrMET", "VVVV_combined", "ggZZ_offshell", "total_GGsmALT", "total_NoOffshellALT" };
       if (!cinputdir.Contains("/SM")) proc_order.push_back("total_fai1ALT");
+      if (hasBestFit) proc_order.push_back("total_BestFitALT");
     }
     else if (is_3l1nu){
-      proc_order=std::vector<TString>{ "tWX", "tZX", "ttbar_2l2nu", "qqZG", "DY_2l", "qqZZ", "qqWZ", "VVVV_onshell", "VVVV_offshell", "total_GGsmALT" };
-      if (!cinputdir.Contains("/SM")) proc_order.push_back("total_fai1ALT");
+      //proc_order=std::vector<TString>{ "tWX", "tZX", "ttbar_2l2nu", "qqZG", "DY_2l", "qqZZ", "qqWZ", "VVVV_onshell", "VVVV_offshell" };
+      proc_order=std::vector<TString>{ "tVX", "ttbar_2l2nu", "qqZG", "DY_2l", "qqZZ", "qqWZ", "VVVV_combined" };
+      //if (!cinputdir.Contains("/SM")) proc_order.push_back("total_fai1ALT");
     }
     proc_order.push_back("data");
     for (auto const& p:proc_order){
@@ -762,6 +906,14 @@ void plotStacked(
               proc_label.push_back(Form("Total (%s#Gamma_{H}=%s MeV)", (aihypo=="" ? "" : "f_{ai}=0, "), getFractionString(val_GGsmALT["GGsm"]*GHref).Data()));
               proc_color.push_back(int(kCyan+2)); proc_code.push_back(-2);
             }
+            else if (p.Contains("NoOffshellALT")){
+              proc_label.push_back(Form("Total (%s#Gamma_{H}=0 MeV)", (aihypo=="" ? "" : "f_{ai}=0, ")));
+              proc_color.push_back(int(kOrange-3)); proc_code.push_back(-2);
+            }
+            else if (p.Contains("BestFitALT")){
+              proc_label.push_back("Total best fit");
+              proc_color.push_back(int(kAzure-6)); proc_code.push_back(-2);
+            }
             else if (p.Contains("fai1ALT")){ proc_label.push_back(Form("Total (%s=%s, #Gamma_{H}=#Gamma_{H}^{SM})", failabel.Data(), getFractionString(val_fai1ALT["fai1"]).Data())); proc_color.push_back(int(kViolet)); proc_code.push_back(-2); }
           }
           else{ // Onshell
@@ -777,13 +929,17 @@ void plotStacked(
       }
       else if (is_2l2nu){
         if (p=="qqZZ_offshell"){ proc_color.push_back(int(TColor::GetColor("#99ccff"))); proc_label.push_back("q#bar{q}#rightarrowZZ"); proc_code.push_back(0); }
-        else if (p=="qqWZ_offshell"){ proc_color.push_back(int(TColor::GetColor("#00ff00"))); proc_label.push_back("q#bar{q}#rightarrowWZ"); proc_code.push_back(0); }
+        else if (p=="qqWZ_offshell"){ proc_color.push_back(int(TColor::GetColor("#00ff00"))); proc_label.push_back("q#bar{q}'#rightarrowWZ"); proc_code.push_back(0); }
         else if (p=="InstrMET"){ proc_color.push_back(int(TColor::GetColor("#669966"))); proc_label.push_back("Instr. p_{T}^{miss}"); proc_code.push_back(0); }
         else if (p=="NRB_2l2nu"){ proc_color.push_back(int(kGray+1)); proc_label.push_back("Nonresonant"); proc_code.push_back(0); }
         else if (p=="tZX"){ proc_color.push_back(int(kOrange-6)); proc_label.push_back("tZ+X"); proc_code.push_back(0); }
         else if (p=="ggZZ_offshell"){
           proc_color.push_back(int(TColor::GetColor("#ffdcdc")));
           proc_label.push_back("gg SM total"); proc_code.push_back(2);
+        }
+        else if (p=="VVVV_combined"){
+          proc_color.push_back(int(TColor::GetColor("#ff9b9b")));
+          proc_label.push_back("EW SM total"); proc_code.push_back(1);
         }
         else if (p=="VVVV_offshell"){
           proc_color.push_back(int(TColor::GetColor("#ff9b9b")));
@@ -798,6 +954,14 @@ void plotStacked(
             if (p.Contains("GGsmALT")){
               proc_label.push_back(Form("Total (%s#Gamma_{H}=%s MeV)", (aihypo=="" ? "" : "f_{ai}=0, "), getFractionString(val_GGsmALT["GGsm"]*GHref).Data()));
               proc_color.push_back(int(kCyan+2)); proc_code.push_back(-2);
+            }
+            else if (p.Contains("NoOffshellALT")){
+              proc_label.push_back(Form("Total (%s#Gamma_{H}=0 MeV)", (aihypo=="" ? "" : "f_{ai}=0, ")));
+              proc_color.push_back(int(kOrange-3)); proc_code.push_back(-2);
+            }
+            else if (p.Contains("BestFitALT")){
+              proc_label.push_back("Total best fit");
+              proc_color.push_back(int(kAzure-6)); proc_code.push_back(-2);
             }
             else if (p.Contains("fai1ALT")){ proc_label.push_back(Form("Total (#bar{f}_{ai}=%s, #Gamma_{H}=#Gamma_{H}^{SM})", getFractionString(val_fai1ALT["fai1"]).Data())); proc_color.push_back(int(kViolet)); proc_code.push_back(-2); }
           }
@@ -814,12 +978,17 @@ void plotStacked(
       }
       else if (is_3l1nu){
         if (p=="qqZZ"){ proc_color.push_back(int(TColor::GetColor("#99ccff"))); proc_label.push_back("q#bar{q}#rightarrowZZ"); proc_code.push_back(0); }
-        else if (p=="qqWZ"){ proc_color.push_back(int(TColor::GetColor("#00ff00"))); proc_label.push_back("q#bar{q}#rightarrowWZ"); proc_code.push_back(0); }
+        else if (p=="qqWZ"){ proc_color.push_back(int(TColor::GetColor("#00ff00"))); proc_label.push_back("q#bar{q}'#rightarrowWZ"); proc_code.push_back(0); }
         else if (p=="qqZG"){ proc_color.push_back(int(TColor::GetColor("#f1c232"))); proc_label.push_back("q#bar{q}#rightarrowZ#gamma"); proc_code.push_back(0); }
         else if (p=="DY_2l"){ proc_color.push_back(int(TColor::GetColor("#669966"))); proc_label.push_back("Drell-Yan"); proc_code.push_back(0); }
         else if (p=="ttbar_2l2nu"){ proc_color.push_back(int(kGray+1)); proc_label.push_back("t#bar{t}"); proc_code.push_back(0); }
         else if (p=="tZX"){ proc_color.push_back(int(kOrange-6)); proc_label.push_back("tZ+X"); proc_code.push_back(0); }
         else if (p=="tWX"){ proc_color.push_back(int(TColor::GetColor("#674ea7"))); proc_label.push_back("tW+X"); proc_code.push_back(0); }
+        else if (p=="tVX"){ proc_color.push_back(int(kOrange-6)); proc_label.push_back("tV+X"); proc_code.push_back(0); }
+        else if (p=="VVVV_combined"){
+          proc_color.push_back(int(TColor::GetColor("#ff9b9b")));
+          proc_label.push_back("EW SM total"); proc_code.push_back(1);
+        }
         else if (p=="VVVV_offshell"){
           proc_color.push_back(int(TColor::GetColor("#ff9b9b")));
           proc_label.push_back("EW SM total (off-shell)"); proc_code.push_back(1);
@@ -833,6 +1002,10 @@ void plotStacked(
             if (p.Contains("GGsmALT")){
               proc_label.push_back(Form("Total (%s#Gamma_{H}=%s GeV)", (aihypo=="" ? "" : "f_{ai}=0, "), getFractionString(val_GGsmALT["GGsm"]*GHref/1000.).Data()));
               proc_color.push_back(int(kCyan+2)); proc_code.push_back(-2);
+            }
+            else if (p.Contains("NoOffshellALT")){
+              proc_label.push_back(Form("Total (%s#Gamma_{H}=0 MeV)", (aihypo=="" ? "" : "f_{ai}=0, ")));
+              proc_color.push_back(int(kOrange-3)); proc_code.push_back(-2);
             }
             else if (p.Contains("fai1ALT")){ proc_label.push_back(Form("Total (#bar{f}_{ai}=%s, #Gamma_{H}=#Gamma_{H}^{SM})", getFractionString(val_fai1ALT["fai1"]).Data())); proc_color.push_back(int(kViolet)); proc_code.push_back(-2); }
           }
@@ -953,7 +1126,7 @@ void plotStacked(
         std::vector<RooRealVar*> nuisanceVars;
 
         // Set postfit values first if they are present.
-        for (auto const& pp:postfit_vals_map){
+        for (auto const& pp:postfit_vals_SM_map){
           RooRealVar* tmpvar = dynamic_cast<RooRealVar*>(ws->var(pp.first));
           double const& vnom = pp.second.first;
           double const& vlow = pp.second.second.first;
@@ -1000,6 +1173,24 @@ void plotStacked(
           if (var_lumi_13TeV_2016) var_lumi_13TeV_2016->setVal(36.326450);
         }
 
+        // Reset all parameters to SM fitted values
+        for (auto const& pp:postfit_vals_SM_map){
+          RooRealVar* tmpvar = dynamic_cast<RooRealVar*>(ws->var(pp.first));
+          double const& vnom = pp.second.first;
+          double const& vlow = pp.second.second.first;
+          double const& vhigh = pp.second.second.second;
+          if (tmpvar){
+            tmpvar->setVal(vnom);
+            tmpvar->setAsymError(vlow-vnom, vhigh-vnom);
+          }
+          for (auto const& lnNmodvar:lnNmodvars){
+            if (TString(lnNmodvar->GetName()) == pp.first){
+              lnNmodvar->setVal(vnom);
+              lnNmodvar->setAsymError(vlow-vnom, vhigh-vnom);
+            }
+          }
+        }
+
         // Get process pdfs
         for (auto const& pname:procname){
           if (pname=="data") continue;
@@ -1021,25 +1212,9 @@ void plotStacked(
               //ndims = extractTemplates(procSpecs[pname], data, procshape_1D, procshape_2D, procshape_3D, "bkg_gg");
               ndims = extractTemplates(procSpecs[pname], data, procshape_1D, procshape_2D, procshape_3D, "bkg_zz");
               controlVars["R"]->setVal(1);
-
-              controlVars["CMS_zz4l_fai1"]->setVal(val_fai1ALT["fai1"]);
-              controlVars["RV"]->setVal(val_fai1ALT["RV"]);
-              controlVars["RF"]->setVal(val_fai1ALT["RF"]);
-              controlVars["kbkg_gg"]->setVal(0);
-              ndims = extractTemplates(procSpecs[pname], data, procshape_1D, procshape_2D, procshape_3D, "total_fai1ALT");
-              controlVars["CMS_zz4l_fai1"]->setVal(0);
-              controlVars["RV"]->setVal(1);
-              controlVars["RF"]->setVal(1);
-              controlVars["kbkg_gg"]->setVal(1);
             }
             else if (pname.Contains("ttH") || pname.Contains("bbH")){
               ndims = extractTemplates(procSpecs[pname], data, procshape_1D, procshape_2D, procshape_3D, "ggH");
-
-              controlVars["CMS_zz4l_fai1"]->setVal(val_fai1ALT["fai1"]);
-              controlVars["RF"]->setVal(val_fai1ALT["RF"]);
-              ndims = extractTemplates(procSpecs[pname], data, procshape_1D, procshape_2D, procshape_3D, "total_fai1ALT");
-              controlVars["CMS_zz4l_fai1"]->setVal(0);
-              controlVars["RF"]->setVal(1);
             }
             else if (pname.Contains("VBF")){
               controlVars["kbkg_VBF"]->setVal(0);
@@ -1049,16 +1224,6 @@ void plotStacked(
               //ndims = extractTemplates(procSpecs[pname], data, procshape_1D, procshape_2D, procshape_3D, "bkg_vv");
               ndims = extractTemplates(procSpecs[pname], data, procshape_1D, procshape_2D, procshape_3D, "bkg_zz");
               controlVars["R"]->setVal(1);
-
-              controlVars["CMS_zz4l_fai1"]->setVal(val_fai1ALT["fai1"]);
-              controlVars["RV"]->setVal(val_fai1ALT["RV"]);
-              controlVars["RF"]->setVal(val_fai1ALT["RF"]);
-              controlVars["kbkg_VBF"]->setVal(0);
-              ndims = extractTemplates(procSpecs[pname], data, procshape_1D, procshape_2D, procshape_3D, "total_fai1ALT");
-              controlVars["CMS_zz4l_fai1"]->setVal(0);
-              controlVars["RV"]->setVal(1);
-              controlVars["RF"]->setVal(1);
-              controlVars["kbkg_VBF"]->setVal(1);
             }
             else if (pname.Contains("ZH") || pname.Contains("WH")){
               controlVars["kbkg_VBF"]->setVal(0);
@@ -1068,16 +1233,6 @@ void plotStacked(
               //ndims = extractTemplates(procSpecs[pname], data, procshape_1D, procshape_2D, procshape_3D, "bkg_vv");
               ndims = extractTemplates(procSpecs[pname], data, procshape_1D, procshape_2D, procshape_3D, "bkg_zz");
               controlVars["R"]->setVal(1);
-
-              controlVars["CMS_zz4l_fai1"]->setVal(val_fai1ALT["fai1"]);
-              controlVars["RV"]->setVal(val_fai1ALT["RV"]);
-              controlVars["RF"]->setVal(val_fai1ALT["RF"]);
-              controlVars["kbkg_VBF"]->setVal(0);
-              ndims = extractTemplates(procSpecs[pname], data, procshape_1D, procshape_2D, procshape_3D, "total_fai1ALT");
-              controlVars["CMS_zz4l_fai1"]->setVal(0);
-              controlVars["RV"]->setVal(1);
-              controlVars["RF"]->setVal(1);
-              controlVars["kbkg_VBF"]->setVal(1);
             }
             else if (pname.Contains("bkg_qqzz")){
               ndims = extractTemplates(procSpecs[pname], data, procshape_1D, procshape_2D, procshape_3D, "bkg_zz");
@@ -1095,44 +1250,194 @@ void plotStacked(
             ndims = extractTemplates(procSpecs[pname], data, procshape_1D, procshape_2D, procshape_3D, "bkg_zz");
           }
           else if (onORoffshell && (pname.Contains("ggZZ_offshell") || pname.Contains("VVZZ_offshell") || pname.Contains("VVVV_offshell"))){ // Off-shell process
+            if (pname.Contains("VVVV_offshell")) extractTemplates(procSpecs[pname], data, procshape_1D, procshape_2D, procshape_3D, "VVVV_combined");
+          }
+          else if (onORoffshell && (pname.Contains("ggZZ_onshell") || pname.Contains("VVZZ_onshell") || pname.Contains("VVVV_onshell"))){ // On-shell process in off-shell data cards
+            if (pname.Contains("VVVV_onshell")) extractTemplates(procSpecs[pname], data, procshape_1D, procshape_2D, procshape_3D, "VVVV_combined");
+          }
+
+          if (is_3l1nu){
+            if (pname.Contains("tZX") || pname.Contains("tWX")) extractTemplates(procSpecs[pname], data, procshape_1D, procshape_2D, procshape_3D, "tVX");
+          }
+
+          if (!val_GGsmALT.empty()){
+            setControlVariableValue(controlVars, "CMS_zz4l_fai1", val_GGsmALT["fai1"]);
             setControlVariableValue(controlVars, "GGsm", val_GGsmALT["GGsm"]);
             setControlVariableValue(controlVars, "RV", val_GGsmALT["RV"]);
             setControlVariableValue(controlVars, "RF", val_GGsmALT["RF"]);
+            for (auto const& pp:postfit_vals_GGsmALT_map){
+              RooRealVar* tmpvar = dynamic_cast<RooRealVar*>(ws->var(pp.first));
+              double const& vnom = pp.second.first;
+              double const& vlow = pp.second.second.first;
+              double const& vhigh = pp.second.second.second;
+              if (tmpvar){
+                tmpvar->setVal(vnom);
+                tmpvar->setAsymError(vlow-vnom, vhigh-vnom);
+              }
+              for (auto const& lnNmodvar:lnNmodvars){
+                if (TString(lnNmodvar->GetName()) == pp.first){
+                  lnNmodvar->setVal(vnom);
+                  lnNmodvar->setAsymError(vlow-vnom, vhigh-vnom);
+                }
+              }
+            }
             ndims = extractTemplates(procSpecs[pname], data, procshape_1D, procshape_2D, procshape_3D, "total_GGsmALT");
-            setControlVariableValue(controlVars, "GGsm", 1);
-            setControlVariableValue(controlVars, "RV", 1);
-            setControlVariableValue(controlVars, "RF", 1);
-
-            if (!cinputdir.Contains("/SM")){
-              setControlVariableValue(controlVars, "CMS_zz4l_fai1", val_fai1ALT["fai1"]);
-              setControlVariableValue(controlVars, "RV", val_fai1ALT["RV"]);
-              setControlVariableValue(controlVars, "RF", val_fai1ALT["RF"]);
-              ndims = extractTemplates(procSpecs[pname], data, procshape_1D, procshape_2D, procshape_3D, "total_fai1ALT");
-              setControlVariableValue(controlVars, "CMS_zz4l_fai1", 0);
-              setControlVariableValue(controlVars, "RV", 1);
-              setControlVariableValue(controlVars, "RF", 1);
+            setControlVariableValue(controlVars, "CMS_zz4l_fai1", val_default["fai1"]);
+            setControlVariableValue(controlVars, "GGsm", val_default["GGsm"]);
+            setControlVariableValue(controlVars, "RV", val_default["RV"]);
+            setControlVariableValue(controlVars, "RF", val_default["RF"]);
+            for (auto const& pp:postfit_vals_SM_map){
+              RooRealVar* tmpvar = dynamic_cast<RooRealVar*>(ws->var(pp.first));
+              double const& vnom = pp.second.first;
+              double const& vlow = pp.second.second.first;
+              double const& vhigh = pp.second.second.second;
+              if (tmpvar){
+                tmpvar->setVal(vnom);
+                tmpvar->setAsymError(vlow-vnom, vhigh-vnom);
+              }
+              for (auto const& lnNmodvar:lnNmodvars){
+                if (TString(lnNmodvar->GetName()) == pp.first){
+                  lnNmodvar->setVal(vnom);
+                  lnNmodvar->setAsymError(vlow-vnom, vhigh-vnom);
+                }
+              }
             }
           }
-          else if (onORoffshell && (pname.Contains("ggZZ_onshell") || pname.Contains("VVZZ_onshell") || pname.Contains("VVVV_onshell"))){ // On-shell process in off-shell data cards
-            setControlVariableValue(controlVars, "RV", val_GGsmALT["RV"]);
-            setControlVariableValue(controlVars, "RF", val_GGsmALT["RF"]);
-            ndims = extractTemplates(procSpecs[pname], data, procshape_1D, procshape_2D, procshape_3D, "total_GGsmALT");
-            setControlVariableValue(controlVars, "RV", 1);
-            setControlVariableValue(controlVars, "RF", 1);
 
-            if (!cinputdir.Contains("/SM")){
-              setControlVariableValue(controlVars, "CMS_zz4l_fai1", val_fai1ALT["fai1"]);
-              setControlVariableValue(controlVars, "RV", val_fai1ALT["RV"]);
-              setControlVariableValue(controlVars, "RF", val_fai1ALT["RF"]);
-              ndims = extractTemplates(procSpecs[pname], data, procshape_1D, procshape_2D, procshape_3D, "total_fai1ALT");
-              setControlVariableValue(controlVars, "CMS_zz4l_fai1", 0);
-              setControlVariableValue(controlVars, "RV", 1);
-              setControlVariableValue(controlVars, "RF", 1);
+          if (!val_NoOffshellALT.empty()){
+            setControlVariableValue(controlVars, "CMS_zz4l_fai1", val_NoOffshellALT["fai1"]);
+            setControlVariableValue(controlVars, "GGsm", val_NoOffshellALT["GGsm"]);
+            setControlVariableValue(controlVars, "RV", val_NoOffshellALT["RV"]);
+            setControlVariableValue(controlVars, "RF", val_NoOffshellALT["RF"]);
+            for (auto const& pp:postfit_vals_NoOffshellALT_map){
+              RooRealVar* tmpvar = dynamic_cast<RooRealVar*>(ws->var(pp.first));
+              double const& vnom = pp.second.first;
+              double const& vlow = pp.second.second.first;
+              double const& vhigh = pp.second.second.second;
+              if (tmpvar){
+                tmpvar->setVal(vnom);
+                tmpvar->setAsymError(vlow-vnom, vhigh-vnom);
+              }
+              for (auto const& lnNmodvar:lnNmodvars){
+                if (TString(lnNmodvar->GetName()) == pp.first){
+                  lnNmodvar->setVal(vnom);
+                  lnNmodvar->setAsymError(vlow-vnom, vhigh-vnom);
+                }
+              }
+            }
+            ndims = extractTemplates(procSpecs[pname], data, procshape_1D, procshape_2D, procshape_3D, "total_NoOffshellALT");
+            setControlVariableValue(controlVars, "CMS_zz4l_fai1", val_default["fai1"]);
+            setControlVariableValue(controlVars, "GGsm", val_default["GGsm"]);
+            setControlVariableValue(controlVars, "RV", val_default["RV"]);
+            setControlVariableValue(controlVars, "RF", val_default["RF"]);
+            for (auto const& pp:postfit_vals_SM_map){
+              RooRealVar* tmpvar = dynamic_cast<RooRealVar*>(ws->var(pp.first));
+              double const& vnom = pp.second.first;
+              double const& vlow = pp.second.second.first;
+              double const& vhigh = pp.second.second.second;
+              if (tmpvar){
+                tmpvar->setVal(vnom);
+                tmpvar->setAsymError(vlow-vnom, vhigh-vnom);
+              }
+              for (auto const& lnNmodvar:lnNmodvars){
+                if (TString(lnNmodvar->GetName()) == pp.first){
+                  lnNmodvar->setVal(vnom);
+                  lnNmodvar->setAsymError(vlow-vnom, vhigh-vnom);
+                }
+              }
+            }
+          }
+
+          if (!val_BestFitALT.empty()){
+            setControlVariableValue(controlVars, "CMS_zz4l_fai1", val_BestFitALT["fai1"]);
+            setControlVariableValue(controlVars, "GGsm", val_BestFitALT["GGsm"]);
+            setControlVariableValue(controlVars, "RV", val_BestFitALT["RV"]);
+            setControlVariableValue(controlVars, "RF", val_BestFitALT["RF"]);
+            for (auto const& pp:postfit_vals_BestFitALT_map){
+              RooRealVar* tmpvar = dynamic_cast<RooRealVar*>(ws->var(pp.first));
+              double const& vnom = pp.second.first;
+              double const& vlow = pp.second.second.first;
+              double const& vhigh = pp.second.second.second;
+              if (tmpvar){
+                tmpvar->setVal(vnom);
+                tmpvar->setAsymError(vlow-vnom, vhigh-vnom);
+              }
+              for (auto const& lnNmodvar:lnNmodvars){
+                if (TString(lnNmodvar->GetName()) == pp.first){
+                  lnNmodvar->setVal(vnom);
+                  lnNmodvar->setAsymError(vlow-vnom, vhigh-vnom);
+                }
+              }
+            }
+            ndims = extractTemplates(procSpecs[pname], data, procshape_1D, procshape_2D, procshape_3D, "total_BestFitALT");
+            setControlVariableValue(controlVars, "CMS_zz4l_fai1", val_default["fai1"]);
+            setControlVariableValue(controlVars, "GGsm", val_default["GGsm"]);
+            setControlVariableValue(controlVars, "RV", val_default["RV"]);
+            setControlVariableValue(controlVars, "RF", val_default["RF"]);
+            for (auto const& pp:postfit_vals_SM_map){
+              RooRealVar* tmpvar = dynamic_cast<RooRealVar*>(ws->var(pp.first));
+              double const& vnom = pp.second.first;
+              double const& vlow = pp.second.second.first;
+              double const& vhigh = pp.second.second.second;
+              if (tmpvar){
+                tmpvar->setVal(vnom);
+                tmpvar->setAsymError(vlow-vnom, vhigh-vnom);
+              }
+              for (auto const& lnNmodvar:lnNmodvars){
+                if (TString(lnNmodvar->GetName()) == pp.first){
+                  lnNmodvar->setVal(vnom);
+                  lnNmodvar->setAsymError(vlow-vnom, vhigh-vnom);
+                }
+              }
+            }
+          }
+
+          if (!val_fai1ALT.empty()){
+            setControlVariableValue(controlVars, "CMS_zz4l_fai1", val_fai1ALT["fai1"]);
+            setControlVariableValue(controlVars, "GGsm", val_fai1ALT["GGsm"]);
+            setControlVariableValue(controlVars, "RV", val_fai1ALT["RV"]);
+            setControlVariableValue(controlVars, "RF", val_fai1ALT["RF"]);
+            for (auto const& pp:postfit_vals_fai1ALT_map){
+              RooRealVar* tmpvar = dynamic_cast<RooRealVar*>(ws->var(pp.first));
+              double const& vnom = pp.second.first;
+              double const& vlow = pp.second.second.first;
+              double const& vhigh = pp.second.second.second;
+              if (tmpvar){
+                tmpvar->setVal(vnom);
+                tmpvar->setAsymError(vlow-vnom, vhigh-vnom);
+              }
+              for (auto const& lnNmodvar:lnNmodvars){
+                if (TString(lnNmodvar->GetName()) == pp.first){
+                  lnNmodvar->setVal(vnom);
+                  lnNmodvar->setAsymError(vlow-vnom, vhigh-vnom);
+                }
+              }
+            }
+            ndims = extractTemplates(procSpecs[pname], data, procshape_1D, procshape_2D, procshape_3D, "total_fai1ALT");
+            setControlVariableValue(controlVars, "CMS_zz4l_fai1", val_default["fai1"]);
+            setControlVariableValue(controlVars, "GGsm", val_default["GGsm"]);
+            setControlVariableValue(controlVars, "RV", val_default["RV"]);
+            setControlVariableValue(controlVars, "RF", val_default["RF"]);
+            for (auto const& pp:postfit_vals_SM_map){
+              RooRealVar* tmpvar = dynamic_cast<RooRealVar*>(ws->var(pp.first));
+              double const& vnom = pp.second.first;
+              double const& vlow = pp.second.second.first;
+              double const& vhigh = pp.second.second.second;
+              if (tmpvar){
+                tmpvar->setVal(vnom);
+                tmpvar->setAsymError(vlow-vnom, vhigh-vnom);
+              }
+              for (auto const& lnNmodvar:lnNmodvars){
+                if (TString(lnNmodvar->GetName()) == pp.first){
+                  lnNmodvar->setVal(vnom);
+                  lnNmodvar->setAsymError(vlow-vnom, vhigh-vnom);
+                }
+              }
             }
           }
 
           ndims = extractTemplates(procSpecs[pname], data, procshape_1D, procshape_2D, procshape_3D);
-          if (addObsRatio) extractTemplateSystVariations(procSpecs[pname], data, zipped_nuisances, postfit_vals_map);
+          if (addObsRatio) extractTemplateSystVariations(procSpecs[pname], data, zipped_nuisances, postfit_vals_SM_map);
         }
         extractDataTemplates(procSpecs[procname.front()], data, procshape_1D, procshape_2D, procshape_3D, "data");
 
@@ -1436,6 +1741,7 @@ void plotStacked(
             iy, jy, iz, jz,
             it->first + dimname + "_hist"
           );
+          replaceLastBinBoundary(htmp);
           htmp->GetXaxis()->SetTitle(varlabels.at(idim));
           cout << "\t- Constructed histogram " << htmp->GetName() << endl;
           cout << "\t\t- Initial histogram integral: " << getHistogramIntegralAndError(hist, 1, hist->GetNbinsX(), 1, hist->GetNbinsY(), 1, hist->GetNbinsZ(), false, nullptr) << endl;
@@ -1451,12 +1757,14 @@ void plotStacked(
                 iy, jy, iz, jz,
                 syst_totalshape.first + "_" + dimname + "_hist_dn"
               );
+              replaceLastBinBoundary(htmp_dn);
               htmp_dn->GetXaxis()->SetTitle(varlabels.at(idim));
               TH1F* htmp_up=getHistogramSlice(
                 &(syst_totalshape.second.second), idim,
                 iy, jy, iz, jz,
                 syst_totalshape.first + "_" + dimname + "_hist_up"
               );
+              replaceLastBinBoundary(htmp_up);
               htmp_up->GetXaxis()->SetTitle(varlabels.at(idim));
 
               if (!totalsysthists.first){
@@ -1511,6 +1819,7 @@ void plotStacked(
             iy, jy,
             it->first + dimname + "_hist"
           );
+          replaceLastBinBoundary(htmp);
           htmp->GetXaxis()->SetTitle(varlabels.at(idim));
           cout << "\t- Constructed histogram " << htmp->GetName() << endl;
           cout << "\t\t- Initial histogram integral: " << getHistogramIntegralAndError(hist, 1, hist->GetNbinsX(), 1, hist->GetNbinsY(), false, nullptr) << endl;
@@ -1526,12 +1835,14 @@ void plotStacked(
                 iy, jy,
                 syst_totalshape.first + "_" + dimname + "_hist_dn"
               );
+              replaceLastBinBoundary(htmp_dn);
               htmp_dn->GetXaxis()->SetTitle(varlabels.at(idim));
               TH1F* htmp_up=getHistogramSlice(
                 &(syst_totalshape.second.second), idim,
                 iy, jy,
                 syst_totalshape.first + "_" + dimname + "_hist_up"
               );
+              replaceLastBinBoundary(htmp_up);
               htmp_up->GetXaxis()->SetTitle(varlabels.at(idim));
 
               if (!totalsysthists.first){
@@ -1560,6 +1871,7 @@ void plotStacked(
           TH1F* htmp = getHistogramSlice(
             hist, it->first + dimname + "_hist"
           );
+          replaceLastBinBoundary(htmp);
           htmp->GetXaxis()->SetTitle(varlabels.at(idim));
           cout << "\t- Constructed histogram " << htmp->GetName() << endl;
           cout << "\t\t- Initial histogram integral: " << getHistogramIntegralAndError(hist, 1, hist->GetNbinsX(), false, nullptr) << endl;
@@ -1574,11 +1886,13 @@ void plotStacked(
                 &(syst_totalshape.second.first),
                 syst_totalshape.first + "_" + dimname + "_hist_dn"
               );
+              replaceLastBinBoundary(htmp_dn);
               htmp_dn->GetXaxis()->SetTitle(varlabels.at(idim));
               TH1F* htmp_up=getHistogramSlice(
                 &(syst_totalshape.second.second),
                 syst_totalshape.first + "_" + dimname + "_hist_up"
               );
+              replaceLastBinBoundary(htmp_up);
               htmp_up->GetXaxis()->SetTitle(varlabels.at(idim));
 
               if (!totalsysthists.first){
@@ -1616,50 +1930,67 @@ void plotStacked(
       for (unsigned int ip=0; ip<proc_order.size(); ip++){
         TString const& procname = proc_order.at(ip);
         auto const& proccode = proc_code.at(ip);
-        if (proccode!=0 || (is_3l1nu && procname=="ttbar_2l2nu")) nleft++;
+        if (proccode!=0 || (is_3l1nu && (procname=="qqWZ" || procname=="qqZZ"))) nleft++;
       }
       unsigned int nright = proc_order.size()-nleft;
 
+      TString strLegendCanvasNameCore = TString((onORoffshell ? "Offshell_" : "Onshell_")) + strChannelPlotLabel + "_" + (aihypo=="" ? "SM" : aihypo.Data()) + (markPreliminary ? "_Preliminary" : (markSupplementary ? "_Supplementary" : ""));
+
+
+      constexpr double relmargin_top_legend = 0.1;
+      constexpr double relmargin_bottom_legend = 0.1;
+      constexpr double relmargin_left_legend = 0.05;
+      constexpr double relmargin_right_legend = 0.05;
+      constexpr double relsize_x_legend = 0.35;
+      const double relsize_space_legend = 1. - relmargin_left_legend - relmargin_right_legend - 2.*relsize_x_legend;
+      const double legend_size_mult = std::max(80.*(1.+relmargin_frame_left+relmargin_frame_right), npixels_XYTitle*1.1)/80.;
+      const double npixels_perentry_y_legend = 80.*legend_size_mult; // This is for 5 entries along the vertical.
+      const double npixels_x_legend = 280.*npixels_perentry_y_legend/80.;
+      const double npixels_x_canvas_legend = npixels_x_legend/relsize_x_legend;
+
+      const unsigned int nmax_legend = std::max(nleft, nright);
+      const double npixels_y_canvas_legend = npixels_perentry_y_legend*nmax_legend/(1. - relmargin_top_legend - relmargin_bottom_legend);
       TCanvas canvas(
-        TString((isEnriched ? "c_SignalEnriched_" : "c_")) + TString((markPreliminary ? "Preliminary_" : "")) + (onORoffshell ? "Offshell_" : "Onshell_") + (aihypo=="" ? "SM" : aihypo.Data()) + "_legend",
-        "", 8, 30, 800, 500
+        TString("c_") + strLegendCanvasNameCore + "_legend",
+        "", 8, 30, npixels_x_canvas_legend, npixels_y_canvas_legend
       );
+      cout << "Legend pixel dimensions: " << npixels_x_canvas_legend << " x " << npixels_y_canvas_legend << endl;
       canvas.cd();
       canvas.SetFillColor(0);
       canvas.SetBorderMode(0);
       canvas.SetBorderSize(2);
       canvas.SetTickx(1);
       canvas.SetTicky(1);
-      canvas.SetLeftMargin(0.17);
-      canvas.SetRightMargin(0.05);
-      canvas.SetTopMargin(0.07);
-      canvas.SetBottomMargin(0.13);
+      canvas.SetLeftMargin(relmargin_left_legend);
+      canvas.SetRightMargin(relmargin_right_legend);
+      canvas.SetTopMargin(relmargin_top_legend);
+      canvas.SetBottomMargin(relmargin_bottom_legend);
       canvas.SetFrameFillStyle(0);
       canvas.SetFrameBorderMode(0);
       canvas.SetFrameFillStyle(0);
       canvas.SetFrameBorderMode(0);
 
-      float leg_xmin=0.55;
-      float leg_ymin=0.10; if (nright<nleft) leg_ymin += (0.9-0.1)/std::max(nleft, nright)*(nleft-nright);
-      float leg_xmax=0.90;
-      float leg_ymax=0.90;
+      double leg_xmin=relmargin_left_legend + relsize_space_legend + relsize_x_legend;
+      double leg_xmax=1. - relmargin_right_legend;
+      double leg_ymax=1. - relmargin_top_legend;
+      double leg_ymin=relmargin_bottom_legend; if (nright<nleft) leg_ymin += (1. - relmargin_top_legend - relmargin_bottom_legend)/nmax_legend*(nleft-nright);
       TLegend legend_right(leg_xmin, leg_ymin, leg_xmax, leg_ymax);
       legend_right.SetBorderSize(0);
-      legend_right.SetTextFont(42);
-      legend_right.SetTextSize(0.045);
+      legend_right.SetTextFont(43);
+      legend_right.SetTextSize(npixels_XYTitle);
       legend_right.SetLineColor(1);
       legend_right.SetLineStyle(1);
       legend_right.SetLineWidth(1);
       legend_right.SetFillColor(0);
       legend_right.SetFillStyle(0);
 
-      leg_xmin=0.10;
-      leg_xmax=0.45;
-      leg_ymin=0.10; if (nright>nleft) leg_ymin += (0.9-0.1)/std::max(nleft, nright)*(nright-nleft);
+      leg_xmin=relmargin_left_legend;
+      leg_xmax=relmargin_left_legend + relsize_x_legend;
+      leg_ymin=relmargin_bottom_legend; if (nright>nleft) leg_ymin += (1. - relmargin_top_legend - relmargin_bottom_legend)/nmax_legend*(nright-nleft);
       TLegend legend_left(leg_xmin, leg_ymin, leg_xmax, leg_ymax);
       legend_left.SetBorderSize(0);
-      legend_left.SetTextFont(42);
-      legend_left.SetTextSize(0.045);
+      legend_left.SetTextFont(43);
+      legend_left.SetTextSize(npixels_XYTitle);
       legend_left.SetLineColor(1);
       legend_left.SetLineStyle(1);
       legend_left.SetLineWidth(1);
@@ -1676,7 +2007,9 @@ void plotStacked(
         else cout << procname << " histogram is present." << endl;
         if (procname.Contains("ALT")){
           if (procname.Contains("GGsm")) prochist->SetLineStyle(2);
+          else if (procname.Contains("NoOffshell")) prochist->SetLineStyle(4);
           else if (procname.Contains("fai1")) prochist->SetLineStyle(7);
+          else if (procname.Contains("BestFit")) prochist->SetLineStyle(9);
           prochist->SetMarkerColor(proc_color[ip]);
           prochist->SetLineColor(proc_color[ip]);
         }
@@ -1730,7 +2063,7 @@ void plotStacked(
         if (!prochist) cout << procname << " histogram is null!" << endl;
 
         TLegend* legend_chosen = nullptr;
-        if (proccode!=0 || (is_3l1nu && procname=="ttbar_2l2nu")){
+        if (proccode!=0 || (is_3l1nu && (procname=="qqWZ" || procname=="qqZZ"))){
           legend_chosen = &legend_left;
           cout << "\t- Plotting on the left..." << endl;
         }
@@ -1771,7 +2104,7 @@ void plotStacked(
           else if (proc_order.at(ip)!="data"){
             for (unsigned int jp=ip-1; jp>0; jp--){
               if (proc_code[jp]==0){
-                procdist[proc_order.at(ip)].at(idim)->Add(procdist[proc_order.at(jp)].at(idim)); // Add the first bkg process and break
+                //procdist[proc_order.at(ip)].at(idim)->Add(procdist[proc_order.at(jp)].at(idim)); // Add the first bkg process and break
                 break;
               }
             }
@@ -1807,8 +2140,10 @@ void plotStacked(
       // Draw
       cout << "Creating the canvas..." << endl;
 
+      TString strCanvasNameCore = TString((onORoffshell ? "Offshell_" : "Onshell_")) + strChannelPlotLabel + "_" + (aihypo=="" ? "SM" : aihypo.Data()) + (isEnriched ? "_SignalEnriched" : "") + (markPreliminary ? "_Preliminary" : (markSupplementary ? "_Supplementary" : ""));
+
       TCanvas canvas(
-        TString((isEnriched ? "c_SignalEnriched_" : "c_")) + TString((markPreliminary ? "Preliminary_" : "")) + (onORoffshell ? "Offshell_" : "Onshell_") + catname + "_" + (aihypo=="" ? "SM" : aihypo.Data()) + dimname + (!isPostFit ? "" : "_postfit") + (!useLogY ? "" : "_LogY"),
+        TString("c_") + strCanvasNameCore + "_" + catname + dimname + (isPostFit ? "_postfit" : ""),
         "", 8, 30, npixels_x, npixels_y
       );
       canvas.cd();
@@ -1903,7 +2238,7 @@ void plotStacked(
         text->SetTextSize(npixels_CMSlogo*relsize_CMSlogo_sqrts);
         text->SetTextAlign(12);
       }
-      else if (onORoffshell==1 && !(isEnriched && ((cinputdir.Contains("/SM") && idim!=1) || (cinputdir.Contains("/a3") && idim==1)))){
+      else if (markSupplementary){
         text = pt.AddText(npixels_CMSlogo*2.2/npixels_pad_xy, 0.45, "Supplementary");
         text->SetTextFont(53);
         text->SetTextSize(npixels_CMSlogo*relsize_CMSlogo_sqrts);
@@ -2007,7 +2342,9 @@ void plotStacked(
         if (!prochist) cout << "ERROR: PDF for " << procname << " missing!" << endl;
         if (procname.Contains("ALT")){
           if (procname.Contains("GGsm")) prochist->SetLineStyle(2);
+          else if (procname.Contains("NoOffshell")) prochist->SetLineStyle(4);
           else if (procname.Contains("fai1")) prochist->SetLineStyle(7);
+          else if (procname.Contains("BestFit")) prochist->SetLineStyle(9);
           prochist->SetMarkerColor(proc_color[ip]);
           prochist->SetLineColor(proc_color[ip]);
         }
@@ -2189,10 +2526,98 @@ void plotStacked(
       TGraphAsymmErrors* tgdata_withZeros_unit = nullptr;
       TH1F* hdummy_ratio = nullptr;
       std::vector<TH1F*> hlist_ALT_dummy;
+      if (addObsRatio){
+        if (tgdata_withZeros->GetN()!=tg_systband->GetN()) cerr << "Number of bins for data with zeros and syst. band are not the same." << endl;
+        else{
+          hdummy_ratio = (TH1F*) hsum_nominal->Clone("hframe_ratio"); hdummy_ratio->Reset("ICESM"); hdummy_ratio->SetLineColor(0); hdummy_ratio->SetMarkerColor(0); hdummy_ratio->SetLineWidth(1);
+          tg_systband_unit = (TGraphAsymmErrors*) tg_systband->Clone(Form("%s_unit", tg_systband->GetName()));
+          tgdata_withZeros_unit = (TGraphAsymmErrors*) tgdata_withZeros->Clone(Form("%s_unit", tgdata_withZeros->GetName()));
+          for (auto const& htmp:hlist_ALT) hlist_ALT_dummy.push_back((TH1F*) htmp->Clone(Form("%s_unit", htmp->GetName())));
 
-      pad_ratio->cd();
-      drawfirst=false;
+          double ymin_ratio = 9e9;
+          double ymax_ratio = -9e9;
+          for (int ix=0; ix<tgdata_withZeros->GetN(); ix++){
+            double& val_systband = tg_systband_unit->GetY()[ix];
+            double& val_systband_errdn = tg_systband_unit->GetEYlow()[ix];
+            double& val_systband_errup = tg_systband_unit->GetEYhigh()[ix];
+            double& val_data = tgdata_withZeros_unit->GetY()[ix];
+            double& val_data_errdn = tgdata_withZeros_unit->GetEYlow()[ix];
+            double& val_data_errup = tgdata_withZeros_unit->GetEYhigh()[ix];
 
+            for (auto& hh:hlist_ALT_dummy){
+              hh->SetBinContent(ix+1, (val_systband!=0. ? hh->GetBinContent(ix+1)/val_systband : 0.));
+              hh->SetBinError(ix+1, 0);
+            }
+
+            if (val_systband!=0.){
+              val_data_errdn /= val_systband;
+              val_data_errup /= val_systband;
+              val_data /= val_systband;
+              val_systband_errdn /= val_systband;
+              val_systband_errup /= val_systband;
+            }
+            else{
+              val_data_errdn = 0.;
+              val_data_errup = 0.;
+              val_data = 0.;
+              val_systband_errdn = 0.;
+              val_systband_errup = 0.;
+            }
+            val_systband = 1.;
+
+            double maxthr_data = val_data + (val_data>0. ? std::abs(val_data_errup) : 0.);
+            if (maxthr_data>5. && val_data<5.) maxthr_data = val_data;
+            else if (maxthr_data>10. && val_data>=5. && val_data<10.) maxthr_data = val_data;
+            ymin_ratio = std::min(ymin_ratio, val_systband - std::abs(val_systband_errdn));
+            ymin_ratio = std::min(ymin_ratio, val_data - std::abs(val_data_errdn));
+            ymax_ratio = std::max(ymax_ratio, val_systband + std::abs(val_systband_errup));
+            ymax_ratio = std::max(ymax_ratio, maxthr_data);
+
+            for (auto& hh:hlist_ALT_dummy){
+              double val_ALT = hh->GetBinContent(ix+1);
+              ymin_ratio = std::min(ymin_ratio, val_ALT);
+              ymax_ratio = std::max(ymax_ratio, val_ALT);
+            }
+          }
+          pad_ratio->cd();
+
+          if (2.-ymax_ratio>0.){
+            ymax_ratio -= 1.;
+            ymin_ratio = 1.-ymin_ratio;
+
+            ymin_ratio = ymax_ratio = std::max(ymin_ratio, ymax_ratio);
+            ymin_ratio = 1. - ymin_ratio;
+            ymax_ratio += 1.;
+          }
+
+          {
+            double dy_ratio = ymax_ratio - ymin_ratio;
+            ymax_ratio += dy_ratio/20.;
+            if (ymin_ratio>dy_ratio/20.) ymin_ratio -= dy_ratio/20.;
+            else ymin_ratio = 0.;
+
+            ymax_ratio = static_cast<double>(static_cast<int>(ymax_ratio*10.)+1)/10.;
+            ymin_ratio = static_cast<double>(static_cast<int>(ymin_ratio*10.))/10.;
+          }
+
+          hdummy_ratio->SetMinimum(ymin_ratio);
+          hdummy_ratio->SetMaximum(ymax_ratio);
+          hdummy_ratio->GetYaxis()->SetRangeUser(ymin_ratio, ymax_ratio);
+          hdummy_ratio->GetXaxis()->SetLabelSize(0);
+          hdummy_ratio->GetXaxis()->SetTitleSize(0);
+          hdummy_ratio->GetYaxis()->SetTitleFont(42);
+          hdummy_ratio->GetYaxis()->SetTitleSize(npixels_XYTitle/npixels_pad_ratio);
+          hdummy_ratio->GetYaxis()->SetTitle("#times#frac{1}{SM tot.}");
+          hdummy_ratio->GetYaxis()->SetTitleOffset(offset_ytitle*(npixels_pad_ratio/npixels_pad_top));
+          hdummy_ratio->GetYaxis()->SetNdivisions(3, 5, 2, true);
+          hdummy_ratio->GetYaxis()->SetMaxDigits(2);
+
+          hdummy_ratio->Draw("hist");
+          for (auto& hh:hlist_ALT_dummy) hh->Draw("histsame");
+          tg_systband_unit->Draw("2same");
+          tgdata_withZeros_unit->Draw("e1psame");
+        }
+      }
 
       for (auto& pad:pads){
         pad->RedrawAxis();
@@ -2208,6 +2633,11 @@ void plotStacked(
       canvas.Close();
       curdir->cd();
 
+      for (auto& hh:hlist_ALT_dummy) delete hh;
+      delete hdummy_ratio;
+      delete tg_systband_unit;
+      delete tg_systband;
+      delete tgdata_withZeros_unit;
       delete tgdata_withZeros;
       delete tgdata;
       for (auto it=procdist.begin(); it!=procdist.end(); it++){
