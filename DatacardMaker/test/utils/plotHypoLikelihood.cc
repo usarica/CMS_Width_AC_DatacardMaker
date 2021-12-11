@@ -44,21 +44,10 @@
 #include "RooNumIntConfig.h"
 #include "RooFitResult.h"
 #include "RooWorkspace.h"
-#include "QuantFuncMathCore.h"
 #include <HiggsAnalysis/CombinedLimit/interface/AsymPow.h>
 #include <IvyFramework/IvyDataTools/interface/HelperFunctions.h>
 #include <IvyFramework/IvyDataTools/interface/HostHelpersCore.h>
 
-
-namespace std{
-
-  template<> struct hash<TString>{
-    typedef TString argument_type;
-    typedef size_t result_type;
-    result_type operator()(argument_type const& arg) const{ return hash<string>{}(arg.Data()); }
-  };
-
-}
 
 using namespace RooFit;
 using namespace std;
@@ -211,11 +200,11 @@ unsigned int extractTemplates(
     double normval = proc.rate * proc.getExtraNorm(); if (proc.norm) normval *= proc.norm->getVal();
     double integral = tpl->Integral();
     double scale = normval/integral;
-    cout << "Scaling template " << tplname << " by " << normval << " / " << integral << endl;
+    //cout << "Scaling template " << tplname << " by " << normval << " / " << integral << endl;
 
     tpl->SetTitle("");
     tpl->Scale(scale);
-    cout << procname << " contribution final integral = " << getHistogramIntegralAndError(tpl, 1, tpl->GetNbinsX(), 1, tpl->GetNbinsY(), 1, tpl->GetNbinsZ(), false, nullptr) << "?=" << normval << endl;
+    //cout << procname << " contribution final integral = " << getHistogramIntegralAndError(tpl, 1, tpl->GetNbinsX(), 1, tpl->GetNbinsY(), 1, tpl->GetNbinsZ(), false, nullptr) << "?=" << normval << endl;
 
     if (addShapeToProcSpec) proc.setDistribution(tpl, procname);
 
@@ -231,7 +220,7 @@ unsigned int extractTemplates(
       procshape_3D[procname]=TH3F(*tpl);
       procshape_3D[procname].SetName(tplname);
     }
-    cout << procname << " final integral = " << getHistogramIntegralAndError(&(procshape_3D[procname]), 1, procshape_3D[procname].GetNbinsX(), 1, procshape_3D[procname].GetNbinsY(), 1, procshape_3D[procname].GetNbinsZ(), false, nullptr) << "?=" << normval << endl;
+    //cout << procname << " final integral = " << getHistogramIntegralAndError(&(procshape_3D[procname]), 1, procshape_3D[procname].GetNbinsX(), 1, procshape_3D[procname].GetNbinsY(), 1, procshape_3D[procname].GetNbinsZ(), false, nullptr) << "?=" << normval << endl;
     delete tpl;
   }
   else if (ndims==2){
@@ -240,11 +229,11 @@ unsigned int extractTemplates(
     double normval = proc.rate * proc.getExtraNorm(); if (proc.norm) normval *= proc.norm->getVal();
     double integral = tpl->Integral();
     double scale = normval/integral;
-    cout << "Scaling template " << tplname << " by " << normval << " / " << integral << endl;
+    //cout << "Scaling template " << tplname << " by " << normval << " / " << integral << endl;
 
     tpl->SetTitle("");
     tpl->Scale(scale);
-    cout << procname << " contribution final integral = " << getHistogramIntegralAndError(tpl, 1, tpl->GetNbinsX(), 1, tpl->GetNbinsY(), false, nullptr) << "?=" << normval << endl;
+    //cout << procname << " contribution final integral = " << getHistogramIntegralAndError(tpl, 1, tpl->GetNbinsX(), 1, tpl->GetNbinsY(), false, nullptr) << "?=" << normval << endl;
 
     if (addShapeToProcSpec) proc.setDistribution(tpl, procname);
 
@@ -260,7 +249,7 @@ unsigned int extractTemplates(
       procshape_2D[procname]=TH2F(*tpl);
       procshape_2D[procname].SetName(tplname);
     }
-    cout << procname << " final integral = " << getHistogramIntegralAndError(&(procshape_2D[procname]), 1, procshape_2D[procname].GetNbinsX(), 1, procshape_2D[procname].GetNbinsY(), false, nullptr) << "?=" << normval << endl;
+    //cout << procname << " final integral = " << getHistogramIntegralAndError(&(procshape_2D[procname]), 1, procshape_2D[procname].GetNbinsX(), 1, procshape_2D[procname].GetNbinsY(), false, nullptr) << "?=" << normval << endl;
     delete tpl;
   }
   else if (ndims==1){
@@ -269,11 +258,11 @@ unsigned int extractTemplates(
     double normval = proc.rate * proc.getExtraNorm(); if (proc.norm) normval *= proc.norm->getVal();
     double integral = tpl->Integral();
     double scale = normval/integral;
-    cout << "Scaling template " << tplname << " by " << normval << " / " << integral << endl;
+    //cout << "Scaling template " << tplname << " by " << normval << " / " << integral << endl;
 
     tpl->SetTitle("");
     tpl->Scale(scale);
-    cout << procname << " contribution final integral = " << getHistogramIntegralAndError(tpl, 1, tpl->GetNbinsX(), false, nullptr) << "?=" << normval << endl;
+    //cout << procname << " contribution final integral = " << getHistogramIntegralAndError(tpl, 1, tpl->GetNbinsX(), false, nullptr) << "?=" << normval << endl;
 
     if (addShapeToProcSpec) proc.setDistribution(tpl, procname);
 
@@ -289,10 +278,10 @@ unsigned int extractTemplates(
       procshape_1D[procname]=TH1F(*tpl);
       procshape_1D[procname].SetName(tplname);
     }
-    cout << procname << " final integral = " << getHistogramIntegralAndError(&(procshape_1D[procname]), 1, procshape_1D[procname].GetNbinsX(), false, nullptr) << "?=" << normval << endl;
+    //cout << procname << " final integral = " << getHistogramIntegralAndError(&(procshape_1D[procname]), 1, procshape_1D[procname].GetNbinsX(), false, nullptr) << "?=" << normval << endl;
     delete tpl;
   }
-  cout << "Work on template " << tplname << " is complete!" << endl;
+  //cout << "Work on template " << tplname << " is complete!" << endl;
   return ndims;
 }
 unsigned int extractDataTemplates(process_spec& proc, RooDataSet* data, unordered_map<TString, TH1F>& procshape_1D, unordered_map<TString, TH2F>& procshape_2D, unordered_map<TString, TH3F>& procshape_3D, TString newname=""){
@@ -336,7 +325,7 @@ unsigned int extractDataTemplates(process_spec& proc, RooDataSet* data, unordere
     TH3F* tpl=(TH3F*) data->createHistogram(tplname+"_Copy", *(deps.at(0)), xcmd, ycmd, zcmd);
     tpl->SetName(tplname);
     tpl->SetTitle("");
-    cout << procname << " contribution final integral = " << getHistogramIntegralAndError(tpl, 1, tpl->GetNbinsX(), 1, tpl->GetNbinsY(), 1, tpl->GetNbinsZ(), false, nullptr) << endl;
+    //cout << procname << " contribution final integral = " << getHistogramIntegralAndError(tpl, 1, tpl->GetNbinsX(), 1, tpl->GetNbinsY(), 1, tpl->GetNbinsZ(), false, nullptr) << endl;
 
     bool isAdded=false;
     for (auto it=procshape_3D.begin(); it!=procshape_3D.end(); it++){
@@ -347,16 +336,16 @@ unsigned int extractDataTemplates(process_spec& proc, RooDataSet* data, unordere
       }
     }
     if (!isAdded){
-      cout << "\t- Creating " << tplname << endl;
+      //cout << "\t- Creating " << tplname << endl;
       procshape_3D[procname]=TH3F(*tpl);
       procshape_3D[procname].SetName(tplname);
     }
-    cout << procname << " final integral = " << getHistogramIntegralAndError(&(procshape_3D[procname]), 1, procshape_3D[procname].GetNbinsX(), 1, procshape_3D[procname].GetNbinsY(), 1, procshape_3D[procname].GetNbinsZ(), false, nullptr) << endl;
+    //cout << procname << " final integral = " << getHistogramIntegralAndError(&(procshape_3D[procname]), 1, procshape_3D[procname].GetNbinsX(), 1, procshape_3D[procname].GetNbinsY(), 1, procshape_3D[procname].GetNbinsZ(), false, nullptr) << endl;
     delete tpl;
   }
   else if (ndims==2){
     TH2F* tpl=(TH2F*) data->createHistogram(tplname+"_Copy", *(deps.at(0)), xcmd, ycmd);
-    cout << procname << " contribution final integral = " << getHistogramIntegralAndError(tpl, 1, tpl->GetNbinsX(), 1, tpl->GetNbinsY(), false, nullptr) << endl;
+    //cout << procname << " contribution final integral = " << getHistogramIntegralAndError(tpl, 1, tpl->GetNbinsX(), 1, tpl->GetNbinsY(), false, nullptr) << endl;
 
     bool isAdded=false;
     for (auto it=procshape_2D.begin(); it!=procshape_2D.end(); it++){
@@ -367,16 +356,16 @@ unsigned int extractDataTemplates(process_spec& proc, RooDataSet* data, unordere
       }
     }
     if (!isAdded){
-      cout << "\t- Creating " << tplname << endl;
+      //cout << "\t- Creating " << tplname << endl;
       procshape_2D[procname]=TH2F(*tpl);
       procshape_2D[procname].SetName(tplname);
     }
-    cout << procname << " final integral = " << getHistogramIntegralAndError(&(procshape_2D[procname]), 1, procshape_2D[procname].GetNbinsX(), 1, procshape_2D[procname].GetNbinsY(), false, nullptr) << endl;
+    //cout << procname << " final integral = " << getHistogramIntegralAndError(&(procshape_2D[procname]), 1, procshape_2D[procname].GetNbinsX(), 1, procshape_2D[procname].GetNbinsY(), false, nullptr) << endl;
     delete tpl;
   }
   else if (ndims==1){
     TH1F* tpl=(TH1F*) data->createHistogram(tplname+"_Copy", *(deps.at(0)), xcmd, ycmd);
-    cout << procname << " contribution final integral = " << getHistogramIntegralAndError(tpl, 1, tpl->GetNbinsX(), false, nullptr) << endl;
+    //cout << procname << " contribution final integral = " << getHistogramIntegralAndError(tpl, 1, tpl->GetNbinsX(), false, nullptr) << endl;
 
     bool isAdded=false;
     for (auto it=procshape_1D.begin(); it!=procshape_1D.end(); it++){
@@ -387,14 +376,14 @@ unsigned int extractDataTemplates(process_spec& proc, RooDataSet* data, unordere
       }
     }
     if (!isAdded){
-      cout << "\t- Creating " << tplname << endl;
+      //cout << "\t- Creating " << tplname << endl;
       procshape_1D[procname]=TH1F(*tpl);
       procshape_1D[procname].SetName(tplname);
     }
-    cout << procname << " final integral = " << getHistogramIntegralAndError(&(procshape_1D[procname]), 1, procshape_1D[procname].GetNbinsX(), false, nullptr) << endl;
+    //cout << procname << " final integral = " << getHistogramIntegralAndError(&(procshape_1D[procname]), 1, procshape_1D[procname].GetNbinsX(), false, nullptr) << endl;
     delete tpl;
   }
-  cout << "Work on data " << tplname << " is complete!" << endl;
+  //cout << "Work on data " << tplname << " is complete!" << endl;
   return ndims;
 }
 
@@ -461,13 +450,13 @@ void extractTemplateSystVariations(
     strhname = Form("%s_%s_Down", procname.Data(), nuisname.Data());
     if (nuis_shape) nuis_shape->setVal(vdn);
     if (nuis_norm) nuis_norm->setVal(vdn);
-    cout << "\t- Extracting " << strhname << " at " << nuisname << "=" << vdn << "..." << endl;
+    //cout << "\t- Extracting " << strhname << " at " << nuisname << "=" << vdn << "..." << endl;
     extractTemplates(proc, data, dummymap_1D, dummymap_2D, dummymap_3D, strhname, true);
 
     strhname = Form("%s_%s_Up", procname.Data(), nuisname.Data());
     if (nuis_shape) nuis_shape->setVal(vup);
     if (nuis_norm) nuis_norm->setVal(vup);
-    cout << "\t- Extracting " << strhname << " at " << nuisname << "=" << vup << "..." << endl;
+    //cout << "\t- Extracting " << strhname << " at " << nuisname << "=" << vup << "..." << endl;
     extractTemplates(proc, data, dummymap_1D, dummymap_2D, dummymap_3D, strhname, true);
 
     if (nuis_shape) nuis_shape->setVal(vnom);
@@ -508,37 +497,18 @@ TString getFractionString(float fai1){
 }
 
 
-TGraphAsymmErrors* getDataGraph(TH1F* hdata, bool addZeroBins){
-  constexpr double quant = (1. - 0.6827) / 2.;
+TGraphAsymmErrors* getDataGraph(TH1F* hdata, bool errorsOnZero, TString strappend=""){
   TGraphAsymmErrors* tgdata = nullptr;
   if (hdata){
-    const int nbins = hdata->GetNbinsX();
-
-    int ndata = 0;
-    std::vector<double> xx_data(nbins, 0.);
-    std::vector<double> xu_data(nbins, 0.);
-    std::vector<double> xd_data(nbins, 0.);
-    std::vector<double> yy_data(nbins, 0.);
-    std::vector<double> yu_data(nbins, 0.);
-    std::vector<double> yd_data(nbins, 0.);
-
-    for (int bin = 1; bin <= hdata->GetNbinsX(); bin++){
-      double bincenter = hdata->GetBinCenter(bin);
-      double bincontent = hdata->GetBinContent(bin);
-
-      if (bincontent > 0. || addZeroBins){
-        xx_data[ndata] = bincenter;
-        yy_data[ndata] = bincontent;
-        xu_data[ndata] = 0;
-        xd_data[ndata] = 0;
-        yu_data[ndata] = (ROOT::Math::chisquared_quantile_c(quant, 2. * (bincontent + 1)) / 2. - bincontent);
-        yd_data[ndata] = ((bincontent == 0.) ? 0. : (bincontent - ROOT::Math::chisquared_quantile_c(1. - quant, 2. * bincontent) / 2.));
-        ndata++;
-      }
+    TH1F* htmp = (TH1F*) hdata->Clone("__data_tmp__");
+    for (int bin = 1; bin <= htmp->GetNbinsX(); bin++){
+      double bincontent = htmp->GetBinContent(bin);
+      if (bincontent>=0.) htmp->SetBinError(bin, std::sqrt(bincontent));
+      else htmp->SetBinError(bin, 0);
     }
-    cout << "Number of graph points: " << ndata << endl;
-    tgdata = new TGraphAsymmErrors(ndata, xx_data.data(), yy_data.data(), xd_data.data(), xu_data.data(), yd_data.data(), yu_data.data());
-    tgdata->SetName(Form("tgdata%s", (addZeroBins ? "_withZeros" : "")));
+    HelperFunctions::convertTH1FToTGraphAsymmErrors(htmp, tgdata, errorsOnZero, true, false);
+    delete htmp;
+    tgdata->SetName(TString("tgdata") + (strappend=="" ? "" : "_") + strappend + (errorsOnZero ? "_withZeros" : ""));
     tgdata->SetMarkerSize(1.2);
     tgdata->SetMarkerStyle(20);
     tgdata->SetMarkerColor(kBlack);
@@ -546,7 +516,6 @@ TGraphAsymmErrors* getDataGraph(TH1F* hdata, bool addZeroBins){
     tgdata->SetLineWidth(1);
   }
   else cout << "Data histogram is null." << endl;
-
   return tgdata;
 }
 
@@ -561,13 +530,98 @@ void getParameterErrors(RooRealVar const& par, double& errLo, double& errHi){
   errHi = errAsym[1];
 }
 
+void readParameters(
+  TString fname,
+  std::unordered_map<TString, double>& vals_hypo,
+  std::unordered_map<TString, std::pair<double, std::pair<double, double>> >& postfit_vals_map
+){
+  if (fname=="" || !HostHelpers::FileExists(fname)) return;
+
+  TDirectory* curdir = gDirectory;
+  TFile* finput_postfit = TFile::Open(fname, "read");
+  RooFitResult* fitResult = dynamic_cast<RooFitResult*>(finput_postfit->Get("fit_mdf"));
+  RooArgList const& finalFloatPars = fitResult->floatParsFinal();
+  TIterator* it = nullptr;
+  it = finalFloatPars.createIterator();
+  RooAbsArg* var;
+  while ((var = (RooAbsArg*) it->Next())){
+    RooRealVar* rvar = dynamic_cast<RooRealVar*>(var);
+    if (rvar){
+      TString strvar = rvar->GetName();
+      double val = rvar->getVal();
+      double err_dn, err_up;
+      getParameterErrors(*rvar, err_dn, err_up);
+      postfit_vals_map[strvar] = std::pair<double, std::pair<double, double>>(val, std::pair<double, double>(val-err_dn, val+err_up));
+      if (vals_hypo.find(strvar)!=vals_hypo.end()) vals_hypo[strvar] = val;
+    }
+  }
+  delete it;
+  finput_postfit->Close();
+  curdir->cd();
+}
+
+
+using namespace HelperFunctions;
+
 
 void plotHypoLikelihood(
-  TString strAChypo,
   bool markPreliminary=false,
   bool useLogY=false,
-  TString strFitResultFile="", TString strPostfit=""
+  TString strFitResultFile_Nominal="",
+  TString strFitResultFile_GGsmALT="",
+  TString strFitResultFile_NoHSigALT="",
+  TString strPostfit=""
 ){
+  TString const strAChypo="SM";
+  constexpr bool isPostFit = true;
+
+  // Magic numbers
+  constexpr double npixels_stdframe_xy = 800;
+  constexpr double relmargin_frame_left = 0.20;
+  constexpr double relmargin_frame_right = 0.05;
+  constexpr double relmargin_frame_CMS = 0.07;
+  constexpr double relmargin_frame_XTitle = 0.15;
+  constexpr double relmargin_frame_separation = 0.1;
+  constexpr double relsize_frame_ratio = 0.2;
+  constexpr double npixels_pad_xy = 800;
+  constexpr double relsize_CMSlogo = 0.98;
+  constexpr double relsize_CMSlogo_sqrts = 0.8;
+  constexpr double relsize_XYTitle = 0.9;
+  constexpr double relsize_XYLabel = 0.8;
+  constexpr double offset_xlabel = 0.004;
+  constexpr double offset_ylabel = 0.007;
+  constexpr double offset_xtitle = 1.09;
+  constexpr double offset_ytitle = 1.3;
+
+  constexpr unsigned int npads = 2;
+  const double npixels_CMSlogo = npixels_stdframe_xy*relmargin_frame_CMS*relsize_CMSlogo;
+  const double npixels_CMSlogo_sqrts = npixels_CMSlogo*relsize_CMSlogo_sqrts;
+  const double npixels_XYTitle = npixels_CMSlogo*relsize_XYTitle;
+  const double npixels_XYLabel = npixels_CMSlogo*relsize_XYLabel;
+
+  const double npixels_x = int(
+    npixels_stdframe_xy*(
+      1.
+      + relmargin_frame_left
+      + relmargin_frame_right
+      ) + 0.5
+    );
+  const double npixels_pad_top = int(
+    npixels_stdframe_xy*(
+      relmargin_frame_CMS
+      + 1.
+      + relmargin_frame_separation/2.
+      ) + 0.5
+    );
+  const double npixels_pad_bot = int(
+    npixels_stdframe_xy*(
+      relmargin_frame_separation/2.
+      + relsize_frame_ratio
+      + relmargin_frame_XTitle
+      ) + 0.5
+    );
+  const double npixels_y = npixels_pad_top + npixels_pad_bot;
+
   gStyle->SetOptStat(0);
 
   std::vector<TString> const sqrtsnames{ "13TeV_2016", "13TeV_2017", "13TeV_2018" };
@@ -576,77 +630,65 @@ void plotHypoLikelihood(
   TDirectory* curdir = gDirectory;
 
   // Determine alternative model parameters
-  TString failabel="f_{ai}";
-  TString ailabel="";
-  TString aiKDlabel="";
-  TString aihypo="";
-  if (strAChypo=="a3"){ failabel="#bar{f}_{a3}"; ailabel="a_{3}"; aiKDlabel=aihypo="a3"; }
-  else if (strAChypo=="a2"){ failabel="#bar{f}_{a2}"; ailabel="a_{2}"; aiKDlabel=aihypo="a2"; }
-  else if (strAChypo=="L1"){ failabel="#bar{f}_{#Lambda1}"; ailabel="#Lambda_{1}"; aiKDlabel="#Lambda1"; aihypo="L1"; }
-  else if (strAChypo=="SM"){ aiKDlabel="a2"; }
-
-  // Determine alternative model parameters
   constexpr double GHref = 4.07;
   unordered_map<TString, double> val_NominalHypo; val_NominalHypo["RV"]=1; val_NominalHypo["RF"]=1; val_NominalHypo["GGsm"]=1; val_NominalHypo["fai1"]=0;
-  unordered_map<TString, double> val_fai1ALT; val_fai1ALT["RV"]=1; val_fai1ALT["RF"]=1; val_fai1ALT["GGsm"]=1; val_fai1ALT["fai1"]=0;
-  unordered_map<TString, double> val_GGsmALT; val_GGsmALT["RV"]=1; val_GGsmALT["RF"]=1; val_GGsmALT["GGsm"]=1; val_GGsmALT["fai1"]=0;
+
+  constexpr bool includeGGSmALT = false;
+  unordered_map<TString, double> val_GGsmALT(val_NominalHypo); val_GGsmALT["GGsm"]=20./GHref;
 
   constexpr bool includeNoHSigALT = true;
-  unordered_map<TString, double> val_NoHSigALT; val_NoHSigALT["RV"]=1; val_NoHSigALT["RF"]=1; val_NoHSigALT["GGsm"]=0; // No need to modify elsewhere
-  if (strAChypo=="a3"){ val_fai1ALT["fai1"]=0.05; val_fai1ALT["RV"]=getACMuV(cinputdir, val_fai1ALT["fai1"]); val_fai1ALT["RF"]=getACMuF(cinputdir, val_fai1ALT["fai1"]); }
-  else if (strAChypo=="a2"){ val_fai1ALT["fai1"]=0.05; val_fai1ALT["RV"]=getACMuV(cinputdir, val_fai1ALT["fai1"]); val_fai1ALT["RF"]=getACMuF(cinputdir, val_fai1ALT["fai1"]); }
-  else if (strAChypo=="L1"){ val_fai1ALT["fai1"]=0.05; val_fai1ALT["RV"]=getACMuV(cinputdir, val_fai1ALT["fai1"]); val_fai1ALT["RF"]=getACMuF(cinputdir, val_fai1ALT["fai1"]); }
-  val_GGsmALT["RV"]=1; val_GGsmALT["RF"]=1; val_GGsmALT["GGsm"]=20./GHref;
+  unordered_map<TString, double> val_NoHSigALT(val_NominalHypo); val_NoHSigALT["GGsm"]=0;
 
-  std::unordered_map<TString, std::pair<double, std::pair<double, double>> > postfit_vals_map;
-  if (isPostFit){
-    TFile* finput_postfit = TFile::Open(strFitResultFile, "read");
-    RooFitResult* fitResult = dynamic_cast<RooFitResult*>(finput_postfit->Get("fit_mdf"));
-    RooArgList const& finalFloatPars = fitResult->floatParsFinal();
-    TIterator* it = nullptr;
-    it = finalFloatPars.createIterator();
-    RooAbsArg* var;
-    while ((var = (RooAbsArg*) it->Next())){
-      RooRealVar* rvar = dynamic_cast<RooRealVar*>(var);
-      if (rvar){
-        TString strvar = rvar->GetName();
-        double val = rvar->getVal();
-        double err_dn, err_up;
-        getParameterErrors(*rvar, err_dn, err_up);
-        postfit_vals_map[strvar] = std::pair<double, std::pair<double, double>>(val, std::pair<double, double>(val-err_dn, val+err_up));
-        if (adjustFitSignal && val_NominalHypo.find(strvar)!=val_NominalHypo.end()) val_NominalHypo[strvar] = val;
-      }
-    }
-    delete it;
-    finput_postfit->Close();
-    curdir->cd();
+  std::unordered_map<TString, std::pair<double, std::pair<double, double>> > postfit_vals_Nominal_map;
+  readParameters(strFitResultFile_Nominal, val_NominalHypo, postfit_vals_Nominal_map);
+  std::unordered_map<TString, std::pair<double, std::pair<double, double>> > postfit_vals_GGsmALT_map;
+  if (includeGGSmALT) readParameters(strFitResultFile_GGsmALT, val_GGsmALT, postfit_vals_GGsmALT_map);
+  std::unordered_map<TString, std::pair<double, std::pair<double, double>> > postfit_vals_NoHSigALT_map;
+  if (includeNoHSigALT) readParameters(strFitResultFile_NoHSigALT, val_NoHSigALT, postfit_vals_NoHSigALT_map);
+
+  cout << "Nominal parameters:" << endl;
+  for (auto const& pp:postfit_vals_Nominal_map){
+    cout << "\t- " << pp.first << " = " << pp.second.first << endl;
+  }
+  cout << "GGsmALT parameters:" << endl;
+  for (auto const& pp:postfit_vals_GGsmALT_map){
+    cout << "\t- " << pp.first << " = " << pp.second.first << endl;
+  }
+  cout << "NoHSigALT parameters:" << endl;
+  for (auto const& pp:postfit_vals_NoHSigALT_map){
+    cout << "\t- " << pp.first << " = " << pp.second.first << endl;
   }
 
   // Get process order/labels
-  std::vector<TString> proc_order{ "total_BestFit", "total_GGsmALT", "total_NoHSigALT" };
+  std::vector<TString> proc_order{ "total_BestFit_ZZTo4L", "total_BestFit"/*, "total_GGsmALT"*/, "total_NoHSigALT" };
   std::vector<TString> proc_label{
-    Form("Total (%s#Gamma_{H}=%s MeV)", (aihypo=="" ? "" : "f_{ai}=0, "), getFractionString(val_NominalHypo["GGsm"]*GHref).Data()),
-    Form("Total (%s#Gamma_{H}=%s MeV)", (aihypo=="" ? "" : "f_{ai}=0, "), getFractionString(val_GGsmALT["GGsm"]*GHref).Data()),
-    Form("Total (#Gamma_{H}=%s MeV)", getFractionString(val_NoHSigALT["GGsm"]*GHref).Data())
+    "Best fit, 4l component",
+    "Best fit, 2l2#nu component",
+    //Form("%s#Gamma_{H}=%s MeV", (aihypo=="" ? "" : "f_{ai}=0, "), getFractionString(val_GGsmALT["GGsm"]*GHref).Data()),
+    Form("#Gamma_{H}=%s MeV (no off-shell)", getFractionString(val_NoHSigALT["GGsm"]*GHref).Data())
   };
-  std::vector<int> proc_color{ (int) kBlue, int(kCyan+2), int(TColor::GetColor("#ff9933")) };
-  std::vector<int> proc_code{ -2, -2, -2 };
-  if (strAChypo!="SM"){
-    proc_order.push_back("total_fai1ALT");
-    proc_color.push_back((int) kViolet);
-    proc_code.push_back(-2);
-    proc_label.push_back(Form("Total (#bar{f}_{ai}=%s, #Gamma_{H}=#Gamma_{H}^{SM})", getFractionString(val_fai1ALT["fai1"]).Data()))
-  }
+  std::vector<int> proc_color{ int(TColor::GetColor("#99ccff")), int(TColor::GetColor("#ff9b9b"))/*, int(kCyan+2)*/, int(kOrange-3) };
+  std::vector<int> proc_code{ -2, -2/*, -2*/, -2 };
   proc_order.push_back("data");
   proc_color.push_back((int) kBlack);
   proc_code.push_back(-99);
-  proc_label.push_back("Observed");
+  proc_label.push_back("Observed 2l2#nu+4l");
+  proc_order.push_back("data_ZZTo4L");
+  proc_color.push_back((int) kBlack);
+  proc_code.push_back(-99);
+  proc_label.push_back("Observed 4l");
 
-  const int nbins_HD = 20;
+  constexpr double binwidth_adj = 0.001;
+  std::vector<double> const binning_HD{
+    0.5, 0.502, 0.504, 0.506, 0.508,
+    0.51, 0.515, 0.525,
+    0.54, 0.565, 0.6
+  };
+  const int nbins_HD = binning_HD.size()-1;
   unordered_map<TString, TH1F> procshape_flat_translated;
   unordered_map<TString, std::pair<TH1F, TH1F>> syst_totalshape_flat_translated_map;
 
-  std::vector<TString> const strinputdirs{ "ZZTo2L2Nu", "ZZTo4L" };
+  std::vector<TString> const strinputdirs{ "Offshell_2L2Nu", "Offshell_4L" };
   for (auto const& cinputdir:strinputdirs){
     TString cinputdir_lower = cinputdir; cinputdir_lower.ToLower();
     bool const is_2l2nu = cinputdir_lower.Contains("2l2nu");
@@ -663,8 +705,6 @@ void plotHypoLikelihood(
     else /*if (is_4l)*/ channames = std::vector<TString>{ "4mu", "4e", "2e2mu" };
     const unsigned int nchans = channames.size();
 
-    bool const isPostFit = (strFitResultFile!="");
-
     for (unsigned int icat=0; icat<ncats; icat++){
       TString const& catname = catnames.at(icat);
       cout << "Acquiring shapes for category " << catname << endl;
@@ -675,7 +715,7 @@ void plotHypoLikelihood(
         for (unsigned int is=0; is<nsqrts; is++){
           TString const& sqrtsname = sqrtsnames.at(is);
           cout << "\t- Data period:  " << sqrtsname << endl;
-          TString cinput_main = cinputdir + "/Offshell_" + sqrtsname + "/hto" + channame + "_" + catname;
+          TString cinput_main = cinputdir + "/SM/" + sqrtsname + "/hto" + channame + "_" + catname;
           TString cinput_file = cinput_main + ".input.root";
           TString cinput_dc = cinput_main + ".txt";
           if (!HostHelpers::FileExists(cinput_file)){ cout << "File " << cinput_file << " does not exist. Skipping this channel..." << endl; continue; }
@@ -783,21 +823,21 @@ void plotHypoLikelihood(
           std::vector<RooRealVar*> nuisanceVars;
 
           // Set postfit values first if they are present.
-          for (auto const& pp:postfit_vals_map){
+          for (auto const& pp:postfit_vals_Nominal_map){
             RooRealVar* tmpvar = dynamic_cast<RooRealVar*>(ws->var(pp.first));
             double const& vnom = pp.second.first;
             double const& vlow = pp.second.second.first;
             double const& vhigh = pp.second.second.second;
             if (tmpvar){
               nuisanceVars.push_back(tmpvar);
-              cout << "\t- Setting " << pp.first << " = " << vnom << "[" << vlow << ", " << vhigh << "] in the workspace." << endl;
+              //cout << "\t- Setting " << pp.first << " = " << vnom << " [" << vlow << ", " << vhigh << "] in the workspace." << endl;
               tmpvar->setVal(vnom);
               tmpvar->setAsymError(vlow-vnom, vhigh-vnom);
             }
 
             for (auto const& lnNmodvar:lnNmodvars){
               if (TString(lnNmodvar->GetName()) == pp.first){
-                cout << "\t- Setting " << pp.first << " = " << vnom << "[" << vlow << ", " << vhigh << "] in the list of lnN nuisances." << endl;
+                //cout << "\t- Setting " << pp.first << " = " << vnom << " [" << vlow << ", " << vhigh << "] in the list of lnN nuisances." << endl;
                 lnNmodvar->setVal(vnom);
                 lnNmodvar->setAsymError(vlow-vnom, vhigh-vnom);
               }
@@ -841,65 +881,97 @@ void plotHypoLikelihood(
             procSpecs[pname].pdf=pdf;
             procSpecs[pname].norm=norm;
 
-            if (pname.Contains("ggZZ_offshell") || pname.Contains("VVZZ_offshell") || pname.Contains("VVVV_offshell")){ // Off-shell process
+            if (includeGGSmALT){
               setControlVariableValue(controlVars, "GGsm", val_GGsmALT["GGsm"]);
               setControlVariableValue(controlVars, "RV", val_GGsmALT["RV"]);
               setControlVariableValue(controlVars, "RF", val_GGsmALT["RF"]);
+              for (auto const& pp:postfit_vals_GGsmALT_map){
+                RooRealVar* tmpvar = dynamic_cast<RooRealVar*>(ws->var(pp.first));
+                double const& vnom = pp.second.first;
+                double const& vlow = pp.second.second.first;
+                double const& vhigh = pp.second.second.second;
+                if (tmpvar){
+                  tmpvar->setVal(vnom);
+                  tmpvar->setAsymError(vlow-vnom, vhigh-vnom);
+                }
+                for (auto const& lnNmodvar:lnNmodvars){
+                  if (TString(lnNmodvar->GetName()) == pp.first){
+                    lnNmodvar->setVal(vnom);
+                    lnNmodvar->setAsymError(vlow-vnom, vhigh-vnom);
+                  }
+                }
+              }
               ndims = extractTemplates(procSpecs[pname], data, procshape_1D, procshape_2D, procshape_3D, "total_GGsmALT");
               setControlVariableValue(controlVars, "GGsm", val_NominalHypo["GGsm"]);
               setControlVariableValue(controlVars, "RV", val_NominalHypo["RV"]);
               setControlVariableValue(controlVars, "RF", val_NominalHypo["RF"]);
-
+              for (auto const& pp:postfit_vals_Nominal_map){
+                RooRealVar* tmpvar = dynamic_cast<RooRealVar*>(ws->var(pp.first));
+                double const& vnom = pp.second.first;
+                double const& vlow = pp.second.second.first;
+                double const& vhigh = pp.second.second.second;
+                if (tmpvar){
+                  tmpvar->setVal(vnom);
+                  tmpvar->setAsymError(vlow-vnom, vhigh-vnom);
+                }
+                for (auto const& lnNmodvar:lnNmodvars){
+                  if (TString(lnNmodvar->GetName()) == pp.first){
+                    lnNmodvar->setVal(vnom);
+                    lnNmodvar->setAsymError(vlow-vnom, vhigh-vnom);
+                  }
+                }
+              }
+            }
+            if (includeNoHSigALT){
               setControlVariableValue(controlVars, "GGsm", val_NoHSigALT["GGsm"]);
               setControlVariableValue(controlVars, "RV", val_NoHSigALT["RV"]);
               setControlVariableValue(controlVars, "RF", val_NoHSigALT["RF"]);
+              for (auto const& pp:postfit_vals_NoHSigALT_map){
+                RooRealVar* tmpvar = dynamic_cast<RooRealVar*>(ws->var(pp.first));
+                double const& vnom = pp.second.first;
+                double const& vlow = pp.second.second.first;
+                double const& vhigh = pp.second.second.second;
+                if (tmpvar){
+                  tmpvar->setVal(vnom);
+                  tmpvar->setAsymError(vlow-vnom, vhigh-vnom);
+                }
+                for (auto const& lnNmodvar:lnNmodvars){
+                  if (TString(lnNmodvar->GetName()) == pp.first){
+                    lnNmodvar->setVal(vnom);
+                    lnNmodvar->setAsymError(vlow-vnom, vhigh-vnom);
+                  }
+                }
+              }
               ndims = extractTemplates(procSpecs[pname], data, procshape_1D, procshape_2D, procshape_3D, "total_NoHSigALT");
               setControlVariableValue(controlVars, "GGsm", val_NominalHypo["GGsm"]);
               setControlVariableValue(controlVars, "RV", val_NominalHypo["RV"]);
               setControlVariableValue(controlVars, "RF", val_NominalHypo["RF"]);
-
-              if (strAChypo!="SM"){
-                setControlVariableValue(controlVars, "GGsm", val_fai1ALT["GGsm"]);
-                setControlVariableValue(controlVars, "CMS_zz4l_fai1", val_fai1ALT["fai1"]);
-                setControlVariableValue(controlVars, "RV", val_fai1ALT["RV"]);
-                setControlVariableValue(controlVars, "RF", val_fai1ALT["RF"]);
-                ndims = extractTemplates(procSpecs[pname], data, procshape_1D, procshape_2D, procshape_3D, "total_fai1ALT");
-                setControlVariableValue(controlVars, "GGsm", val_NominalHypo["GGsm"]);
-                setControlVariableValue(controlVars, "CMS_zz4l_fai1", val_NominalHypo["fai1"]);
-                setControlVariableValue(controlVars, "RV", val_NominalHypo["RV"]);
-                setControlVariableValue(controlVars, "RF", val_NominalHypo["RF"]);
-              }
-            }
-            else if (pname.Contains("ggZZ_onshell") || pname.Contains("VVZZ_onshell") || pname.Contains("VVVV_onshell")){ // On-shell process in off-shell data cards
-              setControlVariableValue(controlVars, "RV", val_GGsmALT["RV"]);
-              setControlVariableValue(controlVars, "RF", val_GGsmALT["RF"]);
-              ndims = extractTemplates(procSpecs[pname], data, procshape_1D, procshape_2D, procshape_3D, "total_GGsmALT");
-              setControlVariableValue(controlVars, "RV", val_NominalHypo["RV"]);
-              setControlVariableValue(controlVars, "RF", val_NominalHypo["RF"]);
-
-              setControlVariableValue(controlVars, "RV", val_NoHSigALT["RV"]);
-              setControlVariableValue(controlVars, "RF", val_NoHSigALT["RF"]);
-              ndims = extractTemplates(procSpecs[pname], data, procshape_1D, procshape_2D, procshape_3D, "total_NoHSigALT");
-              setControlVariableValue(controlVars, "RV", val_NominalHypo["RV"]);
-              setControlVariableValue(controlVars, "RF", val_NominalHypo["RF"]);
-
-              if (strAChypo!="SM"){
-                setControlVariableValue(controlVars, "GGsm", val_fai1ALT["GGsm"]);
-                setControlVariableValue(controlVars, "CMS_zz4l_fai1", val_fai1ALT["fai1"]);
-                setControlVariableValue(controlVars, "RV", val_fai1ALT["RV"]);
-                setControlVariableValue(controlVars, "RF", val_fai1ALT["RF"]);
-                ndims = extractTemplates(procSpecs[pname], data, procshape_1D, procshape_2D, procshape_3D, "total_fai1ALT");
-                setControlVariableValue(controlVars, "GGsm", val_NominalHypo["GGsm"]);
-                setControlVariableValue(controlVars, "CMS_zz4l_fai1", val_NominalHypo["fai1"]);
-                setControlVariableValue(controlVars, "RV", val_NominalHypo["RV"]);
-                setControlVariableValue(controlVars, "RF", val_NominalHypo["RF"]);
+              for (auto const& pp:postfit_vals_Nominal_map){
+                RooRealVar* tmpvar = dynamic_cast<RooRealVar*>(ws->var(pp.first));
+                double const& vnom = pp.second.first;
+                double const& vlow = pp.second.second.first;
+                double const& vhigh = pp.second.second.second;
+                if (tmpvar){
+                  tmpvar->setVal(vnom);
+                  tmpvar->setAsymError(vlow-vnom, vhigh-vnom);
+                }
+                for (auto const& lnNmodvar:lnNmodvars){
+                  if (TString(lnNmodvar->GetName()) == pp.first){
+                    lnNmodvar->setVal(vnom);
+                    lnNmodvar->setAsymError(vlow-vnom, vhigh-vnom);
+                  }
+                }
               }
             }
 
+            if (is_4l) ndims = extractTemplates(procSpecs[pname], data, procshape_1D, procshape_2D, procshape_3D, "total_BestFit_ZZTo4L");
             ndims = extractTemplates(procSpecs[pname], data, procshape_1D, procshape_2D, procshape_3D, "total_BestFit");
-            extractTemplateSystVariations(procSpecs[pname], data, zipped_nuisances, postfit_vals_map);
+
+            ndims = extractTemplates(procSpecs[pname], data, procshape_1D, procshape_2D, procshape_3D);
+            extractTemplateSystVariations(procSpecs[pname], data, zipped_nuisances, postfit_vals_Nominal_map);
           }
           extractDataTemplates(procSpecs[procname.front()], data, procshape_1D, procshape_2D, procshape_3D, "data");
+          if (is_4l) extractDataTemplates(procSpecs[procname.front()], data, procshape_1D, procshape_2D, procshape_3D, "data_ZZTo4L");
 
           {
             for (auto const& pp:procSpecs){
@@ -992,37 +1064,43 @@ void plotHypoLikelihood(
 
           int nbins=0;
           for (auto const& pp:procshape_1D){
-            TH1F* hflat = flattenHistogram(pp.second);
+            TH1F* hflat = flattenHistogram(&(pp.second), false);
             if (nbins==0) nbins = hflat->GetNbinsX();
             procshape_flat[pp.first] = *hflat;
             delete hflat;
           }
           for (auto const& pp:procshape_2D){
-            TH1F* hflat = flattenHistogram(pp.second);
+            TH1F* hflat = flattenHistogram(&(pp.second), false);
             if (nbins==0) nbins = hflat->GetNbinsX();
             procshape_flat[pp.first] = *hflat;
             delete hflat;
           }
           for (auto const& pp:procshape_3D){
-            TH1F* hflat = flattenHistogram(pp.second);
+            TH1F* hflat = flattenHistogram(&(pp.second), false);
             if (nbins==0) nbins = hflat->GetNbinsX();
             procshape_flat[pp.first] = *hflat;
             delete hflat;
           }
           for (auto const& pp:syst_totalshape_map_1D){
-            TH1F* hflat = flattenHistogram(pp.second);
-            syst_totalshape_flat_map[pp.first] = *hflat;
-            delete hflat;
+            TH1F* hflat_dn = flattenHistogram(&(pp.second.first), false);
+            TH1F* hflat_up = flattenHistogram(&(pp.second.second), false);
+            syst_totalshape_flat_map[pp.first] = std::pair<TH1F, TH1F>(*hflat_dn, *hflat_up);
+            delete hflat_dn;
+            delete hflat_up;
           }
           for (auto const& pp:syst_totalshape_map_2D){
-            TH1F* hflat = flattenHistogram(pp.second);
-            syst_totalshape_flat_map[pp.first] = *hflat;
-            delete hflat;
+            TH1F* hflat_dn = flattenHistogram(&(pp.second.first), false);
+            TH1F* hflat_up = flattenHistogram(&(pp.second.second), false);
+            syst_totalshape_flat_map[pp.first] = std::pair<TH1F, TH1F>(*hflat_dn, *hflat_up);
+            delete hflat_dn;
+            delete hflat_up;
           }
           for (auto const& pp:syst_totalshape_map_3D){
-            TH1F* hflat = flattenHistogram(pp.second);
-            syst_totalshape_flat_map[pp.first] = *hflat;
-            delete hflat;
+            TH1F* hflat_dn = flattenHistogram(&(pp.second.first), false);
+            TH1F* hflat_up = flattenHistogram(&(pp.second.second), false);
+            syst_totalshape_flat_map[pp.first] = std::pair<TH1F, TH1F>(*hflat_dn, *hflat_up);
+            delete hflat_dn;
+            delete hflat_up;
           }
 
           TH1F hHTestVals("HTestVals", "", nbins, 0, nbins);
@@ -1031,30 +1109,56 @@ void plotHypoLikelihood(
           for (int ix=1; ix<=nbins; ix++){
             double bc_bf = hBestFit.GetBinContent(ix);
             double bc_bo = hBkgOnly.GetBinContent(ix);
-            double bc_hd = bc_bf/(bc_bf + bc_bo);
+            double bc_hd = -1;
+            if ((bc_bo+bc_bf)>0.) bc_hd = bc_bo/(bc_bf + bc_bo);
             hHTestVals.SetBinContent(ix, bc_hd);
           }
 
           for (auto const& pp:procshape_flat){
             auto const& pname = pp.first;
-            if (procshape_flat_translated.find(pname)==procshape_flat_translated.end()) procshape_flat[pname] = TH1F(Form("%s_translated", pp.second->GetName()), "", nbins_HD, 0, 1);
+
+            // FIXME: INTEGRAL IS NOT RIGHT?
+            cout << pname << " integral before = " << getHistogramIntegralAndError(&(pp.second), 1, nbins, false, nullptr) << " ?= ";
+            double integral_after = 0;
+            double integral_translated = 0;
+
+            if (procshape_flat_translated.find(pname)==procshape_flat_translated.end()) procshape_flat_translated[pname] = TH1F(Form("%s_translated", pp.second.GetName()), "", nbins_HD, binning_HD.data());
+            integral_translated = getHistogramIntegralAndError(&(procshape_flat_translated[pname]), 1, nbins_HD, false, nullptr);
             for (int ix=1; ix<=nbins; ix++){
-              double bc_add = pp.second.GetBinContent(ix);
+              double bc_add = pp.second.GetBinContent(ix); integral_after += bc_add;
               double xc = hHTestVals.GetBinContent(ix);
-              double jx = procshape_flat_translated[pname].GetXaxis()->FindBin(xc);
+              int jx = procshape_flat_translated[pname].GetXaxis()->FindBin(xc);
+              jx = std::max(1, std::min(nbins_HD, jx));
               double bc_old = procshape_flat_translated[pname].GetBinContent(jx);
               procshape_flat_translated[pname].SetBinContent(jx, bc_add + bc_old);
             }
+            integral_translated = getHistogramIntegralAndError(&(procshape_flat_translated[pname]), 1, nbins_HD, false, nullptr) - integral_translated;
+
+            cout << integral_after << " ?= " << integral_translated << endl;
           }
           for (auto const& pp:syst_totalshape_flat_map){
             auto const& pname = pp.first;
-            if (syst_totalshape_flat_translated_map.find(pname)==syst_totalshape_flat_translated_map.end()) syst_totalshape_flat_translated_map[pname] = TH1F(Form("%s_translated", pp.second->GetName()), "", nbins_HD, 0, 1);
+            if (syst_totalshape_flat_translated_map.find(pname)==syst_totalshape_flat_translated_map.end()){
+              syst_totalshape_flat_translated_map[pname] = std::pair<TH1F, TH1F>(
+                TH1F(Form("%s_translated", pp.second.first.GetName()), "", nbins_HD, binning_HD.data()),
+                TH1F(Form("%s_translated", pp.second.second.GetName()), "", nbins_HD, binning_HD.data())
+                );
+            }
             for (int ix=1; ix<=nbins; ix++){
-              double bc_add = pp.second.GetBinContent(ix);
+              double bc_add = pp.second.first.GetBinContent(ix);
               double xc = hHTestVals.GetBinContent(ix);
-              double jx = syst_totalshape_flat_translated_map[pname].GetXaxis()->FindBin(xc);
-              double bc_old = syst_totalshape_flat_translated_map[pname].GetBinContent(jx);
-              syst_totalshape_flat_translated_map[pname].SetBinContent(jx, bc_add + bc_old);
+              int jx = syst_totalshape_flat_translated_map[pname].first.GetXaxis()->FindBin(xc);
+              jx = std::max(1, std::min(nbins_HD, jx));
+              double bc_old = syst_totalshape_flat_translated_map[pname].first.GetBinContent(jx);
+              syst_totalshape_flat_translated_map[pname].first.SetBinContent(jx, bc_add + bc_old);
+            }
+            for (int ix=1; ix<=nbins; ix++){
+              double bc_add = pp.second.second.GetBinContent(ix);
+              double xc = hHTestVals.GetBinContent(ix);
+              int jx = syst_totalshape_flat_translated_map[pname].second.GetXaxis()->FindBin(xc);
+              jx = std::max(1, std::min(nbins_HD, jx));
+              double bc_old = syst_totalshape_flat_translated_map[pname].second.GetBinContent(jx);
+              syst_totalshape_flat_translated_map[pname].second.SetBinContent(jx, bc_add + bc_old);
             }
           }
 
@@ -1072,12 +1176,23 @@ void plotHypoLikelihood(
     }
   }
 
+  // Account for bin widths
+  for (auto pp:procshape_flat_translated){
+    divideBinWidth(&(pp.second));
+    pp.second.Scale(binwidth_adj);
+  }
+  for (auto pp:syst_totalshape_flat_translated_map){
+    divideBinWidth(&(pp.second.first));
+    divideBinWidth(&(pp.second.second));
+    pp.second.first.Scale(binwidth_adj);
+    pp.second.second.Scale(binwidth_adj);
+  }
+
   curdir->cd();
 
   std::pair<TH1F*, TH1F*> systband;
-  TH1F* hsyst_dn = new TH1F("allprocs_syst_dn", "", nbins_HD, 0, 1);
-  TH1F* hsyst_up = new TH1F("allprocs_syst_up", "", nbins_HD, 0, 1);
-
+  TH1F* hsyst_dn = new TH1F("allprocs_syst_dn", "", nbins_HD, binning_HD.data()); systband.first = hsyst_dn;
+  TH1F* hsyst_up = new TH1F("allprocs_syst_up", "", nbins_HD, binning_HD.data()); systband.second = hsyst_up;
   for (auto& pp:syst_totalshape_flat_translated_map){
     TH1F* hist_dn = &(pp.second.first);
     TH1F* hist_up = &(pp.second.second);
@@ -1124,47 +1239,10 @@ void plotHypoLikelihood(
       tg_systband->SetFillStyle(3345);
     }
 
-    constexpr double npixels_stdframe_xy = 800;
-    constexpr double relmargin_frame_left = 0.20;
-    constexpr double relmargin_frame_right = 0.05;
-    constexpr double relmargin_frame_CMS = 0.07;
-    constexpr double relmargin_frame_XTitle = 0.15;
-    constexpr double relmargin_frame_separation = 0.1;
-    constexpr double relsize_frame_ratio = 0.2;
-    constexpr double relsize_frame_composition = 0.2;
-
-    const double npixels_x = int(
-      npixels_stdframe_xy*(
-        1.
-        + relmargin_frame_left
-        + relmargin_frame_right
-        ) + 0.5
-      );
-    const double npixels_pad_top = int(
-      npixels_stdframe_xy*(
-        relmargin_frame_CMS
-        + 1.
-        + relmargin_frame_separation/2.
-        ) + 0.5
-      );
-    const double npixels_pad_bot = int(
-      npixels_stdframe_xy*(
-        relmargin_frame_separation/2.
-        + relsize_frame_composition
-        + relmargin_frame_XTitle
-        ) + 0.5
-      );
-    const double npixels_pad_ratio = int(
-      npixels_stdframe_xy*(
-        relmargin_frame_separation + relsize_frame_ratio
-        ) + 0.5
-      );
-    const double npixels_y = npixels_pad_top + npixels_pad_bot + npixels_pad_ratio;
-
     // Draw
     cout << "Creating the canvas..." << endl;
     TCanvas canvas(
-      TString("c_HypoLL") + TString((markPreliminary ? "Preliminary_" : "")) + "Offshell_" + "_" + strACHypo + (!useLogY ? "" : "_LogY"),
+      TString("c_HypoLL") + TString((markPreliminary ? "_Preliminary" : "")) + "_SM" + (!useLogY ? "" : "_LogY"),
       "", 8, 30, npixels_x, npixels_y
     );
     canvas.cd();
@@ -1172,7 +1250,6 @@ void plotHypoLikelihood(
     cout << "\t- Creating the pads..." << endl;
     TPad* pad_main = nullptr;
     TPad* pad_ratio = nullptr;
-    TPad* pad_comp = nullptr;
     std::vector<TPad*> pads;
     canvas.cd();
     pads.push_back(
@@ -1185,19 +1262,11 @@ void plotHypoLikelihood(
     canvas.cd();
     pads.push_back(
       new TPad(
-        Form("%s_rat", canvas.GetName()), "",
-        0, npixels_pad_bot/npixels_y, 1, (1.-npixels_pad_top/npixels_y)
-      )
-    );
-    pad_ratio = pads.back();
-    canvas.cd();
-    pads.push_back(
-      new TPad(
         Form("%s_bot", canvas.GetName()), "",
         0, 0, 1, npixels_pad_bot/npixels_y
       )
     );
-    pad_comp = pads.back();
+    pad_ratio = pads.back();
     for (auto& pad:pads){
       pad->cd();
       pad->SetFillColor(0);
@@ -1211,13 +1280,9 @@ void plotHypoLikelihood(
         pad->SetTopMargin(npixels_stdframe_xy*relmargin_frame_CMS/npixels_pad_top);
         pad->SetBottomMargin(npixels_stdframe_xy*relmargin_frame_separation/2./npixels_pad_top);
       }
-      else if (pad==pad_comp){
+      else{
         pad->SetTopMargin(npixels_stdframe_xy*relmargin_frame_separation/2./npixels_pad_bot);
         pad->SetBottomMargin(npixels_stdframe_xy*relmargin_frame_XTitle/npixels_pad_bot);
-      }
-      else{
-        pad->SetTopMargin(npixels_stdframe_xy*relmargin_frame_separation/2./npixels_pad_ratio);
-        pad->SetBottomMargin(npixels_stdframe_xy*relmargin_frame_separation/2./npixels_pad_ratio);
       }
       pad->SetFrameFillStyle(0);
       pad->SetFrameBorderMode(0);
@@ -1230,97 +1295,82 @@ void plotHypoLikelihood(
     for (auto rit=pads.rbegin(); rit!=pads.rend(); rit++) (*rit)->Draw();
 
     TText* text;
-    TPaveText pt(npixels_stdframe_xy*relmargin_frame_left/npixels_x, 1.-(npixels_stdframe_xy*relmargin_frame_CMS-1)/npixels_y, 1.-npixels_stdframe_xy*relmargin_frame_right/npixels_x, 1, "brNDC");
+    TPaveText pt(
+      npixels_stdframe_xy*relmargin_frame_left/npixels_x,
+      1.-(npixels_stdframe_xy*relmargin_frame_CMS-1)/npixels_y,
+      1.-npixels_stdframe_xy*relmargin_frame_right/npixels_x,
+      1,
+      "brNDC"
+    );
     pt.SetBorderSize(0);
     pt.SetFillStyle(0);
-    pt.SetTextAlign(12);
-    pt.SetTextFont(42);
-    pt.SetTextSize(0.045);
-    text = pt.AddText(0.001, 0.45, "#font[61]{CMS}");
-    text->SetTextSize(0.044);
+    pt.SetTextAlign(22);
+    pt.SetTextFont(43);
+    cout << "Size of the CMS logo: " << npixels_CMSlogo << endl;
+    text = pt.AddText(0.001, 0.5, "CMS");
+    text->SetTextFont(63);
+    text->SetTextSize(npixels_CMSlogo);
     text->SetTextAlign(12);
     if (markPreliminary){
-      text = pt.AddText(0.13, 0.42, "#font[52]{Preliminary}");
-      text->SetTextSize(0.0315);
+      text = pt.AddText(npixels_CMSlogo*2.2/npixels_pad_xy, 0.45, "Preliminary");
+      text->SetTextFont(53);
+      text->SetTextSize(npixels_CMSlogo*relsize_CMSlogo_sqrts);
+      text->SetTextAlign(12);
     }
     int theSqrts=13;
-    TString cErgTev = Form("#font[42]{138 fb^{-1} (%i TeV)}", theSqrts);
+    TString cErgTev = Form("#leq138 fb^{-1} (%i TeV)", theSqrts);
     text = pt.AddText(0.999, 0.45, cErgTev);
-    text->SetTextSize(0.0315);
+    text->SetTextFont(43);
+    text->SetTextSize(npixels_CMSlogo*relsize_CMSlogo_sqrts);
     text->SetTextAlign(32);
-
-    if (ailabel!="") strCatLabel = ailabel + " analysis";
-    if (isPostFit){
-      if (strPostfit=="") strCatLabel = strCatLabel + " (postfit)";
-      else strCatLabel = strCatLabel + Form(" (%s)", strPostfit.Data());
-    }
-    else if (strPostfit!="") strCatLabel = strCatLabel + Form(" (%s)", strPostfit.Data());
-
-    TPaveText pt_cat(0.20, 0.83, 0.40, 0.90, "brNDC");
-    pt_cat.SetBorderSize(0);
-    pt_cat.SetFillStyle(0);
-    pt_cat.SetTextAlign(12);
-    pt_cat.SetTextFont(42);
-    pt_cat.SetTextSize(0.03);
-    text = pt_cat.AddText(0.02, 0.45, strCatLabel);
-    text->SetTextSize(0.044);
 
     float ymax=-1, ymin=-1;
     if (useLogY) ymin=9e9;
-    float xmin=-1, xmax=-1;
     TGraphAsymmErrors* tgdata=nullptr;
+    TGraphAsymmErrors* tgdata_4l=nullptr;
     TGraphAsymmErrors* tgdata_withZeros=nullptr;
     for (unsigned int ip=0; ip<proc_order.size(); ip++){
       TString const& procname = proc_order.at(ip);
       TString const& proclabel = proc_label.at(ip);
       cout << "Adjusting process " << procname << " at index " << ip << endl;
       TH1F* prochist = &(procshape_flat_translated.find(procname)->second);
-      xmin=prochist->GetXaxis()->GetBinLowEdge(1);
-      xmax=prochist->GetXaxis()->GetBinUpEdge(prochist->GetNbinsX());
       cout << "\t- Process " << procname << " color: " << proc_color[ip] << endl;
       if (procname.Contains("ALT")){
         if (procname.Contains("GGsm")) prochist->SetLineStyle(2);
-        else if (procname.Contains("NoHSig")) prochist->SetLineStyle(8);
-        else if (procname.Contains("fai1")) prochist->SetLineStyle(7);
+        else if (procname.Contains("NoHSig")) prochist->SetLineStyle(4);
         prochist->SetMarkerColor(proc_color[ip]);
         prochist->SetLineColor(proc_color[ip]);
-      }
-      else if (proclabel=="Total SM"){
-        prochist->SetMarkerColor(kRed);
-        prochist->SetLineColor(kRed);
       }
       else if (proc_code.at(ip)==-99){ // Data
         prochist->SetMarkerColor(proc_color[ip]);
       }
       else{
         prochist->SetMarkerColor(proc_color[ip]);
-        prochist->SetLineColorAlpha(kRed+1, 0.5);
+        prochist->SetLineColorAlpha(proc_color[ip]+1, 0.5);
         prochist->SetFillColor(proc_color[ip]);
         prochist->SetFillStyle(1001);
       }
       prochist->SetLineWidth(1);
 
-      prochist->GetXaxis()->SetRangeUser(xmin, xmax);
       prochist->GetXaxis()->SetNdivisions(505);
-      prochist->GetXaxis()->SetLabelFont(42);
-      prochist->GetXaxis()->SetLabelOffset(0.007);
-      prochist->GetXaxis()->SetLabelSize(0.04);
-      prochist->GetXaxis()->SetTitleSize(0.06);
-      prochist->GetXaxis()->SetTitleOffset(0.9);
+      prochist->GetXaxis()->SetLabelFont(43);
+      prochist->GetXaxis()->SetLabelOffset(offset_xlabel);
+      prochist->GetXaxis()->SetLabelSize(npixels_XYLabel);
       prochist->GetXaxis()->SetTitleFont(42);
-      prochist->GetYaxis()->SetNdivisions(505);
-      prochist->GetYaxis()->SetLabelFont(42);
-      prochist->GetYaxis()->SetLabelOffset(0.007);
-      prochist->GetYaxis()->SetLabelSize(0.04);
-      prochist->GetYaxis()->SetTitleSize(0.06);
-      prochist->GetYaxis()->SetTitleOffset(1.1);
+      prochist->GetXaxis()->SetTitleSize(npixels_XYTitle/npixels_pad_top);
+      prochist->GetXaxis()->SetTitleOffset(offset_xtitle);
+      prochist->GetYaxis()->SetLabelFont(43);
+      prochist->GetYaxis()->SetLabelOffset(offset_ylabel);
+      prochist->GetYaxis()->SetLabelSize(npixels_XYLabel);
       prochist->GetYaxis()->SetTitleFont(42);
-      prochist->GetYaxis()->SetTitle("Events / bin");
+      prochist->GetYaxis()->SetTitleSize(npixels_XYTitle/npixels_pad_top);
+      prochist->GetYaxis()->SetTitleOffset(offset_ytitle);
+      prochist->GetYaxis()->SetTitle(Form("Events / %.3f", binwidth_adj));
       prochist->GetYaxis()->CenterTitle();
       prochist->GetXaxis()->CenterTitle();
 
-      if (procname!="data"){
-        for (int ix=binXlow; ix<=binXhigh; ix++){
+      if (!procname.Contains("data")){
+        for (int ix=1; ix<=prochist->GetNbinsX(); ix++){
           float bc = prochist->GetBinContent(ix);
           if (bc!=0.){
             ymax = std::max(bc, ymax);
@@ -1330,13 +1380,13 @@ void plotHypoLikelihood(
       }
       else{
         cout << "\t- Obtaining " << procname << " graph" << endl;
-        tgdata = getDataGraph(prochist, false);
-        tgdata_withZeros = getDataGraph(prochist, true);
-        if (tgdata){
-          cout << "\t\t- Np = " << tgdata->GetN() << endl;
-          for (int ipoint=0; ipoint<tgdata->GetN(); ipoint++){
-            float bc = tgdata->GetY()[ipoint]+tgdata->GetEYhigh()[ipoint];
-            float bc_low = tgdata->GetY()[ipoint]-std::abs(tgdata->GetEYlow()[ipoint]);
+        TGraphAsymmErrors* tgdata_tmp = getDataGraph(prochist, false);
+        tgdata_tmp = getDataGraph(prochist, false);
+        if (procname=="data") tgdata_withZeros = getDataGraph(prochist, true);
+        if (tgdata_tmp){
+          for (int ipoint=0; ipoint<tgdata_tmp->GetN(); ipoint++){
+            float bc = tgdata_tmp->GetY()[ipoint]+tgdata_tmp->GetEYhigh()[ipoint];
+            float bc_low = tgdata_tmp->GetY()[ipoint]-std::abs(tgdata_tmp->GetEYlow()[ipoint]);
             if (bc!=0.){
               ymax = std::max(bc, ymax);
             }
@@ -1344,9 +1394,9 @@ void plotHypoLikelihood(
               ymin = std::min(bc_low, ymin);
             }
           }
-          cout << "\t\t- Success!" << endl;
+          if (procname=="data") tgdata = tgdata_tmp;
+          else tgdata_4l = tgdata_tmp;
         }
-        else cout << "-t-t- Failure!" << endl;
       }
     }
     if (tg_systband){
@@ -1357,42 +1407,17 @@ void plotHypoLikelihood(
         ymin = std::min(bc_low, ymin);
       }
     }
+    if (tgdata_4l){
+      tgdata_4l->SetMarkerStyle(24);
+      tgdata_4l->SetLineStyle(7);
+    }
 
     if (!useLogY) ymin=0;
 
-    float ymaxfactor = (!useLogY ? 1.25 : 250.);
-    float yminfactor = 1;
+    float ymaxfactor = (!useLogY ? 1.25 : 2.);
+    float yminfactor = 0.8;
 
-    canvas.cd();
-    pad_main->cd();
-    bool drawfirst=true;
-    for (unsigned int ip=proc_order.size(); ip>0; ip--){
-      TString const& procname = proc_order.at(ip-1);
-      TString const& proclabel = proc_label.at(ip-1);
-      TH1F*& prochist = &(procshape_flat_translated.find(procname)->second);
-      if (procname=="data") continue;
-      prochist->GetXaxis()->SetTitle("");
-      prochist->GetXaxis()->SetLabelSize(0);
-      prochist->GetXaxis()->SetTitleSize(0);
-      cout << "\t- Drawing " << procname << endl;
-      prochist->GetYaxis()->SetRangeUser(ymin*yminfactor*0.8, ymax*ymaxfactor);
-      prochist->Draw((drawfirst ? "hist" : "histsame"));
-      drawfirst=false;
-    }
-    // Draw error bands
-    if (tg_systband) tg_systband->Draw("2same");
-    // Re-draw ALT
-    for (unsigned int ip=proc_order.size(); ip>0; ip--){
-      if (!proc_order.at(ip-1).Contains("ALT")) continue;
-      cout << "\t- Drawing " << proc_order.at(ip-1) << endl;
-      procshape_flat_translated[proc_order.at(ip-1)].Draw("histsame");
-    }
-    if (tgdata && tgdata->GetN()>0) tgdata->Draw("e1psame");
-    pt.Draw();
-    pt_cat.Draw();
-
-    canvas.cd();
-
+    // Plot the ratio panel
     TGraphAsymmErrors* tg_systband_unit = nullptr;
     TGraphAsymmErrors* tgdata_withZeros_unit = nullptr;
     TH1F* hdummy_ratio = nullptr;
@@ -1473,22 +1498,54 @@ void plotHypoLikelihood(
 
         hdummy_ratio->SetMinimum(ymin_ratio);
         hdummy_ratio->SetMaximum(ymax_ratio);
+        hdummy_ratio->GetXaxis()->SetTitleFont(42);
+        hdummy_ratio->GetXaxis()->SetTitleSize(npixels_XYTitle/npixels_pad_bot);
+        hdummy_ratio->GetXaxis()->SetTitle("N_{no off-shell} / (N_{no off-shell} + N_{best fit})");
+        hdummy_ratio->GetXaxis()->SetTitleOffset(offset_xtitle);
         hdummy_ratio->GetYaxis()->SetRangeUser(ymin_ratio, ymax_ratio);
-        hdummy_ratio->GetXaxis()->SetLabelSize(0);
-        hdummy_ratio->GetXaxis()->SetTitleSize(0);
-        hdummy_ratio->GetYaxis()->SetLabelSize(0.04*npixels_pad_top/npixels_pad_ratio);
-        hdummy_ratio->GetYaxis()->SetTitleSize(0.06*npixels_pad_top/npixels_pad_ratio);
-        hdummy_ratio->GetYaxis()->SetTitle("#times#frac{1}{SM tot.}");
-        hdummy_ratio->GetYaxis()->SetTitleOffset(1.1*npixels_pad_ratio/npixels_pad_top);
+        hdummy_ratio->GetYaxis()->SetTitleFont(42);
+        hdummy_ratio->GetYaxis()->SetTitleSize(npixels_XYTitle/npixels_pad_bot);
+        hdummy_ratio->GetYaxis()->SetTitle("#times#frac{1}{Best fit}");
+        hdummy_ratio->GetYaxis()->SetTitleOffset(offset_ytitle*(npixels_pad_bot/npixels_pad_top));
         hdummy_ratio->GetYaxis()->SetNdivisions(3, 5, 2, true);
         hdummy_ratio->GetYaxis()->SetMaxDigits(2);
 
         hdummy_ratio->Draw("hist");
         for (auto& hh:hlist_ALT_dummy) hh->Draw("histsame");
         tg_systband_unit->Draw("2same");
-        tgdata_withZeros_unit->Draw("e1psame");
+        tgdata_withZeros_unit->Draw("0psame");
       }
     }
+
+    canvas.cd();
+    pad_main->cd();
+    bool drawfirst=true;
+    for (unsigned int ip=proc_order.size(); ip>0; ip--){
+      TString const& procname = proc_order.at(ip-1);
+      TString const& proclabel = proc_label.at(ip-1);
+      TH1F* prochist = &(procshape_flat_translated.find(procname)->second);
+      if (procname=="data") continue;
+      prochist->GetXaxis()->SetTitle("");
+      prochist->GetXaxis()->SetLabelSize(0);
+      prochist->GetXaxis()->SetTitleSize(0);
+      cout << "\t- Drawing " << procname << endl;
+      prochist->GetYaxis()->SetRangeUser(ymin*yminfactor, ymax*ymaxfactor);
+      prochist->Draw((drawfirst ? "hist" : "histsame"));
+      drawfirst=false;
+    }
+    // Draw error bands
+    if (tg_systband) tg_systband->Draw("2same");
+    // Re-draw ALT
+    for (unsigned int ip=proc_order.size(); ip>0; ip--){
+      if (!proc_order.at(ip-1).Contains("ALT")) continue;
+      cout << "\t- Drawing " << proc_order.at(ip-1) << endl;
+      procshape_flat_translated[proc_order.at(ip-1)].Draw("histsame");
+    }
+    if (tgdata_4l && tgdata_4l->GetN()>0) tgdata_4l->Draw("0psame");
+    if (tgdata && tgdata->GetN()>0) tgdata->Draw("0psame");
+
+    canvas.cd();
+    pt.Draw();
 
     for (auto& pad:pads){
       pad->RedrawAxis();
@@ -1499,7 +1556,6 @@ void plotHypoLikelihood(
     canvas.Modified();
     canvas.Update();
     canvas.SaveAs(TString(canvas.GetName()) + ".pdf");
-    for (TH1F*& htmp:intermediateHistList) delete htmp;
     for (auto& pad:pads) pad->Close();
     canvas.Close();
     curdir->cd();
@@ -1510,11 +1566,8 @@ void plotHypoLikelihood(
     delete tg_systband;
     delete tgdata_withZeros_unit;
     delete tgdata_withZeros;
+    delete tgdata_4l;
     delete tgdata;
-    for (auto it=procdist.begin(); it!=procdist.end(); it++){
-      cout << "\t- Deleting histogram " << it->second.at(idim)->GetName() << endl;
-      delete it->second.at(idim);
-    }
 
     delete systband.first;
     delete systband.second;

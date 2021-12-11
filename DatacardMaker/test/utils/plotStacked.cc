@@ -525,7 +525,7 @@ TString getFractionString(float fai1){
 }
 
 
-TGraphAsymmErrors* getDataGraph(TH1F* hdata, bool errorsOnZero=false){
+TGraphAsymmErrors* getDataGraph(TH1F* hdata, bool errorsOnZero){
   TGraphAsymmErrors* tgdata = nullptr;
   if (hdata){
     TH1F* htmp = (TH1F*) hdata->Clone("__data_tmp__");
@@ -536,7 +536,7 @@ TGraphAsymmErrors* getDataGraph(TH1F* hdata, bool errorsOnZero=false){
     }
     HelperFunctions::convertTH1FToTGraphAsymmErrors(htmp, tgdata, errorsOnZero, true, false);
     delete htmp;
-    tgdata->SetName("tgdata");
+    tgdata->SetName(TString("tgdata") + (errorsOnZero ? "_withZeros" : ""));
     tgdata->SetMarkerSize(1.2);
     tgdata->SetMarkerStyle(20);
     tgdata->SetMarkerColor(kBlack);
@@ -1144,14 +1144,14 @@ void plotStacked(
           double const& vhigh = pp.second.second.second;
           if (tmpvar){
             nuisanceVars.push_back(tmpvar);
-            cout << "\t- Setting " << pp.first << " = " << vnom << "[" << vlow << ", " << vhigh << "] in the workspace." << endl;
+            cout << "\t- Setting " << pp.first << " = " << vnom << " [" << vlow << ", " << vhigh << "] in the workspace." << endl;
             tmpvar->setVal(vnom);
             tmpvar->setAsymError(vlow-vnom, vhigh-vnom);
           }
 
           for (auto const& lnNmodvar:lnNmodvars){
             if (TString(lnNmodvar->GetName()) == pp.first){
-              cout << "\t- Setting " << pp.first << " = " << vnom << "[" << vlow << ", " << vhigh << "] in the list of lnN nuisances." << endl;
+              cout << "\t- Setting " << pp.first << " = " << vnom << " [" << vlow << ", " << vhigh << "] in the list of lnN nuisances." << endl;
               lnNmodvar->setVal(vnom);
               lnNmodvar->setAsymError(vlow-vnom, vhigh-vnom);
             }
@@ -2050,7 +2050,7 @@ void plotStacked(
         }
         prochist->SetLineWidth(1);
 
-        if (procname=="data") tgdata=getDataGraph(prochist);
+        if (procname=="data") tgdata=getDataGraph(prochist, false);
       }
 
       for (unsigned int ip=proc_order.size(); ip>0; ip--){
@@ -2283,25 +2283,25 @@ void plotStacked(
       TString strCutLabel;
       if ((int) idim!=massDim && massDim>=0 && cutvals.at(idim).at(massDim)>0.){
         TString strUnit = "GeV";
-        if (is_2l2nu) strCutLabel += "m_{T}^{ZZ}#geq";
-        else if (is_3l1nu) strCutLabel += "m_{T}^{WZ}#geq";
-        else strCutLabel += "m_{4l}#geq";
+        if (is_2l2nu) strCutLabel += "m_{T}^{ZZ}>";
+        else if (is_3l1nu) strCutLabel += "m_{T}^{WZ}>";
+        else strCutLabel += "m_{4l}>";
         strCutLabel += Form("%.0f", cutvals.at(idim).at(massDim));
         if (strUnit!="") strCutLabel = strCutLabel + " " + strUnit;
       }
       if (is_2l2nu && catname.Contains("Nj_geq_2")){
         if (strCutLabel!="") strCutLabel += ", ";
         if (catname.Contains("pTmiss_lt_200")) strCutLabel += "p_{T}^{miss}<200 GeV";
-        else if (catname.Contains("pTmiss_ge_200")) strCutLabel += "p_{T}^{miss}#geq200 GeV";
+        else if (catname.Contains("pTmiss_ge_200")) strCutLabel += "p_{T}^{miss}>200 GeV";
       }
       if ((int) idim!=kdDim && kdDim>=0 && cutvals.at(idim).at(kdDim)>0.){
         TString strUnit = "";
         if (strCutLabel!="") strCutLabel += ", ";
         if (is_2l2nu){
-          strCutLabel += (catname.Contains("Nj_geq_2") ? "D_{2jet}^{VBF}#geq" : "p_{T}^{miss}#geq");
+          strCutLabel += (catname.Contains("Nj_geq_2") ? "D_{2jet}^{VBF}>" : "p_{T}^{miss}>");
           if (!catname.Contains("Nj_geq_2")) strUnit = "GeV";
         }
-        else strCutLabel += "D_{bkg}#geq";
+        else strCutLabel += "D_{bkg}>";
         if (cutvals.at(idim).at(kdDim)>1.) strCutLabel += Form("%.0f", cutvals.at(idim).at(kdDim));
         else strCutLabel += Form("%.1f", cutvals.at(idim).at(kdDim));
         if (strUnit!="") strCutLabel = strCutLabel + " " + strUnit;
@@ -2614,7 +2614,7 @@ void plotStacked(
           hdummy_ratio->Draw("hist");
           for (auto& hh:hlist_ALT_dummy) hh->Draw("histsame");
           tg_systband_unit->Draw("2same");
-          tgdata_withZeros_unit->Draw("e1psame");
+          tgdata_withZeros_unit->Draw("0psame");
         }
       }
 
