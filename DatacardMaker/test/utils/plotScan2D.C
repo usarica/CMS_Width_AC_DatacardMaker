@@ -399,7 +399,7 @@ TString getVariableLabel(TString const strvar, TString const strachypo){
     if (strachypo=="L1") strai="Lambda1";
     if (strai.Contains("Lambda")) strai.Prepend("#");
     //return Form("f_{%s} cos(#phi_{#lower[-0.2]{%s}})", strai.Data(), strai.Data());
-    return Form("#bar{f}_{%s}", strai.Data());
+    return Form("f_{%s}", strai.Data());
   }
   else return strvar;
 }

@@ -574,6 +574,7 @@ void plotHypoLikelihood(
 ){
   TString const strAChypo="SM";
   constexpr bool isPostFit = true;
+  constexpr bool runSysts = false;
 
   // Magic numbers
   constexpr double npixels_stdframe_xy = 800;
@@ -588,8 +589,8 @@ void plotHypoLikelihood(
   constexpr double relsize_CMSlogo_sqrts = 0.8;
   constexpr double relsize_XYTitle = 0.9;
   constexpr double relsize_XYLabel = 0.8;
-  constexpr double offset_xlabel = 0.004;
-  constexpr double offset_ylabel = 0.007;
+  constexpr double offset_xlabel = 0.02;
+  constexpr double offset_ylabel = 0.02;
   constexpr double offset_xtitle = 1.09;
   constexpr double offset_ytitle = 1.3;
 
@@ -968,7 +969,7 @@ void plotHypoLikelihood(
             ndims = extractTemplates(procSpecs[pname], data, procshape_1D, procshape_2D, procshape_3D, "total_BestFit");
 
             ndims = extractTemplates(procSpecs[pname], data, procshape_1D, procshape_2D, procshape_3D);
-            extractTemplateSystVariations(procSpecs[pname], data, zipped_nuisances, postfit_vals_Nominal_map);
+            if (runSysts) extractTemplateSystVariations(procSpecs[pname], data, zipped_nuisances, postfit_vals_Nominal_map);
           }
           extractDataTemplates(procSpecs[procname.front()], data, procshape_1D, procshape_2D, procshape_3D, "data");
           if (is_4l) extractDataTemplates(procSpecs[procname.front()], data, procshape_1D, procshape_2D, procshape_3D, "data_ZZTo4L");
@@ -1117,7 +1118,6 @@ void plotHypoLikelihood(
           for (auto const& pp:procshape_flat){
             auto const& pname = pp.first;
 
-            // FIXME: INTEGRAL IS NOT RIGHT?
             cout << pname << " integral before = " << getHistogramIntegralAndError(&(pp.second), 1, nbins, false, nullptr) << " ?= ";
             double integral_after = 0;
             double integral_translated = 0;
@@ -1176,12 +1176,47 @@ void plotHypoLikelihood(
     }
   }
 
-  // Account for bin widths
-  for (auto pp:procshape_flat_translated){
-    divideBinWidth(&(pp.second));
-    pp.second.Scale(binwidth_adj);
+  TGraphAsymmErrors* tgdata = nullptr;
+  TGraphAsymmErrors* tgdata_4l = nullptr;
+  for (auto& pp:procshape_flat_translated){
+    auto const& procname = pp.first;
+    TString procname_lower = procname; procname_lower.ToLower();
+    TH1F* tpl = &(pp.second);
+    TGraphAsymmErrors* tgtmp = nullptr;
+    if (procname.BeginsWith("data")){
+      tgtmp = getDataGraph(tpl, true, procname);
+      for (int ix=0; ix<tgtmp->GetN(); ix++){
+        double bw = tpl->GetXaxis()->GetBinWidth(tpl->GetXaxis()->FindBin(tgtmp->GetX()[ix]))/binwidth_adj;
+        tgtmp->GetY()[ix] /= bw;
+        tgtmp->GetEYhigh()[ix] /= bw;
+        tgtmp->GetEYlow()[ix] /= bw;
+      }
+      if (procname_lower.Contains("4l")) tgdata_4l = tgtmp;
+      else tgdata = tgtmp;
+    }
   }
-  for (auto pp:syst_totalshape_flat_translated_map){
+  if (tgdata && tgdata_4l){
+    for (int ix=0; ix<tgdata->GetN(); ix++){
+      double bc_total_low = tgdata->GetY()[ix]-std::abs(tgdata->GetEYlow()[ix]);
+      double bc_4l_high = tgdata_4l->GetY()[ix]+tgdata_4l->GetEYhigh()[ix];
+      if (bc_4l_high>=bc_total_low){
+        tgdata->GetX()[ix] += binwidth_adj*0.5;
+        tgdata_4l->GetX()[ix] -= binwidth_adj*0.5;
+      }
+    }
+  }
+  // Account for bin widths
+  for (auto& pp:procshape_flat_translated){
+    TH1F* tpl = &(pp.second);
+    double integral_before = getHistogramIntegralAndError(tpl, 1, tpl->GetNbinsX(), false, nullptr);
+    double count_lastbin = tpl->GetBinContent(tpl->GetNbinsX());
+    divideBinWidth(tpl);
+    pp.second.Scale(binwidth_adj);
+    double count_lastbin_after = tpl->GetBinContent(tpl->GetNbinsX());
+    double integral_after = getHistogramIntegralAndError(tpl, 1, tpl->GetNbinsX(), true, nullptr)/binwidth_adj;
+    cout << pp.first << " final integral = " << integral_before << " ?= " << integral_after << ". Last bin count = " << count_lastbin << " ?!= " << count_lastbin_after << "." << endl;
+  }
+  for (auto& pp:syst_totalshape_flat_translated_map){
     divideBinWidth(&(pp.second.first));
     divideBinWidth(&(pp.second.second));
     pp.second.first.Scale(binwidth_adj);
@@ -1324,13 +1359,11 @@ void plotHypoLikelihood(
     text->SetTextSize(npixels_CMSlogo*relsize_CMSlogo_sqrts);
     text->SetTextAlign(32);
 
-    float ymax=-1, ymin=-1;
+    double ymax=-1, ymin=-1;
     if (useLogY) ymin=9e9;
-    TGraphAsymmErrors* tgdata=nullptr;
-    TGraphAsymmErrors* tgdata_4l=nullptr;
-    TGraphAsymmErrors* tgdata_withZeros=nullptr;
     for (unsigned int ip=0; ip<proc_order.size(); ip++){
       TString const& procname = proc_order.at(ip);
+      TString procname_lower = procname; procname_lower.ToLower();
       TString const& proclabel = proc_label.at(ip);
       cout << "Adjusting process " << procname << " at index " << ip << endl;
       TH1F* prochist = &(procshape_flat_translated.find(procname)->second);
@@ -1371,7 +1404,7 @@ void plotHypoLikelihood(
 
       if (!procname.Contains("data")){
         for (int ix=1; ix<=prochist->GetNbinsX(); ix++){
-          float bc = prochist->GetBinContent(ix);
+          double bc = prochist->GetBinContent(ix);
           if (bc!=0.){
             ymax = std::max(bc, ymax);
             ymin = std::min(bc, ymin);
@@ -1380,29 +1413,28 @@ void plotHypoLikelihood(
       }
       else{
         cout << "\t- Obtaining " << procname << " graph" << endl;
-        TGraphAsymmErrors* tgdata_tmp = getDataGraph(prochist, false);
-        tgdata_tmp = getDataGraph(prochist, false);
-        if (procname=="data") tgdata_withZeros = getDataGraph(prochist, true);
+        TGraphAsymmErrors* tgdata_tmp = (procname_lower.Contains("4l") ? tgdata_4l : tgdata);
         if (tgdata_tmp){
           for (int ipoint=0; ipoint<tgdata_tmp->GetN(); ipoint++){
-            float bc = tgdata_tmp->GetY()[ipoint]+tgdata_tmp->GetEYhigh()[ipoint];
-            float bc_low = tgdata_tmp->GetY()[ipoint]-std::abs(tgdata_tmp->GetEYlow()[ipoint]);
+            double bc = tgdata_tmp->GetY()[ipoint]+tgdata_tmp->GetEYhigh()[ipoint];
+            double bc_low = tgdata_tmp->GetY()[ipoint]-std::abs(tgdata_tmp->GetEYlow()[ipoint]);
             if (bc!=0.){
               ymax = std::max(bc, ymax);
+            }
+            else{
+              ymin = std::min(bc, ymin);
             }
             if (bc_low!=0.){
               ymin = std::min(bc_low, ymin);
             }
           }
-          if (procname=="data") tgdata = tgdata_tmp;
-          else tgdata_4l = tgdata_tmp;
         }
       }
     }
     if (tg_systband){
       for (int ipoint=0; ipoint<tg_systband->GetN(); ipoint++){
-        float bc = tg_systband->GetY()[ipoint]+tg_systband->GetEYhigh()[ipoint];
-        float bc_low = tg_systband->GetY()[ipoint]-std::abs(tg_systband->GetEYlow()[ipoint]);
+        double bc = tg_systband->GetY()[ipoint]+tg_systband->GetEYhigh()[ipoint];
+        double bc_low = tg_systband->GetY()[ipoint]-std::abs(tg_systband->GetEYlow()[ipoint]);
         ymax = std::max(bc, ymax);
         ymin = std::min(bc_low, ymin);
       }
@@ -1414,31 +1446,31 @@ void plotHypoLikelihood(
 
     if (!useLogY) ymin=0;
 
-    float ymaxfactor = (!useLogY ? 1.25 : 2.);
-    float yminfactor = 0.8;
+    double ymaxfactor = (!useLogY ? 1.25 : 2.);
+    double yminfactor = 0.8;
 
     // Plot the ratio panel
     TGraphAsymmErrors* tg_systband_unit = nullptr;
-    TGraphAsymmErrors* tgdata_withZeros_unit = nullptr;
+    TGraphAsymmErrors* tgdata_unit = nullptr;
     TH1F* hdummy_ratio = nullptr;
     std::vector<TH1F*> hlist_ALT_dummy;
     {
-      if (tgdata_withZeros->GetN()!=tg_systband->GetN()) cerr << "Number of bins for data with zeros and syst. band are not the same." << endl;
+      if (tgdata->GetN()!=tg_systband->GetN()) cerr << "Number of bins for data with zeros and syst. band are not the same." << endl;
       else{
         hdummy_ratio = (TH1F*) hsum_nominal->Clone("hframe_ratio"); hdummy_ratio->Reset("ICESM"); hdummy_ratio->SetLineColor(0); hdummy_ratio->SetMarkerColor(0); hdummy_ratio->SetLineWidth(1);
         tg_systband_unit = (TGraphAsymmErrors*) tg_systband->Clone(Form("%s_unit", tg_systband->GetName()));
-        tgdata_withZeros_unit = (TGraphAsymmErrors*) tgdata_withZeros->Clone(Form("%s_unit", tgdata_withZeros->GetName()));
+        tgdata_unit = (TGraphAsymmErrors*) tgdata->Clone(Form("%s_unit", tgdata->GetName()));
         for (auto const& htmp:hlist_ALT) hlist_ALT_dummy.push_back((TH1F*) htmp->Clone(Form("%s_unit", htmp->GetName())));
 
         double ymin_ratio = 9e9;
         double ymax_ratio = -9e9;
-        for (int ix=0; ix<tgdata_withZeros->GetN(); ix++){
+        for (int ix=0; ix<tgdata->GetN(); ix++){
           double& val_systband = tg_systband_unit->GetY()[ix];
           double& val_systband_errdn = tg_systband_unit->GetEYlow()[ix];
           double& val_systband_errup = tg_systband_unit->GetEYhigh()[ix];
-          double& val_data = tgdata_withZeros_unit->GetY()[ix];
-          double& val_data_errdn = tgdata_withZeros_unit->GetEYlow()[ix];
-          double& val_data_errup = tgdata_withZeros_unit->GetEYhigh()[ix];
+          double& val_data = tgdata_unit->GetY()[ix];
+          double& val_data_errdn = tgdata_unit->GetEYlow()[ix];
+          double& val_data_errup = tgdata_unit->GetEYhigh()[ix];
 
           for (auto& hh:hlist_ALT_dummy){
             hh->SetBinContent(ix+1, (val_systband!=0. ? hh->GetBinContent(ix+1)/val_systband : 0.));
@@ -1500,7 +1532,7 @@ void plotHypoLikelihood(
         hdummy_ratio->SetMaximum(ymax_ratio);
         hdummy_ratio->GetXaxis()->SetTitleFont(42);
         hdummy_ratio->GetXaxis()->SetTitleSize(npixels_XYTitle/npixels_pad_bot);
-        hdummy_ratio->GetXaxis()->SetTitle("N_{no off-shell} / (N_{no off-shell} + N_{best fit})");
+        hdummy_ratio->GetXaxis()->SetTitle("N_{no off-shell} / (N_{#lower[-0.25]{no off-shell}} + N_{best fit})");
         hdummy_ratio->GetXaxis()->SetTitleOffset(offset_xtitle);
         hdummy_ratio->GetYaxis()->SetRangeUser(ymin_ratio, ymax_ratio);
         hdummy_ratio->GetYaxis()->SetTitleFont(42);
@@ -1513,7 +1545,7 @@ void plotHypoLikelihood(
         hdummy_ratio->Draw("hist");
         for (auto& hh:hlist_ALT_dummy) hh->Draw("histsame");
         tg_systband_unit->Draw("2same");
-        tgdata_withZeros_unit->Draw("0psame");
+        tgdata_unit->Draw("0psame");
       }
     }
 
@@ -1564,8 +1596,7 @@ void plotHypoLikelihood(
     delete hdummy_ratio;
     delete tg_systband_unit;
     delete tg_systband;
-    delete tgdata_withZeros_unit;
-    delete tgdata_withZeros;
+    delete tgdata_unit;
     delete tgdata_4l;
     delete tgdata;
 
