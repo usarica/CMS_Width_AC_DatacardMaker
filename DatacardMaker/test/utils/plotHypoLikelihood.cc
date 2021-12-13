@@ -574,7 +574,7 @@ void plotHypoLikelihood(
 ){
   TString const strAChypo="SM";
   constexpr bool isPostFit = true;
-  constexpr bool runSysts = false;
+  constexpr bool runSysts = true;
 
   // Magic numbers
   constexpr double npixels_stdframe_xy = 800;
@@ -670,14 +670,14 @@ void plotHypoLikelihood(
   };
   std::vector<int> proc_color{ int(TColor::GetColor("#99ccff")), int(TColor::GetColor("#ff9b9b"))/*, int(kCyan+2)*/, int(kOrange-3) };
   std::vector<int> proc_code{ -2, -2/*, -2*/, -2 };
-  proc_order.push_back("data");
-  proc_color.push_back((int) kBlack);
-  proc_code.push_back(-99);
-  proc_label.push_back("Observed 2l2#nu+4l");
   proc_order.push_back("data_ZZTo4L");
   proc_color.push_back((int) kBlack);
   proc_code.push_back(-99);
   proc_label.push_back("Observed 4l");
+  proc_order.push_back("data");
+  proc_color.push_back((int) kBlack);
+  proc_code.push_back(-99);
+  proc_label.push_back("Observed 2l2#nu+4l");
 
   constexpr double binwidth_adj = 0.001;
   std::vector<double> const binning_HD{
@@ -1282,6 +1282,43 @@ void plotHypoLikelihood(
     );
     canvas.cd();
 
+    int nleft=0;
+    int nright=0;
+    if (tgdata) nleft++;
+    if (tgdata_4l) nleft++;
+    if (procshape_flat_translated.find("total_BestFit")!=procshape_flat_translated.end()) nright++;
+    if (procshape_flat_translated.find("total_BestFit_ZZTo4L")!=procshape_flat_translated.end()) nright++;
+    if (procshape_flat_translated.find("total_NoHSigALT")!=procshape_flat_translated.end()) nright++;
+
+
+    double leg_xmin=(relmargin_frame_left + 0.03)/(1. + relmargin_frame_left + relmargin_frame_right);
+    double leg_xmax=(relmargin_frame_left + 0.4)/(1. + relmargin_frame_left + relmargin_frame_right);
+    double leg_ymax=(npixels_y - npixels_stdframe_xy*(0.05 + relmargin_frame_CMS))/npixels_y;
+    double leg_ymin=leg_ymax; leg_ymin -= npixels_XYTitle*nleft/npixels_y*1.25;
+    TLegend legend_left(leg_xmin, leg_ymin, leg_xmax, leg_ymax);
+    legend_left.SetBorderSize(0);
+    legend_left.SetTextFont(43);
+    legend_left.SetTextSize(npixels_XYTitle);
+    legend_left.SetLineColor(1);
+    legend_left.SetLineStyle(1);
+    legend_left.SetLineWidth(1);
+    legend_left.SetFillColor(0);
+    legend_left.SetFillStyle(0);
+
+    leg_xmax = (0.97 + relmargin_frame_left)/(1. + relmargin_frame_left + relmargin_frame_right);
+    leg_xmin = (0.13 + relmargin_frame_left)/(1. + relmargin_frame_left + relmargin_frame_right);
+    leg_ymax = leg_ymin - npixels_XYTitle/npixels_y*0.5;
+    leg_ymin=leg_ymax; leg_ymin -= npixels_XYTitle*nright/npixels_y*1.25;
+    TLegend legend_right(leg_xmin, leg_ymin, leg_xmax, leg_ymax);
+    legend_right.SetBorderSize(0);
+    legend_right.SetTextFont(43);
+    legend_right.SetTextSize(npixels_XYTitle);
+    legend_right.SetLineColor(1);
+    legend_right.SetLineStyle(1);
+    legend_right.SetLineWidth(1);
+    legend_right.SetFillColor(0);
+    legend_right.SetFillStyle(0);
+
     cout << "\t- Creating the pads..." << endl;
     TPad* pad_main = nullptr;
     TPad* pad_ratio = nullptr;
@@ -1359,6 +1396,20 @@ void plotHypoLikelihood(
     text->SetTextSize(npixels_CMSlogo*relsize_CMSlogo_sqrts);
     text->SetTextAlign(32);
 
+    TPaveText ptc(
+      (0.43 + relmargin_frame_left)/(1. + relmargin_frame_left + relmargin_frame_right),
+      leg_ymin - npixels_XYTitle/npixels_y*0.5 - npixels_XYTitle/npixels_y*1.25,
+      (0.97 + relmargin_frame_left)/(1. + relmargin_frame_left + relmargin_frame_right),
+      leg_ymin - npixels_XYTitle/npixels_y*0.5,
+      "brNDC"
+    );
+    ptc.SetBorderSize(0);
+    ptc.SetFillStyle(0);
+    ptc.SetTextAlign(12);
+    ptc.SetTextFont(43);
+    ptc.SetTextSize(npixels_XYTitle);
+    ptc.AddText(0.001, 0.5, Form("Best fit #Gamma_{H}: %s MeV", castValueToString(val_NominalHypo["GGsm"]*GHref, 1).data()));
+
     double ymax=-1, ymin=-1;
     if (useLogY) ymin=9e9;
     for (unsigned int ip=0; ip<proc_order.size(); ip++){
@@ -1368,11 +1419,13 @@ void plotHypoLikelihood(
       cout << "Adjusting process " << procname << " at index " << ip << endl;
       TH1F* prochist = &(procshape_flat_translated.find(procname)->second);
       cout << "\t- Process " << procname << " color: " << proc_color[ip] << endl;
+      prochist->SetLineWidth(1);
       if (procname.Contains("ALT")){
         if (procname.Contains("GGsm")) prochist->SetLineStyle(2);
         else if (procname.Contains("NoHSig")) prochist->SetLineStyle(4);
         prochist->SetMarkerColor(proc_color[ip]);
         prochist->SetLineColor(proc_color[ip]);
+        prochist->SetLineWidth(2);
       }
       else if (proc_code.at(ip)==-99){ // Data
         prochist->SetMarkerColor(proc_color[ip]);
@@ -1383,7 +1436,6 @@ void plotHypoLikelihood(
         prochist->SetFillColor(proc_color[ip]);
         prochist->SetFillStyle(1001);
       }
-      prochist->SetLineWidth(1);
 
       prochist->GetXaxis()->SetNdivisions(505);
       prochist->GetXaxis()->SetLabelFont(43);
@@ -1554,9 +1606,19 @@ void plotHypoLikelihood(
     bool drawfirst=true;
     for (unsigned int ip=proc_order.size(); ip>0; ip--){
       TString const& procname = proc_order.at(ip-1);
+      TString procname_lower = procname; procname_lower.ToLower();
       TString const& proclabel = proc_label.at(ip-1);
       TH1F* prochist = &(procshape_flat_translated.find(procname)->second);
-      if (procname=="data") continue;
+
+      if (!procname.Contains("data")){
+        if (procname.Contains("ALT")) legend_right.AddEntry(prochist, proclabel, "l");
+        else legend_right.AddEntry(prochist, proclabel, "f");
+      }
+      else{
+        if (procname_lower.Contains("4l")) legend_left.AddEntry(tgdata_4l, proclabel, "e1p");
+        else legend_left.AddEntry(tgdata, proclabel, "e1p");
+      }
+      if (procname.Contains("data")) continue;
       prochist->GetXaxis()->SetTitle("");
       prochist->GetXaxis()->SetLabelSize(0);
       prochist->GetXaxis()->SetTitleSize(0);
@@ -1577,7 +1639,10 @@ void plotHypoLikelihood(
     if (tgdata && tgdata->GetN()>0) tgdata->Draw("0psame");
 
     canvas.cd();
+    legend_left.Draw();
+    legend_right.Draw();
     pt.Draw();
+    ptc.Draw();
 
     for (auto& pad:pads){
       pad->RedrawAxis();

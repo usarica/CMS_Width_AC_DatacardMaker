@@ -763,7 +763,6 @@ void plotStacked(
     finput_postfit->Close();
     curdir->cd();
   }
-  postfit_vals_GGsmALT_map = postfit_vals_SM_map;
   if (isPostFit && strFitResultFile_GGsmALT!=""){
     TFile* finput_postfit = TFile::Open(strFitResultFile_GGsmALT, "read");
     RooFitResult* fitResult = dynamic_cast<RooFitResult*>(finput_postfit->Get("fit_mdf"));
@@ -785,7 +784,6 @@ void plotStacked(
     finput_postfit->Close();
     curdir->cd();
   }
-  postfit_vals_NoOffshellALT_map = postfit_vals_SM_map;
   if (isPostFit && strFitResultFile_NoOffshellALT!=""){
     TFile* finput_postfit = TFile::Open(strFitResultFile_NoOffshellALT, "read");
     RooFitResult* fitResult = dynamic_cast<RooFitResult*>(finput_postfit->Get("fit_mdf"));
@@ -807,7 +805,6 @@ void plotStacked(
     finput_postfit->Close();
     curdir->cd();
   }
-  postfit_vals_fai1ALT_map = postfit_vals_SM_map;
   if (isPostFit && strFitResultFile_fai1ALT!=""){
     TFile* finput_postfit = TFile::Open(strFitResultFile_fai1ALT, "read");
     RooFitResult* fitResult = dynamic_cast<RooFitResult*>(finput_postfit->Get("fit_mdf"));
@@ -829,7 +826,6 @@ void plotStacked(
     finput_postfit->Close();
     curdir->cd();
   }
-  postfit_vals_BestFitALT_map = postfit_vals_SM_map;
   if (isPostFit && strFitResultFile_BestFitALT!=""){
     TFile* finput_postfit = TFile::Open(strFitResultFile_BestFitALT, "read");
     RooFitResult* fitResult = dynamic_cast<RooFitResult*>(finput_postfit->Get("fit_mdf"));
@@ -2004,6 +2000,8 @@ void plotStacked(
         TH1F*& prochist = procdist[procname].front();
         if (!prochist) cout << procname << " histogram is null!" << endl;
         else cout << procname << " histogram is present." << endl;
+
+        prochist->SetLineWidth(1);
         if (procname.Contains("ALT")){
           if (procname.Contains("GGsm")) prochist->SetLineStyle(2);
           else if (procname.Contains("NoOffshell")) prochist->SetLineStyle(4);
@@ -2011,6 +2009,7 @@ void plotStacked(
           else if (procname.Contains("BestFit")) prochist->SetLineStyle(9);
           prochist->SetMarkerColor(proc_color[ip]);
           prochist->SetLineColor(proc_color[ip]);
+          prochist->SetLineWidth(2);
         }
         else if (proclabel=="Total SM"){
           prochist->SetMarkerColor(kRed);
@@ -2048,7 +2047,6 @@ void plotStacked(
           prochist->SetFillColor(proc_color[ip]);
           prochist->SetFillStyle(1001);
         }
-        prochist->SetLineWidth(1);
 
         if (procname=="data") tgdata=getDataGraph(prochist, false);
       }
@@ -2339,6 +2337,7 @@ void plotStacked(
         }
         cout << "\t- Process " << procname << " color: " << proc_color[ip] << endl;
         if (!prochist) cout << "ERROR: PDF for " << procname << " missing!" << endl;
+        prochist->SetLineWidth(1);
         if (procname.Contains("ALT")){
           if (procname.Contains("GGsm")) prochist->SetLineStyle(2);
           else if (procname.Contains("NoOffshell")) prochist->SetLineStyle(4);
@@ -2346,6 +2345,7 @@ void plotStacked(
           else if (procname.Contains("BestFit")) prochist->SetLineStyle(9);
           prochist->SetMarkerColor(proc_color[ip]);
           prochist->SetLineColor(proc_color[ip]);
+          prochist->SetLineWidth(2);
         }
         else if (proclabel=="Total SM"){
           prochist->SetMarkerColor(kRed);
@@ -2385,7 +2385,6 @@ void plotStacked(
           prochist->SetFillColor(proc_color[ip]);
           prochist->SetFillStyle(1001);
         }
-        prochist->SetLineWidth(1);
 
         cout << "\t- Adding overflow content" << endl;
         int binXlow = prochist->GetXaxis()->FindBin(xmin);
