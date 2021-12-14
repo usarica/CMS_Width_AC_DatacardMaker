@@ -584,7 +584,6 @@ void plotHypoLikelihood(
   constexpr double relmargin_frame_XTitle = 0.15;
   constexpr double relmargin_frame_separation = 0.1;
   constexpr double relsize_frame_ratio = 0.2;
-  constexpr double npixels_pad_xy = 800;
   constexpr double relsize_CMSlogo = 0.98;
   constexpr double relsize_CMSlogo_sqrts = 0.8;
   constexpr double relsize_XYTitle = 0.9;
@@ -1384,7 +1383,7 @@ void plotHypoLikelihood(
     text->SetTextSize(npixels_CMSlogo);
     text->SetTextAlign(12);
     if (markPreliminary){
-      text = pt.AddText(npixels_CMSlogo*2.2/npixels_pad_xy, 0.45, "Preliminary");
+      text = pt.AddText(npixels_CMSlogo*2.2/npixels_stdframe_xy, 0.45, "Preliminary");
       text->SetTextFont(53);
       text->SetTextSize(npixels_CMSlogo*relsize_CMSlogo_sqrts);
       text->SetTextAlign(12);
