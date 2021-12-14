@@ -37,7 +37,7 @@ using namespace std;
 
 
 class TPaletteAxisPatched : public TPaletteAxis{
-
+public:
   TPaletteAxisPatched() : TPaletteAxis(){}
   TPaletteAxisPatched(Double_t x1, Double_t y1, Double_t x2, Double_t  y2, TH1 *h) : TPaletteAxis(x1, y1, x2, y2, h){}
   TPaletteAxisPatched(const TPaletteAxisPatched& palette) : TPaletteAxis(palette){}
@@ -343,6 +343,7 @@ TH2F* getHistogramFromTree(TTree* tree, TString const strxvar, TString const str
         bool doAdd=true;
         doAdd &= !((strxvar=="GGsm" && xval>21.) || (stryvar=="GGsm" && yval>21.));
         doAdd &= !((strxvar=="rf_offshell" && xval>3.) || (stryvar=="rf_offshell" && yval>3.));
+        doAdd &= !((strxvar=="rv_offshell" && xval>4.) || (stryvar=="rv_offshell" && yval>4.));
         if (doAdd){
           addByLowest(xvalList, xval, true);
           addByLowest(yvalList, yval, true);
@@ -405,6 +406,59 @@ TString getVariableLabel(TString const strvar, TString const strachypo){
 }
 
 void plotScan2D(TString const indir, TString const strxvar, TString const stryvar, TString const strachypo=""){
+  // Magic numbers
+  constexpr double npixels_stdframe_xy = 800;
+  constexpr double relmargin_frame_left = 0.20;
+  constexpr double relmargin_frame_right = 0.05;
+  constexpr double relmargin_frame_CMS = 0.07;
+  constexpr double relmargin_frame_XTitle = 0.15;
+  constexpr double relmargin_frame_separation = 0.2;
+  constexpr double relsize_frame_ratio = 0.1;
+  constexpr double npixels_pad_xy = 1600;
+  constexpr double relsize_CMSlogo = 0.98;
+  constexpr double relsize_CMSlogo_sqrts = 0.8;
+  constexpr double relsize_XYTitle = 0.9;
+  constexpr double relsize_XYLabel = 0.8;
+  constexpr double offset_xlabel = 0.004;
+  constexpr double offset_ylabel = 0.007;
+  constexpr double offset_xtitle = 1.2;
+  constexpr double offset_ztitle = 1.09;
+  constexpr double offset_ytitle = 1.7;
+
+  unsigned int npads = 1;
+  const double npixels_CMSlogo = npixels_stdframe_xy*relmargin_frame_CMS*relsize_CMSlogo;
+  const double npixels_CMSlogo_sqrts = npixels_CMSlogo*relsize_CMSlogo_sqrts;
+  const double npixels_XYTitle = npixels_CMSlogo*relsize_XYTitle;
+  const double npixels_XYLabel = npixels_CMSlogo*relsize_XYLabel;
+
+  const double npixels_x = int(
+    npixels_stdframe_xy*(
+      1.
+      + relmargin_frame_left
+      + relmargin_frame_right
+      ) + 0.5
+    );
+  const double npixels_pad_top = int(
+    npixels_stdframe_xy*(
+      relmargin_frame_CMS
+      + 1.
+      + relmargin_frame_separation*0.95
+      ) + 0.5
+    );
+  const double npixels_pad_bot = int(
+    npixels_stdframe_xy*(
+      relmargin_frame_separation*0.05
+      + relsize_frame_ratio
+      + relmargin_frame_XTitle
+      ) + 0.5
+    );
+  const double npixels_y = npixels_pad_top + npixels_pad_bot;
+
+  const double palette_rel_xmin = 0;
+  const double palette_rel_xmax = 1;
+  const double palette_rel_ymax = -relmargin_frame_separation;
+  const double palette_rel_ymin = palette_rel_ymax - relsize_frame_ratio;
+
   gROOT->ProcessLine(".x tdrstyle.cc");
   gStyle->SetOptStat(0);
   gStyle->SetPalette(1);
@@ -572,7 +626,7 @@ void plotScan2D(TString const indir, TString const strxvar, TString const stryva
   }
 
   TString canvasname = Form("cCompare_%sVS%s_%s", strxvar.Data(), stryvar.Data(), strachypo.Data());
-  TCanvas* c = new TCanvas(canvasname, "", 2000, 1600);
+  TCanvas* c = new TCanvas(canvasname, "", npixels_x, npixels_y);
   c->SetFillColor(0);
   c->SetBorderMode(0);
   c->SetBorderSize(2);
@@ -583,24 +637,65 @@ void plotScan2D(TString const indir, TString const strxvar, TString const stryva
   c->SetFrameBorderMode(0);
   c->SetFrameFillStyle(0);
   c->SetFrameBorderMode(0);
+  c->SetLeftMargin(relmargin_frame_left/(1.+relmargin_frame_left+relmargin_frame_right));
+  c->SetRightMargin(relmargin_frame_right/(1.+relmargin_frame_left+relmargin_frame_right));
+  c->SetTopMargin(npixels_stdframe_xy*relmargin_frame_CMS/npixels_y);
+  c->SetBottomMargin((npixels_y - npixels_stdframe_xy*(1.+relmargin_frame_CMS))/npixels_y);
 
-  hh->GetXaxis()->SetLabelSize(0.04);
-  //hh->GetXaxis()->SetRangeUser(0., 20.);
+  hh->GetXaxis()->SetLabelFont(43);
+  hh->GetXaxis()->SetLabelOffset(offset_xlabel);
+  hh->GetXaxis()->SetLabelSize(npixels_XYLabel);
+  hh->GetXaxis()->SetTitleFont(43);
+  hh->GetXaxis()->SetTitleSize(npixels_XYTitle);
+  hh->GetXaxis()->SetTitleOffset(offset_xtitle);
+  hh->GetYaxis()->SetLabelFont(43);
+  hh->GetYaxis()->SetLabelOffset(offset_ylabel);
+  hh->GetYaxis()->SetLabelSize(npixels_XYLabel);
+  hh->GetYaxis()->SetTitleFont(43);
+  hh->GetYaxis()->SetTitleSize(npixels_XYTitle);
+  hh->GetYaxis()->SetTitleOffset(offset_ytitle);
+  hh->GetZaxis()->SetLabelFont(43);
+  hh->GetZaxis()->SetLabelOffset(offset_xlabel);
+  hh->GetZaxis()->SetLabelSize(npixels_XYLabel);
+  hh->GetZaxis()->SetTitleFont(43);
+  hh->GetZaxis()->SetTitleSize(npixels_XYTitle);
+  hh->GetZaxis()->SetTitleOffset(offset_ztitle);
+  hh->GetZaxis()->SetTitle("-2 #Delta ln L");
   hh->GetXaxis()->CenterTitle();
-  hh->GetYaxis()->SetLabelSize(0.04);
-  hh->GetYaxis()->SetTitleOffset(1);
   hh->GetYaxis()->CenterTitle();
+  hh->GetZaxis()->CenterTitle();
 
-   
-  TLegend *l = new TLegend(0.475,0.72,0.835,0.92);
+  c->cd();
+
+  const double hh_dx = hh->GetXaxis()->GetBinLowEdge(hh->GetNbinsX()+1) - hh->GetXaxis()->GetBinLowEdge(1);
+  const double hh_dy = hh->GetYaxis()->GetBinLowEdge(hh->GetNbinsY()+1) - hh->GetYaxis()->GetBinLowEdge(1);
+  const double palette_xmin = hh_dx*palette_rel_xmin + hh->GetXaxis()->GetBinLowEdge(1);
+  const double palette_xmax = hh_dx*palette_rel_xmax + hh->GetXaxis()->GetBinLowEdge(1);
+  const double palette_ymin = hh_dy*palette_rel_ymin + hh->GetYaxis()->GetBinLowEdge(1);
+  const double palette_ymax = hh_dy*palette_rel_ymax + hh->GetYaxis()->GetBinLowEdge(1);
+  TPaletteAxis* palette = new TPaletteAxisPatched(palette_xmin, palette_ymin, palette_xmax, palette_ymax, hh);
+  hh->GetListOfFunctions()->Add(palette);
+
+  c->cd();
+
+  int nleg=2;
+  if (g95) nleg++;
+  if (g95) nleg++;
+  TLegend* l = new TLegend(
+    (relmargin_frame_left + 0.5)/(1.+relmargin_frame_left+relmargin_frame_right),
+    static_cast<double>(npixels_y - npixels_stdframe_xy*relmargin_frame_CMS - npixels_XYLabel*1.25*nleg)/static_cast<double>(npixels_y),
+    (relmargin_frame_left + 0.97)/(1.+relmargin_frame_left+relmargin_frame_right),
+    static_cast<double>(npixels_y - npixels_stdframe_xy*relmargin_frame_CMS)/static_cast<double>(npixels_y),
+    "brNDC"
+  );
   l->SetBorderSize(0);
   l->SetFillStyle(0);
-  l->SetTextFont(42);
-  l->SetTextSize(0.04);
+  l->SetTextFont(43);
+  l->SetTextSize(npixels_XYLabel);
+  l->SetTextAlign(12);
   if (g95) l->AddEntry(g95,"-2 #Delta ln L = 5.99","l");
   if (g68) l->AddEntry(g68,"-2 #Delta ln L = 2.30","l");
   l->AddEntry(best,"Best fit","p");
-  c->cd();
   hh->Draw("colz");
   if (g95) g95->Draw("csame");
   if (g68) g68->Draw("csame");
@@ -617,35 +712,43 @@ void plotScan2D(TString const indir, TString const strxvar, TString const stryva
   best->Draw("Psame");
   l->Draw();
 
-  TText* text=nullptr;
-  TPaveText* ptc = new TPaveText(0.22, 0.85, 0.37, 0.95, "brNDC");
-  ptc->SetBorderSize(0);
-  ptc->SetFillStyle(0);
-  ptc->SetTextAlign(12);
-  ptc->SetTextFont(42);
-  ptc->SetTextSize(0.04);
-  text = ptc->AddText(0.02, 0.5, "#font[61]{CMS}");
-  //text = ptc->AddText(0.12, 0.42, "#font[52]{Preliminary}");
-  text->SetTextSize(0.06);
-  ptc->Draw();
+  constexpr bool markPreliminary = false;
+  constexpr double lumi2011=5.1;
+  constexpr double lumi2012=19.7;
+  constexpr double lumi2015=2.7;
+  constexpr double lumi201617=77.5;
+  constexpr double lumi20161718=138;
+  TText* text;
+  TPaveText pt(
+    npixels_stdframe_xy*relmargin_frame_left/npixels_x,
+    1.-(npixels_stdframe_xy*relmargin_frame_CMS-1)/npixels_y,
+    1.-npixels_stdframe_xy*relmargin_frame_right/npixels_x,
+    1,
+    "brNDC"
+  );
+  pt.SetBorderSize(0);
+  pt.SetFillStyle(0);
+  pt.SetTextAlign(22);
+  pt.SetTextFont(43);
+  text = pt.AddText(0.001, 0.5, "CMS");
+  text->SetTextFont(63);
+  text->SetTextSize(npixels_CMSlogo);
+  text->SetTextAlign(12);
+  if (markPreliminary){
+    text = pt.AddText(npixels_CMSlogo*2.2/npixels_pad_xy, 0.45, "Preliminary");
+    text->SetTextFont(53);
+    text->SetTextSize(npixels_CMSlogo*relsize_CMSlogo_sqrts);
+    text->SetTextAlign(12);
+  }
+  int theSqrts=13;
+  TString cErgTev = Form("#leq%.0f fb^{-1} (13 TeV)", lumi20161718);
+  text = pt.AddText(0.999, 0.45, cErgTev);
+  text->SetTextFont(43);
+  text->SetTextSize(npixels_CMSlogo*relsize_CMSlogo_sqrts);
+  text->SetTextAlign(32);
+  pt.Draw();
 
-	TPaveText* pt = new TPaveText(0.15,0.955,0.8,1,"brNDC");
-	pt->SetBorderSize(0);
-	pt->SetFillStyle(0);
-	pt->SetTextAlign(32);
-	pt->SetTextFont(42);
-	pt->SetTextSize(0.04);
-  float lumi2011=5.1;
-  float lumi2012=19.7;
-  float lumi2015=2.7;
-  float lumi201617=77.5;
-  float lumi20161718=138;
-  //text = pt->AddText(0.68, 0.45, Form("#font[42]{%.1f fb^{-1} (13 TeV)}", lumi201617+0.05));
-  //text = pt->AddText(0.2, 0.45, Form("#font[42]{%.1f fb^{-1} (7 TeV) + %.1f fb^{-1} (8 TeV) + %.1f fb^{-1} (13 TeV)}", lumi2011, lumi2012, lumi2015+lumi201617+0.05));
-  text = pt->AddText(0.999, 0.45, Form("#font[42]{#leq%.0f fb^{-1} (13 TeV)}", lumi20161718));
-  text->SetTextSize(0.04);
-  pt->Draw();
-
+  /*
   TPaveText* pt2 = new TPaveText(0.95, 0.33, 0.99, 0.99, "brNDC");
   //TPaveText* pt2 = new TPaveText(0.95, 0.77, 0.99, 0.99, "brNDC");
   pt2->SetBorderSize(0);
@@ -653,10 +756,11 @@ void plotScan2D(TString const indir, TString const strxvar, TString const stryva
 	pt2->SetTextAlign(21);
 	pt2->SetTextFont(42);
 	pt2->SetTextSize(0.04);
-	text = pt2->AddText(0.01,0.3,"#font[42]{-2 #Delta ln L}");
+	text = pt2->AddText(0.01,0.3, "-2 #Delta ln L");
 	text->SetTextSize(0.056);
 	text->SetTextAngle(90);
 	pt2->Draw();
+  */
 
   c->Update();
   c->Modified();
@@ -666,10 +770,9 @@ void plotScan2D(TString const indir, TString const strxvar, TString const stryva
   c->SaveAs(canvasname+".root");
   c->SaveAs(canvasname+".C");
 
-  delete pt2;
-  delete pt;
-  delete ptc;
+  //delete pt2;
   delete l;
+  //delete palette;
   c->Close();
 
   delete tlFF95;
