@@ -33,18 +33,19 @@ struct GraphStyle{
   TString label;
   int marker_style;
   float marker_size;
-  EColor marker_color;
+  int marker_color;
   int line_style;
   float line_width;
-  EColor line_color;
+  int line_color;
+  std::vector<double> knockout_x;
   GraphStyle(
     TString label_,
     int marker_style_,
     float marker_size_,
-    EColor marker_color_,
+    int marker_color_,
     int line_style_,
     float line_width_,
-    EColor line_color_
+    int line_color_
   ) :
     label(label_),
     marker_style(marker_style_),
@@ -58,7 +59,7 @@ struct GraphStyle{
     TString label_,
     int line_style_,
     float line_width_,
-    EColor line_color_
+    int line_color_
   ) :
     label(label_),
     marker_style(1),
@@ -141,13 +142,13 @@ std::vector<TString> lsdir(TString const& indir){
   return res;
 }
 
-TGraph* getGraphFromTree(TTree* tree, TString const strxvar, TString const stryvar){
+TGraph* getGraphFromTree(TTree* tree, TString const strxvar, TString const stryvar, std::vector<double> const& knockout_x){
   typedef float var_t;
 
   TGraph* gr=nullptr;
   vector<pair<var_t, var_t>> points;
   var_t xvar, yvar;
-  var_t nll, nll0;
+  double nll, nll0;
 
   if (tree){
     tree->SetBranchAddress(strxvar, &xvar);
@@ -164,16 +165,27 @@ TGraph* getGraphFromTree(TTree* tree, TString const strxvar, TString const stryv
       if (strxvar=="deltaNLL") xval *= 2;
       else if (strxvar=="GGsm") xval *= 4.07;
       if (stryvar=="deltaNLL"){
-        yval += nll+nll0;
+        //yval += nll+nll0;
         yval *= 2;
+        if (yval<0.) continue;
       }
       else if (stryvar=="GGsm") yval *= 4.07;
+
+      bool doKnockout = false;
+      for (double const& vk:knockout_x){
+        if (std::abs((static_cast<double>(xval)-vk))<=((static_cast<double>(xval)+vk)/2.)*1e-4){
+          doKnockout = true;
+          break;
+        }
+      }
+      if (doKnockout) continue;
+
       pair<var_t, var_t> point(xval, yval);
       minY=std::min(minY, yval);
       addByLowest(points, point, true);
     }
     if (stryvar=="deltaNLL"){ for (auto& point:points) point.second -= minY; }
-    TString grname=Form("%s%s%s", strxvar.Data(), ":", stryvar.Data());
+    TString grname=Form("%s_%s", strxvar.Data(), stryvar.Data());
     gr=makeGraphFromPair(points, grname);
   }
 
@@ -183,6 +195,7 @@ TGraph* getGraphFromTree(TTree* tree, TString const strxvar, TString const stryv
 TString getVariableLabel(TString const strvar, TString const strachypo){
   if (strvar=="deltaNLL") return "-2 #Delta lnL";
   else if (strvar=="GGsm") return "#Gamma_{H} (MeV)";
+  else if (strvar=="rfv_offshell") return "#mu_{i}^{off-shell}";
   else if (strvar=="R" || strvar=="r_offshell") return "#mu^{off-shell}";
   else if (strvar=="RF" || strvar=="rf_offshell") return "#mu_{F}^{off-shell}";
   else if (strvar=="RV" || strvar=="rv_offshell") return "#mu_{V}^{off-shell}";
@@ -196,7 +209,7 @@ TString getVariableLabel(TString const strvar, TString const strachypo){
   else return strvar;
 }
 
-void compareScans(std::vector< std::pair<TString, GraphStyle> > const& indir_label_pair_list, TString strxvar, TString stryvar="deltaNLL", TString strachypo=""){
+void compareScans(std::vector< std::pair<TString, GraphStyle> > const& indir_label_pair_list, TString strxvar, TString stryvar="deltaNLL", TString strachypo="", TString strappend="", TString strcase=""){
   // Magic numbers
   constexpr double npixels_stdframe_xy = 800;
   constexpr double relmargin_frame_left = 0.20;
@@ -209,8 +222,8 @@ void compareScans(std::vector< std::pair<TString, GraphStyle> > const& indir_lab
   constexpr double relsize_XYLabel = 0.8;
   constexpr double offset_xlabel = 0.004;
   constexpr double offset_ylabel = 0.007;
-  constexpr double offset_xtitle = 1.09;
-  constexpr double offset_ytitle = 1.5;
+  constexpr double offset_xtitle = 1.03;
+  constexpr double offset_ytitle = 1.3;
 
   const double npixels_CMSlogo = npixels_stdframe_xy*relmargin_frame_CMS*relsize_CMSlogo;
   const double npixels_CMSlogo_sqrts = npixels_CMSlogo*relsize_CMSlogo_sqrts;
@@ -238,26 +251,31 @@ void compareScans(std::vector< std::pair<TString, GraphStyle> > const& indir_lab
   gStyle->SetPadLeftMargin(0.16);
   gStyle->SetPadTopMargin(0.05);
 
+  TGraph* gr_obs = nullptr;
+  TGraph* gr_exp = nullptr;
+
   typedef float var_t;
   var_t xvar, yvar;
   std::vector<TGraph*> grlist;
-  std::unordered_map<TGraph*, TString> grlabels;
+  std::unordered_map<TGraph*, GraphStyle const*> grstyles;
+  unsigned int nleg = 0;
   {
     int igr = 0;
-    for (auto const& indir_label_pair:indir_label_pair_list){
+    for (auto& indir_label_pair:indir_label_pair_list){
       TString const& indir = indir_label_pair.first;
-      auto const& grstyle = indir_label_pair.second;
+      auto& grstyle = indir_label_pair.second;
 
       TChain* tree = new TChain("limit");
-      std::vector<TString> lsdirs = lsdir("./");
-      for (auto const& strdir:lsdirs){
-        if (strdir.Contains(indir)){
-          vector<TString> lscontent = lsdir(strdir);
-          for (auto const& s:lscontent){ if (s.Contains(".root")) tree->Add(strdir+"/"+s); }
-        }
-      }
+      int ntrees = 0;
+      ntrees += tree->Add(indir + "/*.root");
+      ntrees += tree->Add(indir + "_centered/*.root");
+      ntrees += tree->Add(indir + "_morelow/*.root");
+      ntrees += tree->Add(indir + "_UCSD/*.root");
+      cout << "Added " << ntrees << " from " << indir << " derivatives..." << endl;
 
-      TGraph* gr = getGraphFromTree(tree, strxvar, stryvar);
+      TString strxvar_eff = strxvar;
+      if (strxvar=="rfv_offshell") strxvar_eff = (igr%2==0 ? "rf_offshell" : "rv_offshell");
+      TGraph* gr = getGraphFromTree(tree, strxvar_eff, stryvar, grstyle.knockout_x);
       delete tree;
 
       if (!gr) continue;
@@ -272,11 +290,27 @@ void compareScans(std::vector< std::pair<TString, GraphStyle> > const& indir_lab
       gr->SetLineWidth(grstyle.line_width);
       gr->SetName(Form("gr%i", igr));
       gr->SetTitle("");
-      grlabels[gr] = grstyle.label;
+      grstyles[gr] = &grstyle;
+
+      if (grstyle.label!="") nleg++;
+
+      cout << "Done with " << gr->GetName() << " with " << gr->GetN() << " points..." << endl;
+
+      if (!gr_obs && grstyle.line_style==1){
+        gr_obs = (TGraph*) gr->Clone("gr_obs");
+        gr_obs->SetLineColor(kGray);
+      }
+      if (!gr_exp && grstyle.line_style!=1){
+        gr_exp = (TGraph*) gr->Clone("gr_exp");
+        gr_exp->SetLineColor(kGray);
+      }
+
+      igr++;
     }
   }
 
-  TString canvasname = Form("cCompare_%sVS%s_%s", stryvar.Data(), strxvar.Data(), strachypo.Data());
+  if (strappend!="") strappend = strappend + "_";
+  TString canvasname = Form("cCompare_%s%sVS%s_%s", strappend.Data(), stryvar.Data(), strxvar.Data(), strachypo.Data());
   TCanvas* c1 = new TCanvas(canvasname, "", npixels_x, npixels_y);
   c1->SetFillColor(0);
   c1->SetBorderMode(0);
@@ -293,10 +327,19 @@ void compareScans(std::vector< std::pair<TString, GraphStyle> > const& indir_lab
   c1->SetTopMargin(npixels_stdframe_xy*relmargin_frame_CMS/npixels_y);
   c1->SetBottomMargin(npixels_stdframe_xy*relmargin_frame_XTitle/npixels_y);
 
-  double leg_xmin = 0.2;
-  double leg_xmax = 0.5;
-  double leg_ymin = 0.7;
-  double leg_ymax = 0.92;
+  double leg_xmin = (relmargin_frame_left+0.03)/(1.+relmargin_frame_left+relmargin_frame_right);
+  if (strcase=="fa2"){
+    leg_xmin = (relmargin_frame_left+0.45)/(1.+relmargin_frame_left+relmargin_frame_right);
+  }
+  else if (strcase=="fa3"){
+    leg_xmin = (relmargin_frame_left+0.50)/(1.+relmargin_frame_left+relmargin_frame_right);
+  }
+  else if (strcase=="fL1"){
+    leg_xmin = (relmargin_frame_left+0.4)/(1.+relmargin_frame_left+relmargin_frame_right);
+  }
+  double leg_xmax = leg_xmin + 0.52/(1.+relmargin_frame_left+relmargin_frame_right);
+  double leg_ymax = static_cast<double>(npixels_y - npixels_stdframe_xy*(relmargin_frame_CMS+0.03))/static_cast<double>(npixels_y);
+  double leg_ymin = leg_ymax - static_cast<double>(nleg)*1.5*npixels_XYTitle/npixels_y;
   TLegend* leg = new TLegend(leg_xmin, leg_ymin, leg_xmax, leg_ymax);
   leg->SetFillColor(0);
   leg->SetLineColor(0);
@@ -306,13 +349,36 @@ void compareScans(std::vector< std::pair<TString, GraphStyle> > const& indir_lab
   leg->SetTextSize(npixels_XYTitle);
   leg->SetTextAlign(12);
 
-  float minX=0, maxX=0;
-  float minY=0, maxY=-1;
+  if (strcase=="fa3"){
+    double leg_dx = leg_xmax - leg_xmin;
+    leg_xmin = (relmargin_frame_left+0.12)/(1.+relmargin_frame_left+relmargin_frame_right);
+    leg_xmax = leg_xmin + leg_dx;
+    leg_ymin = leg_ymax - 2.*1.5*npixels_XYTitle/npixels_y;
+  }
+  else{
+    leg_ymax = leg_ymin - npixels_XYTitle/npixels_y;
+    leg_ymin = leg_ymax - 2.*1.5*npixels_XYTitle/npixels_y;
+  }
+  TLegend* leg2 = nullptr;
+  if (gr_obs && gr_exp){
+    leg2 = new TLegend(leg_xmin, leg_ymin, leg_xmax, leg_ymax);
+    leg2->SetFillColor(0);
+    leg2->SetLineColor(0);
+    leg2->SetBorderSize(0);
+    leg2->SetFillStyle(0);
+    leg2->SetTextFont(43);
+    leg2->SetTextSize(npixels_XYTitle);
+    leg2->SetTextAlign(12);
+    leg2->AddEntry(gr_obs, "Observed", "l");
+    leg2->AddEntry(gr_exp, "Expected", "l");
+  }
+
+
+  int ndiv_x = 510;
+  double minX=0, maxX=0;
+  double minY=1e9, maxY=-1e9;
   bool first=true;
-  for (unsigned int ig=0; ig<indir_label_pair_list.size(); ig++){
-    TGraph*& gr = grlist.at(ig);
-    minX=gr->GetXaxis()->GetBinLowEdge(gr->GetXaxis()->FindBin(gr->GetX()[0]));
-    maxX=gr->GetXaxis()->GetBinUpEdge(gr->GetXaxis()->FindBin(gr->GetX()[gr->GetN()-1]));
+  for (TGraph*& gr:grlist){
     gr->GetXaxis()->SetTitle(getVariableLabel(strxvar, strachypo));
     gr->GetYaxis()->SetTitle(getVariableLabel(stryvar, strachypo));
     gr->GetXaxis()->SetLabelFont(43);
@@ -329,42 +395,76 @@ void compareScans(std::vector< std::pair<TString, GraphStyle> > const& indir_lab
     gr->GetYaxis()->SetTitleOffset(offset_ytitle);
     gr->GetXaxis()->CenterTitle();
     gr->GetYaxis()->CenterTitle();
-    if (stryvar=="deltaNLL"){
-      if (strxvar=="GGsm"){
-        gr->GetXaxis()->SetNdivisions(510);
-        minX=gr->GetXaxis()->GetBinLowEdge(gr->GetXaxis()->FindBin(0.));
-        maxX=gr->GetXaxis()->GetBinUpEdge(gr->GetXaxis()->FindBin(50.));
-        maxY=-1; for (int ip=0; ip<gr->GetN(); ip++){ if (gr->GetX()[ip]<=maxX && gr->GetX()[ip]>=minX) maxY=std::max(maxY, (float) gr->GetY()[ip]); }
-      }
-      else if (strxvar=="CMS_zz4l_fai1"){
-        gr->GetXaxis()->SetNdivisions(510);
-        minX=gr->GetXaxis()->GetBinLowEdge(gr->GetXaxis()->FindBin(-0.15));
-        maxX=gr->GetXaxis()->GetBinUpEdge(gr->GetXaxis()->FindBin(0.15));
-        maxY=-1; for (int ip=0; ip<gr->GetN(); ip++){ if (gr->GetX()[ip]<=maxX && gr->GetX()[ip]>=minX) maxY=std::max(maxY, (float) gr->GetY()[ip]); }
-      }
-      gr->GetXaxis()->SetRangeUser(minX, maxX);
-      gr->GetYaxis()->SetRangeUser(minY, maxY*1.2);
+
+    if (first){
+      minX = gr->GetXaxis()->GetBinLowEdge(gr->GetXaxis()->FindBin(gr->GetX()[0]));
+      maxX = gr->GetXaxis()->GetBinUpEdge(gr->GetXaxis()->FindBin(gr->GetX()[gr->GetN()-1]));
     }
     else{
-      gr->GetXaxis()->SetNdivisions(510);
-      maxY=-9999; for (int ip=0; ip<gr->GetN(); ip++){ maxY=std::max(maxY, (float) gr->GetY()[ip]); }
-      minY=9999; for (int ip=0; ip<gr->GetN(); ip++){ minY=std::min(minY, (float) gr->GetY()[ip]); }
-      gr->GetYaxis()->SetRangeUser(minY*(minY>0. ? 0.8 : 1.2), maxY*1.2);
+      minX = std::max(minX, (double) gr->GetXaxis()->GetBinLowEdge(gr->GetXaxis()->FindBin(gr->GetX()[0])));
+      maxX = std::min(maxX, (double) gr->GetXaxis()->GetBinUpEdge(gr->GetXaxis()->FindBin(gr->GetX()[gr->GetN()-1])));
     }
-    gr->SetMarkerStyle(indir_label_pair_list.at(ig).second.marker_style);
-    gr->SetMarkerSize(indir_label_pair_list.at(ig).second.marker_size);
-    gr->SetMarkerColor(indir_label_pair_list.at(ig).second.marker_color);
-    gr->SetLineStyle(indir_label_pair_list.at(ig).second.line_style);
-    gr->SetLineWidth(indir_label_pair_list.at(ig).second.line_width);
-    gr->SetLineColor(indir_label_pair_list.at(ig).second.line_color);
+
+    for (int ip=0; ip<gr->GetN(); ip++){
+      if (gr->GetX()[ip]<minX) continue;
+      if (gr->GetX()[ip]>maxX) continue;
+      minY = std::min(minY, gr->GetY()[ip]);
+      maxY = std::max(maxY, gr->GetY()[ip]);
+      //cout << gr->GetName() << " (x, y) = " << gr->GetX()[ip] << ", " << gr->GetY()[ip] << endl;
+    }
+    first=false;
+  }
+
+  // Special x min/max
+  constexpr double adj_maxy = 1.2;
+  if (stryvar=="deltaNLL"){
+    if (strxvar=="r_offshell"){
+      minX = 0; maxX = 4; ndiv_x = 505;
+      minY = 0; maxY = 15./adj_maxy;
+    }
+    else if (strxvar=="rfv_offshell" || strxvar=="rf_offshell" || strxvar=="rv_offshell"){
+      minX = 0; maxX = 5; ndiv_x = 510;
+      minY = 0; maxY = 15./adj_maxy;
+    }
+    else if (strxvar=="GGsm"){
+      minX = 0; maxX = 15; ndiv_x = 505;
+      minY = 0; maxY = 15./adj_maxy;
+    }
+    else if (strxvar=="CMS_zz4l_fai1"){
+      if (strachypo=="a2"){
+        minX = -0.012; maxX = 0.012; ndiv_x = 505;
+        minY = 0; maxY = 15./adj_maxy;
+      }
+      else if (strachypo=="a3"){
+        minX = -0.006; maxX = 0.006; ndiv_x = 503;
+        minY = 0; maxY = 17./adj_maxy;
+      }
+      else if (strachypo=="L1"){
+        minX = -0.0012; maxX = 0.0012; ndiv_x = 1003;
+        minY = 0; maxY = 15./adj_maxy;
+      }
+    }
+  }
+
+  first = true;
+  for (TGraph*& gr:grlist){
+    auto const& grstyle = *(grstyles[gr]);
+
+    gr->GetXaxis()->SetRangeUser(minX, maxX);
+    gr->GetXaxis()->SetNdivisions(ndiv_x);
+    gr->GetYaxis()->SetRangeUser(minY*(minY>0. ? 0.8 : 1.2), maxY*adj_maxy);
+
     if (first) gr->Draw("ac");
     else gr->Draw("csame");
-    leg->AddEntry(gr, indir_label_pair_list.at(ig).second.label, "l");
+    if (grstyle.label!="") leg->AddEntry(gr, grstyle.label, "l");
+    first=false;
   }
   leg->Draw();
+  if (leg2) leg2->Draw();
 
   constexpr bool markPreliminary = false;
-  double lumi=138;
+  constexpr bool markSupplementary = true;
+  double lumi=(strxvar=="GGsm" || strxvar=="CMS_zz4l_fai1" ? 140. : 138.);
   TText* text;
   TPaveText pt(
     npixels_stdframe_xy*relmargin_frame_left/npixels_x,
@@ -387,6 +487,12 @@ void compareScans(std::vector< std::pair<TString, GraphStyle> > const& indir_lab
     text->SetTextSize(npixels_CMSlogo*relsize_CMSlogo_sqrts);
     text->SetTextAlign(12);
   }
+  else if (markSupplementary){
+    text = pt.AddText(npixels_CMSlogo*2.2/npixels_stdframe_xy, 0.45, "Supplementary");
+    text->SetTextFont(53);
+    text->SetTextSize(npixels_CMSlogo*relsize_CMSlogo_sqrts);
+    text->SetTextAlign(12);
+  }
   int theSqrts=13;
   TString cErgTev = Form("#leq%.0f fb^{-1} (13 TeV)", lumi);
   text = pt.AddText(0.999, 0.45, cErgTev);
@@ -399,52 +505,54 @@ void compareScans(std::vector< std::pair<TString, GraphStyle> > const& indir_lab
   TPaveText* twoSig=nullptr; TLine* l2=nullptr;
 
   if (stryvar=="deltaNLL"){
+    float sigtext_minX=0.77;
+    if (strcase=="r_offshell" || strcase=="rv_offshell") sigtext_minX = 0.10;
+    else if (strcase=="rfv_offshell_paper") sigtext_minX = 0.07;
+    else if (strcase=="fL1") sigtext_minX = 0.05;
+    const float sigtext_widthX=0.10;
+    const float sigtext_maxX=sigtext_minX+sigtext_widthX;
     if (maxY*1.2>excl[0]){
-      const float sigtext_minX=0.85;
-      const float sigtext_widthX=0.05;
-      const float sigtext_maxX=sigtext_minX+sigtext_widthX;
-      const float sigtext_minY=excl[0]+0.1;
-      const float sigtext_widthY=0.05*maxY*1.2/1.8;
+      const float sigtext_minY=excl[0] + (maxY-minY)/npixels_stdframe_xy*npixels_XYLabel*0.1;
+      const float sigtext_widthY=(maxY-minY)/npixels_stdframe_xy*npixels_XYLabel;
       const float sigtext_maxY=sigtext_minY+sigtext_widthY;
 
       oneSig = new TPaveText(minX*(1.-sigtext_minX)+maxX*sigtext_minX, sigtext_minY, minX*(1.-sigtext_maxX)+maxX*sigtext_maxX, sigtext_maxY, "nb");
       oneSig->SetFillColor(0);
-      oneSig->SetTextFont(42);
-      oneSig->SetTextSize(0.0315);
+      oneSig->SetTextFont(43);
+      oneSig->SetTextAlign(12);
+      oneSig->SetTextSize(npixels_XYLabel);
       oneSig->SetTextColor(kBlack);
       oneSig->SetBorderSize(0);
       oneSig->AddText("68% CL");
       oneSig->Draw();
 
-      l1=new TLine();
+      l1 = new TLine();
       l1->SetLineStyle(9);
       l1->SetLineWidth(2);
-      l1->SetLineColor(kBlack);
+      l1->SetLineColor(kOrange-3);
       l1->DrawLine(minX, excl[0], maxX, excl[0]);
       l1->Draw("same");
     }
 
     if (maxY*1.2>excl[1]){
-      const float sigtext_minX=0.85;
-      const float sigtext_widthX=0.05;
-      const float sigtext_maxX=sigtext_minX+sigtext_widthX;
-      const float sigtext_minY=excl[1]+0.1;
-      const float sigtext_widthY=0.05*maxY*1.2/1.8;
-      const float sigtext_maxY=sigtext_minY+sigtext_widthY;
+      const float sigtext_maxY=excl[1] - (maxY-minY)/npixels_stdframe_xy*npixels_XYLabel*0.1;
+      const float sigtext_widthY=(maxY-minY)/npixels_stdframe_xy*npixels_XYLabel;
+      const float sigtext_minY=sigtext_maxY-sigtext_widthY;
 
       twoSig = new TPaveText(minX*(1.-sigtext_minX)+maxX*sigtext_minX, sigtext_minY, minX*(1.-sigtext_maxX)+maxX*sigtext_maxX, sigtext_maxY, "nb");
       twoSig->SetFillColor(0);
-      twoSig->SetTextFont(42);
-      twoSig->SetTextSize(0.0315);
+      twoSig->SetTextFont(43);
+      twoSig->SetTextAlign(12);
+      twoSig->SetTextSize(npixels_XYLabel);
       twoSig->SetTextColor(kBlack);
       twoSig->SetBorderSize(0);
       twoSig->AddText("95% CL");
       twoSig->Draw();
 
-      l2=new TLine();
+      l2 = new TLine();
       l2->SetLineStyle(9);
       l2->SetLineWidth(2);
-      l2->SetLineColor(kBlack);
+      l2->SetLineColor(kOrange-3);
       l2->DrawLine(minX, excl[1], maxX, excl[1]);
       l2->Draw("same");
     }
@@ -455,7 +563,351 @@ void compareScans(std::vector< std::pair<TString, GraphStyle> > const& indir_lab
 
   delete l2; delete twoSig;
   delete l1; delete oneSig;
+  delete leg2;
   delete leg;
   c1->Close();
   for (auto& gr:grlist) delete gr;
+  delete gr_exp;
+  delete gr_obs;
+}
+
+void compareScans_R(TString strvar){
+  std::vector< std::pair<TString, GraphStyle> > inputs;
+
+  TString stryvar = "deltaNLL";
+  TString strappend = "";
+  TString strachypo = "SM";
+  TString strxvar = strvar;
+  if (strvar=="r_offshell_paper"){
+    strxvar = "r_offshell";
+    strappend = "Paper";
+    inputs.push_back(
+      std::pair<TString, GraphStyle>(
+        "AllResults/OffshellOnly_R_RVFixed_wCRZW_Obs_210812", {
+          "R_{V,F}^{off-shell}=1",
+          1, 2, static_cast<int>(kBlue)
+        }
+        )
+    );
+    inputs.push_back(
+      std::pair<TString, GraphStyle>(
+        "AllResults/OffshellOnly_R_RVFloated_wCRZW_Obs_210812", {
+          "R_{V,F}^{off-shell} (u)",
+          1, 2, static_cast<int>(kViolet)
+        }
+        )
+    );
+    inputs.push_back(
+      std::pair<TString, GraphStyle>(
+        "AllResults/OffshellOnly_R_RVFixed_wCRZW_Exp_210812", {
+          "",
+          7, 2, static_cast<int>(kBlue)
+        }
+        )
+    );
+    inputs.push_back(
+      std::pair<TString, GraphStyle>(
+        "AllResults/OffshellOnly_R_RVFloated_wCRZW_Exp_210812", {
+          "",
+          7, 2, static_cast<int>(kViolet)
+        }
+        )
+    );
+  }
+  else if (strvar=="rfv_offshell_paper"){
+    strxvar = "rfv_offshell";
+    strappend = "Paper";
+    inputs.push_back(
+      std::pair<TString, GraphStyle>(
+        "AllResults/OffshellOnly_RF_RVFloated_wCRZW_Obs_210812", {
+          "#mu_{F}^{off-shell}",
+          1, 2, static_cast<int>(kBlue)
+        }
+        )
+    );
+    inputs.push_back(
+      std::pair<TString, GraphStyle>(
+        "AllResults/OffshellOnly_RV_RFFloated_wCRZW_Obs_210812", {
+          "#mu_{V}^{off-shell}",
+          1, 2, static_cast<int>(kViolet)
+        }
+        )
+    );
+    inputs.push_back(
+      std::pair<TString, GraphStyle>(
+        "AllResults/OffshellOnly_RF_RVFloated_wCRZW_Exp_210812", {
+          "",
+          7, 2, static_cast<int>(kBlue)
+        }
+        )
+    );
+    inputs.push_back(
+      std::pair<TString, GraphStyle>(
+        "AllResults/OffshellOnly_RV_RFFloated_wCRZW_Exp_210812", {
+          "",
+          7, 2, static_cast<int>(kViolet)
+        }
+        )
+    );
+  }
+  else if (strvar=="rf_offshell"){
+    inputs.push_back(
+      std::pair<TString, GraphStyle>(
+        "AllResults/OffshellOnly_RF_RVFloated_wCRZW_Obs_210812", {
+          "2l2#nu+4l",
+          1, 2, static_cast<int>(kBlack)
+        }
+        )
+    );
+    inputs.push_back(
+      std::pair<TString, GraphStyle>(
+        "AllResults/Offshell2L2NuOnly_RF_RVFloated_wCRZW_Obs_210809", {
+          "Only 2l2#nu",
+          1, 2, static_cast<int>(kGreen+2)
+        }
+        )
+    );
+    inputs.push_back(
+      std::pair<TString, GraphStyle>(
+        "AllResults/OffshellOnly_RF_RVFloated_wCRZW_Exp_210812", {
+          "",
+          7, 2, static_cast<int>(kBlack)
+        }
+        )
+    );
+    inputs.push_back(
+      std::pair<TString, GraphStyle>(
+        "AllResults/Offshell2L2NuOnly_RF_RVFloated_wCRZW_Exp_210809", {
+          "",
+          7, 2, static_cast<int>(kGreen+2)
+        }
+        )
+    );
+  }
+  else if (strvar=="rv_offshell"){
+    inputs.push_back(
+      std::pair<TString, GraphStyle>(
+        "AllResults/OffshellOnly_RV_RFFloated_wCRZW_Obs_210812", {
+          "2l2#nu+4l",
+          1, 2, static_cast<int>(kBlack)
+        }
+        )
+    );
+    inputs.push_back(
+      std::pair<TString, GraphStyle>(
+        "AllResults/Offshell2L2NuOnly_RV_RFFloated_wCRZW_Obs_210809", {
+          "Only 2l2#nu",
+          1, 2, static_cast<int>(kGreen+2)
+        }
+        )
+    );
+    inputs.push_back(
+      std::pair<TString, GraphStyle>(
+        "AllResults/OffshellOnly_RV_RFFloated_wCRZW_Exp_210812", {
+          "",
+          7, 2, static_cast<int>(kBlack)
+        }
+        )
+    );
+    inputs.push_back(
+      std::pair<TString, GraphStyle>(
+        "AllResults/Offshell2L2NuOnly_RV_RFFloated_wCRZW_Exp_210809", {
+          "",
+          7, 2, static_cast<int>(kGreen+2)
+        }
+        )
+    );
+  }
+  else if (strvar=="r_offshell"){
+    inputs.push_back(
+      std::pair<TString, GraphStyle>(
+        "AllResults/OffshellOnly_R_RVFixed_wCRZW_Obs_210812", {
+          "R_{V,F}^{off-shell}=1 (2l2#nu+4l)",
+          1, 2, static_cast<int>(kBlue)
+        }
+        )
+    );
+    inputs.push_back(
+      std::pair<TString, GraphStyle>(
+        "AllResults/OffshellOnly_R_RVFloated_wCRZW_Obs_210812", {
+          "R_{V,F}^{off-shell} (u, 2l2#nu+4l)",
+          1, 2, static_cast<int>(kViolet)
+        }
+        )
+    );
+    inputs.push_back(
+      std::pair<TString, GraphStyle>(
+        "AllResults/Offshell2L2NuOnly_R_RVFixed_wCRZW_Obs_210809", {
+          "R_{V,F}^{off-shell}=1 (2l2#nu)",
+          1, 2, static_cast<int>(kRed)
+        }
+        )
+    );
+    inputs.push_back(
+      std::pair<TString, GraphStyle>(
+        "AllResults/Offshell2L2NuOnly_R_RVFloated_wCRZW_Obs_210809", {
+          "R_{V,F}^{off-shell} (u, 2l2#nu)",
+          1, 2, static_cast<int>(kGreen+2)
+        }
+        )
+    );
+    inputs.push_back(
+      std::pair<TString, GraphStyle>(
+        "AllResults/OffshellOnly_R_RVFixed_wCRZW_Exp_210812", {
+          "",
+          7, 2, static_cast<int>(kBlue)
+        }
+        )
+    );
+    inputs.push_back(
+      std::pair<TString, GraphStyle>(
+        "AllResults/OffshellOnly_R_RVFloated_wCRZW_Exp_210812", {
+          "",
+          7, 2, static_cast<int>(kViolet)
+        }
+        )
+    );
+    inputs.push_back(
+      std::pair<TString, GraphStyle>(
+        "AllResults/Offshell2L2NuOnly_R_RVFixed_wCRZW_Exp_210809", {
+          "",
+          7, 2, static_cast<int>(kRed)
+        }
+        )
+    );
+    inputs.push_back(
+      std::pair<TString, GraphStyle>(
+        "AllResults/Offshell2L2NuOnly_R_RVFloated_wCRZW_Exp_210809", {
+          "",
+          7, 2, static_cast<int>(kGreen+2)
+        }
+        )
+    );
+  }
+  else if (strvar=="GGsm"){
+    strachypo = "all";
+    inputs.push_back(
+      std::pair<TString, GraphStyle>(
+        "AllResults/FullComb_GGsm_wCRZW_Obs_210809", {
+          "SM-like (f_{ai}=0)",
+          1, 2, static_cast<int>(kBlack)
+        }
+        )
+    );
+    inputs.push_back(
+      std::pair<TString, GraphStyle>(
+        "AllResults/FullComb_GGsm_fa2Floated_wCRZW_Obs_210809", {
+          "f_{a2} (u)",
+          1, 2, static_cast<int>(kBlue)
+        }
+        )
+    );
+    inputs.push_back(
+      std::pair<TString, GraphStyle>(
+        "AllResults/FullComb_GGsm_fa3Floated_wCRZW_Obs_210809", {
+          "f_{a3} (u)",
+          1, 2, static_cast<int>(kRed)
+        }
+        )
+    );
+    inputs.push_back(
+      std::pair<TString, GraphStyle>(
+        "AllResults/FullComb_GGsm_fL1Floated_wCRZW_Obs_210809", {
+          "f_{#Lambda1} (u)",
+          1, 2, static_cast<int>(kViolet)
+        }
+        )
+    );
+
+    inputs.push_back(
+      std::pair<TString, GraphStyle>(
+        "AllResults/FullComb_GGsm_wCRZW_Exp_210809", {
+          "",
+          7, 2, static_cast<int>(kBlack)
+        }
+        )
+    );
+    inputs.push_back(
+      std::pair<TString, GraphStyle>(
+        "AllResults/FullComb_GGsm_fa2Floated_wCRZW_Exp_210809", {
+          "",
+          7, 2, static_cast<int>(kBlue)
+        }
+        )
+    );
+    inputs.push_back(
+      std::pair<TString, GraphStyle>(
+        "AllResults/FullComb_GGsm_fa3Floated_wCRZW_Exp_210809", {
+          "",
+          7, 2, static_cast<int>(kRed)
+        }
+        )
+    );
+    inputs.push_back(
+      std::pair<TString, GraphStyle>(
+        "AllResults/FullComb_GGsm_fL1Floated_wCRZW_Exp_210809", {
+          "",
+          7, 2, static_cast<int>(kViolet)
+        }
+        )
+    );
+  }
+  else if (strvar.BeginsWith("f")){
+    strxvar = "CMS_zz4l_fai1";
+    strachypo = strvar;
+    strachypo = strachypo(1, strachypo.Length());
+    inputs.push_back(
+      std::pair<TString, GraphStyle>(
+        Form("AllResults/FullComb_f%s_GGsmFixed_wCRZW_Obs_210809", strachypo.Data()), {
+          "#Gamma_{H}=4.1 MeV",
+          1, 2, static_cast<int>(kBlue)
+        }
+        )
+    );
+    inputs.push_back(
+      std::pair<TString, GraphStyle>(
+        Form("AllResults/FullComb_f%s_GGsmFloated_wCRZW_Obs_210809", strachypo.Data()), {
+          "#Gamma_{H} (u)",
+          1, 2, static_cast<int>(kViolet)
+        }
+        )
+    );
+    inputs.push_back(
+      std::pair<TString, GraphStyle>(
+        Form("AllResults/FullComb_f%s_Onshell4LOnly_Obs_210912", strachypo.Data()), {
+          "On-shell 4l",
+          1, 2, static_cast<int>(kGreen+2)
+        }
+        )
+    );
+
+    inputs.push_back(
+      std::pair<TString, GraphStyle>(
+        Form("AllResults/FullComb_f%s_GGsmFixed_wCRZW_Exp_210809", strachypo.Data()), {
+          "",
+          7, 2, static_cast<int>(kBlue)
+        }
+        )
+    );
+    inputs.push_back(
+      std::pair<TString, GraphStyle>(
+        Form("AllResults/FullComb_f%s_GGsmFloated_wCRZW_Exp_210809", strachypo.Data()), {
+          "",
+          7, 2, static_cast<int>(kViolet)
+        }
+        )
+    );
+    if (strvar=="fL1") inputs.back().second.knockout_x.push_back(0.00114533);
+    inputs.push_back(
+      std::pair<TString, GraphStyle>(
+        Form("AllResults/FullComb_f%s_Onshell4LOnly_Exp_210912", strachypo.Data()), {
+          "",
+          7, 2, static_cast<int>(kGreen+2)
+        }
+        )
+    );
+  }
+
+
+  compareScans(inputs, strxvar, stryvar, strachypo, strappend, strvar);
 }
