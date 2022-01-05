@@ -1424,7 +1424,7 @@ void plotHypoLikelihood(
         else if (procname.Contains("NoHSig")) prochist->SetLineStyle(4);
         prochist->SetMarkerColor(proc_color[ip]);
         prochist->SetLineColor(proc_color[ip]);
-        prochist->SetLineWidth(2);
+        prochist->SetLineWidth(4);
       }
       else if (proc_code.at(ip)==-99){ // Data
         prochist->SetMarkerColor(proc_color[ip]);

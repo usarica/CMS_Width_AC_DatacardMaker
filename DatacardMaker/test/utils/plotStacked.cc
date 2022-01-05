@@ -936,7 +936,7 @@ void plotStacked(
       else if (is_2l2nu){
         if (p=="qqZZ_offshell"){ proc_color.push_back(int(TColor::GetColor("#99ccff"))); proc_label.push_back("q#bar{q}#rightarrowZZ"); proc_code.push_back(0); }
         else if (p=="qqWZ_offshell"){ proc_color.push_back(int(TColor::GetColor("#00ff00"))); proc_label.push_back("q#bar{q}'#rightarrowWZ"); proc_code.push_back(0); }
-        else if (p=="InstrMET"){ proc_color.push_back(int(TColor::GetColor("#669966"))); proc_label.push_back("Instr. p_{T}^{miss}"); proc_code.push_back(0); }
+        else if (p=="InstrMET"){ proc_color.push_back(int(TColor::GetColor("#660099"))); proc_label.push_back("Instr. p_{T}^{miss}"); proc_code.push_back(0); }
         else if (p=="NRB_2l2nu"){ proc_color.push_back(int(kGray+1)); proc_label.push_back("Nonresonant"); proc_code.push_back(0); }
         else if (p=="tZX"){ proc_color.push_back(int(kOrange-6)); proc_label.push_back("tZ+X"); proc_code.push_back(0); }
         else if (p=="ggZZ_offshell"){
@@ -2008,7 +2008,7 @@ void plotStacked(
           else if (procname.Contains("BestFit")) prochist->SetLineStyle(9);
           prochist->SetMarkerColor(proc_color[ip]);
           prochist->SetLineColor(proc_color[ip]);
-          prochist->SetLineWidth(2);
+          prochist->SetLineWidth(4);
         }
         else if (proclabel=="Total SM"){
           prochist->SetMarkerColor(kRed);
