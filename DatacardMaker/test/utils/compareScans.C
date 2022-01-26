@@ -1,5 +1,6 @@
 #include <iostream>
 #include <fstream>
+#include <sstream>
 #include <cstdio>
 #include <cmath>
 #include <string>
@@ -209,13 +210,107 @@ TString getVariableLabel(TString const strvar, TString const strachypo){
   else return strvar;
 }
 
-void compareScans(std::vector< std::pair<TString, GraphStyle> > const& indir_label_pair_list, TString strxvar, TString stryvar="deltaNLL", TString strachypo="", TString strappend="", TString strcase=""){
+std::vector<double> findIntersections(TGraph* gr, double const& excl){
+  constexpr int niter = 100;
+  std::vector<double> res;
+  if (gr){
+    TSpline3 sp("", gr, "b2e2", 0, 0);
+    for (int ip=0; ip<gr->GetN()-1; ip++){
+      if (
+        (gr->GetY()[ip+1]>=excl && (gr->GetY()[ip]<excl || (ip==0 && gr->GetY()[ip]==excl)))
+        ||
+        (gr->GetY()[ip+1]<=excl && (gr->GetY()[ip]>excl || (ip==0 && gr->GetY()[ip]==excl)))
+        ){
+        double diffy=-1;
+        double locx=-9e9;
+        for (int j=0; j<=niter; j++){
+          double xx=gr->GetX()[ip] + double(j)/double(niter)*(gr->GetX()[ip+1]-gr->GetX()[ip]);
+          double yy=sp.Eval(xx);
+          if (diffy<0. || diffy>std::abs(yy-excl)){
+            locx = xx;
+            diffy = std::abs(yy-excl);
+          }
+        }
+        if (diffy>=0.) res.push_back(locx);
+      }
+    }
+  }
+  return res;
+}
+
+void print_hepdata_script(
+  TString scriptname,
+  TString const& stropt,
+  std::vector< std::pair<TString, TGraph*> > const& label_gr_pairs,
+  TString const& xtitle, TString const& ytitle,
+  double const& xmin, double const& xmax
+){
+  ofstream tout(scriptname.Data());
+
+  tout << R"V0G0N(
+from hepdata_lib import Submission
+from hepdata_lib import Table
+from hepdata_lib import Variable
+
+submission = Submission()
+)V0G0N" << endl;
+
+  for (unsigned int igr=0; igr<label_gr_pairs.size(); igr++){
+    auto const& grlabel = label_gr_pairs.at(igr).first;
+    auto const& gr = label_gr_pairs.at(igr).second;
+
+    TString xlabel = gr->GetXaxis()->GetTitle();
+    TString ylabel = gr->GetYaxis()->GetTitle();
+
+    tout << Form("table = Table(\"%s vs %s (%s)\")", xtitle.Data(), ytitle.Data(), grlabel.Data()) << endl;
+    tout << Form("table.description = \"%s vs %s (%s)\"", xtitle.Data(), ytitle.Data(), grlabel.Data()) << endl;
+    tout << R"V0G0N(
+table.location = "Table from CMS-HIG-21-013"
+table.keywords["reactions"] = [ "HIGGS --> Z0 Z0" ]
+)V0G0N" << endl;
+
+    tout << Form("xvar = Variable(\"%s\", is_independent=True, is_binned=False, units=\"%s\")", xtitle.Data(), (xtitle.Contains("GGsm") ? "GeV" : "")) << endl;
+    tout << Form("yvar = Variable(\"%s\", is_independent=False, is_binned=False, units=\"%s\")", ytitle.Data(), (ytitle.Contains("GGsm") ? "GeV" : "")) << endl;
+    tout << Form("yvar.add_qualifier(\"%s\",\"\")", ylabel.Data()) << endl;
+    tout << "yvar.add_qualifier(\"SQRT(S)\", 13, \"TeV\")" << endl;
+
+    stringstream ssx, ssy;
+    bool first = true;
+    for (int ip=0; ip<gr->GetN(); ip++){
+      if (gr->GetX()[ip]>=xmin && gr->GetX()[ip]<=xmax){
+        if (!first){
+          ssx << ", ";
+          ssy << ", ";
+        }
+        ssx << gr->GetX()[ip];
+        ssy << gr->GetY()[ip];
+        first = false;
+      }
+    }
+    tout << "xvar.values = [ " << ssx.str() << " ]" << endl;
+    tout << "yvar.values = [ " << ssy.str() << " ]" << endl;
+
+    tout << R"V0G0N(
+table.add_variable(xvar)
+table.add_variable(yvar)
+table.keywords["cmenergies"] = [13000]
+submission.add_table(table)
+)V0G0N" << endl;
+  }
+
+  tout << Form("submission.create_files(\"hepdata_%s\",remove_old=True)", stropt.Data()) << endl;
+
+  tout.close();
+}
+
+void compareScans_single(std::vector< std::pair<TString, GraphStyle> > const& indir_label_pair_list, TString strxvar, TString stryvar="deltaNLL", TString strachypo="", TString strappend="", TString strcase="", bool print_hepdata_rcd=false){
   // Magic numbers
   constexpr double npixels_stdframe_xy = 800;
   constexpr double relmargin_frame_left = 0.20;
   constexpr double relmargin_frame_right = 0.05;
   constexpr double relmargin_frame_CMS = 0.07;
   constexpr double relmargin_frame_XTitle = 0.15;
+  constexpr double relsize_longy_extra = 0.3;
   constexpr double relsize_CMSlogo = 0.98;
   constexpr double relsize_CMSlogo_sqrts = 0.8;
   constexpr double relsize_XYTitle = 0.9;
@@ -240,7 +335,7 @@ void compareScans(std::vector< std::pair<TString, GraphStyle> > const& indir_lab
   const double npixels_y = int(
     npixels_stdframe_xy*(
       relmargin_frame_CMS
-      + 1.
+      + 1. + (strcase!="GGsm_long" ? 0. : relsize_longy_extra)
       + relmargin_frame_XTitle
       ) + 0.5
     );
@@ -257,6 +352,7 @@ void compareScans(std::vector< std::pair<TString, GraphStyle> > const& indir_lab
   typedef float var_t;
   var_t xvar, yvar;
   std::vector<TGraph*> grlist;
+  std::unordered_map<TGraph*, TString> grindirs;
   std::unordered_map<TGraph*, GraphStyle const*> grstyles;
   unsigned int nleg = 0;
   {
@@ -291,6 +387,7 @@ void compareScans(std::vector< std::pair<TString, GraphStyle> > const& indir_lab
       gr->SetName(Form("gr%i", igr));
       gr->SetTitle("");
       grstyles[gr] = &grstyle;
+      grindirs[gr] = indir;
 
       if (grstyle.label!="") nleg++;
 
@@ -310,7 +407,57 @@ void compareScans(std::vector< std::pair<TString, GraphStyle> > const& indir_lab
   }
 
   if (strappend!="") strappend = strappend + "_";
-  TString canvasname = Form("cCompare_%s%sVS%s_%s", strappend.Data(), stryvar.Data(), strxvar.Data(), strachypo.Data());
+  TString canvasname_core = Form("%s%sVS%s_%s", strappend.Data(), stryvar.Data(), strxvar.Data(), strachypo.Data());
+  TString exclname = Form("limits_%s%s", canvasname_core.Data(), ".txt");
+
+  ofstream tout(exclname.Data());
+  for (auto const& pp:grindirs){
+    auto const& gr = pp.first;
+    auto const& indir = pp.second;
+
+    cout << indir << endl;
+    tout << indir << endl;
+    {
+      double llAtZero=-99;
+      double xAtMin=-99;
+      double llmin=9e9;
+      for (int ix=0; ix<gr->GetN(); ix++){
+        double const& yy = gr->GetY()[ix];
+        double const& xx = gr->GetX()[ix];
+        if (yy<llmin){
+          llmin = yy;
+          xAtMin = xx;
+        }
+        if (xx==0. && stryvar=="deltaNLL"){
+          llAtZero = yy;
+        }
+      }
+      
+      cout << "Minimum: " << xAtMin << " @ -2dNLL = " << llmin << endl;
+      tout << "Minimum: " << xAtMin << " @ -2dNLL = " << llmin << endl;
+      if (llAtZero>=0.){
+        cout << "-2dNLL = " << llAtZero << " @ " << strxvar << " = 0" << endl;
+        tout << "-2dNLL = " << llAtZero << " @ " << strxvar << " = 0" << endl;
+      }
+    }
+    for (unsigned char ie=0; ie<2; ie++){
+      std::vector<double> intersections = findIntersections(gr, excl[ie]);
+
+      cout << (ie==0 ? "68%:" : "95%:");
+      tout << (ie==0 ? "68%:" : "95%:");
+      for (auto const& px:intersections){
+        cout << " " << px;
+        tout << " " << px;
+      }
+      cout << endl;
+      tout << endl;
+    }
+    cout << endl;
+    tout << endl;
+  }
+  tout.close();
+
+  TString canvasname = Form("cCompare_%s", canvasname_core.Data());
   TCanvas* c1 = new TCanvas(canvasname, "", npixels_x, npixels_y);
   c1->SetFillColor(0);
   c1->SetBorderMode(0);
@@ -446,6 +593,38 @@ void compareScans(std::vector< std::pair<TString, GraphStyle> > const& indir_lab
     }
   }
 
+  if (print_hepdata_rcd){
+    gSystem->mkdir("hepdata", true);
+    TString hepdataname = Form("hepdata/%s%s", canvasname_core.Data(), ".py");
+
+    std::vector< std::pair<TString, TGraph*> > label_gr_pairs; label_gr_pairs.reserve(grlist.size());
+    {
+      unsigned int igr = 0;
+      for (TGraph*& gr:grlist){
+        auto const& grstyle = *(grstyles[gr]);
+
+        TString tmplabel = grstyle.label;
+        if (tmplabel=="") tmplabel = grstyles[grlist.at(igr - grlist.size()/2)]->label + " expected";
+        else tmplabel += " observed";
+
+        label_gr_pairs.emplace_back(tmplabel, gr);
+
+        igr++;
+      }
+    }
+
+    TString tmpxvar = strxvar;
+    if (tmpxvar=="CMS_zz4l_fai1") tmpxvar = Form("f%s", strachypo.Data());
+
+    print_hepdata_script(
+      hepdataname,
+      strcase,
+      label_gr_pairs,
+      tmpxvar, (stryvar=="deltaNLL" ? "-2dNLL" : stryvar),
+      minX, maxX
+    );
+  }
+
   first = true;
   for (TGraph*& gr:grlist){
     auto const& grstyle = *(grstyles[gr]);
@@ -463,7 +642,7 @@ void compareScans(std::vector< std::pair<TString, GraphStyle> > const& indir_lab
   if (leg2) leg2->Draw();
 
   constexpr bool markPreliminary = false;
-  constexpr bool markSupplementary = true;
+  constexpr bool markSupplementary = false;
   double lumi=(strxvar=="GGsm" || strxvar=="CMS_zz4l_fai1" ? 140. : 138.);
   TText* text;
   TPaveText pt(
@@ -507,6 +686,7 @@ void compareScans(std::vector< std::pair<TString, GraphStyle> > const& indir_lab
   if (stryvar=="deltaNLL"){
     float sigtext_minX=0.77;
     if (strcase=="r_offshell" || strcase=="rv_offshell") sigtext_minX = 0.10;
+    else if (strcase=="GGsm_long") sigtext_minX = 0.12;
     else if (strcase=="rfv_offshell_paper") sigtext_minX = 0.07;
     else if (strcase=="fL1") sigtext_minX = 0.05;
     const float sigtext_widthX=0.10;
@@ -571,7 +751,7 @@ void compareScans(std::vector< std::pair<TString, GraphStyle> > const& indir_lab
   delete gr_obs;
 }
 
-void compareScans_R(TString strvar){
+void compareScans(TString strvar, bool print_hepdata_rcd=false){
   std::vector< std::pair<TString, GraphStyle> > inputs;
 
   TString stryvar = "deltaNLL";
@@ -852,6 +1032,60 @@ void compareScans_R(TString strvar){
         )
     );
   }
+  else if (strvar=="GGsm_long"){
+    strxvar = "GGsm";
+    strachypo = "SM";
+    strappend = "2l2nu_vs_4l";
+    inputs.push_back(
+      std::pair<TString, GraphStyle>(
+        "AllResults/FullComb_GGsm_wCRZW_Obs_210809", {
+          "2l2#nu+4l off-shell + 4l on-shell",
+          1, 2, static_cast<int>(kBlack)
+        }
+        )
+    );
+    inputs.push_back(
+      std::pair<TString, GraphStyle>(
+        "AllResults/PartialComb_NoOffshell4L_GGsm_Obs_220108", {
+          "2l2#nu off-shell + 4l on-shell",
+          1, 2, static_cast<int>(kGreen+2)
+        }
+        )
+    );
+    inputs.push_back(
+      std::pair<TString, GraphStyle>(
+        "AllResults/PartialComb_NoOffshell2L2Nu_GGsm_Obs_220108", {
+          "4l off-shell + 4l on-shell",
+          1, 2, static_cast<int>(kViolet)
+        }
+        )
+    );
+
+    inputs.push_back(
+      std::pair<TString, GraphStyle>(
+        "AllResults/FullComb_GGsm_wCRZW_Exp_210809", {
+          "",
+          7, 2, static_cast<int>(kBlack)
+        }
+        )
+    );
+    inputs.push_back(
+      std::pair<TString, GraphStyle>(
+        "AllResults/PartialComb_NoOffshell4L_GGsm_Exp_220108", {
+          "",
+          7, 2, static_cast<int>(kGreen+2)
+        }
+        )
+    );
+    inputs.push_back(
+      std::pair<TString, GraphStyle>(
+        "AllResults/PartialComb_NoOffshell2L2Nu_GGsm_Exp_220108", {
+          "",
+          7, 2, static_cast<int>(kViolet)
+        }
+        )
+    );
+  }
   else if (strvar.BeginsWith("f")){
     strxvar = "CMS_zz4l_fai1";
     strachypo = strvar;
@@ -909,5 +1143,5 @@ void compareScans_R(TString strvar){
   }
 
 
-  compareScans(inputs, strxvar, stryvar, strachypo, strappend, strvar);
+  compareScans_single(inputs, strxvar, stryvar, strachypo, strappend, strvar, print_hepdata_rcd);
 }

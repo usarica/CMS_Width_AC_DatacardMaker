@@ -665,9 +665,9 @@ void plotHypoLikelihood(
     "Best fit, 4l component",
     "Best fit, 2l2#nu component",
     //Form("%s#Gamma_{H}=%s MeV", (aihypo=="" ? "" : "f_{ai}=0, "), getFractionString(val_GGsmALT["GGsm"]*GHref).Data()),
-    Form("#Gamma_{H}=%s MeV (no off-shell)", getFractionString(val_NoHSigALT["GGsm"]*GHref).Data())
+    "No off-shell"
   };
-  std::vector<int> proc_color{ int(TColor::GetColor("#99ccff")), int(TColor::GetColor("#ff9b9b"))/*, int(kCyan+2)*/, int(kOrange-3) };
+  std::vector<int> proc_color{ int(TColor::GetColor("#ff66ff")), int(TColor::GetColor("#66ff99"))/*, int(kCyan+2)*/, int(kOrange-3) };
   std::vector<int> proc_code{ -2, -2/*, -2*/, -2 };
   proc_order.push_back("data_ZZTo4L");
   proc_color.push_back((int) kBlack);

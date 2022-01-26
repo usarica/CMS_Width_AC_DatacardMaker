@@ -405,7 +405,73 @@ TString getVariableLabel(TString const strvar, TString const strachypo){
   else return strvar;
 }
 
-void plotScan2D(TString const indir, TString const strxvar, TString const stryvar, TString const strachypo=""){
+
+void print_hepdata_script(
+  TString scriptname,
+  TH2F* hist,
+  TString const& xtitle, TString const& ytitle, TString const& ztitle
+){
+  ofstream tout(scriptname.Data());
+
+  tout << R"V0G0N(
+from hepdata_lib import Submission
+from hepdata_lib import Table
+from hepdata_lib import Variable
+
+submission = Submission()
+)V0G0N" << endl;
+
+  TString xlabel = hist->GetXaxis()->GetTitle();
+  TString ylabel = hist->GetYaxis()->GetTitle();
+  TString zlabel = hist->GetZaxis()->GetTitle();
+
+  tout << Form("table = Table(\"%s vs %s\")", xtitle.Data(), ytitle.Data()) << endl;
+  tout << Form("table.description = \"%s vs %s\"", xtitle.Data(), ytitle.Data()) << endl;
+  tout << R"V0G0N(
+table.location = "Table from CMS-HIG-21-013"
+table.keywords["reactions"] = [ "HIGGS --> Z0 Z0" ]
+)V0G0N" << endl;
+
+  tout << Form("xvar = Variable(\"%s\", is_independent=True, is_binned=False, units=\"%s\")", xtitle.Data(), (xtitle.Contains("GGsm") ? "GeV" : "")) << endl;
+  tout << Form("yvar = Variable(\"%s\", is_independent=True, is_binned=False, units=\"%s\")", ytitle.Data(), (ytitle.Contains("GGsm") ? "GeV" : "")) << endl;
+  tout << Form("zvar = Variable(\"%s\", is_independent=False, is_binned=False, units=\"%s\")", ztitle.Data(), (ztitle.Contains("GGsm") ? "GeV" : "")) << endl;
+  tout << Form("zvar.add_qualifier(\"%s\",\"\")", getVariableLabel("deltaNLL", "SM")).Data()) << endl;
+  tout << "zvar.add_qualifier(\"SQRT(S)\", 13, \"TeV\")" << endl;
+
+  stringstream ssx, ssy, ssz;
+  bool first = true;
+  for (int ix=1; ix<=hist->GetNbinsX(); ix++){
+    for (int iy=1; iy<=hist->GetNbinsX(); iy++){
+      if (!first){
+        ssx << ", ";
+        ssy << ", ";
+        ssz << ", ";
+      }
+      ssx << hist->GetXaxis()->GetBinCenter(ix);
+      ssy << hist->GetYaxis()->GetBinCenter(iy);
+      ssz << hist->GetBinContent(ix, iy);
+      first = false;
+    }
+  }
+  tout << "xvar.values = [ " << ssx.str() << " ]" << endl;
+  tout << "yvar.values = [ " << ssy.str() << " ]" << endl;
+  tout << "zvar.values = [ " << ssz.str() << " ]" << endl;
+
+  tout << R"V0G0N(
+table.add_variable(xvar)
+table.add_variable(yvar)
+table.add_variable(zvar)
+table.keywords["cmenergies"] = [13000]
+submission.add_table(table)
+)V0G0N" << endl;
+
+  tout << Form("submission.create_files(\"hepdata_%s_vs_%s\",remove_old=True)", xtitle.Data(), ytitle.Data()) << endl;
+
+  tout.close();
+}
+
+
+void plotScan2D(TString const indir, TString const strxvar, TString const stryvar, TString const strachypo="", bool print_hepdata = false){
   // Magic numbers
   constexpr double npixels_stdframe_xy = 800;
   constexpr double relmargin_frame_left = 0.20;
@@ -624,7 +690,8 @@ void plotScan2D(TString const indir, TString const strxvar, TString const stryva
     gStyle->SetNumberContours(ncolors);
   }
 
-  TString canvasname = Form("cCompare_%sVS%s_%s", strxvar.Data(), stryvar.Data(), strachypo.Data());
+  TString canvasname_core = Form("%sVS%s_%s", strxvar.Data(), stryvar.Data(), strachypo.Data());
+  TString canvasname = Form("cCompare_%s", canvasname_core.Data());
   TCanvas* c = new TCanvas(canvasname, "", npixels_x, npixels_y);
   c->SetFillColor(0);
   c->SetBorderMode(0);
@@ -663,6 +730,17 @@ void plotScan2D(TString const indir, TString const strxvar, TString const stryva
   hh->GetXaxis()->CenterTitle();
   hh->GetYaxis()->CenterTitle();
   hh->GetZaxis()->CenterTitle();
+
+  if (print_hepdata){
+    gSystem->mkdir("hepdata", true);
+    TString hepdataname = Form("hepdata/%s%s", canvasname_core.Data(), ".py");
+
+    print_hepdata_script(
+      hepdataname,
+      hh,
+      strxvar, stryvar, "-2dNLL"
+    );
+  }
 
   c->cd();
 

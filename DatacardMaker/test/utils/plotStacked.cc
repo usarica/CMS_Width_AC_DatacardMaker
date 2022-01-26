@@ -676,6 +676,7 @@ void plotStacked(
 
   bool const isPostFit = (strFitResultFile_SM!="");
   bool const hasBestFit = (isPostFit && strFitResultFile_BestFitALT!="");
+  constexpr bool hasGGsmALT = false;
 
   if (addObsRatio){
     if (!isPostFit){ cerr << "Ratio plots must include a fit result." << endl; return; }
@@ -720,7 +721,7 @@ void plotStacked(
       if (cinputdir.Contains("/a3")){ val_fai1ALT=val_default; val_fai1ALT["fai1"]=0.05; val_fai1ALT["RV"]=getACMuV(cinputdir, val_fai1ALT["fai1"]); val_fai1ALT["RF"]=getACMuF(cinputdir, val_fai1ALT["fai1"]); }
       else if (cinputdir.Contains("/a2")){ val_fai1ALT=val_default; val_fai1ALT["fai1"]=0.05; val_fai1ALT["RV"]=getACMuV(cinputdir, val_fai1ALT["fai1"]); val_fai1ALT["RF"]=getACMuF(cinputdir, val_fai1ALT["fai1"]); }
       else if (cinputdir.Contains("/L1")){ val_fai1ALT=val_default; val_fai1ALT["fai1"]=0.05; val_fai1ALT["RV"]=getACMuV(cinputdir, val_fai1ALT["fai1"]); val_fai1ALT["RF"]=getACMuF(cinputdir, val_fai1ALT["fai1"]); }
-      val_GGsmALT=val_default; val_GGsmALT["GGsm"]=20./GHref;
+      if (hasGGsmALT) val_GGsmALT=val_default; val_GGsmALT["GGsm"]=20./GHref;
       val_NoOffshellALT=val_default; val_NoOffshellALT["GGsm"]=0;
       if (hasBestFit) val_BestFitALT=val_default;
     }
@@ -867,6 +868,8 @@ void plotStacked(
     if (is_4l){
       if (onORoffshell==1){ // Offshell
         proc_order=std::vector<TString>{ "Zjets", "qqZZ", "VVZZ_offshell", "ggZZ_offshell", "total_GGsmALT", "total_NoOffshellALT" };
+        if (hasGGsmALT) proc_order.push_back("total_GGsmALT");
+        proc_order.push_back("total_NoOffshellALT");
         if (!cinputdir.Contains("/SM")) proc_order.push_back("total_fai1ALT");
         if (hasBestFit) proc_order.push_back("total_BestFitALT");
       }
@@ -876,7 +879,9 @@ void plotStacked(
     }
     else if (is_2l2nu){
       //proc_order=std::vector<TString>{ "tZX", "qqZZ_offshell", "qqWZ_offshell", "NRB_2l2nu", "InstrMET", "VVVV_onshell", "VVVV_offshell", "ggZZ_offshell", "total_NoOffshellALT", "total_GGsmALT" };
-      proc_order=std::vector<TString>{ "tZX", "qqWZ_offshell", "qqZZ_offshell", "NRB_2l2nu", "InstrMET", "VVVV_combined", "ggZZ_offshell", "total_GGsmALT", "total_NoOffshellALT" };
+      proc_order=std::vector<TString>{ "tZX", "qqWZ_offshell", "qqZZ_offshell", "NRB_2l2nu", "InstrMET", "VVVV_combined", "ggZZ_offshell" };
+      if (hasGGsmALT) proc_order.push_back("total_GGsmALT");
+      proc_order.push_back("total_NoOffshellALT");
       if (!cinputdir.Contains("/SM")) proc_order.push_back("total_fai1ALT");
       if (hasBestFit) proc_order.push_back("total_BestFitALT");
     }
@@ -913,7 +918,7 @@ void plotStacked(
               proc_color.push_back(int(kCyan+2)); proc_code.push_back(-2);
             }
             else if (p.Contains("NoOffshellALT")){
-              proc_label.push_back(Form("Total (%s#Gamma_{H}=0 MeV)", (aihypo=="" ? "" : "f_{ai}=0, ")));
+              proc_label.push_back("Total, no off-shell");
               proc_color.push_back(int(kOrange-3)); proc_code.push_back(-2);
             }
             else if (p.Contains("BestFitALT")){
@@ -962,7 +967,7 @@ void plotStacked(
               proc_color.push_back(int(kCyan+2)); proc_code.push_back(-2);
             }
             else if (p.Contains("NoOffshellALT")){
-              proc_label.push_back(Form("Total (%s#Gamma_{H}=0 MeV)", (aihypo=="" ? "" : "f_{ai}=0, ")));
+              proc_label.push_back("Total, no off-shell");
               proc_color.push_back(int(kOrange-3)); proc_code.push_back(-2);
             }
             else if (p.Contains("BestFitALT")){
@@ -2127,8 +2132,11 @@ void plotStacked(
         tg_systband->SetLineColor(kBlack);
         tg_systband->SetMarkerColor(kBlack);
         tg_systband->SetFillColor(kBlack);
-        tg_systband->SetFillStyle(3345);
+        tg_systband->SetFillStyle(3545);
       }
+
+      bool const useLogX = (varlabels.at(idim).Contains("m_{T}^{ZZ}") || varlabels.at(idim).Contains("m_{T}^{WZ}") || varlabels.at(idim).Contains("p_{T}^{miss}"));
+      std::vector<TAxis*> dummy_axes;
 
       // Divide by bin width when plotting off-shell mass
       //if (onORoffshell==1 && (int) idim==massDim){ for (auto proc:proc_order) divideBinWidth(procdist[proc]); }
@@ -2200,7 +2208,7 @@ void plotStacked(
             pad->SetTopMargin(npixels_stdframe_xy*relmargin_frame_separation/2./npixels_pad_ratio);
             pad->SetBottomMargin(npixels_stdframe_xy*relmargin_frame_separation/2./npixels_pad_ratio);
           }
-          if (varlabels.at(idim).Contains("m_{T}^{ZZ}") || varlabels.at(idim).Contains("m_{T}^{WZ}") || varlabels.at(idim).Contains("p_{T}^{miss}")){
+          if (useLogX){
             pad->SetLogx(true);
             if (useLogY && pad==pad_main) pad->SetLogy(true);
           }
@@ -2258,7 +2266,7 @@ void plotStacked(
       if (ailabel!="") strCatLabel = strCatLabel + ", " + ailabel + " analysis";
       if (isPostFit){
         if (strPostfit=="") strCatLabel = strCatLabel + " (postfit)";
-        else strCatLabel = strCatLabel + Form(" (%s)", strPostfit.Data());
+        else if (strPostfit!="<none>") strCatLabel = strCatLabel + Form(" (%s)", strPostfit.Data());
       }
       else if (strPostfit!="") strCatLabel = strCatLabel + Form(" (%s)", strPostfit.Data());
 
@@ -2415,6 +2423,11 @@ void plotStacked(
         prochist->GetYaxis()->SetTitle("Events / bin");
         prochist->GetYaxis()->CenterTitle();
         prochist->GetXaxis()->CenterTitle();
+        if (useLogX){
+          prochist->GetXaxis()->SetMoreLogLabels();
+          prochist->GetXaxis()->SetNoExponent();
+          prochist->GetXaxis()->SetNdivisions(101);
+        }
 
         if (procname!="data"){
           for (int ix=binXlow; ix<=binXhigh; ix++){
@@ -2464,6 +2477,7 @@ void plotStacked(
       canvas.cd();
       pad_main->cd();
       bool drawfirst=true;
+      TH1F* prochist_first_clone = nullptr;
       for (unsigned int ip=proc_order.size(); ip>0; ip--){
         TString const& procname = proc_order.at(ip-1);
         TString const& proclabel = proc_label.at(ip-1);
@@ -2476,6 +2490,10 @@ void plotStacked(
         cout << "\t- Drawing " << procname << endl;
         prochist->GetYaxis()->SetRangeUser(ymin*yminfactor*0.8, ymax*ymaxfactor);
         prochist->Draw((drawfirst ? "hist" : "histsame"));
+        if (useLogX && drawfirst){
+          prochist_first_clone = (TH1F*) prochist->Clone("tmp_logx_main_copy");
+          prochist_first_clone->SetNdivisions(102);
+        }
         drawfirst=false;
       }
       // Draw error bands
@@ -2487,6 +2505,7 @@ void plotStacked(
         procdist[proc_order.at(ip-1)].at(idim)->Draw("histsame");
       }
       if (tgdata && tgdata->GetN()>0 && !isBlind) tgdata->Draw("e1psame");
+      if (prochist_first_clone) prochist_first_clone->Draw("sameaxis");
 
       canvas.cd();
       pt.Draw();
@@ -2494,7 +2513,8 @@ void plotStacked(
       if (strCutLabel!="") pt_cut.Draw();
 
       pad_comp->cd();
-      drawfirst=false;
+      drawfirst=true;
+      TH1F* intermediate_first_clone = nullptr;
       for (int ix=1; ix<=intermediateHistList.front()->GetNbinsX(); ix++){
         double bc_sum = intermediateHistList.front()->GetBinContent(ix);
         for (auto& hh:intermediateHistList) hh->SetBinContent(ix, hh->GetBinContent(ix)/bc_sum);
@@ -2508,13 +2528,24 @@ void plotStacked(
         hh->GetXaxis()->SetTitleFont(42);
         hh->GetXaxis()->SetTitleSize(npixels_XYTitle/npixels_pad_bot);
         hh->GetXaxis()->SetTitleOffset(offset_xtitle);
+        if (useLogX){
+          hh->GetXaxis()->SetMoreLogLabels();
+          hh->GetXaxis()->SetNoExponent();
+          hh->GetXaxis()->SetNdivisions(101);
+        }
         hh->GetYaxis()->SetTitleFont(42);
         hh->GetYaxis()->SetTitleSize(npixels_XYTitle/npixels_pad_bot);
         hh->GetYaxis()->SetTitleOffset(offset_ytitle*(npixels_pad_bot/npixels_pad_top));
 
         hh->Draw((drawfirst ? "hist" : "histsame"));
+        if (useLogX && drawfirst){
+          intermediate_first_clone = (TH1F*) hh->Clone("tmp_logx_comp_copy");
+          intermediate_first_clone->SetNdivisions(102);
+          intermediate_first_clone->SetLabelSize(0);
+        }
         drawfirst=false;
       }
+      if (intermediate_first_clone) intermediate_first_clone->Draw("sameaxis");
 
 
       canvas.cd();
@@ -2522,6 +2553,7 @@ void plotStacked(
       TGraphAsymmErrors* tg_systband_unit = nullptr;
       TGraphAsymmErrors* tgdata_withZeros_unit = nullptr;
       TH1F* hdummy_ratio = nullptr;
+      TH1F* hdummy_ratio_clone = nullptr;
       std::vector<TH1F*> hlist_ALT_dummy;
       if (addObsRatio){
         if (tgdata_withZeros->GetN()!=tg_systband->GetN()) cerr << "Number of bins for data with zeros and syst. band are not the same." << endl;
@@ -2608,11 +2640,22 @@ void plotStacked(
           hdummy_ratio->GetYaxis()->SetTitleOffset(offset_ytitle*(npixels_pad_ratio/npixels_pad_top));
           hdummy_ratio->GetYaxis()->SetNdivisions(3, 5, 2, true);
           hdummy_ratio->GetYaxis()->SetMaxDigits(2);
+          if (useLogX){
+            hdummy_ratio->GetXaxis()->SetMoreLogLabels();
+            hdummy_ratio->GetXaxis()->SetNoExponent();
+            hdummy_ratio->GetXaxis()->SetNdivisions(101);
 
+          }
           hdummy_ratio->Draw("hist");
+          if (useLogX){
+            hdummy_ratio_clone = (TH1F*) hdummy_ratio->Clone("tmp_logx_ratio_copy");
+            hdummy_ratio_clone->SetNdivisions(102);
+            hdummy_ratio_clone->SetLabelSize(0);
+          }
           for (auto& hh:hlist_ALT_dummy) hh->Draw("histsame");
           tg_systband_unit->Draw("2same");
           tgdata_withZeros_unit->Draw("0psame");
+          if (hdummy_ratio_clone) hdummy_ratio_clone->Draw("sameaxis");
         }
       }
 
@@ -2625,7 +2668,11 @@ void plotStacked(
       canvas.Modified();
       canvas.Update();
       canvas.SaveAs(TString(canvas.GetName()) + (isBlind ? "_blind" : "") + ".pdf");
+      canvas.SaveAs(TString(canvas.GetName()) + (isBlind ? "_blind" : "") + ".C");
+      delete hdummy_ratio_clone;
+      delete intermediate_first_clone;
       for (TH1F*& htmp:intermediateHistList) delete htmp;
+      delete prochist_first_clone;
       for (auto& pad:pads) pad->Close();
       canvas.Close();
       curdir->cd();
