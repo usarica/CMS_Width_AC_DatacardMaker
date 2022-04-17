@@ -2644,7 +2644,6 @@ void plotStacked(
             hdummy_ratio->GetXaxis()->SetMoreLogLabels();
             hdummy_ratio->GetXaxis()->SetNoExponent();
             hdummy_ratio->GetXaxis()->SetNdivisions(101);
-
           }
           hdummy_ratio->Draw("hist");
           if (useLogX){
