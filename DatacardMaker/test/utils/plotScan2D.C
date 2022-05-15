@@ -435,7 +435,7 @@ table.keywords["reactions"] = [ "HIGGS --> Z0 Z0" ]
   tout << Form("xvar = Variable(\"%s\", is_independent=True, is_binned=False, units=\"%s\")", xtitle.Data(), (xtitle.Contains("GGsm") ? "GeV" : "")) << endl;
   tout << Form("yvar = Variable(\"%s\", is_independent=True, is_binned=False, units=\"%s\")", ytitle.Data(), (ytitle.Contains("GGsm") ? "GeV" : "")) << endl;
   tout << Form("zvar = Variable(\"%s\", is_independent=False, is_binned=False, units=\"%s\")", ztitle.Data(), (ztitle.Contains("GGsm") ? "GeV" : "")) << endl;
-  tout << Form("zvar.add_qualifier(\"%s\",\"\")", getVariableLabel("deltaNLL", "SM")).Data()) << endl;
+  tout << Form("zvar.add_qualifier(\"%s\",\"\")", getVariableLabel("deltaNLL", "SM").Data()) << endl;
   tout << "zvar.add_qualifier(\"SQRT(S)\", 13, \"TeV\")" << endl;
 
   stringstream ssx, ssy, ssz;
@@ -636,12 +636,31 @@ void plotScan2D(TString const indir, TString const strxvar, TString const stryva
 
   constexpr unsigned int ncolors = 500;
   std::vector<int> colors; colors.reserve(ncolors);
-  std::vector<double> Red_abs{ 0, 255, 255, 0, 255, 224 };
-  std::vector<double> Green_abs{ 255, 0, 222, 230, 0, 224 };
-  std::vector<double> Blue_abs{ 0, 255, 3, 230, 0, 224 };
-  //std::vector<double> Red_abs{ 0, 255, 255, 255, 0, 224 };
-  //std::vector<double> Green_abs{ 255, 0, 222, 0, 230, 224 };
-  //std::vector<double> Blue_abs{ 0, 255, 3, 0, 230, 224 };
+  std::vector<std::vector<double>> RGB_abs{
+    { 0, 255, 0 }, // Bright green
+    { 0, 230, 230 }, // Cyan
+    //{ 20, 170, 255 }, // Bright blue
+    { 255, 0, 255 }, // Bright pink
+    { 255, 222, 3 }, // Bright gold
+    { 180, 180, 180 }, // Gray
+    { 255, 0, 0 } // Red
+    /*
+    { 0, 255, 0 }, // Bright green
+    { 255, 0, 255 }, // Bright pink
+    { 255, 222, 3 }, // Bright gold
+    { 0, 230, 230 }, // Cyan
+    { 255, 0, 0 }, // Red
+    { 224, 224, 224 } // Gray
+    */
+    /*
+    { 0, 255, 0 }, // Bright green
+    { 255, 0, 255 }, // Bright pink
+    { 255, 222, 3 }, // Bright gold
+    { 255, 0, 0 }, // Red
+    { 0, 230, 230 }, // Cyan
+    { 224, 224, 224 } // Gray
+    */
+  };
   std::vector<double> stops_dNLL{ 0.0, thr_dNLL_68, thr_dNLL_95, thr_dNLL_3s, thr_dNLL_4s, thr_dNLL_5s };
   std::vector<double> Red;
   std::vector<double> Green;
@@ -649,9 +668,9 @@ void plotScan2D(TString const indir, TString const strxvar, TString const stryva
   std::vector<double> Length;
   for (unsigned int ic=0; ic<stops_dNLL.size(); ic++){
     double srat = stops_dNLL.at(ic) / zmax;
-    double rr = Red_abs.at(ic)/255.;
-    double gg = Green_abs.at(ic)/255.;
-    double bb = Blue_abs.at(ic)/255.;
+    double rr = RGB_abs.at(ic).at(0)/255.;
+    double gg = RGB_abs.at(ic).at(1)/255.;
+    double bb = RGB_abs.at(ic).at(2)/255.;
 
     if (ic==0 || srat<=1.0){
       Red.push_back(rr);
@@ -663,9 +682,9 @@ void plotScan2D(TString const indir, TString const strxvar, TString const stryva
     else{
       double srat_prev = stops_dNLL.at(ic-1) / zmax;
 
-      double rr_prev = Red_abs.at(ic-1)/255.;
-      double gg_prev = Green_abs.at(ic-1)/255.;
-      double bb_prev = Blue_abs.at(ic-1)/255.;
+      double rr_prev = RGB_abs.at(ic-1).at(0)/255.;
+      double gg_prev = RGB_abs.at(ic-1).at(1)/255.;
+      double bb_prev = RGB_abs.at(ic-1).at(2)/255.;
 
       rr = (rr-rr_prev)/(srat-srat_prev)*(1.-srat_prev)+rr_prev;
       gg = (gg-gg_prev)/(srat-srat_prev)*(1.-srat_prev)+gg_prev;
