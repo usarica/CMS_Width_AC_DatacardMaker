@@ -559,6 +559,7 @@ void plotScan2D(TString const indir, TString const strxvar, TString const stryva
   constexpr double thr_dNLL_3s = 11.83; // 3 sigma
   constexpr double thr_dNLL_4s = 19.33; // 4 sigma
   constexpr double thr_dNLL_5s = 28.74; // 5 sigma
+  constexpr double thr_dNLL_inf = 999.; // Infinity
 
   if (!doReuse){
     hh = getHistogramFromTree(tree, strxvar, stryvar);
@@ -644,7 +645,8 @@ void plotScan2D(TString const indir, TString const strxvar, TString const stryva
     { 255, 0, 255 }, // Bright pink
     { 255, 222, 3 }, // Bright gold
     { 180, 180, 180 }, // Gray
-    { 255, 0, 0 } // Red
+    { 255, 0, 0 }, // Red
+    { 255, 255, 255 } // White
     /*
     { 0, 255, 0 }, // Bright green
     { 255, 0, 255 }, // Bright pink
@@ -662,7 +664,7 @@ void plotScan2D(TString const indir, TString const strxvar, TString const stryva
     { 224, 224, 224 } // Gray
     */
   };
-  std::vector<double> stops_dNLL{ 0.0, thr_dNLL_68, thr_dNLL_95, thr_dNLL_3s, thr_dNLL_4s, thr_dNLL_5s };
+  std::vector<double> stops_dNLL{ 0.0, thr_dNLL_68, thr_dNLL_95, thr_dNLL_3s, thr_dNLL_4s, thr_dNLL_5s , thr_dNLL_inf };
   std::vector<double> Red;
   std::vector<double> Green;
   std::vector<double> Blue;
