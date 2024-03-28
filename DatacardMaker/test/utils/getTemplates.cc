@@ -226,7 +226,7 @@ void getSqrtsPeriod(TString const& cinput, TString& strSqrtsPeriod, TString& str
 }
 TString getSystRename(TString const& systname, TString const& systLine, TString const& strSqrts, TString const& strPeriod, TString const& strCategory, TString const& strChannel){
   TString res=systname;
-  if (res.Contains("lumi")) res = "lumiUnc";
+  if (res == Form("lumi_%s_%s", strSqrts.Data(), strPeriod.Data())) res = "lumiUnc";
   else if (res == "BRhiggs_hzz4l") res = "BRhiggs_hzz";
   else if (res == "pdf_qq" || res == "pdf_qqbar") res = "pdf_variation_qqbar";
   else if (res == "pdf_As_qq" || res == "pdf_As_qqbar") res = "pdf_asmz_qqbar";
