@@ -76,10 +76,14 @@ class InputCardReader:
             self.sqrts = float(f[1])
 
          if f[0].lower().startswith("period"):
-            self.dataperiod = float(f[1])
+            try:
+               self.dataperiod = float(f[1])
+            except:
+               self.dataperiod = str(f[1])
 
          if f[0].lower().startswith("decay"):
-            if f[1] == "4mu": self.decayChan = 1
+            if f[1] == "4l": self.decayChan = -1
+            elif f[1] == "4mu": self.decayChan = 1
             elif f[1] == "4e": self.decayChan = 2
             elif f[1] == "2e2mu": self.decayChan = 3
             elif f[1] == "2mu2e": self.decayChan = 4
@@ -90,7 +94,7 @@ class InputCardReader:
             elif f[1] == "munumunu": self.decayChan = 9 # WW
             elif f[1] == "2l1e": self.decayChan = 10 # ZW
             elif f[1] == "2l1mu": self.decayChan = 11 # ZW
-            else: raise RuntimeError("Unknown decay channel {0}, choices are 4mu, 4e, 2e2mu, 2mu2e, 2e2nu, 2mu2nu, enumunu, enuenu, munumunu, 2l1e, 2l1mu".format(f[1]))
+            else: raise RuntimeError("Unknown decay channel {0}, choices are 4l, 4mu, 4e, 2e2mu, 2mu2e, 2e2nu, 2mu2nu, enumunu, enuenu, munumunu, 2l1e, 2l1mu".format(f[1]))
             self.decayChanName = f[1]
 
          if f[0].lower().startswith("category"):

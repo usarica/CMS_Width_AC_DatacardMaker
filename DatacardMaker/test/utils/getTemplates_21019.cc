@@ -147,6 +147,7 @@ void process_spec::acquireTemplates(TFile* finput){
   constexpr bool useOnlySM = true;
 
   bool const is_offshell = name.Contains("offshell");
+  bool const is_onshell = name.Contains("onshell") || name=="ttH";
   unsigned int const ntpls = (is_offshell ? 3 : 1);
 
   std::vector<TString> tplinputcorenames;
@@ -164,7 +165,7 @@ void process_spec::acquireTemplates(TFile* finput){
     }
     else{
       tplinputcorenames.push_back(get_template_corename(name, 0));
-      TString nname = Form("T_%s", name.Data());
+      TString nname = Form("T_%s%s", name.Data(), (is_onshell ? "_Sig" : ""));
       tploutputcorenames.push_back(nname);
     }
   }
@@ -395,7 +396,7 @@ TString getSystRename(TString const& systname, TString const& systLine, TString 
 
 bool checkProcessIsBkg(TString procname){
   procname.ToLower();
-  return (procname.Contains("back_qqZZ") || procname.Contains("back_zjets"));
+  return (procname.Contains("qqzz") || procname.Contains("zjets"));
 }
 
 void getDataTree(TFile* finput, TString coutput){
@@ -415,7 +416,8 @@ void getCatRename(string& catname){
 
 // flip_asym_lnN: Fixes the bug in lnN systematics to be ordered as "down/up" instead of "up/down" per Combine conventions:
 // https://cms-analysis.github.io/HiggsAnalysis-CombinedLimit/latest/part2/settinguptheanalysis/#a-simple-counting-experiment.
-void getTemplates_21019(TString cinput_txt, TString coutput_main, bool flip_asym_lnN = true){
+// normalize_lumi: Normalizes the templates to unit luminosity.
+void getTemplates_21019(TString cinput_txt, TString coutput_main, bool flip_asym_lnN = true, bool normalize_lumi = true){
   TString cinput_main;
   {
     vector<TString> splitinput;
@@ -599,6 +601,7 @@ void getTemplates_21019(TString cinput_txt, TString coutput_main, bool flip_asym
 
 
   // Write input file
+  double lumi_current = getBestLumiCurrent();
   if (strSqrts!=""){
     TString strSqrtsBare=strSqrts;
     int ipos = strSqrtsBare.Index("TeV");
@@ -607,7 +610,7 @@ void getTemplates_21019(TString cinput_txt, TString coutput_main, bool flip_asym
   }
   if (strPeriod!="") tout << "period " << strPeriod << endl;
   tout << "decay " << channame << endl;
-  tout << "lumi " << std::setprecision(11) << getBestLumiCurrent() << endl;
+  tout << "lumi " << std::setprecision(11) << lumi_current << endl;
   tout << "category " << catname << endl;
 
   // Write channels
@@ -615,6 +618,7 @@ void getTemplates_21019(TString cinput_txt, TString coutput_main, bool flip_asym
     auto const pname = procSpecs[procnames.at(ip).Data()].name;
     unsigned int proccode = (checkProcessIsBkg(pname) ? 0 : (pname.Contains("offshell") ? 2 : 1));
     tout << "channel " << procnames.at(ip) << " 1 -1 " << proccode;
+    if (procnames.at(ip)=="Zjets") tout << " Options:DataDriven";
     tout << endl;
   }
 
@@ -661,6 +665,7 @@ void getTemplates_21019(TString cinput_txt, TString coutput_main, bool flip_asym
       TFile* foutput = TFile::Open(coutput_root, "recreate");
       cout << "[" << procnames.at(ip) << "][" << syst << "] integrals:";
       for (auto const& hh:htpls){
+        if (normalize_lumi && procnames.at(ip)!="Zjets") hh->Scale(1./lumi_current);
         cout << " " << hh->Integral("width");
         foutput->WriteTObject(hh);
       }
