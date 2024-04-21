@@ -36,7 +36,7 @@ def run_single(args,grid_user,jobmaindir,batchscript,condorsite,run_arg,run_mode
    wsfile = args.wsfile
    run_args = []
    extra_uploads = args.extra_upload
-   condoroutdir="/hadoop/cms/store/user/{}/Offshell_2L2Nu/Worker/output/WidthACFits/{}".format(grid_user,args.date)
+   condoroutdir="/ceph/cms/store/user/{}/Offshell_2L2Nu/Worker/output/WidthACFits/{}".format(grid_user,args.date)
    jobdir = None
 
    if run_mode.lower() == "nll":

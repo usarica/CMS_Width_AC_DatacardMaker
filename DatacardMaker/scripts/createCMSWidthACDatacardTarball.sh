@@ -44,18 +44,20 @@ fi
 
 tar Jcvf ${TARFILE} ${extraTarFile} \
 lib/*/*CombinedLimit* \
-lib/*/libCMSDataToolsAnalysisTree.so \
-lib/*/libJHUGenMELAMELA.so \
 biglib \
 bin \
+src/IvyFramework \
 src/HiggsAnalysis/CombinedLimit \
-src/JHUGenMELA/MELA/data/${SCRAM_ARCH}/lib*.so \
 --exclude=src/*/*/src \
 --exclude=src/*/*/bin \
 --exclude=src/*/*/scripts \
 --exclude=src/HiggsAnalysis/CombinedLimit/data \
 --exclude=src/HiggsAnalysis/CombinedLimit/macros \
 --exclude=src/HiggsAnalysis/CombinedLimit/doc* \
+--exclude=src/IvyFramework/IvyDataTools/obj* \
+--exclude=src/IvyFramework/IvyDataTools/src* \
+--exclude=src/IvyFramework/IvyDataTools/bin* \
+--exclude=src/IvyFramework/IvyDataTools/scripts* \
 --exclude=src/*/*/test/Pdfdata \
 --exclude=src/*/*/test/br.sm* \
 --exclude=src/*/*/test/*.dat \
